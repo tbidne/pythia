@@ -1,0 +1,13 @@
+ideas
+-----
+- battery
+  - level
+  - state
+- network
+  - device status
+- filesystem
+  - used space
+  - free space
+- cpu
+- memory
+- temperature
