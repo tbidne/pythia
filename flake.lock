@@ -33,7 +33,31 @@
     "root": {
       "inputs": {
         "flake-utils": "flake-utils",
-        "nixpkgs": "nixpkgs"
+        "nixpkgs": "nixpkgs",
+        "smart-data-src": "smart-data-src"
+      }
+    },
+    "smart-data-src": {
+      "inputs": {
+        "flake-utils": [
+          "flake-utils"
+        ],
+        "nixpkgs": [
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1635492065,
+        "narHash": "sha256-zsW5Gh0NVD2rEcgnwjjh5Rwmbt+bmRm5hOSnJtCR7cg=",
+        "owner": "tbidne",
+        "repo": "smart-data",
+        "rev": "b7c41de04e4aca7e86182aaaaea8ba6dc1bc0c57",
+        "type": "github"
+      },
+      "original": {
+        "owner": "tbidne",
+        "repo": "smart-data",
+        "type": "github"
       }
     }
   },

@@ -8,7 +8,7 @@ where
 
 import Data.Text (Text)
 import System.Info.Data.Command (Command (..))
-import System.Info.Error (Error)
+import System.Info.Data.Error (Error)
 import System.Info.Network.Connection.NetworkManager qualified as NM
 import System.Info.Network.Connection.Types as X
 import System.Info.Utils qualified as U

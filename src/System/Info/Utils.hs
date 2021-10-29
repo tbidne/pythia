@@ -13,7 +13,7 @@ import Data.Text.Conversions (UTF8 (..))
 import Data.Text.Conversions qualified as Conv
 import GHC.IO.Exception (ExitCode (..))
 import System.Info.Data.Command (Command (..))
-import System.Info.Error (Error (..))
+import System.Info.Data.Error (Error (..))
 import System.Process.Typed qualified as TP
 
 -- | Runs the given command and attempts to parse the result using the given

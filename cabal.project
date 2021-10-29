@@ -6,3 +6,8 @@ package system-info
     -Wincomplete-record-updates -Wincomplete-uni-patterns
     -Wmissing-home-modules -Wmissing-export-lists -Wpartial-fields
     -Wredundant-constraints
+
+source-repository-package
+    type: git
+    location: https://github.com/tbidne/smart-data.git
+    tag: b7c41de04e4aca7e86182aaaaea8ba6dc1bc0c57

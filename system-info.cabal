@@ -54,10 +54,8 @@ library
   import:           common-exts
   exposed-modules:
     System.Info
-    System.Info.Data.BoundedNat
     System.Info.Data.Command
-    System.Info.Data.NonNegative
-    System.Info.Error
+    System.Info.Data.Error
     System.Info.Network.Connection
     System.Info.Network.Connection.NetworkManager
     System.Info.Network.Connection.NetworkManager.Parsing
@@ -73,6 +71,7 @@ library
     , base              ^>=4.14.1.0
     , bytestring        >=0.10.10.0 && <0.12
     , optics-core       ^>=0.4
+    , smart-data        ^>=0.1.0.0
     , text              ^>=1.2.3.2
     , text-conversions  >=0.2.0     && <0.4
     , typed-process     >=0.1.0.0   && <0.3

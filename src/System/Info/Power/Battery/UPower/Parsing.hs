@@ -12,8 +12,8 @@ import Data.Attoparsec.Text qualified as AP
 import Data.Functor (($>))
 import Data.Text (Text)
 import Data.Text qualified as T
-import System.Info.Data.BoundedNat qualified as BN
-import System.Info.Error (Error (..))
+import Smart.Data.Math.BoundedNat qualified as BN
+import System.Info.Data.Error (Error (..))
 import System.Info.Power.Battery.Types
   ( BatteryLevel,
     BatteryState (..),
