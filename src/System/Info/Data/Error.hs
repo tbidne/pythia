@@ -1,5 +1,5 @@
 -- | This module provides the 'Error' type.
-module System.Info.Error
+module System.Info.Data.Error
   ( Error (..),
   )
 where

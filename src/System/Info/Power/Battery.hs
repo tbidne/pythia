@@ -6,7 +6,7 @@ module System.Info.Power.Battery
 where
 
 import System.Info.Data.Command (Command (..))
-import System.Info.Error (Error)
+import System.Info.Data.Error (Error)
 import System.Info.Power.Battery.Types as X
 import System.Info.Power.Battery.UPower qualified as UPower
 import System.Info.Utils qualified as U

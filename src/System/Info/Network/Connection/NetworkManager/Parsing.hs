@@ -16,8 +16,8 @@ import Data.Text qualified as T
 import Optics.Core ((%))
 import Optics.Fold qualified as O
 import Optics.Getter qualified as O
-import System.Info.Error (Error (MkError))
-import System.Info.Error qualified as E
+import System.Info.Data.Error (Error (MkError))
+import System.Info.Data.Error qualified as E
 import System.Info.Network.Connection.Types (ConnState (..), ConnType (..), Connection (..))
 import System.Info.Utils qualified as U
 
