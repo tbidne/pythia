@@ -55,7 +55,7 @@ library
   exposed-modules:
     System.Info
     System.Info.Data.Command
-    System.Info.Data.Error
+    System.Info.Data.QueryError
     System.Info.Network.Connection
     System.Info.Network.Connection.NetworkManager
     System.Info.Network.Connection.NetworkManager.Parsing

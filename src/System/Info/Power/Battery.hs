@@ -6,13 +6,13 @@ module System.Info.Power.Battery
 where
 
 import System.Info.Data.Command (Command (..))
-import System.Info.Data.Error (Error)
+import System.Info.Data.QueryError (QueryError)
 import System.Info.Power.Battery.Types as X
 import System.Info.Power.Battery.UPower qualified as UPower
 import System.Info.Utils qualified as U
 
 -- | This is the primary function that attempts to use the given
 -- program to retrieve battery information.
-queryBatteryState :: BatteryProgram -> IO (Either Error BatteryState)
+queryBatteryState :: BatteryProgram -> IO (Either QueryError BatteryState)
 queryBatteryState UPower = U.runShellAndParse UPower.parseBattery UPower.command
 queryBatteryState (Custom c) = U.runShellAndParse UPower.parseBattery (MkCommand c)

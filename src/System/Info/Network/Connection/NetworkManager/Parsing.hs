@@ -16,13 +16,13 @@ import Data.Text qualified as T
 import Optics.Core ((%))
 import Optics.Fold qualified as O
 import Optics.Getter qualified as O
-import System.Info.Data.Error (Error (MkError))
-import System.Info.Data.Error qualified as E
+import System.Info.Data.QueryError (QueryError (MkQueryError))
+import System.Info.Data.QueryError qualified as E
 import System.Info.Network.Connection.Types (ConnState (..), ConnType (..), Connection (..))
 import System.Info.Utils qualified as U
 
 -- | Attempts to parse the given text into a 'Connection'.
-parseConnection :: Text -> Text -> Either Error Connection
+parseConnection :: Text -> Text -> Either QueryError Connection
 parseConnection deviceName txt = case AP.parseOnly (A.many connectionParser) txt of
   Right conns ->
     case findDevice conns of
@@ -42,7 +42,7 @@ parseConnection deviceName txt = case AP.parseOnly (A.many connectionParser) txt
     combineDevices t "" = t
     combineDevices t acc = t <> ", " <> acc
     mkErr s l =
-      MkError
+      MkQueryError
         { E.name = "System.Info.Network.Connection.NetworkManager.Parsing",
           E.short = s,
           E.long = l

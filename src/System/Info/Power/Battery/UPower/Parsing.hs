@@ -13,7 +13,7 @@ import Data.Functor (($>))
 import Data.Text (Text)
 import Data.Text qualified as T
 import Smart.Data.Math.BoundedNat qualified as BN
-import System.Info.Data.Error (Error (..))
+import System.Info.Data.QueryError (QueryError (..))
 import System.Info.Power.Battery.Types
   ( BatteryLevel,
     BatteryState (..),
@@ -40,7 +40,7 @@ instance Monoid BatteryResult where
   mempty = None
 
 -- | Attempts to parse the given text into a 'BatteryState'.
-parseBattery :: Text -> Either Error BatteryState
+parseBattery :: Text -> Either QueryError BatteryState
 parseBattery txt = case foldMap parseLine ts of
   None -> Left $ mkErr $ "Did not find percent or status in: " <> txt
   Percent _ -> Left $ mkErr $ "Did not find status in: " <> txt
@@ -49,7 +49,7 @@ parseBattery txt = case foldMap parseLine ts of
   where
     ts = T.lines txt
     mkErr err =
-      MkError
+      MkQueryError
         { name = "System.Info.Power.Battery.UPower.Parsing",
           short = "Parse error",
           long = err

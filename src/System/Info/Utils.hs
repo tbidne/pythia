@@ -13,15 +13,15 @@ import Data.Text.Conversions (UTF8 (..))
 import Data.Text.Conversions qualified as Conv
 import GHC.IO.Exception (ExitCode (..))
 import System.Info.Data.Command (Command (..))
-import System.Info.Data.Error (Error (..))
+import System.Info.Data.QueryError (QueryError (..))
 import System.Process.Typed qualified as TP
 
 -- | Runs the given command and attempts to parse the result using the given
 -- parser.
 runShellAndParse ::
-  (Text -> Either Error result) ->
+  (Text -> Either QueryError result) ->
   Command ->
-  IO (Either Error result)
+  IO (Either QueryError result)
 runShellAndParse parser (MkCommand cmd) = do
   (exitCode, out, err) <- TP.readProcess $ TP.shell $ T.unpack cmd
   pure $ case exitCode of
@@ -39,17 +39,17 @@ headMaybe (x : _) = Just x
 decodeUtf8 :: ByteString -> Maybe Text
 decodeUtf8 = Conv.decodeConvertText . UTF8
 
-utf8Err :: Text -> Error
+utf8Err :: Text -> QueryError
 utf8Err err =
-  MkError
+  MkQueryError
     { name = "System.Info.Utils",
       short = "Decode UTF-8 error",
       long = err
     }
 
-shellErr :: Int -> Text -> ByteString -> Error
+shellErr :: Int -> Text -> ByteString -> QueryError
 shellErr exitCode cmd err =
-  MkError
+  MkQueryError
     { name = "System.Info.Utils",
       short = "Shell error",
       long = long
