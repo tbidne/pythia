@@ -1,6 +1,6 @@
 -- | This module provides the core types describing the battery.
 module System.Info.Power.Battery.Types
-  ( BatteryStatus (..),
+  ( ChargeStatus (..),
     BatteryLevel,
     BatteryState (..),
     BatteryProgram (..),
@@ -12,8 +12,8 @@ import Optics.Core (A_Lens, LabelOptic (..))
 import Optics.Core qualified as O
 import Smart.Data.Math.BoundedNat (BoundedNat)
 
--- | Represents battery statuses.
-data BatteryStatus
+-- | Represents battery charging status.
+data ChargeStatus
   = Charging
   | Discharging
   | Full
@@ -28,7 +28,7 @@ data BatteryState = MkBatteryState
   { -- | The level data.
     level :: BatteryLevel,
     -- | The status data.
-    status :: BatteryStatus
+    status :: ChargeStatus
   }
   deriving (Eq, Show)
 
@@ -49,8 +49,8 @@ instance
     A_Lens
     BatteryState
     BatteryState
-    BatteryStatus
-    BatteryStatus
+    ChargeStatus
+    ChargeStatus
   where
   labelOptic = O.lens status (\state status' -> state {status = status'})
 

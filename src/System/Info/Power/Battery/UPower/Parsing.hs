@@ -17,13 +17,13 @@ import System.Info.Data.QueryError (QueryError (..))
 import System.Info.Power.Battery.Types
   ( BatteryLevel,
     BatteryState (..),
-    BatteryStatus (..),
+    ChargeStatus (..),
   )
 
 data BatteryResult
   = None
   | Percent BatteryLevel
-  | Status BatteryStatus
+  | Status ChargeStatus
   | Both BatteryState
   deriving (Show)
 
@@ -73,7 +73,7 @@ parsePercent =
     parseNN = AP.decimal >>= maybe empty pure . BN.mkBoundedNat
     end = AP.char '%' *> AP.skipSpace
 
-parseState :: Parser BatteryStatus
+parseState :: Parser ChargeStatus
 parseState =
   AP.skipSpace
     *> AP.string "state:"
