@@ -75,7 +75,7 @@ decodeUtf8 = Conv.decodeConvertText . UTF8
 utf8Err :: Text -> QueryError
 utf8Err err =
   MkQueryError
-    { name = "System.Info.Utils",
+    { name = "System.Info.ShellApp",
       short = "Decode UTF-8 error",
       long = err
     }
@@ -83,7 +83,7 @@ utf8Err err =
 shellErr :: Int -> Text -> ByteString -> QueryError
 shellErr exitCode cmd err =
   MkQueryError
-    { name = "System.Info.Utils",
+    { name = "System.Info.ShellApp",
       short = "Shell error",
       long = long
     }
