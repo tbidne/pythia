@@ -1,7 +1,7 @@
--- | This module provides functionality for parsing network connection
--- information retrieved from the NetworkManager utility.
-module System.Info.Network.Connection.NetworkManager.Parsing
-  ( parseConnection,
+-- | This module provides functionality for retrieving network connection
+-- information using NetworkManager.
+module System.Info.Services.Network.Connection.NetworkManager
+  ( connectionShellApp,
   )
 where
 
@@ -13,37 +13,52 @@ import Data.Attoparsec.Text qualified as AP
 import Data.Functor (($>))
 import Data.Text (Text)
 import Data.Text qualified as T
-import Optics.Core ((%))
+import Optics.Core ((%), (^.))
 import Optics.Fold qualified as O
 import Optics.Getter qualified as O
-import System.Info.Data.QueryError (QueryError (MkQueryError))
-import System.Info.Data.QueryError qualified as E
-import System.Info.Network.Connection.Types (ConnState (..), ConnType (..), Connection (..))
+import System.Info.Data (QueryError (..))
+import System.Info.Data qualified as E
+import System.Info.Services.Network.Connection.Types
+  ( ConnState (..),
+    ConnType (..),
+    Connection (..),
+    Device (..),
+  )
+import System.Info.ShellApp (ShellApp (..))
 import System.Info.Utils qualified as U
 
+-- | NetworkManager 'ShellApp' for 'Connection'.
+connectionShellApp :: Device -> ShellApp Connection
+connectionShellApp deviceName =
+  MkShellApp
+    { command = "nmcli -m multiline device | cat",
+      parser = parseConnection deviceName
+    }
+
 -- | Attempts to parse the given text into a 'Connection'.
-parseConnection :: Text -> Text -> Either QueryError Connection
-parseConnection deviceName txt = case AP.parseOnly (A.many connectionParser) txt of
+parseConnection :: Device -> Text -> Either QueryError Connection
+parseConnection device txt = case AP.parseOnly (A.many connectionParser) txt of
   Right conns ->
     case findDevice conns of
       Just conn -> Right conn
       Nothing ->
-        let devices = O.foldlOf' (O.folded % #device) combineDevices "" conns
+        let devices = O.foldlOf' (O.folded % connDeviceName) combineDevices "" conns
          in Left $
               mkErr
                 "Parse error"
                 $ "Could not find device `"
-                  <> deviceName
+                  <> device ^. #unDevice
                   <> "` in devices: "
                   <> devices
   Left err -> Left $ mkErr "Parse error" (T.pack err)
   where
-    findDevice = U.headMaybe . filter ((== deviceName) . O.view #device)
+    connDeviceName = #device % #unDevice
+    findDevice = U.headMaybe . filter ((== device ^. #unDevice) . O.view connDeviceName)
     combineDevices t "" = t
     combineDevices t acc = t <> ", " <> acc
     mkErr s l =
       MkQueryError
-        { E.name = "System.Info.Network.Connection.NetworkManager.Parsing",
+        { E.name = "System.Info.Services.Network.Connection.NetworkManager.Parsing",
           E.short = s,
           E.long = l
         }
@@ -56,12 +71,14 @@ connectionParser =
     <*> parseState
     <*> parseName
 
-parseDevice :: Parser Text
+parseDevice :: Parser Device
 parseDevice =
-  AP.string "DEVICE:"
-    *> AP.skipSpace
-    *> AP.takeWhile1 (not . AP.isEndOfLine)
-    <* AP.endOfLine
+  MkDevice
+    <$> ( AP.string "DEVICE:"
+            *> AP.skipSpace
+            *> AP.takeWhile1 (not . AP.isEndOfLine)
+            <* AP.endOfLine
+        )
 
 parseType :: Parser ConnType
 parseType =

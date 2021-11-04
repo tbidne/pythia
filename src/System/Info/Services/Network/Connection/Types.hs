@@ -1,15 +1,24 @@
 -- | This module contains the types for describing network connections.
-module System.Info.Network.Connection.Types
-  ( Connection (..),
+module System.Info.Services.Network.Connection.Types
+  ( Device (..),
+    Connection (..),
     ConnType (..),
     ConnState (..),
-    ConnectionProgram (..),
   )
 where
 
+import Data.String (IsString)
 import Data.Text (Text)
 import Optics.Core (A_Lens, LabelOptic (..))
 import Optics.Core qualified as O
+
+-- | Newtype wrapper over a network device name.
+newtype Device = MkDevice {unDevice :: Text}
+  deriving (Eq, Ord, Show)
+  deriving (IsString) via Text
+
+instance LabelOptic "unDevice" A_Lens Device Device Text Text where
+  labelOptic = O.lens unDevice (\device t -> device {unDevice = t})
 
 -- | Various connection types.
 data ConnType
@@ -30,18 +39,10 @@ data ConnState
   | UnknownState Text
   deriving (Eq, Show)
 
--- | Determines how we should query the system for network information.
-data ConnectionProgram
-  = -- | Uses the NetworkManager utility.
-    NetworkManager
-  | -- | Custom command.
-    Custom Text
-  deriving (Show)
-
 -- | Full connection data.
 data Connection = MkConnection
   { -- | The device name.
-    device :: Text,
+    device :: Device,
     -- | The connection type.
     ctype :: ConnType,
     -- | The connection state.
@@ -57,8 +58,8 @@ instance
     A_Lens
     Connection
     Connection
-    Text
-    Text
+    Device
+    Device
   where
   labelOptic = O.lens device (\conn device' -> conn {device = device'})
 

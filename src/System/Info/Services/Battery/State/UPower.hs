@@ -1,7 +1,7 @@
--- | This module provides functionality for parsing battery information
--- retrieved from the UPower utility.
-module System.Info.Power.Battery.UPower.Parsing
-  ( parseBattery,
+-- | This module provides functionality for retrieving battery information
+-- using UPower.
+module System.Info.Services.Battery.State.UPower
+  ( batteryStateShellApp,
   )
 where
 
@@ -13,12 +13,36 @@ import Data.Functor (($>))
 import Data.Text (Text)
 import Data.Text qualified as T
 import Smart.Data.Math.BoundedNat qualified as BN
-import System.Info.Data.QueryError (QueryError (..))
-import System.Info.Power.Battery.Types
+import System.Info.Data (QueryError (..))
+import System.Info.Services.Battery.Types
   ( BatteryLevel,
     BatteryState (..),
     ChargeStatus (..),
   )
+import System.Info.ShellApp (ShellApp (..))
+
+-- | UPower 'ShellApp' for 'BatteryState'.
+batteryStateShellApp :: ShellApp BatteryState
+batteryStateShellApp =
+  MkShellApp
+    { command = "upower -i `upower -e | grep 'BAT'`",
+      parser = parseBatteryState
+    }
+
+parseBatteryState :: Text -> Either QueryError BatteryState
+parseBatteryState txt = case foldMap parseLine ts of
+  None -> Left $ mkErr $ "Did not find percent or status in: " <> txt
+  Percent _ -> Left $ mkErr $ "Did not find status in: " <> txt
+  Status _ -> Left $ mkErr $ "Did not find percent in:" <> txt
+  Both bs -> Right bs
+  where
+    ts = T.lines txt
+    mkErr err =
+      MkQueryError
+        { name = "System.Info.Services.Battery.UPower.Parsing",
+          short = "Parse error",
+          long = err
+        }
 
 data BatteryResult
   = None
@@ -38,22 +62,6 @@ instance Semigroup BatteryResult where
 
 instance Monoid BatteryResult where
   mempty = None
-
--- | Attempts to parse the given text into a 'BatteryState'.
-parseBattery :: Text -> Either QueryError BatteryState
-parseBattery txt = case foldMap parseLine ts of
-  None -> Left $ mkErr $ "Did not find percent or status in: " <> txt
-  Percent _ -> Left $ mkErr $ "Did not find status in: " <> txt
-  Status _ -> Left $ mkErr $ "Did not find percent in:" <> txt
-  Both bs -> Right bs
-  where
-    ts = T.lines txt
-    mkErr err =
-      MkQueryError
-        { name = "System.Info.Power.Battery.UPower.Parsing",
-          short = "Parse error",
-          long = err
-        }
 
 parseLine :: Text -> BatteryResult
 parseLine ln = case AP.parseOnly parseState ln of

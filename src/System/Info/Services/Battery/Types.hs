@@ -1,9 +1,8 @@
 -- | This module provides the core types describing the battery.
-module System.Info.Power.Battery.Types
+module System.Info.Services.Battery.Types
   ( ChargeStatus (..),
     BatteryLevel,
     BatteryState (..),
-    BatteryProgram (..),
   )
 where
 
@@ -53,16 +52,3 @@ instance
     ChargeStatus
   where
   labelOptic = O.lens status (\state status' -> state {status = status'})
-
--- | Determines how we should query the system for battery information.
--- The custom option assumes the same output format as UPower, i.e., the
--- output contains lines like:
---
--- @
--- percentage: 20%
--- state: <discharging|charging|fully-charged>
--- @
-data BatteryProgram
-  = UPower
-  | Custom Text
-  deriving (Eq, Show)
