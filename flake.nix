@@ -3,22 +3,15 @@
   inputs.flake-utils.url = "github:numtide/flake-utils";
   inputs.nixpkgs.url = "nixpkgs/nixos-unstable";
   inputs.simple-algebra-src = {
-    url = "github:tbidne/simple-algebra";
+    url = "github:tbidne/simple-algebra/main";
     inputs.flake-utils.follows = "flake-utils";
     inputs.nixpkgs.follows = "nixpkgs";
-  };
-  inputs.smart-data-src = {
-    url = "github:tbidne/smart-data";
-    inputs.flake-utils.follows = "flake-utils";
-    inputs.nixpkgs.follows = "nixpkgs";
-    inputs.simple-algebra-src.follows = "simple-algebra-src";
   };
   outputs =
     { self
     , nixpkgs
     , flake-utils
     , simple-algebra-src
-    , smart-data-src
     }:
     flake-utils.lib.eachSystem [ "x86_64-linux" "x86_64-darwin" ] (system:
     let
@@ -48,10 +41,8 @@
             optics-th = callHackage "optics-th" "0.4" {
               optics-core = final.optics-core;
             };
-            smart-data = final.callCabal2nix "smart-data" smart-data-src {
-              simple-algebra =
-                final.callCabal2nix "simple-algebra" simple-algebra-src { };
-            };
+            simple-algebra =
+              final.callCabal2nix "simple-algebra" simple-algebra-src { };
           };
         };
     in

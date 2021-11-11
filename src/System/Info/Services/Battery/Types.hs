@@ -9,7 +9,7 @@ where
 import Data.Text (Text)
 import Optics.Core (A_Lens, LabelOptic (..))
 import Optics.Core qualified as O
-import Smart.Data.Math.BoundedNat (BoundedNat)
+import Simple.Algebra.Data.BoundedNat (BoundedNat)
 
 -- | Represents battery charging status.
 data ChargeStatus

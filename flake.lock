@@ -34,8 +34,7 @@
       "inputs": {
         "flake-utils": "flake-utils",
         "nixpkgs": "nixpkgs",
-        "simple-algebra-src": "simple-algebra-src",
-        "smart-data-src": "smart-data-src"
+        "simple-algebra-src": "simple-algebra-src"
       }
     },
     "simple-algebra-src": {
@@ -48,42 +47,17 @@
         ]
       },
       "locked": {
-        "lastModified": 1635726528,
-        "narHash": "sha256-2I6xR2icoaxaoWNQ4E/6UwiDiFiHdo1yshFoUT1z63s=",
+        "lastModified": 1636755237,
+        "narHash": "sha256-svDKZucYApSXH8Alcik2Q9a4ctVk7qUkzZPr+TKUdR0=",
         "owner": "tbidne",
         "repo": "simple-algebra",
-        "rev": "5dc4a95ffaa8ef53dcf24fed2aec3a16af878a50",
+        "rev": "cfe8a23c87625b1658d9cb98e2255a87d24a215f",
         "type": "github"
       },
       "original": {
         "owner": "tbidne",
+        "ref": "main",
         "repo": "simple-algebra",
-        "type": "github"
-      }
-    },
-    "smart-data-src": {
-      "inputs": {
-        "flake-utils": [
-          "flake-utils"
-        ],
-        "nixpkgs": [
-          "nixpkgs"
-        ],
-        "simple-algebra-src": [
-          "simple-algebra-src"
-        ]
-      },
-      "locked": {
-        "lastModified": 1635726587,
-        "narHash": "sha256-zGuBukgHwfgN7fblrKjT6PtUxZ9rLjiGUCv8CDnHcKo=",
-        "owner": "tbidne",
-        "repo": "smart-data",
-        "rev": "71e382392d506869c83bc548edb015c7c7ef4501",
-        "type": "github"
-      },
-      "original": {
-        "owner": "tbidne",
-        "repo": "smart-data",
         "type": "github"
       }
     }

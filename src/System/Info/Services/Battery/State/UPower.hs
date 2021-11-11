@@ -12,7 +12,7 @@ import Data.Attoparsec.Text qualified as AP
 import Data.Functor (($>))
 import Data.Text (Text)
 import Data.Text qualified as T
-import Smart.Data.Math.BoundedNat qualified as BN
+import Simple.Algebra.Data.BoundedNat qualified as BN
 import System.Info.Data (QueryError (..))
 import System.Info.Services.Battery.Types
   ( BatteryLevel,

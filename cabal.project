@@ -10,9 +10,4 @@ package system-info
 source-repository-package
     type: git
     location: https://github.com/tbidne/simple-algebra.git
-    tag: 5dc4a95ffaa8ef53dcf24fed2aec3a16af878a50
-
-source-repository-package
-    type: git
-    location: https://github.com/tbidne/smart-data.git
-    tag: 71e382392d506869c83bc548edb015c7c7ef4501
+    tag: cfe8a23c87625b1658d9cb98e2255a87d24a215f

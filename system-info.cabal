@@ -84,7 +84,7 @@ library
     , base              ^>=4.14.1.0
     , bytestring        >=0.10.10.0 && <0.12
     , optics-core       ^>=0.4
-    , smart-data        ^>=0.1.0.0
+    , simple-algebra    ^>=0.1.0.0
     , text              ^>=1.2.3.2
     , text-conversions  >=0.2.0     && <0.4
     , typed-process     >=0.1.0.0   && <0.3

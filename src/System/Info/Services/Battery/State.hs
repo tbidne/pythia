@@ -15,7 +15,7 @@ where
 
 import Data.Text (Text)
 import Optics.Core ((^.))
-import Smart.Data.Math.BoundedNat (BoundedNat (..))
+import Simple.Algebra.Data.BoundedNat (BoundedNat (..))
 import System.Info.Data (Command (..), QueryError)
 import System.Info.Services.Battery.State.UPower qualified as UPower
 import System.Info.Services.Battery.Types
