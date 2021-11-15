@@ -12,7 +12,7 @@ import Data.Attoparsec.Text qualified as AP
 import Data.Functor (($>))
 import Data.Text (Text)
 import Data.Text qualified as T
-import Simple.Algebra.Data.BoundedNat qualified as BN
+import Simple.Algebra.Data.BoundedN qualified as BN
 import System.Info.Data (QueryError (..))
 import System.Info.Services.Battery.Types
   ( BatteryLevel,
@@ -78,7 +78,7 @@ parsePercent =
     *> parseNN
     <* end
   where
-    parseNN = AP.decimal >>= maybe empty pure . BN.mkBoundedNat
+    parseNN = AP.decimal >>= maybe empty pure . BN.mkBoundedN
     end = AP.char '%' *> AP.skipSpace
 
 parseState :: Parser ChargeStatus

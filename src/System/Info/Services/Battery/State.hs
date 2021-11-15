@@ -5,7 +5,7 @@ module System.Info.Services.Battery.State
     Program (..),
     BatteryState (..),
     BatteryLevel,
-    BoundedNat (..),
+    BoundedN (..),
     ChargeStatus (..),
 
     -- * Query
@@ -15,7 +15,7 @@ where
 
 import Data.Text (Text)
 import Optics.Core ((^.))
-import Simple.Algebra.Data.BoundedNat (BoundedNat (..))
+import Simple.Algebra.Data.BoundedN (BoundedN (..))
 import System.Info.Data (Command (..), QueryError)
 import System.Info.Services.Battery.State.UPower qualified as UPower
 import System.Info.Services.Battery.Types
@@ -45,7 +45,7 @@ data Program
 -- program to retrieve battery information.
 --
 -- >>> queryBatteryState UPower
--- Right (MkBatteryState {level = MkUnsafeBoundedNat {unBoundedNat = 24}, status = Charging})
+-- Right (MkBatteryState {level = MkUnsafeBoundedN {unBoundedN = 24}, status = Charging})
 queryBatteryState :: Program -> IO (Either QueryError BatteryState)
 queryBatteryState UPower = ShellApp.runShellApp UPower.batteryStateShellApp
 queryBatteryState (Custom c) = ShellApp.runShellApp $ customShellApp c

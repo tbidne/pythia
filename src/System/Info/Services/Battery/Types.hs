@@ -9,7 +9,7 @@ where
 import Data.Text (Text)
 import Optics.Core (A_Lens, LabelOptic (..))
 import Optics.Core qualified as O
-import Simple.Algebra.Data.BoundedNat (BoundedNat)
+import Simple.Algebra.Data.BoundedN (BoundedN)
 
 -- | Represents battery charging status.
 data ChargeStatus
@@ -20,7 +20,7 @@ data ChargeStatus
   deriving (Eq, Show)
 
 -- | Represents battery levels
-type BatteryLevel = BoundedNat 0 100
+type BatteryLevel = BoundedN 0 100 Int
 
 -- | Full battery state, including level and status data.
 data BatteryState = MkBatteryState
