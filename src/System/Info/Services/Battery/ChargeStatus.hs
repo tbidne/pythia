@@ -1,8 +1,10 @@
 -- | This modules exports everything needed for retrieving battery
 -- charge status.
+--
+-- @since 0.1.0.0
 module System.Info.Services.Battery.ChargeStatus
   ( -- * Types
-    Program (..),
+    BatteryChargeStatusApp (..),
     ChargeStatus (..),
 
     -- * Query
@@ -11,11 +13,11 @@ module System.Info.Services.Battery.ChargeStatus
 where
 
 import Data.Text (Text)
-import Optics.Core ((^.))
-import System.Info.Data (Command (..), QueryError)
+import Optics.Core ((%), (.~))
+import System.Info.Data (Command (..))
 import System.Info.Services.Battery.ChargeStatus.UPower qualified as UPower
 import System.Info.Services.Battery.Types (ChargeStatus (..))
-import System.Info.ShellApp (ShellApp (..))
+import System.Info.ShellApp (QueryResult, ShellApp (..))
 import System.Info.ShellApp qualified as ShellApp
 
 -- | Determines how we should query the system for charge status information.
@@ -25,26 +27,37 @@ import System.Info.ShellApp qualified as ShellApp
 -- @
 -- state: \<discharging|charging|fully-charged\>
 -- @
-data Program
+--
+-- @since 0.1.0.0
+data BatteryChargeStatusApp
   = -- | Uses the UPower utility.
+    --
+    -- @since 0.1.0.0
     UPower
   | -- | Runs a custom script.
+    --
+    -- @since 0.1.0.0
     Custom Text
-  deriving (Eq, Show)
+  deriving
+    ( -- @since 0.1.0.0
+      Eq,
+      -- @since 0.1.0.0
+      Show
+    )
 
 -- | This is the primary function that attempts to use the given
--- program to retrieve battery information.
+-- BatteryChargeStatusApp to retrieve battery information.
 --
 -- >>> queryChargeStatus UPower
 -- Right Discharging
-queryChargeStatus :: Program -> IO (Either QueryError ChargeStatus)
+--
+-- @since 0.1.0.0
+queryChargeStatus :: BatteryChargeStatusApp -> IO (QueryResult ChargeStatus)
 queryChargeStatus UPower = ShellApp.runShellApp UPower.chargeStatusShellApp
 queryChargeStatus (Custom c) = ShellApp.runShellApp $ customShellApp c
 
+-- Reuse UPower's parser
 customShellApp :: Text -> ShellApp ChargeStatus
 customShellApp cmd =
-  MkShellApp
-    { command = MkCommand cmd,
-      -- Reuse UPower's parser
-      parser = UPower.chargeStatusShellApp ^. #parser
-    }
+  (#_SimpleApp % #command .~ MkCommand cmd)
+    UPower.chargeStatusShellApp

@@ -1,6 +1,8 @@
 -- | This module provides functionality for retrieving network connection
--- information using NetworkManager.
-module System.Info.Services.Network.Connection.NetworkManager
+-- information using nmcli.
+--
+-- @since 0.1.0.0
+module System.Info.Services.Network.Connection.NmCli
   ( connectionShellApp,
   )
 where
@@ -22,20 +24,23 @@ import System.Info.Services.Network.Connection.Types
   ( ConnState (..),
     ConnType (..),
     Connection (..),
-    Device (..),
   )
-import System.Info.ShellApp (ShellApp (..))
+import System.Info.Services.Network.Types (Device (..))
+import System.Info.ShellApp (ShellApp (..), SimpleShell (..))
 import System.Info.Utils qualified as U
 
--- | NetworkManager 'ShellApp' for 'Connection'.
+-- | NmCli 'ShellApp' for 'Connection'.
+--
+-- @since 0.1.0.0
 connectionShellApp :: Device -> ShellApp Connection
 connectionShellApp deviceName =
-  MkShellApp
-    { command = "nmcli -m multiline device | cat",
-      parser = parseConnection deviceName
-    }
+  SimpleApp $
+    MkSimpleShell
+      { command = "nmcli -m multiline device | cat",
+        parser = parseConnection deviceName
+      }
 
--- | Attempts to parse the given text into a 'Connection'.
+-- Attempts to parse the given text into a 'Connection'.
 parseConnection :: Device -> Text -> Either QueryError Connection
 parseConnection device txt = case AP.parseOnly (A.many connectionParser) txt of
   Right conns ->
@@ -58,7 +63,7 @@ parseConnection device txt = case AP.parseOnly (A.many connectionParser) txt of
     combineDevices t acc = t <> ", " <> acc
     mkErr s l =
       MkQueryError
-        { E.name = "System.Info.Services.Network.Connection.NetworkManager.Parsing",
+        { E.name = "System.Info.Services.Network.Connection.NmCli",
           E.short = s,
           E.long = l
         }

@@ -1,5 +1,7 @@
 -- | This module provides functionality for retrieving battery information
 -- using UPower.
+--
+-- @since 0.1.0.0
 module System.Info.Services.Battery.ChargeStatus.UPower
   ( chargeStatusShellApp,
   )
@@ -14,18 +16,21 @@ import Data.Text (Text)
 import Data.Text qualified as T
 import System.Info.Data (QueryError (..))
 import System.Info.Services.Battery.Types (ChargeStatus (..))
-import System.Info.ShellApp (ShellApp (..))
+import System.Info.ShellApp (ShellApp (..), SimpleShell (..))
 import System.Info.Utils qualified as U
 
 -- | UPower 'ShellApp' for 'ChargeStatus'.
+--
+-- @since 0.1.0.0
 chargeStatusShellApp :: ShellApp ChargeStatus
 chargeStatusShellApp =
-  MkShellApp
-    { command = "upower -i `upower -e | grep 'BAT'`",
-      parser = parseChargeStatus
-    }
+  SimpleApp $
+    MkSimpleShell
+      { command = "upower -i `upower -e | grep 'BAT'`",
+        parser = parseChargeStatus
+      }
 
--- | Attempts to parse the given text into a 'ChargeStatus'.
+-- Attempts to parse the given text into a 'ChargeStatus'.
 parseChargeStatus :: Text -> Either QueryError ChargeStatus
 parseChargeStatus txt = case U.foldAlt parseLine ts of
   Nothing -> Left $ mkErr $ "Did not find charging status in: " <> txt

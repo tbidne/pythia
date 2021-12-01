@@ -1,8 +1,22 @@
--- | This module provides the functionality for running a shell
--- command and parsing the result.
+{-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE UndecidableInstances #-}
+
+-- | This module provides the functionality for running shell
+-- commands and parsing the result.
+--
+-- @since 0.1.0.0
 module System.Info.ShellApp
-  ( ShellApp (..),
+  ( -- * Types
+    ShellApp (..),
+    SimpleShell (..),
+    GeneralShell (..),
+    QueryResult,
+
+    -- * Running a 'ShellApp'
     runShellApp,
+
+    -- * Utilities
+    runCommand,
   )
 where
 
@@ -13,61 +27,90 @@ import Data.Text qualified as T
 import Data.Text.Conversions (UTF8 (..))
 import Data.Text.Conversions qualified as Conv
 import GHC.IO.Exception (ExitCode (..))
-import Optics.Core (A_Lens, LabelOptic (..), (%), (^.))
-import Optics.Core qualified as O
+import Optics.Core ((%~), (^.))
+import Optics.TH qualified as OTH
 import System.Info.Data (Command (..), QueryError (..))
 import System.Process.Typed qualified as TP
 
--- | Type for running a shell command and parsing the result.
-data ShellApp result = MkShellApp
-  { -- | The command to run.
+-- | Return type for running a command/query.
+--
+-- @since 0.1.0.0
+type QueryResult result = Either [QueryError] result
+
+-- | Type for running a "simple" shell command given by 'Command'.
+-- The 'parser' is used to parse the result.
+--
+-- @since 0.1.0.0
+data SimpleShell result = MkSimpleShell
+  { -- | The shell command to run.
+    --
+    -- @since 0.1.0.0
     command :: Command,
-    -- | The parser.
+    -- | The parser for the result of running the command.
+    --
+    -- @since 0.1.0.0
     parser :: Text -> Either QueryError result
   }
 
-instance
-  LabelOptic
-    "command"
-    A_Lens
-    (ShellApp result)
-    (ShellApp result)
-    Command
-    Command
-  where
-  labelOptic = O.lens command (\sa command' -> sa {command = command'})
+OTH.makeFieldLabelsNoPrefix ''SimpleShell
 
-instance Show (ShellApp result) where
-  show sa = "MkShellApp {command = " <> cmd <> ", parser = <func>}"
-    where
-      cmd = show $ sa ^. #command
+-- | Type for running a more general action than 'SimpleShell'. As this is
+-- 'IO' we have more freedom to implement more complex behavior, e.g.,
+-- running multiple commands, non-deterministic behavior, etc.
+--
+-- @since 0.1.0.0
+newtype GeneralShell result = MkGeneralShell
+  { -- | The action to run.
+    --
+    -- @since 0.1.0.0
+    query :: IO (QueryResult result)
+  }
 
-instance
-  LabelOptic
-    "parser"
-    A_Lens
-    (ShellApp result)
-    (ShellApp result)
-    (Text -> Either QueryError result)
-    (Text -> Either QueryError result)
-  where
-  labelOptic = O.lens parser (\sa parser' -> sa {parser = parser'})
+OTH.makeFieldLabelsNoPrefix ''GeneralShell
 
--- | Runs the given command and attempts to parse the result using the given
--- parser.
-runShellApp ::
-  ShellApp result ->
-  IO (Either QueryError result)
-runShellApp shellApp = do
+-- | Sum type for running shell applications. Most actions should be simple
+-- shell command + parse output, hence 'SimpleShell', but we also provide
+-- 'GeneralShell' for when more complex behavior is needed.
+--
+-- @since 0.1.0.0
+data ShellApp result
+  = -- | @since 0.1.0.0
+    SimpleApp (SimpleShell result)
+  | -- | @since 0.1.0.0
+    GeneralApp (GeneralShell result)
+
+OTH.makePrismLabels ''ShellApp
+
+-- | Runs the shell app and returns either the result or any errors
+-- encountered.
+--
+-- @since 0.1.0.0
+runShellApp :: ShellApp result -> IO (QueryResult result)
+runShellApp (SimpleApp simple) = (#_Left %~ (: [])) <$> runSimple simple
+runShellApp (GeneralApp general) = general ^. #query
+
+runSimple :: SimpleShell result -> IO (Either QueryError result)
+runSimple simple =
+  runCommand (simple ^. #command)
+    >>= \t -> pure $ t >>= (simple ^. #parser)
+
+-- | Runs a 'Command' and returns either the text result or error encountered.
+-- This is used by 'SimpleShell' to run its command before the result is
+-- parsed. This function is exported as it can be convenient to use with a
+-- 'GeneralShell' (e.g. running multiple commands via 'runCommand').
+--
+-- @since 0.1.0.0
+runCommand :: Command -> IO (Either QueryError Text)
+runCommand command = do
   (exitCode, out, err) <- TP.readProcess $ TP.shell $ T.unpack cmdStr
   pure $ case exitCode of
     ExitSuccess -> case decodeUtf8 out of
-      Just result -> shellApp ^. #parser $ result
+      Just result -> Right result
       Nothing -> Left $ utf8Err $ T.pack (show out)
     ExitFailure n ->
       Left $ shellErr n cmdStr err
   where
-    cmdStr = shellApp ^. #command % #unCommand
+    cmdStr = command ^. #unCommand
 
 decodeUtf8 :: ByteString -> Maybe Text
 decodeUtf8 = Conv.decodeConvertText . UTF8

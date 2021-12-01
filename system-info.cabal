@@ -15,8 +15,8 @@ description:
   .
   The package is organized into self-containted services, where a given
   service is used to query a particular item of information. For instance,
-  to query battery state information, one would use service defined in
-  use "System.Info.Services.Battery.State".
+  to query battery state information, one would use the service defined in
+  "System.Info.Services.Battery.State".
   .
   These services can be imported unqualified, though if multiple are used
   in the same module then they should be qualified. The supported services
@@ -63,6 +63,7 @@ common common-exts
     StandaloneKindSignatures
     TypeApplications
     TypeFamilyDependencies
+    TypeOperators
 
 library
   import:           common-exts
@@ -74,8 +75,17 @@ library
     System.Info.Services.Battery.State.UPower
     System.Info.Services.Battery.Types
     System.Info.Services.Network.Connection
-    System.Info.Services.Network.Connection.NetworkManager
+    System.Info.Services.Network.Connection.NmCli
     System.Info.Services.Network.Connection.Types
+    System.Info.Services.Network.IP.Global
+    System.Info.Services.Network.IP.Global.Common
+    System.Info.Services.Network.IP.Global.Types
+    System.Info.Services.Network.IP.Local
+    System.Info.Services.Network.IP.Local.IfConfig
+    System.Info.Services.Network.IP.Local.NmCli
+    System.Info.Services.Network.IP.Local.Types
+    System.Info.Services.Network.IP.Types
+    System.Info.Services.Network.Types
     System.Info.ShellApp
     System.Info.Utils
 
@@ -84,7 +94,9 @@ library
     , base              ^>=4.14.1.0
     , bytestring        >=0.10.10.0 && <0.12
     , optics-core       ^>=0.4
-    , simple-algebra    ^>=0.1.0.0
+    , optics-th         ^>=0.4
+    , refined-simple    ^>=0.1.0.0
+    , scientific        ^>=0.3.5.3
     , text              ^>=1.2.3.2
     , text-conversions  >=0.2.0     && <0.4
     , typed-process     >=0.1.0.0   && <0.3

@@ -1,97 +1,92 @@
+{-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE UndecidableInstances #-}
+
 -- | This module contains the types for describing network connections.
+--
+-- @since 0.1.0.0
 module System.Info.Services.Network.Connection.Types
-  ( Device (..),
-    Connection (..),
+  ( Connection (..),
     ConnType (..),
     ConnState (..),
   )
 where
 
-import Data.String (IsString)
 import Data.Text (Text)
-import Optics.Core (A_Lens, LabelOptic (..))
-import Optics.Core qualified as O
-
--- | Newtype wrapper over a network device name.
-newtype Device = MkDevice {unDevice :: Text}
-  deriving (Eq, Ord, Show)
-  deriving (IsString) via Text
-
-instance LabelOptic "unDevice" A_Lens Device Device Text Text where
-  labelOptic = O.lens unDevice (\device t -> device {unDevice = t})
+import Optics.TH qualified as OTH
+import System.Info.Services.Network.Types (Device)
 
 -- | Various connection types.
+--
+-- @since 0.1.0.0
 data ConnType
-  = Ethernet
-  | Wifi
-  | Wifi_P2P
-  | Loopback
-  | Tun
-  | UnknownType Text
-  deriving (Eq, Show)
+  = -- | @since 0.1.0.0
+    Ethernet
+  | -- | @since 0.1.0.0
+    Wifi
+  | -- | @since 0.1.0.0
+    Wifi_P2P
+  | -- | @since 0.1.0.0
+    Loopback
+  | -- | @since 0.1.0.0
+    Tun
+  | -- | @since 0.1.0.0
+    UnknownType Text
+  deriving
+    ( -- | @since 0.1.0.0
+      Eq,
+      -- | @since 0.1.0.0
+      Show
+    )
+
+OTH.makePrismLabels ''ConnType
 
 -- | Various connection states.
 data ConnState
-  = Connected
-  | Disconnected
-  | Unavailable
-  | Unmanaged
-  | UnknownState Text
-  deriving (Eq, Show)
+  = -- | @since 0.1.0.0
+    Connected
+  | -- | @since 0.1.0.0
+    Disconnected
+  | -- | @since 0.1.0.0
+    Unavailable
+  | -- | @since 0.1.0.0
+    Unmanaged
+  | -- | @since 0.1.0.0
+    UnknownState Text
+  deriving
+    ( -- | @since 0.1.0.0
+      Eq,
+      -- | @since 0.1.0.0
+      Show
+    )
+
+OTH.makePrismLabels ''ConnState
 
 -- | Full connection data.
+--
+-- @since 0.1.0.0
 data Connection = MkConnection
   { -- | The device name.
+    --
+    -- @since 0.1.0.0
     device :: Device,
     -- | The connection type.
+    --
+    -- @since 0.1.0.0
     ctype :: ConnType,
     -- | The connection state.
+    --
+    -- @since 0.1.0.0
     state :: ConnState,
     -- | The name of the connection (e.g. Wifi SSID).
+    --
+    -- @since 0.1.0.0
     name :: Maybe Text
   }
-  deriving (Eq, Show)
+  deriving
+    ( -- | @since 0.1.0.0
+      Eq,
+      -- | @since 0.1.0.0
+      Show
+    )
 
-instance
-  LabelOptic
-    "device"
-    A_Lens
-    Connection
-    Connection
-    Device
-    Device
-  where
-  labelOptic = O.lens device (\conn device' -> conn {device = device'})
-
-instance
-  LabelOptic
-    "ctype"
-    A_Lens
-    Connection
-    Connection
-    ConnType
-    ConnType
-  where
-  labelOptic = O.lens ctype (\conn ctype' -> conn {ctype = ctype'})
-
-instance
-  LabelOptic
-    "state"
-    A_Lens
-    Connection
-    Connection
-    ConnState
-    ConnState
-  where
-  labelOptic = O.lens state (\conn state' -> conn {state = state'})
-
-instance
-  LabelOptic
-    "name"
-    A_Lens
-    Connection
-    Connection
-    (Maybe Text)
-    (Maybe Text)
-  where
-  labelOptic = O.lens name (\conn name' -> conn {name = name'})
+OTH.makeFieldLabelsNoPrefix ''Connection

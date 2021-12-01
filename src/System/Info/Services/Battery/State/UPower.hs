@@ -1,5 +1,7 @@
 -- | This module provides functionality for retrieving battery information
 -- using UPower.
+--
+-- @since 0.1.0.0
 module System.Info.Services.Battery.State.UPower
   ( batteryStateShellApp,
   )
@@ -12,22 +14,25 @@ import Data.Attoparsec.Text qualified as AP
 import Data.Functor (($>))
 import Data.Text (Text)
 import Data.Text qualified as T
-import Simple.Algebra.Data.BoundedN qualified as BN
+import Refined qualified as R
 import System.Info.Data (QueryError (..))
 import System.Info.Services.Battery.Types
   ( BatteryLevel,
     BatteryState (..),
     ChargeStatus (..),
   )
-import System.Info.ShellApp (ShellApp (..))
+import System.Info.ShellApp (ShellApp (..), SimpleShell (..))
 
 -- | UPower 'ShellApp' for 'BatteryState'.
+--
+-- @since 0.1.0.0
 batteryStateShellApp :: ShellApp BatteryState
 batteryStateShellApp =
-  MkShellApp
-    { command = "upower -i `upower -e | grep 'BAT'`",
-      parser = parseBatteryState
-    }
+  SimpleApp $
+    MkSimpleShell
+      { command = "upower -i `upower -e | grep 'BAT'`",
+        parser = parseBatteryState
+      }
 
 parseBatteryState :: Text -> Either QueryError BatteryState
 parseBatteryState txt = case foldMap parseLine ts of
@@ -78,7 +83,11 @@ parsePercent =
     *> parseNN
     <* end
   where
-    parseNN = AP.decimal >>= maybe empty pure . BN.mkBoundedN
+    parseNN = do
+      num <- AP.decimal
+      case R.refineAll num of
+        Left _ -> empty
+        Right re -> pure re
     end = AP.char '%' *> AP.skipSpace
 
 parseState :: Parser ChargeStatus

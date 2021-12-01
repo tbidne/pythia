@@ -1,4 +1,9 @@
+{-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE UndecidableInstances #-}
+
 -- | This module provides the core types describing the battery.
+--
+-- @since 0.1.0.0
 module System.Info.Services.Battery.Types
   ( ChargeStatus (..),
     BatteryLevel,
@@ -7,48 +12,48 @@ module System.Info.Services.Battery.Types
 where
 
 import Data.Text (Text)
-import Optics.Core (A_Lens, LabelOptic (..))
-import Optics.Core qualified as O
-import Simple.Algebra.Data.BoundedN (BoundedN)
+import Optics.TH qualified as OTH
+import Refined (LessThanEq, NonNegative, Refined)
 
 -- | Represents battery charging status.
+--
+-- @since 0.1.0.0
 data ChargeStatus
-  = Charging
-  | Discharging
-  | Full
-  | Unknown Text
-  deriving (Eq, Show)
+  = -- | @since 0.1.0.0
+    Charging
+  | -- | @since 0.1.0.0
+    Discharging
+  | -- | @since 0.1.0.0
+    Full
+  | -- | @since 0.1.0.0
+    Unknown Text
+  deriving
+    ( -- | @since 0.1.0.0
+      Eq,
+      -- | @since 0.1.0.0
+      Show
+    )
 
--- | Represents battery levels
-type BatteryLevel = BoundedN 0 100 Int
+OTH.makePrismLabels ''ChargeStatus
+
+-- | Represents battery levels.
+--
+-- @since 0.1.0.0
+type BatteryLevel = Refined '[NonNegative, LessThanEq 100] Int
 
 -- | Full battery state, including level and status data.
+--
+-- @since 0.1.0.0
 data BatteryState = MkBatteryState
   { -- | The level data.
+    --
+    -- @since 0.1.0.0
     level :: BatteryLevel,
     -- | The status data.
+    --
+    -- @since 0.1.0.0
     status :: ChargeStatus
   }
   deriving (Eq, Show)
 
-instance
-  LabelOptic
-    "level"
-    A_Lens
-    BatteryState
-    BatteryState
-    BatteryLevel
-    BatteryLevel
-  where
-  labelOptic = O.lens level (\state level' -> state {level = level'})
-
-instance
-  LabelOptic
-    "status"
-    A_Lens
-    BatteryState
-    BatteryState
-    ChargeStatus
-    ChargeStatus
-  where
-  labelOptic = O.lens status (\state status' -> state {status = status'})
+OTH.makeFieldLabelsNoPrefix ''BatteryState

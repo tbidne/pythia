@@ -9,5 +9,5 @@ package system-info
 
 source-repository-package
     type: git
-    location: https://github.com/tbidne/simple-algebra.git
-    tag: 045ecc5e35e819e6bca4399a600ec420632cf3eb
+    location: https://github.com/tbidne/refined-simple.git
+    tag: 521ce27c3632c0b98661a8c1bde80dae01c32cbe
