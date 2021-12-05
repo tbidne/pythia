@@ -1,4 +1,4 @@
-# Revision history for system-information
+# Revision history for pythiarmation
 
 ## 0.1.0.0 -- YYYY-mm-dd
 

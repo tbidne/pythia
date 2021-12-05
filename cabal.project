@@ -1,6 +1,6 @@
 packages: .
 
-package system-info
+package pythia
   ghc-options:
     -Wall -Wcompat -Werror -Widentities
     -Wincomplete-record-updates -Wincomplete-uni-patterns

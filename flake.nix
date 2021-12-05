@@ -21,7 +21,7 @@
       mkPkg = returnShellEnv:
         compiler.developPackage {
           inherit returnShellEnv;
-          name = "system-info";
+          name = "pythia";
           root = ./.;
           modifier = drv:
             pkgs.haskell.lib.addBuildTools drv (with pkgs.haskellPackages; [

@@ -1,0 +1,102 @@
+cabal-version:      2.4
+name:               pythia
+version:            0.1.0.0
+license:            MIT
+license-file:       LICENSE
+copyright:          2021 Thomas Bidne
+author:             Thomas Bidne
+maintainer:         tbidne@prontonmail.com
+homepage:           https://github.com/tbidne/pythia/
+bug-reports:        https://github.com/tbidne/pythia/issues
+synopsis:           A utility program for retrieving system information.
+description:
+  @pythia@ retrieves system information. It is intended to be used with
+  existing utilities the user already has on their system.
+  .
+  The package is organized into self-contained services, where a given
+  service is used to query a particular item of information. For instance,
+  to query battery information, one would use the service defined in
+  "Pythia.Services.Battery".
+  .
+  The entry point is "Pythia".
+
+category:           System
+extra-source-files:
+  CHANGELOG.md
+  README.md
+
+source-repository head
+  type:     git
+  location: https://github.com/tbidne/pythia
+
+common common-exts
+  default-extensions:
+    AllowAmbiguousTypes
+    ConstraintKinds
+    DataKinds
+    DeriveFunctor
+    DeriveGeneric
+    DerivingVia
+    FlexibleContexts
+    FlexibleInstances
+    FunctionalDependencies
+    GADTs
+    ImportQualifiedPost
+    InstanceSigs
+    LambdaCase
+    MultiParamTypeClasses
+    MultiWayIf
+    NamedFieldPuns
+    NumericUnderscores
+    OverloadedLabels
+    OverloadedStrings
+    PatternSynonyms
+    RankNTypes
+    ScopedTypeVariables
+    StandaloneDeriving
+    StandaloneKindSignatures
+    TypeApplications
+    TypeFamilyDependencies
+    TypeOperators
+
+library
+  import:           common-exts
+  exposed-modules:
+    Pythia
+    Pythia.Data
+    Pythia.Services.Battery
+    Pythia.Services.Battery.ChargeStatus
+    Pythia.Services.Battery.ChargeStatus.UPower
+    Pythia.Services.Battery.State
+    Pythia.Services.Battery.State.UPower
+    Pythia.Services.Battery.Types
+    Pythia.Services.Network
+    Pythia.Services.Network.Connection
+    Pythia.Services.Network.Connection.NmCli
+    Pythia.Services.Network.Connection.Types
+    Pythia.Services.Network.IP.Global
+    Pythia.Services.Network.IP.Global.Common
+    Pythia.Services.Network.IP.Global.Types
+    Pythia.Services.Network.IP.Local
+    Pythia.Services.Network.IP.Local.IfConfig
+    Pythia.Services.Network.IP.Local.NmCli
+    Pythia.Services.Network.IP.Local.Types
+    Pythia.Services.Network.IP.Types
+    Pythia.Services.Network.Types
+    Pythia.ShellApp
+    Pythia.Utils
+
+  build-depends:
+    , attoparsec        >=0.13.2.3  && <0.15
+    , base              ^>=4.14.1.0
+    , bytestring        >=0.10.10.0 && <0.12
+    , optics-core       ^>=0.4
+    , optics-th         ^>=0.4
+    , refined-simple    ^>=0.1.0.0
+    , scientific        ^>=0.3.5.3
+    , text              ^>=1.2.3.2
+    , text-conversions  >=0.2.0     && <0.4
+    , typed-process     >=0.1.0.0   && <0.3
+
+  hs-source-dirs:   src
+  default-language: Haskell2010

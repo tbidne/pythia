@@ -1,11 +1,11 @@
 <div align="center">
 
-# System Info
+# Pythia
 
-![cabal](https://github.com/tbidne/system-info/workflows/cabal/badge.svg?branch=main)
-![stack](https://github.com/tbidne/system-info/workflows/stack/badge.svg?branch=main)
-![nix](https://github.com/tbidne/system-info/workflows/nix/badge.svg?branch=main)
-![haddock](https://github.com/tbidne/system-info/workflows/haddock/badge.svg?branch=main)
-![style](https://github.com/tbidne/system-info/workflows/style/badge.svg?branch=main)
+![cabal](https://github.com/tbidne/pythia/workflows/cabal/badge.svg?branch=main)
+![stack](https://github.com/tbidne/pythia/workflows/stack/badge.svg?branch=main)
+![nix](https://github.com/tbidne/pythia/workflows/nix/badge.svg?branch=main)
+![haddock](https://github.com/tbidne/pythia/workflows/haddock/badge.svg?branch=main)
+![style](https://github.com/tbidne/pythia/workflows/style/badge.svg?branch=main)
 
 </div>
