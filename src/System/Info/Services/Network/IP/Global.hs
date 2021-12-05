@@ -3,8 +3,12 @@
 --
 -- @since 0.1.0.0
 module System.Info.Services.Network.IP.Global
-  ( -- * Types
-    GlobalIPApp (..),
+  ( -- * Query
+    queryGlobalIP,
+    queryGlobalIPStrategy,
+
+    -- * Types
+    GlobalIpApp (..),
 
     -- ** IP Types
     GlobalIpAddresses (..),
@@ -16,10 +20,6 @@ module System.Info.Services.Network.IP.Global
     GlobalIpCommand (..),
     Ipv4Command (..),
     Ipv6Command (..),
-
-    -- * Query
-    queryGlobalIP,
-    queryGlobalIPStrategy,
   )
 where
 
@@ -39,25 +39,25 @@ import System.Info.ShellApp qualified as ShellApp
 -- | This type determines what program we use to lookup the ip address.
 --
 -- @since 0.1.0.0
-data GlobalIPApp
+data GlobalIpApp
   = -- | Uses the dig command to perform a DNS lookup. This is generally the
     -- fastest and most reliable.
     --
     -- @since 0.1.0.0
-    Dig
+    GlobalDig
   | -- | Uses curl to lookup the ip addresses.
     --
     -- @since 0.1.0.0
-    Curl
+    GlobalCurl
   | -- | Uses a custom command. As no default servers are used, this is
-    -- equivalent to using one of the other commands (e.g. 'Dig') with
+    -- equivalent to using one of the other commands (e.g. Dig) with
     -- an 'IpStrategy' of 'CustomUrl'. In particular, this means that using
-    -- 'Custom' with 'Defaults' is effectively a no-op, as we will have no
-    -- external sources to use. In short, use this command with
+    -- 'GlobalCustom' with 'Defaults' is effectively a no-op, as we will have
+    -- no external sources to use. In short, use this command with
     -- 'queryGlobalIPStrategy' and 'CustomUrl'.
     --
     -- @since 0.1.0.0
-    Custom
+    GlobalCustom
   deriving (Eq, Show)
 
 -- | This is the primary function that attempts to use the given
@@ -65,17 +65,17 @@ data GlobalIPApp
 -- servers URLs to query our network information.
 --
 -- @since 0.1.0.0
-queryGlobalIP :: GlobalIPApp -> IO (QueryResult GlobalIpAddresses)
+queryGlobalIP :: GlobalIpApp -> IO (QueryResult GlobalIpAddresses)
 queryGlobalIP = queryGlobalIPStrategy mempty
 
 -- | Variant of 'queryGlobalIP' that takes in the 'IpStrategy'.
 --
 -- @since 0.1.0.0
-queryGlobalIPStrategy :: IpStrategy -> GlobalIPApp -> IO (QueryResult GlobalIpAddresses)
+queryGlobalIPStrategy :: IpStrategy -> GlobalIpApp -> IO (QueryResult GlobalIpAddresses)
 queryGlobalIPStrategy strategy = \case
-  Dig -> ShellApp.runShellApp $ digShellApp strategy
-  Curl -> ShellApp.runShellApp $ curlShellApp strategy
-  Custom -> ShellApp.runShellApp $ Common.globalIpShellApp [] [] strategy
+  GlobalDig -> ShellApp.runShellApp $ digShellApp strategy
+  GlobalCurl -> ShellApp.runShellApp $ curlShellApp strategy
+  GlobalCustom -> ShellApp.runShellApp $ Common.globalIpShellApp [] [] strategy
 
 digShellApp :: IpStrategy -> ShellApp.ShellApp GlobalIpAddresses
 digShellApp = Common.globalIpShellApp ipv4Cmds ipv6Cmds

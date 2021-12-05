@@ -51,7 +51,7 @@ parseIPs device txt =
   where
     findMatchingDevice = foldr matchDevice devNotFoundErr
     matchDevice ip acc
-      | ip ^. #device == device = Right ip
+      | ip ^. #localDevice == device = Right ip
       | otherwise = acc
     devNotFoundErr = Left $ mkErr "Parse error" ("Device not found: " <> device ^. #unDevice)
     parseErr = mkErr "Parse error" . T.pack

@@ -47,7 +47,7 @@ OTH.makeFieldLabelsNoPrefix ''LocalIpAddresses
 -- @since 0.1.0.0
 data LocalIps = MkLocalIps
   { -- | @since 0.1.0.0
-    device :: Device,
+    localDevice :: Device,
     -- | @since 0.1.0.0
     addresses :: LocalIpAddresses
   }

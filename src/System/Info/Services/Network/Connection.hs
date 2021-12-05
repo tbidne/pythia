@@ -3,15 +3,15 @@
 --
 -- @since 0.1.0.0
 module System.Info.Services.Network.Connection
-  ( -- * Types
+  ( -- * Query
+    queryConnection,
+
+    -- * Types
     NetConnApp (..),
     Connection (..),
     ConnType (..),
     ConnState (..),
     Device (..),
-
-    -- * Query
-    queryConnection,
   )
 where
 
@@ -44,11 +44,11 @@ data NetConnApp
   = -- | Uses the NmCli utility.
     --
     -- @since 0.1.0.0
-    NmCli Device
+    NetConNmCli Device
   | -- | Custom command.
     --
     -- @since 0.1.0.0
-    Custom Device Text
+    NetConCustom Device Text
   deriving
     ( -- | @since 0.1.0.0
       Eq,
@@ -60,13 +60,13 @@ data NetConnApp
 -- NetConnApp to retrieve network connection information.
 --
 -- >>> queryConnection (NmCli "wlp0s20f3")
--- Right (MkConnection {device = MkDevice {unDevice = "wlp0s20f3"}, ctype = Wifi, state = Connected, name = Just "Some SSID"})
+-- Right (MkConnection {device = MkDevice {unDevice = "wlp0s20f3"}, connType = Wifi, state = Connected, name = Just "Some SSID"})
 --
--- | @since 0.1.0.0
+-- @since 0.1.0.0
 queryConnection :: NetConnApp -> IO (QueryResult Connection)
 queryConnection = \case
-  NmCli device -> ShellApp.runShellApp $ NM.connectionShellApp device
-  Custom device c -> ShellApp.runShellApp $ customShellApp device c
+  NetConNmCli device -> ShellApp.runShellApp $ NM.connectionShellApp device
+  NetConCustom device c -> ShellApp.runShellApp $ customShellApp device c
 
 -- Reuse NmCli's parser
 customShellApp :: Device -> Text -> ShellApp Connection

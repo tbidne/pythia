@@ -45,15 +45,16 @@ type BatteryLevel = Refined '[NonNegative, LessThanEq 100] Int
 --
 -- @since 0.1.0.0
 data BatteryState = MkBatteryState
-  { -- | The level data.
-    --
-    -- @since 0.1.0.0
+  { -- | @since 0.1.0.0
     level :: BatteryLevel,
-    -- | The status data.
-    --
-    -- @since 0.1.0.0
+    -- | @since 0.1.0.0
     status :: ChargeStatus
   }
-  deriving (Eq, Show)
+  deriving
+    ( -- | @since 0.1.0.0
+      Eq,
+      -- | @since 0.1.0.0
+      Show
+    )
 
 OTH.makeFieldLabelsNoPrefix ''BatteryState

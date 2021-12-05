@@ -57,7 +57,7 @@ parseConnection device txt = case AP.parseOnly (A.many connectionParser) txt of
                   <> devices
   Left err -> Left $ mkErr "Parse error" (T.pack err)
   where
-    connDeviceName = #device % #unDevice
+    connDeviceName = #connDevice % #unDevice
     findDevice = U.headMaybe . filter ((== device ^. #unDevice) . O.view connDeviceName)
     combineDevices t "" = t
     combineDevices t acc = t <> ", " <> acc

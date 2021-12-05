@@ -41,6 +41,8 @@ data ConnType
 OTH.makePrismLabels ''ConnType
 
 -- | Various connection states.
+--
+-- @since 0.1.0.0
 data ConnState
   = -- | @since 0.1.0.0
     Connected
@@ -65,22 +67,16 @@ OTH.makePrismLabels ''ConnState
 --
 -- @since 0.1.0.0
 data Connection = MkConnection
-  { -- | The device name.
-    --
-    -- @since 0.1.0.0
-    device :: Device,
-    -- | The connection type.
-    --
-    -- @since 0.1.0.0
-    ctype :: ConnType,
-    -- | The connection state.
-    --
-    -- @since 0.1.0.0
-    state :: ConnState,
+  { -- | @since 0.1.0.0
+    connDevice :: Device,
+    -- | @since 0.1.0.0
+    connType :: ConnType,
+    -- | @since 0.1.0.0
+    connState :: ConnState,
     -- | The name of the connection (e.g. Wifi SSID).
     --
     -- @since 0.1.0.0
-    name :: Maybe Text
+    connName :: Maybe Text
   }
   deriving
     ( -- | @since 0.1.0.0

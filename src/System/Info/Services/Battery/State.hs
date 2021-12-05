@@ -1,14 +1,16 @@
 -- | This modules exports everything needed for retrieving battery
 -- level and charge status.
+--
+-- @since 0.1.0.0
 module System.Info.Services.Battery.State
-  ( -- * Types
+  ( -- * Query
+    queryBatteryState,
+
+    -- * Types
     BatteryStateApp (..),
     BatteryState (..),
     BatteryLevel,
     ChargeStatus (..),
-
-    -- * Query
-    queryBatteryState,
   )
 where
 
@@ -38,15 +40,15 @@ data BatteryStateApp
   = -- | Uses the UPower utility.
     --
     -- @since 0.1.0.0
-    UPower
+    BatteryStateUPower
   | -- | Runs a custom script.
     --
     -- @since 0.1.0.0
-    Custom Text
+    BatteryStateCustom Text
   deriving
-    ( -- @since 0.1.0.0
+    ( -- | @since 0.1.0.0
       Eq,
-      -- @since 0.1.0.0
+      -- | @since 0.1.0.0
       Show
     )
 
@@ -58,8 +60,8 @@ data BatteryStateApp
 --
 -- @since 0.1.0.0
 queryBatteryState :: BatteryStateApp -> IO (QueryResult BatteryState)
-queryBatteryState UPower = ShellApp.runShellApp UPower.batteryStateShellApp
-queryBatteryState (Custom c) = ShellApp.runShellApp $ customShellApp c
+queryBatteryState BatteryStateUPower = ShellApp.runShellApp UPower.batteryStateShellApp
+queryBatteryState (BatteryStateCustom c) = ShellApp.runShellApp $ customShellApp c
 
 -- Reuse UPower's parser
 customShellApp :: Text -> ShellApp BatteryState

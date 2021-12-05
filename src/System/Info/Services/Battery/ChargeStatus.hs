@@ -3,12 +3,12 @@
 --
 -- @since 0.1.0.0
 module System.Info.Services.Battery.ChargeStatus
-  ( -- * Types
+  ( -- * Query
+    queryChargeStatus,
+
+    -- * Types
     BatteryChargeStatusApp (..),
     ChargeStatus (..),
-
-    -- * Query
-    queryChargeStatus,
   )
 where
 
@@ -33,15 +33,15 @@ data BatteryChargeStatusApp
   = -- | Uses the UPower utility.
     --
     -- @since 0.1.0.0
-    UPower
+    ChargeStatusUPower
   | -- | Runs a custom script.
     --
     -- @since 0.1.0.0
-    Custom Text
+    ChargeStatusCustom Text
   deriving
-    ( -- @since 0.1.0.0
+    ( -- | @since 0.1.0.0
       Eq,
-      -- @since 0.1.0.0
+      -- | @since 0.1.0.0
       Show
     )
 
@@ -53,8 +53,8 @@ data BatteryChargeStatusApp
 --
 -- @since 0.1.0.0
 queryChargeStatus :: BatteryChargeStatusApp -> IO (QueryResult ChargeStatus)
-queryChargeStatus UPower = ShellApp.runShellApp UPower.chargeStatusShellApp
-queryChargeStatus (Custom c) = ShellApp.runShellApp $ customShellApp c
+queryChargeStatus ChargeStatusUPower = ShellApp.runShellApp UPower.chargeStatusShellApp
+queryChargeStatus (ChargeStatusCustom c) = ShellApp.runShellApp $ customShellApp c
 
 -- Reuse UPower's parser
 customShellApp :: Text -> ShellApp ChargeStatus

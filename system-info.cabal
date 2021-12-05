@@ -10,21 +10,15 @@ homepage:           https://github.com/tbidne/system-info/
 bug-reports:        https://github.com/tbidne/system-info/issues
 synopsis:           A utility program for retrieving system information.
 description:
-  System-Info retrieves system information. It is intended to be used with
+  @System-Info@ retrieves system information. It is intended to be used with
   existing utilities the user already has on their system.
   .
-  The package is organized into self-containted services, where a given
+  The package is organized into self-contained services, where a given
   service is used to query a particular item of information. For instance,
-  to query battery state information, one would use the service defined in
-  "System.Info.Services.Battery.State".
+  to query battery information, one would use the service defined in
+  "System.Info.Services.Battery".
   .
-  These services can be imported unqualified, though if multiple are used
-  in the same module then they should be qualified. The supported services
-  are:
-  .
-  * "System.Info.Services.Battery.ChargeStatus"
-  * "System.Info.Services.Battery.State"
-  * "System.Info.Services.Network.Connection"
+  The entry point is "System.Info".
 
 category:           System
 extra-source-files:
@@ -68,12 +62,15 @@ common common-exts
 library
   import:           common-exts
   exposed-modules:
+    System.Info
     System.Info.Data
+    System.Info.Services.Battery
     System.Info.Services.Battery.ChargeStatus
     System.Info.Services.Battery.ChargeStatus.UPower
     System.Info.Services.Battery.State
     System.Info.Services.Battery.State.UPower
     System.Info.Services.Battery.Types
+    System.Info.Services.Network
     System.Info.Services.Network.Connection
     System.Info.Services.Network.Connection.NmCli
     System.Info.Services.Network.Connection.Types
