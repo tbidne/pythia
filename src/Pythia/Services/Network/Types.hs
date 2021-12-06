@@ -12,6 +12,7 @@ where
 import Data.String (IsString)
 import Data.Text (Text)
 import Optics.TH qualified as OTH
+import Pythia.Printer (PrettyPrinter)
 
 -- | Newtype wrapper over a network device name.
 --
@@ -30,7 +31,9 @@ newtype Device = MkDevice
     )
   deriving
     ( -- | @since 0.1.0.0
-      IsString
+      IsString,
+      -- | @since 0.1.0.0
+      PrettyPrinter
     )
     via Text
 

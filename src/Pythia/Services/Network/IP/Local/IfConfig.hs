@@ -22,8 +22,8 @@ import Optics.Core ((^.))
 import Pythia.Data (QueryError (..))
 import Pythia.Data qualified as E
 import Pythia.Services.Network.IP.Local.Types
-  ( Ipv4,
-    Ipv6,
+  ( Ipv4 (..),
+    Ipv6 (..),
     LocalIpAddresses (MkLocalIpAddresses),
     LocalIps (..),
   )
@@ -84,10 +84,12 @@ parseDevice =
 
 parseIPv4 :: Parser Ipv4
 parseIPv4 =
-  AP.skipSpace
-    *> AP.string "inet "
-    *> (parseIPStr >>= stringsToIP)
-    <* U.takeLine1
+  MkIpv4
+    <$> ( AP.skipSpace
+            *> AP.string "inet "
+            *> (parseIPStr >>= stringsToIP)
+            <* U.takeLine1
+        )
   where
     parseIPStr =
       AP.many1 (parseDigit <|> parseDot)
@@ -96,10 +98,12 @@ parseIPv4 =
 
 parseIPv6 :: Parser Ipv6
 parseIPv6 =
-  AP.skipSpace
-    *> AP.string "inet6 "
-    *> (parseIPStr >>= stringsToIP)
-    <* U.takeLine1
+  MkIpv6
+    <$> ( AP.skipSpace
+            *> AP.string "inet6 "
+            *> (parseIPStr >>= stringsToIP)
+            <* U.takeLine1
+        )
   where
     parseIPStr =
       AP.many1 (parseHex <|> parseColon)

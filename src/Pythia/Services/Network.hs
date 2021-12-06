@@ -30,8 +30,8 @@ module Pythia.Services.Network
 
     -- ** Common Types
     Device (..),
-    Ipv4,
-    Ipv6,
+    Ipv4 (..),
+    Ipv6 (..),
 
     -- * Misc Types
     QueryResult,
@@ -53,9 +53,7 @@ import Pythia.Services.Network.IP.Global
     GlobalIpApp (..),
     GlobalIpCommand (..),
     IpStrategy (..),
-    Ipv4,
     Ipv4Command (..),
-    Ipv6,
     Ipv6Command (..),
     queryGlobalIP,
     queryGlobalIPStrategy,
@@ -65,4 +63,5 @@ import Pythia.Services.Network.IP.Local
     LocalIps (..),
     queryLocalIP,
   )
+import Pythia.Services.Network.IP.Types (Ipv4 (..), Ipv6 (..))
 import Pythia.ShellApp (QueryResult)

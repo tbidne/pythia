@@ -1,3 +1,4 @@
+{-# LANGUAGE DeriveAnyClass #-}
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE UndecidableInstances #-}
 
@@ -12,7 +13,11 @@ module Pythia.Services.Network.Connection.Types
 where
 
 import Data.Text (Text)
+import Data.Text qualified as T
+import Optics.Core ((^.))
 import Optics.TH qualified as OTH
+import Pythia.Printer (PrettyPrinter (..))
+import Pythia.Printer qualified as Printer
 import Pythia.Services.Network.Types (Device)
 
 -- | Various connection types.
@@ -37,6 +42,10 @@ data ConnType
       -- | @since 0.1.0.0
       Show
     )
+  deriving anyclass
+    ( -- | @since 0.1.0.0
+      PrettyPrinter
+    )
 
 OTH.makePrismLabels ''ConnType
 
@@ -54,11 +63,15 @@ data ConnState
     Unmanaged
   | -- | @since 0.1.0.0
     UnknownState Text
-  deriving
+  deriving stock
     ( -- | @since 0.1.0.0
       Eq,
       -- | @since 0.1.0.0
       Show
+    )
+  deriving anyclass
+    ( -- | @since 0.1.0.0
+      PrettyPrinter
     )
 
 OTH.makePrismLabels ''ConnState
@@ -86,3 +99,18 @@ data Connection = MkConnection
     )
 
 OTH.makeFieldLabelsNoPrefix ''Connection
+
+-- | @since 0.1.0.0
+instance PrettyPrinter Connection where
+  pretty conn =
+    Printer.joinNewlines
+      [ device,
+        ctype,
+        state,
+        name
+      ]
+    where
+      device = "Device: " <> pretty (conn ^. #connDevice)
+      ctype = "Type: " <> pretty (conn ^. #connType)
+      state = "State: " <> pretty (conn ^. #connState)
+      name = "Name: " <> maybe "<None>" T.unpack (conn ^. #connName)

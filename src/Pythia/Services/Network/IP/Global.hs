@@ -6,14 +6,15 @@ module Pythia.Services.Network.IP.Global
   ( -- * Query
     queryGlobalIP,
     queryGlobalIPStrategy,
+    queryGlobalCustom,
 
     -- * Types
     GlobalIpApp (..),
 
     -- ** IP Types
     GlobalIpAddresses (..),
-    Ipv4,
-    Ipv6,
+    Ipv4 (..),
+    Ipv6 (..),
 
     -- ** IP Commands
     IpStrategy (..),
@@ -28,12 +29,12 @@ import Pythia.Services.Network.IP.Global.Types
   ( GlobalIpAddresses (..),
     GlobalIpCommand (..),
     IpStrategy (..),
-    Ipv4,
+    Ipv4 (..),
     Ipv4Command (..),
-    Ipv6,
+    Ipv6 (..),
     Ipv6Command (..),
   )
-import Pythia.ShellApp (QueryResult)
+import Pythia.ShellApp (GeneralShell (..), QueryResult, ShellApp (..))
 import Pythia.ShellApp qualified as ShellApp
 
 -- | This type determines what program we use to lookup the ip address.
@@ -49,15 +50,6 @@ data GlobalIpApp
     --
     -- @since 0.1.0.0
     GlobalCurl
-  | -- | Uses a custom command. As no default servers are used, this is
-    -- equivalent to using one of the other commands (e.g. Dig) with
-    -- an 'IpStrategy' of 'CustomUrl'. In particular, this means that using
-    -- 'GlobalCustom' with 'Defaults' is effectively a no-op, as we will have
-    -- no external sources to use. In short, use this command with
-    -- 'queryGlobalIPStrategy' and 'CustomUrl'.
-    --
-    -- @since 0.1.0.0
-    GlobalCustom
   deriving (Eq, Show)
 
 -- | This is the primary function that attempts to use the given
@@ -75,7 +67,22 @@ queryGlobalIPStrategy :: IpStrategy -> GlobalIpApp -> IO (QueryResult GlobalIpAd
 queryGlobalIPStrategy strategy = \case
   GlobalDig -> ShellApp.runShellApp $ digShellApp strategy
   GlobalCurl -> ShellApp.runShellApp $ curlShellApp strategy
-  GlobalCustom -> ShellApp.runShellApp $ Common.globalIpShellApp [] [] strategy
+
+-- | Queries for global IP addresses based on passed ipv4/ipv6 commands.
+-- No built-in server URLs are used, so at least one ipv4 or ipv6 command
+-- must be specififed, e.g., for ipv4 only:
+--
+-- @
+-- queryGlobalCustom $ GIpv4Command ["curl http://whatismyip.akamai.com/"]
+-- @
+--
+-- @since 0.1.0.0
+queryGlobalCustom :: GlobalIpCommand -> IO (QueryResult GlobalIpAddresses)
+queryGlobalCustom cmd = ShellApp.runShellApp shellApp
+  where
+    shellApp =
+      GeneralApp $
+        MkGeneralShell $ Common.cmdsToResultNoDefaults cmd
 
 digShellApp :: IpStrategy -> ShellApp.ShellApp GlobalIpAddresses
 digShellApp = Common.globalIpShellApp ipv4Cmds ipv6Cmds

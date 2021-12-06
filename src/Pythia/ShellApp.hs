@@ -29,13 +29,8 @@ import Data.Text.Conversions qualified as Conv
 import GHC.IO.Exception (ExitCode (..))
 import Optics.Core ((%~), (^.))
 import Optics.TH qualified as OTH
-import Pythia.Data (Command (..), QueryError (..))
+import Pythia.Data (Command (..), QueryError (..), QueryResult)
 import System.Process.Typed qualified as TP
-
--- | Return type for running a command/query.
---
--- @since 0.1.0.0
-type QueryResult result = Either [QueryError] result
 
 -- | Type for running a "simple" shell command given by 'Command'.
 -- The 'parser' is used to parse the result.

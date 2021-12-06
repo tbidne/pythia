@@ -6,8 +6,12 @@ module Pythia
   ( -- * Services
     module Pythia.Services.Battery,
     module Pythia.Services.Network,
+
+    -- * Printing
+    module Pythia.Printer,
   )
 where
 
+import Pythia.Printer
 import Pythia.Services.Battery
 import Pythia.Services.Network

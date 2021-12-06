@@ -6,8 +6,8 @@
 -- @since 0.1.0.0
 module Pythia.Services.Network.IP.Global.Types
   ( -- * IP Types
-    Ipv4,
-    Ipv6,
+    Ipv4 (..),
+    Ipv6 (..),
     GlobalIpAddresses (..),
 
     -- * Custom Commands
@@ -28,7 +28,9 @@ import Optics.Core (Iso)
 import Optics.Core qualified as O
 import Optics.TH qualified as OTH
 import Pythia.Data (Command (..))
-import Pythia.Services.Network.IP.Types (Ipv4, Ipv6)
+import Pythia.Printer (PrettyPrinter (..))
+import Pythia.Printer qualified as Pretty
+import Pythia.Services.Network.IP.Types (Ipv4 (..), Ipv6 (..))
 
 -- | Combines 'Ipv4' and 'Ipv6' with the possibility of having both.
 -- This is essentially the @These@ types from the @these@ package specialized
@@ -49,6 +51,16 @@ data GlobalIpAddresses
       -- | @since 0.1.0.0
       Show
     )
+
+-- | @since 0.1.0.0
+instance PrettyPrinter GlobalIpAddresses where
+  pretty (GIpv4 ipv4) = "IPv4: " <> pretty ipv4
+  pretty (GIpv6 ipv6) = "IPv6: " <> pretty ipv6
+  pretty (GIpBoth ipv4 ipv6) =
+    Pretty.joinNewlines
+      [ "IPv4: " <> pretty ipv4,
+        "IPv6: " <> pretty ipv6
+      ]
 
 -- | This type determines what strategy we will use when looking up
 -- the IP address. We must use an external source to determine our

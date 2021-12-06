@@ -1,4 +1,7 @@
 cradle:
   cabal:
-    - path: "src"
+    - path: "./src"
       component: "lib:pythia"
+
+    - path: "./app/Main.hs"
+      component: "pythia:exe:pythia"

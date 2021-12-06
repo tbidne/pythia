@@ -3,6 +3,7 @@
 -- @since 0.1.0.0
 module Pythia.Services.Network.IP.Global.Common
   ( globalIpShellApp,
+    cmdsToResultNoDefaults,
   )
 where
 
@@ -17,9 +18,9 @@ import Pythia.Services.Network.IP.Global.Types
   ( GlobalIpAddresses (..),
     GlobalIpCommand (..),
     IpStrategy (..),
-    Ipv4,
+    Ipv4 (..),
     Ipv4Command (..),
-    Ipv6,
+    Ipv6 (..),
     Ipv6Command (..),
   )
 import Pythia.Services.Network.IP.Global.Types qualified as IpTypes
@@ -83,10 +84,10 @@ anySuccess ipv4Cmds ipv6Cmds = do
     (Left ipv4sErrs, Left ipv6Errs) -> Left $ ipv4sErrs <> ipv6Errs
 
 getIpv4 :: [Ipv4Command] -> IO (Either [QueryError] Ipv4)
-getIpv4 = getIp IpTypes.ipv4CmdIso
+getIpv4 = fmap (_Right %~ MkIpv4) . getIp IpTypes.ipv4CmdIso
 
 getIpv6 :: [Ipv6Command] -> IO (Either [QueryError] Ipv6)
-getIpv6 = getIp IpTypes.ipv6CmdIso
+getIpv6 = fmap (_Right %~ MkIpv6) . getIp IpTypes.ipv6CmdIso
 
 getIp ::
   Predicate (Proxy ps) Text =>

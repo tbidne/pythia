@@ -5,15 +5,19 @@
 --
 -- @since 0.1.0.0
 module Pythia.Services.Network.IP.Local.Types
-  ( Ipv4,
-    Ipv6,
+  ( Ipv4 (..),
+    Ipv6 (..),
     LocalIpAddresses (..),
     LocalIps (..),
   )
 where
 
+import Optics.Core ((^.))
 import Optics.TH qualified as OTH
-import Pythia.Services.Network.IP.Types (Ipv4, Ipv6)
+import Pythia.Printer (PrettyPrinter (..))
+import Pythia.Printer qualified as Pretty
+import Pythia.Printer qualified as Printer
+import Pythia.Services.Network.IP.Types (Ipv4 (..), Ipv6 (..))
 import Pythia.Services.Network.Types (Device)
 
 -- | Combines multiple Ipv4 and Ipv6 addresses.
@@ -31,6 +35,13 @@ data LocalIpAddresses = MkLocalIpAddresses
       -- | @since 0.1.0.0
       Show
     )
+
+-- | @since 0.1.0.0
+instance PrettyPrinter LocalIpAddresses where
+  pretty addresses = Printer.joinNewlines [ipv4, ipv6]
+    where
+      ipv4 = "IPv4: " <> Printer.joinCommas (addresses ^. #ipv4s)
+      ipv6 = "IPv6: " <> Printer.joinCommas (addresses ^. #ipv6s)
 
 -- | @since 0.1.0.0
 instance Semigroup LocalIpAddresses where
@@ -57,5 +68,13 @@ data LocalIps = MkLocalIps
       -- | @since 0.1.0.0
       Show
     )
+
+-- | @since 0.1.0.0
+instance PrettyPrinter LocalIps where
+  pretty li =
+    Pretty.joinNewlines
+      [ "Device: " <> pretty (li ^. #localDevice),
+        pretty $ li ^. #addresses
+      ]
 
 OTH.makeFieldLabelsNoPrefix ''LocalIps

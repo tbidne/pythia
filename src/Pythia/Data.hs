@@ -7,6 +7,7 @@
 module Pythia.Data
   ( Command (..),
     QueryError (..),
+    QueryResult,
     refineExToQueryError,
   )
 where
@@ -65,6 +66,11 @@ data QueryError = MkQueryError
     )
 
 OTH.makeFieldLabelsNoPrefix ''QueryError
+
+-- | Return type for running a command/query.
+--
+-- @since 0.1.0.0
+type QueryResult result = Either [QueryError] result
 
 -- | Maps a 'RefineException' to a 'QueryError'.
 --

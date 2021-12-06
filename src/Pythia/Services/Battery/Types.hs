@@ -1,3 +1,4 @@
+{-# LANGUAGE DeriveAnyClass #-}
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE UndecidableInstances #-}
 
@@ -12,8 +13,10 @@ module Pythia.Services.Battery.Types
 where
 
 import Data.Text (Text)
+import Optics.Core ((^.))
 import Optics.TH qualified as OTH
-import Refined (LessThanEq, NonNegative, Refined)
+import Pythia.Printer (PrettyPrinter (..))
+import Refined (LessThanEq, NonNegative, Refined (..))
 
 -- | Represents battery charging status.
 --
@@ -27,11 +30,15 @@ data ChargeStatus
     Full
   | -- | @since 0.1.0.0
     Unknown Text
-  deriving
+  deriving stock
     ( -- | @since 0.1.0.0
       Eq,
       -- | @since 0.1.0.0
       Show
+    )
+  deriving anyclass
+    ( -- | @since 0.1.0.0
+      PrettyPrinter
     )
 
 OTH.makePrismLabels ''ChargeStatus
@@ -56,5 +63,12 @@ data BatteryState = MkBatteryState
       -- | @since 0.1.0.0
       Show
     )
+
+-- | @since 0.1.0.0
+instance PrettyPrinter BatteryState where
+  pretty bs = status <> ": " <> level <> "%"
+    where
+      status = pretty $ bs ^. #status
+      level = show $ unrefine $ bs ^. #level
 
 OTH.makeFieldLabelsNoPrefix ''BatteryState
