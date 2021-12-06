@@ -1,13 +1,16 @@
 {-# LANGUAGE ApplicativeDo #-}
+{-# LANGUAGE TemplateHaskell #-}
 
--- | This modules provides an executable that for querying system information.
+-- | This modules provides an executable for querying system information.
 --
 -- @since 0.1.0.0
 module Main (main) where
 
+import CabalVersion qualified as CV
 import Control.Applicative (Alternative (..))
 import Control.Applicative qualified as A
 import Data.Foldable qualified as F
+import Development.GitRev qualified as GitRev
 import Options.Applicative
   ( CommandFields,
     Mod,
@@ -82,12 +85,29 @@ cmdParser =
         <> mkCommand "ip-global" parseIpGlobal ipGlobalTxt
     )
     <**> OApp.helper
+    <**> version
   where
     chargeTxt = OApp.progDesc "Queries the battery charging status (e.g. charging, discharging)."
     batStateTxt = OApp.progDesc "Queries the battery state (i.e. charging status and current percentage)."
     netConnTxt = OApp.progDesc "Queries the network connection status for a given device."
     ipLocalTxt = OApp.progDesc "Queries the local IP addresses associated to a given device."
     ipGlobalTxt = OApp.progDesc "Queries the global IP addresses."
+
+version :: Parser (a -> a)
+version = OApp.infoOption txt (OApp.long "version" <> OApp.short 'v')
+  where
+    txt =
+      Pythia.joinNewlines @String
+        [ "Pythia",
+          "Version: " <> versStr,
+          "Revision: " <> $(GitRev.gitHash),
+          "Date: " <> $(GitRev.gitCommitDate)
+        ]
+    versStr =
+      either
+        (("Error: " <>) . show)
+        CV.showVersion
+        $$(CV.cabalVersionEitherTH)
 
 parseBatteryChargeStatus :: Parser PythiaCommand
 parseBatteryChargeStatus =
