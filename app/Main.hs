@@ -6,7 +6,6 @@
 -- @since 0.1.0.0
 module Main (main) where
 
-import CabalVersion qualified as CV
 import Control.Applicative (Alternative (..))
 import Control.Applicative qualified as A
 import Data.Foldable qualified as F
@@ -21,6 +20,7 @@ import Options.Applicative
 import Options.Applicative qualified as OApp
 import Options.Applicative.Help (Chunk (..))
 import Options.Applicative.Types (ArgPolicy (..))
+import Package.Version qualified as PV
 import Pythia qualified
 import Pythia.Data (QueryResult)
 import Pythia.Printer (PrettyPrinter (..))
@@ -97,17 +97,12 @@ version :: Parser (a -> a)
 version = OApp.infoOption txt (OApp.long "version" <> OApp.short 'v')
   where
     txt =
-      Pythia.joinNewlines @String
+      Pythia.joinNewlines
         [ "Pythia",
-          "Version: " <> versStr,
+          "Version: " <> $$(PV.packageVersionStringTH "pythia.cabal"),
           "Revision: " <> $(GitRev.gitHash),
           "Date: " <> $(GitRev.gitCommitDate)
         ]
-    versStr =
-      either
-        (("Error: " <>) . show)
-        CV.showVersion
-        $$(CV.cabalVersionEitherTH)
 
 parseBatteryChargeStatus :: Parser PythiaCommand
 parseBatteryChargeStatus =

@@ -9,5 +9,10 @@ package pythia
 
 source-repository-package
     type: git
+    location: https://github.com/tbidne/package-version.git
+    tag: 87a4575e203aa528db3d35f6efc94f70879ed4a7
+
+source-repository-package
+    type: git
     location: https://github.com/tbidne/refined-simple.git
     tag: 521ce27c3632c0b98661a8c1bde80dae01c32cbe

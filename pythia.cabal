@@ -105,13 +105,13 @@ library
 executable pythia
   import:           common-exts
   main-is:          Main.hs
-  other-modules:    CabalVersion
   build-depends:
     , attoparsec
     , base
     , gitrev                >=1.2.0    && <1.4
     , optics-core
     , optparse-applicative  ^>=0.16.1.0
+    , package-version       ^>=0.1.0.0
     , pythia
     , refined-simple
     , safe-exceptions       ^>=0.1.7.0
