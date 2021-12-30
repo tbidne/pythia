@@ -1,23 +1,17 @@
 {
   description = "A Haskell package for retrieving system information.";
   inputs.flake-utils.url = "github:numtide/flake-utils";
-  inputs.nixpkgs.url = "nixpkgs/nixos-unstable";
-  inputs.package-version-src = {
-    url = "github:tbidne/package-version";
-    inputs.flake-utils.follows = "flake-utils";
-    inputs.nixpkgs.follows = "nixpkgs";
-  };
-  inputs.refined-simple-src = {
-    url = "github:tbidne/refined-simple";
+  inputs.nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
+  inputs.refined-extras-src = {
+    url = "github:tbidne/refined-extras";
     inputs.flake-utils.follows = "flake-utils";
     inputs.nixpkgs.follows = "nixpkgs";
   };
   outputs =
-    { self
+    { flake-utils
     , nixpkgs
-    , flake-utils
-    , package-version-src
-    , refined-simple-src
+    , refined-extras-src
+    , self
     }:
     flake-utils.lib.eachSystem [ "x86_64-linux" "x86_64-darwin" ] (system:
     let
@@ -47,17 +41,14 @@
               optics-core = callHackage "optics-core" "0.4" { };
               optics-th = callHackage "optics-th" "0.4"
                 { inherit optics-core; };
-              package-version =
-                final.callCabal2nix "package-version" package-version-src { };
-              refined-simple =
-                final.callCabal2nix "refined-simple" refined-simple-src { };
+              refined-extras =
+                final.callCabal2nix "refined-extras" refined-extras-src { };
             in
             {
               inherit
                 optics-core
                 optics-th
-                package-version
-                refined-simple;
+                refined-extras;
             };
         };
     in

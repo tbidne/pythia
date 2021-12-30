@@ -7,12 +7,10 @@ package pythia
     -Wmissing-home-modules -Wmissing-export-lists -Wpartial-fields
     -Wredundant-constraints
 
-source-repository-package
-    type: git
-    location: https://github.com/tbidne/package-version.git
-    tag: 0114992db386a592547f8c9e8155a4edcc303132
+package refined
+  flags: -aeson -quickcheck
 
 source-repository-package
     type: git
-    location: https://github.com/tbidne/refined-simple.git
-    tag: 521ce27c3632c0b98661a8c1bde80dae01c32cbe
+    location: https://github.com/tbidne/refined-extras.git
+    tag: c55a868eefec2837417fa7949a73fff01feb76f5

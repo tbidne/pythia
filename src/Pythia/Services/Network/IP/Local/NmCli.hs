@@ -14,7 +14,6 @@ import Data.Attoparsec.Text (Parser)
 import Data.Attoparsec.Text qualified as AP
 import Data.Bifunctor (Bifunctor (..))
 import Data.Char qualified as C
-import Data.Data (Proxy)
 import Data.Functor (($>))
 import Data.Text (Text)
 import Data.Text qualified as T
@@ -30,7 +29,7 @@ import Pythia.Services.Network.IP.Local.Types
 import Pythia.Services.Network.Types (Device (..))
 import Pythia.ShellApp (ShellApp (..), SimpleShell (..))
 import Pythia.Utils qualified as U
-import Refined (Refined)
+import Refined (Predicate, Refined)
 import Refined qualified as R
 
 -- | NmCli 'ShellApp' for 'LocalIps'.
@@ -124,8 +123,8 @@ parseIPv6 =
     parseHex = AP.takeWhile1 C.isHexDigit
     parseColon = AP.string ":"
 
-stringsToIP :: (R.Predicate (Proxy ps) a, Monoid a) => [a] -> Parser (Refined ps a)
-stringsToIP strs = case R.refineAll (mconcat strs) of
+stringsToIP :: (Predicate p a, Monoid a) => [a] -> Parser (Refined p a)
+stringsToIP strs = case R.refine (mconcat strs) of
   Left _ -> mempty
   Right re -> pure re
 

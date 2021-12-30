@@ -16,7 +16,7 @@ import Data.Text (Text)
 import Optics.Core ((^.))
 import Optics.TH qualified as OTH
 import Pythia.Printer (PrettyPrinter (..))
-import Refined (LessThanEq, NonNegative, Refined (..))
+import Refined (NonNegative, Refined, To, unrefine, type (&&))
 
 -- | Represents battery charging status.
 --
@@ -46,7 +46,7 @@ OTH.makePrismLabels ''ChargeStatus
 -- | Represents battery levels.
 --
 -- @since 0.1.0.0
-type BatteryLevel = Refined '[NonNegative, LessThanEq 100] Int
+type BatteryLevel = Refined (NonNegative && To 100) Int
 
 -- | Full battery state, including level and status data.
 --

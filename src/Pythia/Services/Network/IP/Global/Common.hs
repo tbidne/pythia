@@ -8,7 +8,6 @@ module Pythia.Services.Network.IP.Global.Common
 where
 
 import Data.Char qualified as Ch
-import Data.Proxy (Proxy)
 import Data.Text (Text)
 import Data.Text qualified as T
 import Optics.Core (Iso', (%~), (^.), _Left, _Right)
@@ -90,17 +89,17 @@ getIpv6 :: [Ipv6Command] -> IO (Either [QueryError] Ipv6)
 getIpv6 = fmap (_Right %~ MkIpv6) . getIp IpTypes.ipv6CmdIso
 
 getIp ::
-  Predicate (Proxy ps) Text =>
+  Predicate p Text =>
   Iso' a Command ->
   [a] ->
-  IO (Either [QueryError] (Refined ps Text))
+  IO (Either [QueryError] (Refined p Text))
 getIp iso = foldr go (pure (Left []))
   where
     go cmd acc = do
       res <- ShellApp.runCommand $ cmd ^. iso
       case res of
         Left err -> appendErr err <$> acc
-        Right txt -> case R.refineAll (trim txt) of
+        Right txt -> case R.refine (trim txt) of
           Left refEx ->
             appendErr (Data.refineExToQueryError refEx) <$> acc
           Right ip -> pure $ Right ip

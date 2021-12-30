@@ -85,7 +85,7 @@ parsePercent =
   where
     parseNN = do
       num <- AP.decimal
-      case R.refineAll num of
+      case R.refine num of
         Left _ -> empty
         Right re -> pure re
     end = AP.char '%' *> AP.skipSpace

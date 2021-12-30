@@ -5,18 +5,8 @@
 --
 -- @since 0.1.0.0
 module Pythia.Services.Network.IP.Types
-  ( -- * IP Types
-    Ipv4 (..),
+  ( Ipv4 (..),
     Ipv6 (..),
-
-    -- * Refined Re-exports
-    Refined,
-    type (\/),
-    All,
-    Digit,
-    HexDigit,
-    MaxLength,
-    SymEquals,
   )
 where
 
@@ -24,22 +14,17 @@ import Data.Text (Text)
 import Data.Text qualified as T
 import Optics.TH qualified as OTH
 import Pythia.Printer (PrettyPrinter (..))
-import Refined
-  ( All,
-    Digit,
-    HexDigit,
-    MaxLength,
-    Refined (..),
-    SymEquals,
-    type (\/),
-  )
+import Refined (Refined, SizeLessThan, type (&&), type (||))
+import Refined qualified as R
+import Refined.Extras.Predicates.Foldable (All)
+import Refined.Extras.Predicates.Text (Digit, HexDigit, SymEqualTo)
 
 -- | Type for an Ipv4 address, i.e., a string of max length 15 with a mix of
 -- digits and dots.
 --
 -- @since 0.1.0.0
 newtype Ipv4 = MkIpv4
-  { unIpv4 :: Refined [All (Digit \/ SymEquals "."), MaxLength 15] Text
+  { unIpv4 :: Refined (All (Digit || SymEqualTo ".") && SizeLessThan 16) Text
   }
   deriving stock
     ( -- | @since 0.1.0.0
@@ -50,7 +35,7 @@ newtype Ipv4 = MkIpv4
 
 -- | @since 0.1.0.0
 instance PrettyPrinter Ipv4 where
-  pretty = T.unpack . unrefine . unIpv4
+  pretty = T.unpack . R.unrefine . unIpv4
 
 OTH.makeFieldLabelsNoPrefix ''Ipv4
 
@@ -59,7 +44,7 @@ OTH.makeFieldLabelsNoPrefix ''Ipv4
 --
 -- @since 0.1.0.0
 newtype Ipv6 = MkIpv6
-  { unIpv6 :: Refined [All (HexDigit \/ SymEquals ":"), MaxLength 39] Text
+  { unIpv6 :: Refined (All (HexDigit || SymEqualTo ":") && SizeLessThan 40) Text
   }
   deriving
     ( -- | @since 0.1.0.0
@@ -70,6 +55,6 @@ newtype Ipv6 = MkIpv6
 
 -- | @since 0.1.0.0
 instance PrettyPrinter Ipv6 where
-  pretty = T.unpack . unrefine . unIpv6
+  pretty = T.unpack . R.unrefine . unIpv6
 
 OTH.makeFieldLabelsNoPrefix ''Ipv6

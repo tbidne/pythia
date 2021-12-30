@@ -17,6 +17,7 @@ import Data.Text (Text)
 import Data.Text qualified as T
 import Optics.TH qualified as OTH
 import Refined (RefineException (..))
+import Refined.Extras.Utils qualified as RUtils
 
 -- | Newtype wrapper over a shell command.
 --
@@ -76,16 +77,13 @@ type QueryResult result = Either [QueryError] result
 --
 -- @since 0.1.0.0
 refineExToQueryError :: RefineException -> QueryError
-refineExToQueryError (MkRefineException predRep targetRep msg) = qe
+refineExToQueryError ex = qe
   where
-    shortErr =
-      "Error when refining from type "
-        <> show targetRep
-        <> " to type "
-        <> show predRep
+    shortErr = show $ RUtils.refineExceptionToType ex
+    longErr = RUtils.showtRefineException ex
     qe =
       MkQueryError
         { name = "Refinement Error",
           short = T.pack shortErr,
-          long = T.pack msg
+          long = longErr
         }

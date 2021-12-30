@@ -9,6 +9,7 @@ module Main (main) where
 import Control.Applicative (Alternative (..))
 import Control.Applicative qualified as A
 import Data.Foldable qualified as F
+import Data.Version.Package qualified as PV
 import Development.GitRev qualified as GitRev
 import Options.Applicative
   ( CommandFields,
@@ -20,7 +21,6 @@ import Options.Applicative
 import Options.Applicative qualified as OApp
 import Options.Applicative.Help (Chunk (..))
 import Options.Applicative.Types (ArgPolicy (..))
-import Package.Version qualified as PV
 import Pythia qualified
 import Pythia.Data (QueryResult)
 import Pythia.Printer (PrettyPrinter (..))

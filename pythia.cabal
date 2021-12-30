@@ -93,7 +93,8 @@ library
     , bytestring        >=0.10.10.0 && <0.12
     , optics-core       ^>=0.4
     , optics-th         ^>=0.4
-    , refined-simple    ^>=0.1.0.0
+    , refined           ^>=0.6
+    , refined-extras    ^>=0.1.0.0
     , scientific        ^>=0.3.5.3
     , text              ^>=1.2.3.2
     , text-conversions  >=0.2.0     && <0.4
@@ -113,7 +114,7 @@ executable pythia
     , optparse-applicative  ^>=0.16.1.0
     , package-version       ^>=0.1.0.0
     , pythia
-    , refined-simple
+    , refined
     , safe-exceptions       ^>=0.1.7.0
     , template-haskell      >=2.16.0.0 && <2.18
     , text

@@ -17,20 +17,21 @@
     },
     "nixpkgs": {
       "locked": {
-        "lastModified": 1638198142,
-        "narHash": "sha256-plU9b8r4St6q4U7VHtG9V7oF8k9fIpfXl/KDaZLuY9k=",
-        "owner": "NixOS",
+        "lastModified": 1640871638,
+        "narHash": "sha256-ty6sGnJUQEkCd43At5U3DRQZD7rPARz5VginSW6hZ3k=",
+        "owner": "nixos",
         "repo": "nixpkgs",
-        "rev": "8a308775674e178495767df90c419425474582a1",
+        "rev": "5b091d4fbe3b7b7493c3b46fe0842e4b30ea24b3",
         "type": "github"
       },
       "original": {
-        "id": "nixpkgs",
+        "owner": "nixos",
         "ref": "nixos-unstable",
-        "type": "indirect"
+        "repo": "nixpkgs",
+        "type": "github"
       }
     },
-    "package-version-src": {
+    "refined-extras-src": {
       "inputs": {
         "flake-utils": [
           "flake-utils"
@@ -40,39 +41,16 @@
         ]
       },
       "locked": {
-        "lastModified": 1640662540,
-        "narHash": "sha256-fHyBi7d1Uojzi7UD4od6E24DNcFqNohYh3tQGfw+QuE=",
+        "lastModified": 1640979570,
+        "narHash": "sha256-lLLWywIfygBlFSjQWhVLpsHC68P3EGfHBZOM0Vd66kc=",
         "owner": "tbidne",
-        "repo": "package-version",
-        "rev": "4514257cc5cdc3b1c8a5baadc132f28f4bab2a89",
+        "repo": "refined-extras",
+        "rev": "c55a868eefec2837417fa7949a73fff01feb76f5",
         "type": "github"
       },
       "original": {
         "owner": "tbidne",
-        "repo": "package-version",
-        "type": "github"
-      }
-    },
-    "refined-simple-src": {
-      "inputs": {
-        "flake-utils": [
-          "flake-utils"
-        ],
-        "nixpkgs": [
-          "nixpkgs"
-        ]
-      },
-      "locked": {
-        "lastModified": 1638335268,
-        "narHash": "sha256-4fL3iIzup8v1af+zdr1BBKmxTlWgt2robKmdqohPVdc=",
-        "owner": "tbidne",
-        "repo": "refined-simple",
-        "rev": "521ce27c3632c0b98661a8c1bde80dae01c32cbe",
-        "type": "github"
-      },
-      "original": {
-        "owner": "tbidne",
-        "repo": "refined-simple",
+        "repo": "refined-extras",
         "type": "github"
       }
     },
@@ -80,8 +58,7 @@
       "inputs": {
         "flake-utils": "flake-utils",
         "nixpkgs": "nixpkgs",
-        "package-version-src": "package-version-src",
-        "refined-simple-src": "refined-simple-src"
+        "refined-extras-src": "refined-extras-src"
       }
     }
   },

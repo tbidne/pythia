@@ -6,7 +6,11 @@ packages:
 extra-deps:
 - optics-core-0.4@sha256:59e04aebca536bd011ae50c781937f45af4c1456af1eb9fb578f9a69eee293cd,4995
 - optics-th-0.4@sha256:7c838b5b1d6998133bf8f0641c36197ed6cb468dc69515e1952f33f0bbe8e11d,2009
-- git: https://github.com/tbidne/package-version.git
-  commit: 0114992db386a592547f8c9e8155a4edcc303132
-- git: https://github.com/tbidne/refined-simple.git
-  commit: 521ce27c3632c0b98661a8c1bde80dae01c32cbe
+- package-version-0.1.0.0@sha256:bb9fc93e905540aa8e1b32f80c2dc82756a4481c63779bd92e3796ed8085ab98,2854
+- git: https://github.com/tbidne/refined-extras.git
+  commit: c55a868eefec2837417fa7949a73fff01feb76f5
+
+flags:
+  refined:
+    aeson: false
+    quickcheck: false
