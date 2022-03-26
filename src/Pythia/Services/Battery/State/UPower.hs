@@ -14,6 +14,7 @@ import Data.Attoparsec.Text qualified as AP
 import Data.Functor (($>))
 import Data.Text (Text)
 import Data.Text qualified as T
+import Numeric.Data.Interval qualified as Interval
 import Pythia.Data (QueryError (..))
 import Pythia.Services.Battery.Types
   ( BatteryLevel,
@@ -21,7 +22,6 @@ import Pythia.Services.Battery.Types
     ChargeStatus (..),
   )
 import Pythia.ShellApp (ShellApp (..), SimpleShell (..))
-import Refined qualified as R
 
 -- | UPower 'ShellApp' for 'BatteryState'.
 --
@@ -85,9 +85,7 @@ parsePercent =
   where
     parseNN = do
       num <- AP.decimal
-      case R.refine num of
-        Left _ -> empty
-        Right re -> pure re
+      maybe empty pure (Interval.mkLRInterval num)
     end = AP.char '%' *> AP.skipSpace
 
 parseState :: Parser ChargeStatus

@@ -36,6 +36,8 @@ data LocalIpAddresses = MkLocalIpAddresses
       Show
     )
 
+OTH.makeFieldLabelsNoPrefix ''LocalIpAddresses
+
 -- | @since 0.1.0.0
 instance PrettyPrinter LocalIpAddresses where
   pretty addresses = Printer.joinNewlines [ipv4, ipv6]
@@ -50,8 +52,6 @@ instance Semigroup LocalIpAddresses where
 -- | @since 0.1.0.0
 instance Monoid LocalIpAddresses where
   mempty = MkLocalIpAddresses mempty mempty
-
-OTH.makeFieldLabelsNoPrefix ''LocalIpAddresses
 
 -- | Describes the Ipv4 and Ipv6 addresses associated to a device.
 --
@@ -69,6 +69,8 @@ data LocalIps = MkLocalIps
       Show
     )
 
+OTH.makeFieldLabelsNoPrefix ''LocalIps
+
 -- | @since 0.1.0.0
 instance PrettyPrinter LocalIps where
   pretty li =
@@ -76,5 +78,3 @@ instance PrettyPrinter LocalIps where
       [ "Device: " <> pretty (li ^. #localDevice),
         pretty $ li ^. #addresses
       ]
-
-OTH.makeFieldLabelsNoPrefix ''LocalIps

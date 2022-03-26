@@ -20,12 +20,11 @@ module Pythia.ShellApp
   )
 where
 
-import Data.ByteString.Lazy (ByteString)
-import Data.Maybe qualified as M
+import Data.ByteString (ByteString)
+import Data.ByteString.Lazy qualified as LBS
 import Data.Text (Text)
 import Data.Text qualified as T
-import Data.Text.Conversions (UTF8 (..))
-import Data.Text.Conversions qualified as Conv
+import Data.Text.Encoding qualified as TEnc
 import GHC.IO.Exception (ExitCode (..))
 import Optics.Core ((%~), (^.))
 import Optics.TH qualified as OTH
@@ -99,16 +98,13 @@ runCommand :: Command -> IO (Either QueryError Text)
 runCommand command = do
   (exitCode, out, err) <- TP.readProcess $ TP.shell $ T.unpack cmdStr
   pure $ case exitCode of
-    ExitSuccess -> case decodeUtf8 out of
-      Just result -> Right result
-      Nothing -> Left $ utf8Err $ T.pack (show out)
+    ExitSuccess -> case TEnc.decodeUtf8' (LBS.toStrict out) of
+      Right result -> Right result
+      Left ex -> Left $ utf8Err $ T.pack (show ex)
     ExitFailure n ->
-      Left $ shellErr n cmdStr err
+      Left $ shellErr n cmdStr (LBS.toStrict err)
   where
     cmdStr = command ^. #unCommand
-
-decodeUtf8 :: ByteString -> Maybe Text
-decodeUtf8 = Conv.decodeConvertText . UTF8
 
 utf8Err :: Text -> QueryError
 utf8Err err =
@@ -126,7 +122,9 @@ shellErr exitCode cmd err =
       long = long
     }
   where
-    err' = M.fromMaybe "<decode utf8 err>" (decodeUtf8 err)
+    err' = case TEnc.decodeUtf8' err of
+      Right result -> result
+      Left ex -> "<decode utf 8 err>: " <> T.pack (show ex)
     long =
       T.concat
         [ "Error running command `",

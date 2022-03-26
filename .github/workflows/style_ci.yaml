@@ -29,13 +29,16 @@ jobs:
             trusted-public-keys = cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY= hydra.iohk.io:f/Ea+s+dFdN+3Y/G+FDgSq+a5NEWhJGzdjvKNGv0/EQ=
 
       - name: cabal-fmt
-        run: nix develop --command bash ./ci_scripts/cabal-fmt.sh
+        run: nix run github:tbidne/nix-hs-tools/0.1.0.0#cabal-fmt -- --check
 
       - name: hlint
-        run: nix develop --command bash ./ci_scripts/hlint.sh
+        run: nix run github:tbidne/nix-hs-tools/0.1.0.0#hlint
 
       - name: ormolu
-        run: nix develop --command bash ./ci_scripts/ormolu.sh
+        run: nix run github:tbidne/nix-hs-tools/0.1.0.0#ormolu -- --mode check
 
       - name: nixpkgs-fmt
-        run: nix develop --command bash ./ci_scripts/nixpkgs-fmt.sh
+        run: nix run github:tbidne/nix-hs-tools/0.1.0.0#nixpkgs-fmt -- --check
+
+      - name: haddock
+        run: nix run github:tbidne/nix-hs-tools/0.1.0.0#haddock_8-10-7

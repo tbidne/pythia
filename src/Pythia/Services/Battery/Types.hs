@@ -13,10 +13,11 @@ module Pythia.Services.Battery.Types
 where
 
 import Data.Text (Text)
+import Numeric.Data.Interval (LRInterval)
+import Numeric.Data.Interval qualified as Interval
 import Optics.Core ((^.))
 import Optics.TH qualified as OTH
 import Pythia.Printer (PrettyPrinter (..))
-import Refined (NonNegative, Refined, To, unrefine, type (&&))
 
 -- | Represents battery charging status.
 --
@@ -46,7 +47,7 @@ OTH.makePrismLabels ''ChargeStatus
 -- | Represents battery levels.
 --
 -- @since 0.1.0.0
-type BatteryLevel = Refined (NonNegative && To 100) Int
+type BatteryLevel = LRInterval 0 100 Int
 
 -- | Full battery state, including level and status data.
 --
@@ -64,11 +65,11 @@ data BatteryState = MkBatteryState
       Show
     )
 
+OTH.makeFieldLabelsNoPrefix ''BatteryState
+
 -- | @since 0.1.0.0
 instance PrettyPrinter BatteryState where
   pretty bs = status <> ": " <> level <> "%"
     where
       status = pretty $ bs ^. #status
-      level = show $ unrefine $ bs ^. #level
-
-OTH.makeFieldLabelsNoPrefix ''BatteryState
+      level = show $ Interval.unLRInterval $ bs ^. #level

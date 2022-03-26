@@ -5,12 +5,22 @@ package pythia
     -Wall -Wcompat -Werror -Widentities
     -Wincomplete-record-updates -Wincomplete-uni-patterns
     -Wmissing-home-modules -Wmissing-export-lists -Wpartial-fields
-    -Wredundant-constraints
+    -Wredundant-constraints -Wunused-packages
 
 package refined
   flags: -aeson -quickcheck
 
 source-repository-package
     type: git
+    location: https://github.com/tbidne/algebra-simple.git
+    tag: 325be17d256d257cedfada4087beddaf5d2ec7c2
+
+source-repository-package
+    type: git
     location: https://github.com/tbidne/refined-extras.git
-    tag: c55a868eefec2837417fa7949a73fff01feb76f5
+    tag: bcee9c3c3d838243134166937c74d64c707fa236
+
+source-repository-package
+    type: git
+    location: https://github.com/tbidne/smart-math.git
+    tag: c76b316979c2f704bb3959d073c1ed0b24034103
