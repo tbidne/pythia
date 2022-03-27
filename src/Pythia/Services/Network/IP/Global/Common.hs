@@ -8,11 +8,11 @@ module Pythia.Services.Network.IP.Global.Common
 where
 
 import Data.Char qualified as Ch
-import Data.Text (Text)
 import Data.Text qualified as T
-import Optics.Core (Iso', (%~), (^.), _Left, _Right)
+import Optics.Core (Iso', _Left, _Right)
 import Pythia.Data (Command (..), QueryError)
 import Pythia.Data qualified as Data
+import Pythia.Prelude
 import Pythia.Services.Network.IP.Global.Types
   ( GlobalIpAddresses (..),
     GlobalIpCommand (..),
@@ -52,6 +52,9 @@ action defIpv4Cmds defIpv6Cmds strategy = do
     CustomUrl gic -> cmdsToResultNoDefaults gic
     CustomWithDefaults gic -> cmdsToResult defIpv4Cmds defIpv6Cmds gic
 
+-- | Runs the command without any defaults
+--
+-- @since 0.1.0.0
 cmdsToResultNoDefaults :: GlobalIpCommand -> IO (Either [QueryError] GlobalIpAddresses)
 cmdsToResultNoDefaults = cmdsToResult [] []
 

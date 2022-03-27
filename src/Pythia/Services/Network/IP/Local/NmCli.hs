@@ -7,19 +7,16 @@ module Pythia.Services.Network.IP.Local.NmCli
   )
 where
 
-import Control.Applicative (Alternative (..))
 import Control.Applicative qualified as A
 import Data.Attoparsec.Combinator qualified as AP
 import Data.Attoparsec.Text (Parser)
 import Data.Attoparsec.Text qualified as AP
 import Data.Bifunctor (Bifunctor (..))
 import Data.Char qualified as C
-import Data.Functor (($>))
-import Data.Text (Text)
 import Data.Text qualified as T
-import Optics.Core ((^.))
 import Pythia.Data (QueryError (..))
 import Pythia.Data qualified as E
+import Pythia.Prelude
 import Pythia.Services.Network.IP.Local.Types
   ( Ipv4 (..),
     Ipv6 (..),

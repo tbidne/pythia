@@ -12,8 +12,8 @@ module Pythia.Services.Network.IP.Local.Types
   )
 where
 
-import Optics.Core ((^.))
 import Optics.TH qualified as OTH
+import Pythia.Prelude
 import Pythia.Printer (PrettyPrinter (..))
 import Pythia.Printer qualified as Pretty
 import Pythia.Printer qualified as Printer

@@ -12,10 +12,9 @@ module Pythia.Services.Network.Connection.Types
   )
 where
 
-import Data.Text (Text)
 import Data.Text qualified as T
-import Optics.Core ((^.))
 import Optics.TH qualified as OTH
+import Pythia.Prelude
 import Pythia.Printer (PrettyPrinter (..))
 import Pythia.Printer qualified as Printer
 import Pythia.Services.Network.Types (Device)

@@ -15,9 +15,8 @@ module Pythia.Services.Network.Connection
   )
 where
 
-import Data.Text (Text)
-import Optics.Core ((%), (.~))
 import Pythia.Data (Command (..))
+import Pythia.Prelude
 import Pythia.Services.Network.Connection.NmCli qualified as NM
 import Pythia.Services.Network.Connection.Types
   ( ConnState (..),

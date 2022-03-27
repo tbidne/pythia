@@ -13,9 +13,9 @@ module Pythia.Data
 where
 
 import Data.String (IsString)
-import Data.Text (Text)
 import Data.Text qualified as T
 import Optics.TH qualified as OTH
+import Pythia.Prelude
 import Refined (RefineException (..))
 import Refined.Extras.Utils qualified as RUtils
 

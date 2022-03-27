@@ -32,6 +32,8 @@ source-repository head
 
 common common-exts
   default-extensions:
+    NoImplicitPrelude
+    NoStarIsType
     AllowAmbiguousTypes
     ConstraintKinds
     DataKinds
@@ -65,6 +67,7 @@ library
   exposed-modules:
     Pythia
     Pythia.Data
+    Pythia.Prelude
     Pythia.Printer
     Pythia.Services.Battery
     Pythia.Services.Battery.ChargeStatus

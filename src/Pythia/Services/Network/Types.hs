@@ -10,8 +10,8 @@ module Pythia.Services.Network.Types
 where
 
 import Data.String (IsString)
-import Data.Text (Text)
 import Optics.TH qualified as OTH
+import Pythia.Prelude
 import Pythia.Printer (PrettyPrinter)
 
 -- | Newtype wrapper over a network device name.

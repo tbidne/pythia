@@ -24,6 +24,7 @@ module Pythia.Services.Network.IP.Global
   )
 where
 
+import Pythia.Prelude
 import Pythia.Services.Network.IP.Global.Common qualified as Common
 import Pythia.Services.Network.IP.Global.Types
   ( GlobalIpAddresses (..),

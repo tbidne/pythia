@@ -12,11 +12,10 @@ module Pythia.Services.Battery.Types
   )
 where
 
-import Data.Text (Text)
 import Numeric.Data.Interval (LRInterval)
 import Numeric.Data.Interval qualified as Interval
-import Optics.Core ((^.))
 import Optics.TH qualified as OTH
+import Pythia.Prelude
 import Pythia.Printer (PrettyPrinter (..))
 
 -- | Represents battery charging status.

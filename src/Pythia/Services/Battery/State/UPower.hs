@@ -7,15 +7,13 @@ module Pythia.Services.Battery.State.UPower
   )
 where
 
-import Control.Applicative (Alternative (..))
 import Data.Attoparsec.Combinator qualified as AP
 import Data.Attoparsec.Text (Parser)
 import Data.Attoparsec.Text qualified as AP
-import Data.Functor (($>))
-import Data.Text (Text)
 import Data.Text qualified as T
 import Numeric.Data.Interval qualified as Interval
 import Pythia.Data (QueryError (..))
+import Pythia.Prelude
 import Pythia.Services.Battery.Types
   ( BatteryLevel,
     BatteryState (..),

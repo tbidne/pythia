@@ -15,9 +15,8 @@ module Pythia.Services.Network.IP.Local
   )
 where
 
-import Data.Text (Text)
-import Optics.Core ((%), (.~))
 import Pythia.Data (Command (..))
+import Pythia.Prelude
 import Pythia.Services.Network.IP.Local.IfConfig qualified as IfConfig
 import Pythia.Services.Network.IP.Local.NmCli qualified as NM
 import Pythia.Services.Network.IP.Local.Types

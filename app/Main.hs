@@ -6,9 +6,7 @@
 -- @since 0.1.0.0
 module Main (main) where
 
-import Control.Applicative (Alternative (..))
 import Control.Applicative qualified as A
-import Data.Foldable qualified as F
 import Data.Version.Package qualified as PV
 import Development.GitRev qualified as GitRev
 import Options.Applicative
@@ -23,6 +21,7 @@ import Options.Applicative.Help (Chunk (..))
 import Options.Applicative.Types (ArgPolicy (..))
 import Pythia qualified
 import Pythia.Data (QueryResult)
+import Pythia.Prelude
 import Pythia.Printer (PrettyPrinter (..))
 import Pythia.Services.Battery.ChargeStatus (BatteryChargeStatusApp (..))
 import Pythia.Services.Battery.State (BatteryStateApp (..))
@@ -247,7 +246,7 @@ customGlobalIPParser =
       A.some $
         Left <$> ipv4Option "curl" <|> Right <$> ipv6Option
     combineIps xs =
-      let (ipv4s, ipv6s) = F.foldl' splitIps ([], []) xs
+      let (ipv4s, ipv6s) = foldl' splitIps ([], []) xs
        in GIpBothCommand ipv4s ipv6s
     splitIps (ip4s, ip6s) (Left x) = (x : ip4s, ip6s)
     splitIps (ip4s, ip6s) (Right y) = (ip4s, y : ip6s)

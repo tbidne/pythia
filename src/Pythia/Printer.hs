@@ -12,9 +12,9 @@ module Pythia.Printer
 where
 
 import Data.List qualified as L
-import Data.Text (Text)
 import Data.Text qualified as T
 import Pythia.Data (QueryResult)
+import Pythia.Prelude
 
 -- | Typeclass for pretty printing.
 --

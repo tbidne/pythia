@@ -12,9 +12,8 @@ module Pythia.Services.Battery.ChargeStatus
   )
 where
 
-import Data.Text (Text)
-import Optics.Core ((%), (.~))
 import Pythia.Data (Command (..))
+import Pythia.Prelude
 import Pythia.Services.Battery.ChargeStatus.UPower qualified as UPower
 import Pythia.Services.Battery.Types (ChargeStatus (..))
 import Pythia.ShellApp (QueryResult, ShellApp (..))

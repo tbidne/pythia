@@ -8,10 +8,9 @@ module Pythia.Utils
   )
 where
 
-import Control.Applicative (Alternative (..))
 import Data.Attoparsec.Text (Parser)
 import Data.Attoparsec.Text qualified as AP
-import Data.Functor (($>))
+import Pythia.Prelude
 
 -- $setup
 -- >>> :set -XOverloadedStrings

@@ -7,19 +7,16 @@ module Pythia.Services.Network.Connection.NmCli
   )
 where
 
-import Control.Applicative (Alternative (..))
 import Control.Applicative qualified as A
 import Data.Attoparsec.Combinator qualified as AP
 import Data.Attoparsec.Text (Parser)
 import Data.Attoparsec.Text qualified as AP
-import Data.Functor (($>))
-import Data.Text (Text)
 import Data.Text qualified as T
-import Optics.Core ((%), (^.))
 import Optics.Fold qualified as O
 import Optics.Getter qualified as O
 import Pythia.Data (QueryError (..))
 import Pythia.Data qualified as E
+import Pythia.Prelude
 import Pythia.Services.Network.Connection.Types
   ( ConnState (..),
     ConnType (..),

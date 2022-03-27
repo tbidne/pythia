@@ -7,14 +7,12 @@ module Pythia.Services.Battery.ChargeStatus.UPower
   )
 where
 
-import Control.Applicative (Alternative (..))
 import Data.Attoparsec.Combinator qualified as AP
 import Data.Attoparsec.Text (Parser)
 import Data.Attoparsec.Text qualified as AP
-import Data.Functor (($>))
-import Data.Text (Text)
 import Data.Text qualified as T
 import Pythia.Data (QueryError (..))
+import Pythia.Prelude
 import Pythia.Services.Battery.Types (ChargeStatus (..))
 import Pythia.ShellApp (ShellApp (..), SimpleShell (..))
 import Pythia.Utils qualified as U

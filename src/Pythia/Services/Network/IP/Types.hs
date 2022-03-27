@@ -10,9 +10,9 @@ module Pythia.Services.Network.IP.Types
   )
 where
 
-import Data.Text (Text)
 import Data.Text qualified as T
 import Optics.TH qualified as OTH
+import Pythia.Prelude
 import Pythia.Printer (PrettyPrinter (..))
 import Refined (Refined, SizeLessThan, type (&&), type (||))
 import Refined qualified as R

@@ -22,13 +22,12 @@ where
 
 import Data.ByteString (ByteString)
 import Data.ByteString.Lazy qualified as LBS
-import Data.Text (Text)
 import Data.Text qualified as T
 import Data.Text.Encoding qualified as TEnc
 import GHC.IO.Exception (ExitCode (..))
-import Optics.Core ((%~), (^.))
 import Optics.TH qualified as OTH
 import Pythia.Data (Command (..), QueryError (..), QueryResult)
+import Pythia.Prelude
 import System.Process.Typed qualified as TP
 
 -- | Type for running a "simple" shell command given by 'Command'.

@@ -23,11 +23,11 @@ module Pythia.Services.Network.IP.Global.Types
 where
 
 import Data.String (IsString)
-import Data.Text (Text)
 import Optics.Core (Iso)
 import Optics.Core qualified as O
 import Optics.TH qualified as OTH
 import Pythia.Data (Command (..))
+import Pythia.Prelude
 import Pythia.Printer (PrettyPrinter (..))
 import Pythia.Printer qualified as Pretty
 import Pythia.Services.Network.IP.Types (Ipv4 (..), Ipv6 (..))
