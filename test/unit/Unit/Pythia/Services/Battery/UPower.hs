@@ -15,7 +15,9 @@ tests =
     "Pythia.Services.Battery.UPower"
     [ parseCharging,
       parseDischarging,
-      parseFull
+      parseFull,
+      parsePending,
+      parseUnknown
     ]
 
 parseCharging :: TestTree
@@ -26,6 +28,12 @@ parseDischarging = parseX 80 ("discharging", Discharging)
 
 parseFull :: TestTree
 parseFull = parseX 100 ("fully-charged", Full)
+
+parsePending :: TestTree
+parsePending = parseX 100 ("pending-charge", Pending)
+
+parseUnknown :: TestTree
+parseUnknown = parseX 100 ("some bad status-20\nabc", Unknown "some bad status-20")
 
 parseX :: Int -> (Text, ChargeStatus) -> TestTree
 parseX lvl (csTxt, cs) = testCase desc $ do

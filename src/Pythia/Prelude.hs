@@ -7,8 +7,8 @@ module Pythia.Prelude
 where
 
 import Control.Applicative as X (Alternative (..), Applicative (..))
-import Control.Monad as X (Monad (..))
-import Data.Bool as X (Bool (..), not, otherwise)
+import Control.Monad as X (Monad (..), void, (<=<), (>=>))
+import Data.Bool as X (Bool (..), not, otherwise, (&&), (||))
 import Data.Either as X (Either (..))
 import Data.Eq as X (Eq (..))
 import Data.Foldable as X (Foldable (..))

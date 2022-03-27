@@ -7,9 +7,7 @@ module Pythia.Services.Battery.UPower
   )
 where
 
-import Data.Attoparsec.Combinator qualified as AP
-import Data.Attoparsec.Text (Parser)
-import Data.Attoparsec.Text qualified as AP
+import Data.Char qualified as Char
 import Data.Text qualified as T
 import Numeric.Data.Interval qualified as Interval
 import Pythia.Data (QueryError (..))
@@ -20,6 +18,10 @@ import Pythia.Services.Battery.Types
     ChargeStatus (..),
   )
 import Pythia.ShellApp (ShellApp (..), SimpleShell (..))
+import Text.Megaparsec (Parsec)
+import Text.Megaparsec qualified as MP
+import Text.Megaparsec.Char qualified as MPC
+import Text.Read qualified as TR
 
 -- | UPower 'ShellApp' for 'BatteryState'.
 --
@@ -67,33 +69,45 @@ instance Monoid BatteryResult where
   mempty = None
 
 parseLine :: Text -> BatteryResult
-parseLine ln = case AP.parseOnly parseState ln of
+parseLine ln = case MP.parse parseStatus "" ln of
   Right s -> Status s
-  Left _ -> case AP.parseOnly parsePercent ln of
+  Left _ -> case MP.parse parsePercent "" ln of
     Right n -> Percent n
     Left _ -> None
 
-parsePercent :: Parser BatteryLevel
-parsePercent =
-  AP.skipSpace
-    *> AP.string "percentage:"
-    *> AP.skipSpace
-    *> parseNN
-    <* end
+parsePercent :: Parsec Text Text BatteryLevel
+parsePercent = do
+  MPC.space
+  MPC.string "percentage:"
+  MPC.space1
+  nn <- parseNN
+  MPC.char '%'
+  MPC.space
+  pure nn
   where
     parseNN = do
-      num <- AP.decimal
-      maybe empty pure (Interval.mkLRInterval num)
-    end = AP.char '%' *> AP.skipSpace
+      num <- MP.takeWhile1P Nothing Char.isDigit
+      maybe empty pure (readInterval num)
 
-parseState :: Parser ChargeStatus
-parseState =
-  AP.skipSpace
-    *> AP.string "state:"
-    *> AP.skipSpace
-    *> (discharging <|> charging <|> full)
+    readInterval = Interval.mkLRInterval <=< TR.readMaybe . T.unpack
+
+parseStatus :: Parsec Text Text ChargeStatus
+parseStatus = do
+  MPC.space
+  MPC.string "state:"
+  MPC.space1
+  MP.try discharging
+    <|> MP.try charging
+    <|> MP.try full
+    <|> MP.try pending
+    <|> unknown
   where
-    discharging = AP.string "discharging" $> Discharging <* rest
-    charging = AP.string "charging" $> Charging <* rest
-    full = AP.string "fully-charged" $> Full <* rest
-    rest = AP.skipSpace *> AP.endOfInput
+    discharging = MPC.string "discharging" $> Discharging
+    charging = MPC.string "charging" $> Charging <* rest
+    full = MPC.string "fully-charged" $> Full <* rest
+    pending = MPC.string "pending-charge" $> Pending <* rest
+    unknown = do
+      s <- MP.takeWhile1P Nothing (/= '\n')
+      MP.eof
+      pure $ Unknown s
+    rest = MPC.space *> MP.eof

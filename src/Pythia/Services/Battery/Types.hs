@@ -29,6 +29,8 @@ data ChargeStatus
   | -- | @since 0.1.0.0
     Full
   | -- | @since 0.1.0.0
+    Pending
+  | -- | @since 0.1.0.0
     Unknown Text
   deriving stock
     ( -- | @since 0.1.0.0

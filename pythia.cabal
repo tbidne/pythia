@@ -35,6 +35,7 @@ common common-exts
     NoImplicitPrelude
     NoStarIsType
     AllowAmbiguousTypes
+    ApplicativeDo
     ConstraintKinds
     DataKinds
     DeriveFunctor
@@ -92,6 +93,7 @@ library
     , attoparsec      >=0.13.2.3  && <0.15
     , base            >=4.14.1.0  && <4.17
     , bytestring      >=0.10.10.0 && <0.12
+    , megaparsec      >=7.0.5     && <9.3
     , optics-core     ^>=0.4
     , optics-th       ^>=0.4
     , refined         ^>=0.6
