@@ -16,7 +16,7 @@ where
 
 import Pythia.Data (Command (..), QueryError (..), QueryResult)
 import Pythia.Prelude
-import Pythia.Services.Battery.Types (BatteryLevel, Battery (..))
+import Pythia.Services.Battery.Types (Battery (..), BatteryLevel)
 import Pythia.Services.Battery.UPower qualified as UPower
 import Pythia.ShellApp (ShellApp (..))
 import Pythia.ShellApp qualified as ShellApp

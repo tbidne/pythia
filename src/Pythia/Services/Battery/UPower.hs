@@ -13,8 +13,8 @@ import Numeric.Data.Interval qualified as Interval
 import Pythia.Data (QueryError (..))
 import Pythia.Prelude
 import Pythia.Services.Battery.Types
-  ( BatteryLevel,
-    Battery (..),
+  ( Battery (..),
+    BatteryLevel,
     BatteryState (..),
   )
 import Pythia.ShellApp (ShellApp (..), SimpleShell (..))
@@ -75,7 +75,9 @@ parseLine ln = case MP.parse parseStatus "" ln of
     Right n -> Percent n
     Left _ -> None
 
-parsePercent :: Parsec Text Text BatteryLevel
+type MParser = Parsec Void Text
+
+parsePercent :: MParser BatteryLevel
 parsePercent = do
   MPC.space
   MPC.string "percentage:"
@@ -91,7 +93,7 @@ parsePercent = do
 
     readInterval = Interval.mkLRInterval <=< TR.readMaybe . T.unpack
 
-parseStatus :: Parsec Text Text BatteryState
+parseStatus :: MParser BatteryState
 parseStatus = do
   MPC.space
   MPC.string "state:"
