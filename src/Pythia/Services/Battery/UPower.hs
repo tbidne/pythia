@@ -2,7 +2,7 @@
 -- using UPower.
 --
 -- @since 0.1.0.0
-module Pythia.Services.Battery.State.UPower
+module Pythia.Services.Battery.UPower
   ( batteryStateShellApp,
   )
 where

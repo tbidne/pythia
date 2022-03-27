@@ -70,11 +70,8 @@ library
     Pythia.Prelude
     Pythia.Printer
     Pythia.Services.Battery
-    Pythia.Services.Battery.ChargeStatus
-    Pythia.Services.Battery.ChargeStatus.UPower
-    Pythia.Services.Battery.State
-    Pythia.Services.Battery.State.UPower
     Pythia.Services.Battery.Types
+    Pythia.Services.Battery.UPower
     Pythia.Services.Network
     Pythia.Services.Network.Connection
     Pythia.Services.Network.Connection.NmCli
@@ -126,8 +123,7 @@ test-suite unit
   main-is:          Main.hs
   other-modules:
     Unit.Prelude
-    Unit.Pythia.Services.Battery.ChargeStatus.UPower
-    Unit.Pythia.Services.Battery.State.UPower
+    Unit.Pythia.Services.Battery.UPower
     Unit.Pythia.Services.Network.Connection.NmCli
     Unit.Pythia.Services.Network.IP.Local.IfConfig
     Unit.Pythia.Services.Network.IP.Local.NmCli

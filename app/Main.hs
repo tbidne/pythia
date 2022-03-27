@@ -23,8 +23,7 @@ import Pythia qualified
 import Pythia.Data (QueryResult)
 import Pythia.Prelude
 import Pythia.Printer (PrettyPrinter (..))
-import Pythia.Services.Battery.ChargeStatus (BatteryChargeStatusApp (..))
-import Pythia.Services.Battery.State (BatteryStateApp (..))
+import Pythia.Services.Battery (BatteryStateApp (..))
 import Pythia.Services.Network.Connection (NetConnApp (..))
 import Pythia.Services.Network.IP.Global
   ( GlobalIpApp (..),
@@ -43,7 +42,6 @@ main :: IO ()
 main = do
   cmd <- OApp.execParser parserInfo
   case cmd of
-    BatteryChargeStatus bcsa -> Pythia.queryChargeStatus bcsa >>= prettyPrint
     BatteryState bsa -> Pythia.queryBatteryState bsa >>= prettyPrint
     NetConnection nca -> Pythia.queryConnection nca >>= prettyPrint
     NetIPLocal lia -> Pythia.queryLocalIP lia >>= prettyPrint
@@ -54,8 +52,7 @@ prettyPrint :: PrettyPrinter a => QueryResult a -> IO ()
 prettyPrint = putStrLn . Pythia.prettyQueryResult
 
 data PythiaCommand
-  = BatteryChargeStatus BatteryChargeStatusApp
-  | BatteryState BatteryStateApp
+  = BatteryState BatteryStateApp
   | NetConnection NetConnApp
   | NetIPLocal LocalIpApp
   | NetIPGlobal GlobalIpApp IpStrategy
@@ -77,8 +74,7 @@ parserInfo =
 cmdParser :: Parser PythiaCommand
 cmdParser =
   OApp.hsubparser
-    ( mkCommand "battery-charge" parseBatteryChargeStatus chargeTxt
-        <> mkCommand "battery-state" parseBatteryState batStateTxt
+    ( mkCommand "battery" parseBatteryState batStateTxt
         <> mkCommand "net-conn" parseNetConn netConnTxt
         <> mkCommand "ip-local" parseIpLocal ipLocalTxt
         <> mkCommand "ip-global" parseIpGlobal ipGlobalTxt
@@ -86,7 +82,6 @@ cmdParser =
     <**> OApp.helper
     <**> version
   where
-    chargeTxt = OApp.progDesc "Queries the battery charging status (e.g. charging, discharging)."
     batStateTxt = OApp.progDesc "Queries the battery state (i.e. charging status and current percentage)."
     netConnTxt = OApp.progDesc "Queries the network connection status for a given device."
     ipLocalTxt = OApp.progDesc "Queries the local IP addresses associated to a given device."
@@ -102,20 +97,6 @@ version = OApp.infoOption txt (OApp.long "version" <> OApp.short 'v')
           "Revision: " <> $(GitRev.gitHash),
           "Date: " <> $(GitRev.gitCommitDate)
         ]
-
-parseBatteryChargeStatus :: Parser PythiaCommand
-parseBatteryChargeStatus =
-  BatteryChargeStatus
-    <$> OApp.option
-      reader
-      (OApp.long "app" <> OApp.metavar "APP" <> OApp.help helpTxt)
-  where
-    helpTxt = "App must be one of [upower | <custom command>]"
-    reader = do
-      a <- OApp.str
-      case a of
-        "upower" -> pure ChargeStatusUPower
-        custom -> pure $ ChargeStatusCustom custom
 
 parseBatteryState :: Parser PythiaCommand
 parseBatteryState =

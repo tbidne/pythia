@@ -1,18 +1,18 @@
-module Unit.Pythia.Services.Battery.State.UPower
+module Unit.Pythia.Services.Battery.UPower
   ( tests,
   )
 where
 
 import Data.Text qualified as T
 import Numeric.Data.Interval (LRInterval (..))
-import Pythia.Services.Battery.State.UPower qualified as UPower
 import Pythia.Services.Battery.Types (ChargeStatus (..))
+import Pythia.Services.Battery.UPower qualified as UPower
 import Unit.Prelude
 
 tests :: TestTree
 tests =
   testGroup
-    "Pythia.Services.Battery.State.UPower"
+    "Pythia.Services.Battery.UPower"
     [ parseCharging,
       parseDischarging,
       parseFull
