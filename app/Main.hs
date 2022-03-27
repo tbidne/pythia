@@ -23,7 +23,7 @@ import Pythia qualified
 import Pythia.Data (QueryResult)
 import Pythia.Prelude
 import Pythia.Printer (PrettyPrinter (..))
-import Pythia.Services.Battery (BatteryStateApp (..))
+import Pythia.Services.Battery (BatteryApp (..))
 import Pythia.Services.Network.Connection (NetConnApp (..))
 import Pythia.Services.Network.IP.Global
   ( GlobalIpApp (..),
@@ -42,7 +42,7 @@ main :: IO ()
 main = do
   cmd <- OApp.execParser parserInfo
   case cmd of
-    BatteryState bsa -> Pythia.queryBatteryState bsa >>= prettyPrint
+    Battery bsa -> Pythia.queryBattery bsa >>= prettyPrint
     NetConnection nca -> Pythia.queryConnection nca >>= prettyPrint
     NetIPLocal lia -> Pythia.queryLocalIP lia >>= prettyPrint
     NetIPGlobal gia is -> Pythia.queryGlobalIPStrategy is gia >>= prettyPrint
@@ -52,7 +52,7 @@ prettyPrint :: PrettyPrinter a => QueryResult a -> IO ()
 prettyPrint = putStrLn . Pythia.prettyQueryResult
 
 data PythiaCommand
-  = BatteryState BatteryStateApp
+  = Battery BatteryApp
   | NetConnection NetConnApp
   | NetIPLocal LocalIpApp
   | NetIPGlobal GlobalIpApp IpStrategy
@@ -74,7 +74,7 @@ parserInfo =
 cmdParser :: Parser PythiaCommand
 cmdParser =
   OApp.hsubparser
-    ( mkCommand "battery" parseBatteryState batStateTxt
+    ( mkCommand "battery" parseBattery batStateTxt
         <> mkCommand "net-conn" parseNetConn netConnTxt
         <> mkCommand "ip-local" parseIpLocal ipLocalTxt
         <> mkCommand "ip-global" parseIpGlobal ipGlobalTxt
@@ -98,9 +98,9 @@ version = OApp.infoOption txt (OApp.long "version" <> OApp.short 'v')
           "Date: " <> $(GitRev.gitCommitDate)
         ]
 
-parseBatteryState :: Parser PythiaCommand
-parseBatteryState =
-  BatteryState
+parseBattery :: Parser PythiaCommand
+parseBattery =
+  Battery
     <$> OApp.option
       reader
       (OApp.long "app" <> OApp.metavar "APP" <> OApp.help helpTxt)
@@ -109,8 +109,8 @@ parseBatteryState =
     reader = do
       a <- OApp.str
       case a of
-        "upower" -> pure BatteryStateUPower
-        custom -> pure $ BatteryStateCustom custom
+        "upower" -> pure BatteryUPower
+        custom -> pure $ BatteryCustom custom
 
 parseNetConn :: Parser PythiaCommand
 parseNetConn = do

@@ -3,7 +3,7 @@
 --
 -- @since 0.1.0.0
 module Pythia.Services.Battery.UPower
-  ( batteryStateShellApp,
+  ( batteryShellApp,
   )
 where
 
@@ -14,8 +14,8 @@ import Pythia.Data (QueryError (..))
 import Pythia.Prelude
 import Pythia.Services.Battery.Types
   ( BatteryLevel,
+    Battery (..),
     BatteryState (..),
-    ChargeStatus (..),
   )
 import Pythia.ShellApp (ShellApp (..), SimpleShell (..))
 import Text.Megaparsec (Parsec)
@@ -23,19 +23,19 @@ import Text.Megaparsec qualified as MP
 import Text.Megaparsec.Char qualified as MPC
 import Text.Read qualified as TR
 
--- | UPower 'ShellApp' for 'BatteryState'.
+-- | UPower 'ShellApp' for 'Battery'.
 --
 -- @since 0.1.0.0
-batteryStateShellApp :: ShellApp BatteryState
-batteryStateShellApp =
+batteryShellApp :: ShellApp Battery
+batteryShellApp =
   SimpleApp $
     MkSimpleShell
       { command = "upower -i `upower -e | grep 'BAT'`",
-        parser = parseBatteryState
+        parser = parseBattery
       }
 
-parseBatteryState :: Text -> Either QueryError BatteryState
-parseBatteryState txt = case foldMap parseLine ts of
+parseBattery :: Text -> Either QueryError Battery
+parseBattery txt = case foldMap parseLine ts of
   None -> Left $ mkErr $ "Did not find percent or status in: " <> txt
   Percent _ -> Left $ mkErr $ "Did not find status in: " <> txt
   Status _ -> Left $ mkErr $ "Did not find percent in:" <> txt
@@ -52,8 +52,8 @@ parseBatteryState txt = case foldMap parseLine ts of
 data BatteryResult
   = None
   | Percent BatteryLevel
-  | Status ChargeStatus
-  | Both BatteryState
+  | Status BatteryState
+  | Both Battery
   deriving (Show)
 
 instance Semigroup BatteryResult where
@@ -61,8 +61,8 @@ instance Semigroup BatteryResult where
   _ <> Both s = Both s
   None <> r = r
   l <> None = l
-  Percent n <> Status s = Both $ MkBatteryState n s
-  Status s <> Percent n = Both $ MkBatteryState n s
+  Percent n <> Status s = Both $ MkBattery n s
+  Status s <> Percent n = Both $ MkBattery n s
   l <> _ = l
 
 instance Monoid BatteryResult where
@@ -91,7 +91,7 @@ parsePercent = do
 
     readInterval = Interval.mkLRInterval <=< TR.readMaybe . T.unpack
 
-parseStatus :: Parsec Text Text ChargeStatus
+parseStatus :: Parsec Text Text BatteryState
 parseStatus = do
   MPC.space
   MPC.string "state:"

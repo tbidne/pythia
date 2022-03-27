@@ -6,9 +6,9 @@
 --
 -- @since 0.1.0.0
 module Pythia.Services.Battery.Types
-  ( ChargeStatus (..),
+  ( BatteryState (..),
     BatteryLevel,
-    BatteryState (..),
+    Battery (..),
   )
 where
 
@@ -21,7 +21,7 @@ import Pythia.Printer (PrettyPrinter (..))
 -- | Represents battery charging status.
 --
 -- @since 0.1.0.0
-data ChargeStatus
+data BatteryState
   = -- | @since 0.1.0.0
     Charging
   | -- | @since 0.1.0.0
@@ -43,7 +43,7 @@ data ChargeStatus
       PrettyPrinter
     )
 
-OTH.makePrismLabels ''ChargeStatus
+OTH.makePrismLabels ''BatteryState
 
 -- | Represents battery levels.
 --
@@ -53,11 +53,11 @@ type BatteryLevel = LRInterval 0 100 Int
 -- | Full battery state, including level and status data.
 --
 -- @since 0.1.0.0
-data BatteryState = MkBatteryState
+data Battery = MkBattery
   { -- | @since 0.1.0.0
     level :: BatteryLevel,
     -- | @since 0.1.0.0
-    status :: ChargeStatus
+    status :: BatteryState
   }
   deriving
     ( -- | @since 0.1.0.0
@@ -66,10 +66,10 @@ data BatteryState = MkBatteryState
       Show
     )
 
-OTH.makeFieldLabelsNoPrefix ''BatteryState
+OTH.makeFieldLabelsNoPrefix ''Battery
 
 -- | @since 0.1.0.0
-instance PrettyPrinter BatteryState where
+instance PrettyPrinter Battery where
   pretty bs = status <> ": " <> level <> "%"
     where
       status = pretty $ bs ^. #status
