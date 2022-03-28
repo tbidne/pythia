@@ -20,7 +20,6 @@ module Pythia.ShellApp
   )
 where
 
-import Data.ByteString (ByteString)
 import Data.ByteString.Lazy qualified as LBS
 import Data.Text qualified as T
 import Data.Text.Encoding qualified as TEnc

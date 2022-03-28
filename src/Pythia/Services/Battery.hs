@@ -17,6 +17,7 @@ where
 import Pythia.Data (Command (..), QueryError (..), QueryResult)
 import Pythia.Prelude
 import Pythia.Services.Battery.Acpi qualified as Acpi
+import Pythia.Services.Battery.SysFs qualified as SysFs
 import Pythia.Services.Battery.Types (Battery (..), BatteryLevel)
 import Pythia.Services.Battery.UPower qualified as UPower
 import Pythia.ShellApp (ShellApp (..))
@@ -37,6 +38,10 @@ data BatteryApp
     --
     -- @since 0.1.0.0
     BatteryAcpi
+  | -- | Reads the information under /sys.
+    --
+    -- @since 0.1.0.0
+    BatterySysFs
   | -- | Uses the UPower utility.
     --
     -- @since 0.1.0.0
@@ -61,6 +66,7 @@ data BatteryApp
 -- @since 0.1.0.0
 queryBattery :: BatteryApp -> IO (QueryResult Battery)
 queryBattery BatteryAcpi = ShellApp.runShellApp Acpi.batteryShellApp
+queryBattery BatterySysFs = ShellApp.runShellApp SysFs.batteryShellApp
 queryBattery BatteryUPower = ShellApp.runShellApp UPower.batteryShellApp
 queryBattery (BatteryCustom c) = ShellApp.runShellApp $ customShellApp c
 

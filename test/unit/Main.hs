@@ -19,8 +19,8 @@ main = do
   Tasty.defaultMain $
     Tasty.testGroup
       "Unit tests"
-      [ Battery.UPower.tests,
-        Battery.Acpi.tests,
+      [ Battery.Acpi.tests,
+        Battery.UPower.tests,
         Connection.NmCli.tests,
         IP.Local.IfConfig.tests,
         IP.Local.NmCli.tests
