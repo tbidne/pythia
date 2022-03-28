@@ -8,6 +8,7 @@ where
 
 import Control.Applicative as X (Alternative (..), Applicative (..))
 import Control.Monad as X (Monad (..), void, (<=<), (>=>))
+import Data.Bifunctor as X (Bifunctor (..))
 import Data.Bool as X (Bool (..), not, otherwise, (&&), (||))
 import Data.Either as X (Either (..))
 import Data.Eq as X (Eq (..))
@@ -26,4 +27,5 @@ import Data.Void as X (Void)
 import GHC.Err as X (undefined)
 import GHC.Show as X (Show (..))
 import Optics.Core as X ((%), (%~), (.~), (^.), (^?))
+import Optics.TH as X (makeFieldLabelsNoPrefix, makePrismLabels)
 import System.IO as X (IO, putStrLn)

@@ -33,7 +33,7 @@ parsePending :: TestTree
 parsePending = parseX 100 ("pending-charge", Pending)
 
 parseUnknown :: TestTree
-parseUnknown = parseX 100 ("some bad status-20\nabc", Unknown "some bad status-20")
+parseUnknown = parseX 100 ("some bad status-20", Unknown "some bad status-20")
 
 parseX :: Int -> (Text, BatteryState) -> TestTree
 parseX lvl (csTxt, cs) = testCase desc $ do

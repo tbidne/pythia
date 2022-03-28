@@ -11,7 +11,6 @@ import Control.Applicative qualified as A
 import Data.Attoparsec.Combinator qualified as AP
 import Data.Attoparsec.Text (Parser)
 import Data.Attoparsec.Text qualified as AP
-import Data.Bifunctor (Bifunctor (..))
 import Data.Char qualified as C
 import Data.Text qualified as T
 import Pythia.Data (QueryError (..))

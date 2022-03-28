@@ -71,6 +71,7 @@ library
     Pythia.Prelude
     Pythia.Printer
     Pythia.Services.Battery
+    Pythia.Services.Battery.Acpi
     Pythia.Services.Battery.Types
     Pythia.Services.Battery.UPower
     Pythia.Services.Network
@@ -89,6 +90,7 @@ library
     Pythia.ShellApp
     Pythia.Utils
 
+  ghc-options:      -Wunused-packages
   build-depends:
     , attoparsec      >=0.13.2.3  && <0.15
     , base            >=4.14.1.0  && <4.17
@@ -108,6 +110,7 @@ library
 executable pythia
   import:           common-exts
   main-is:          Main.hs
+  ghc-options:      -Wunused-packages
   build-depends:
     , base
     , gitrev                >=1.2.0    && <1.4
@@ -125,12 +128,14 @@ test-suite unit
   main-is:          Main.hs
   other-modules:
     Unit.Prelude
+    Unit.Pythia.Services.Battery.Acpi
     Unit.Pythia.Services.Battery.UPower
     Unit.Pythia.Services.Network.Connection.NmCli
     Unit.Pythia.Services.Network.IP.Local.IfConfig
     Unit.Pythia.Services.Network.IP.Local.NmCli
 
   build-depends:
+    , base
     , pythia
     , refined
     , smart-math

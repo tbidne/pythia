@@ -44,7 +44,7 @@ parseBattery txt = case foldMap parseLine ts of
     ts = T.lines txt
     mkErr err =
       MkQueryError
-        { name = "Pythia.Services.Battery.UPower.Parsing",
+        { name = "Pythia.Services.Battery.UPower",
           short = "Parse error",
           long = err
         }

@@ -25,14 +25,13 @@ where
 import Data.String (IsString)
 import Optics.Core (Iso)
 import Optics.Core qualified as O
-import Optics.TH qualified as OTH
 import Pythia.Data (Command (..))
 import Pythia.Prelude
 import Pythia.Printer (PrettyPrinter (..))
 import Pythia.Printer qualified as Pretty
 import Pythia.Services.Network.IP.Types (Ipv4 (..), Ipv6 (..))
 
--- | Combines 'Ipv4' and 'Ipv6' with the possibility of having both.
+-- | Combines 'Ipv4' and 'Ipv6' with the possibility of having b
 -- This is essentially the @These@ types from the @these@ package specialized
 -- to our IP addresses, but we have a custom type here so we can give optics
 -- instances.
@@ -183,8 +182,8 @@ data GlobalIpCommand
       Show
     )
 
-OTH.makeFieldLabelsNoPrefix ''Ipv6Command
-OTH.makeFieldLabelsNoPrefix ''Ipv4Command
-OTH.makePrismLabels ''GlobalIpCommand
-OTH.makePrismLabels ''GlobalIpAddresses
-OTH.makePrismLabels ''IpStrategy
+makeFieldLabelsNoPrefix ''Ipv6Command
+makeFieldLabelsNoPrefix ''Ipv4Command
+makePrismLabels ''GlobalIpCommand
+makePrismLabels ''GlobalIpAddresses
+makePrismLabels ''IpStrategy

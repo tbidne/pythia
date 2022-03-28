@@ -14,7 +14,6 @@ where
 
 import Numeric.Data.Interval (LRInterval)
 import Numeric.Data.Interval qualified as Interval
-import Optics.TH qualified as OTH
 import Pythia.Prelude
 import Pythia.Printer (PrettyPrinter (..))
 
@@ -43,7 +42,7 @@ data BatteryState
       PrettyPrinter
     )
 
-OTH.makePrismLabels ''BatteryState
+makePrismLabels ''BatteryState
 
 -- | Represents battery levels.
 --
@@ -66,7 +65,7 @@ data Battery = MkBattery
       Show
     )
 
-OTH.makeFieldLabelsNoPrefix ''Battery
+makeFieldLabelsNoPrefix ''Battery
 
 -- | @since 0.1.0.0
 instance PrettyPrinter Battery where

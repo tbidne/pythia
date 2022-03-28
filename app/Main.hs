@@ -105,10 +105,11 @@ parseBattery =
       reader
       (OApp.long "app" <> OApp.metavar "APP" <> OApp.help helpTxt)
   where
-    helpTxt = "App must be one of [upower | <custom command>]"
+    helpTxt = "App must be one of [acpi | upower | <custom command>]"
     reader = do
       a <- OApp.str
       case a of
+        "acpi" -> pure BatteryAcpi
         "upower" -> pure BatteryUPower
         custom -> pure $ BatteryCustom custom
 

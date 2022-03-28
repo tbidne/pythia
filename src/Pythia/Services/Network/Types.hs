@@ -10,7 +10,6 @@ module Pythia.Services.Network.Types
 where
 
 import Data.String (IsString)
-import Optics.TH qualified as OTH
 import Pythia.Prelude
 import Pythia.Printer (PrettyPrinter)
 
@@ -37,4 +36,4 @@ newtype Device = MkDevice
     )
     via Text
 
-OTH.makeFieldLabelsNoPrefix ''Device
+makeFieldLabelsNoPrefix ''Device

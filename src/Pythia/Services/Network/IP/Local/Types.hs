@@ -12,7 +12,6 @@ module Pythia.Services.Network.IP.Local.Types
   )
 where
 
-import Optics.TH qualified as OTH
 import Pythia.Prelude
 import Pythia.Printer (PrettyPrinter (..))
 import Pythia.Printer qualified as Pretty
@@ -36,7 +35,7 @@ data LocalIpAddresses = MkLocalIpAddresses
       Show
     )
 
-OTH.makeFieldLabelsNoPrefix ''LocalIpAddresses
+makeFieldLabelsNoPrefix ''LocalIpAddresses
 
 -- | @since 0.1.0.0
 instance PrettyPrinter LocalIpAddresses where
@@ -69,7 +68,7 @@ data LocalIps = MkLocalIps
       Show
     )
 
-OTH.makeFieldLabelsNoPrefix ''LocalIps
+makeFieldLabelsNoPrefix ''LocalIps
 
 -- | @since 0.1.0.0
 instance PrettyPrinter LocalIps where

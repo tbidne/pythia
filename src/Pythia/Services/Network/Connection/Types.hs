@@ -13,7 +13,6 @@ module Pythia.Services.Network.Connection.Types
 where
 
 import Data.Text qualified as T
-import Optics.TH qualified as OTH
 import Pythia.Prelude
 import Pythia.Printer (PrettyPrinter (..))
 import Pythia.Printer qualified as Printer
@@ -46,7 +45,7 @@ data ConnType
       PrettyPrinter
     )
 
-OTH.makePrismLabels ''ConnType
+makePrismLabels ''ConnType
 
 -- | Various connection states.
 --
@@ -73,7 +72,7 @@ data ConnState
       PrettyPrinter
     )
 
-OTH.makePrismLabels ''ConnState
+makePrismLabels ''ConnState
 
 -- | Full connection data.
 --
@@ -97,7 +96,7 @@ data Connection = MkConnection
       Show
     )
 
-OTH.makeFieldLabelsNoPrefix ''Connection
+makeFieldLabelsNoPrefix ''Connection
 
 -- | @since 0.1.0.0
 instance PrettyPrinter Connection where

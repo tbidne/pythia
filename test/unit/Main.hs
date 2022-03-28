@@ -5,6 +5,7 @@ module Main (main) where
 
 import Test.Tasty qualified as Tasty
 import Unit.Prelude
+import Unit.Pythia.Services.Battery.Acpi qualified as Battery.Acpi
 import Unit.Pythia.Services.Battery.UPower qualified as Battery.UPower
 import Unit.Pythia.Services.Network.Connection.NmCli qualified as Connection.NmCli
 import Unit.Pythia.Services.Network.IP.Local.IfConfig qualified as IP.Local.IfConfig
@@ -19,6 +20,7 @@ main = do
     Tasty.testGroup
       "Unit tests"
       [ Battery.UPower.tests,
+        Battery.Acpi.tests,
         Connection.NmCli.tests,
         IP.Local.IfConfig.tests,
         IP.Local.NmCli.tests

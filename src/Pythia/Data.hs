@@ -14,7 +14,6 @@ where
 
 import Data.String (IsString)
 import Data.Text qualified as T
-import Optics.TH qualified as OTH
 import Pythia.Prelude
 import Refined (RefineException (..))
 import Refined.Extras.Utils qualified as RUtils
@@ -40,7 +39,7 @@ newtype Command = MkCommand
     )
     via Text
 
-OTH.makeFieldLabelsNoPrefix ''Command
+makeFieldLabelsNoPrefix ''Command
 
 -- | Core error type.
 --
@@ -66,7 +65,7 @@ data QueryError = MkQueryError
       Show
     )
 
-OTH.makeFieldLabelsNoPrefix ''QueryError
+makeFieldLabelsNoPrefix ''QueryError
 
 -- | Return type for running a command/query.
 --

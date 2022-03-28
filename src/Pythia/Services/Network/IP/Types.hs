@@ -11,7 +11,6 @@ module Pythia.Services.Network.IP.Types
 where
 
 import Data.Text qualified as T
-import Optics.TH qualified as OTH
 import Pythia.Prelude
 import Pythia.Printer (PrettyPrinter (..))
 import Refined (Refined, SizeLessThan, type (&&), type (||))
@@ -37,7 +36,7 @@ newtype Ipv4 = MkIpv4
 instance PrettyPrinter Ipv4 where
   pretty = T.unpack . R.unrefine . unIpv4
 
-OTH.makeFieldLabelsNoPrefix ''Ipv4
+makeFieldLabelsNoPrefix ''Ipv4
 
 -- | Type for an Ipv6 address, i.e., a string of max length 39 with a mix of
 -- hex digits and colons.
@@ -57,4 +56,4 @@ newtype Ipv6 = MkIpv6
 instance PrettyPrinter Ipv6 where
   pretty = T.unpack . R.unrefine . unIpv6
 
-OTH.makeFieldLabelsNoPrefix ''Ipv6
+makeFieldLabelsNoPrefix ''Ipv6

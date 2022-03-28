@@ -25,7 +25,6 @@ import Data.ByteString.Lazy qualified as LBS
 import Data.Text qualified as T
 import Data.Text.Encoding qualified as TEnc
 import GHC.IO.Exception (ExitCode (..))
-import Optics.TH qualified as OTH
 import Pythia.Data (Command (..), QueryError (..), QueryResult)
 import Pythia.Prelude
 import System.Process.Typed qualified as TP
@@ -45,7 +44,7 @@ data SimpleShell result = MkSimpleShell
     parser :: Text -> Either QueryError result
   }
 
-OTH.makeFieldLabelsNoPrefix ''SimpleShell
+makeFieldLabelsNoPrefix ''SimpleShell
 
 -- | Type for running a more general action than 'SimpleShell'. As this is
 -- 'IO' we have more freedom to implement more complex behavior, e.g.,
@@ -59,7 +58,7 @@ newtype GeneralShell result = MkGeneralShell
     query :: IO (QueryResult result)
   }
 
-OTH.makeFieldLabelsNoPrefix ''GeneralShell
+makeFieldLabelsNoPrefix ''GeneralShell
 
 -- | Sum type for running shell applications. Most actions should be simple
 -- shell command + parse output, hence 'SimpleShell', but we also provide
@@ -72,7 +71,7 @@ data ShellApp result
   | -- | @since 0.1.0.0
     GeneralApp (GeneralShell result)
 
-OTH.makePrismLabels ''ShellApp
+makePrismLabels ''ShellApp
 
 -- | Runs the shell app and returns either the result or any errors
 -- encountered.
