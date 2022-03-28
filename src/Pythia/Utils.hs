@@ -3,6 +3,7 @@
 -- @since 0.1.0.0
 module Pythia.Utils
   ( headMaybe,
+    eitherToBool,
     foldAlt,
     takeLine1,
   )
@@ -49,3 +50,9 @@ takeLine1 =
   AP.takeWhile (not . AP.isEndOfLine)
     *> AP.many1 AP.endOfLine
     $> ()
+
+-- | Maps 'Left' to 'False, 'Right' to 'True'.
+--
+-- @since 0.1.0.0
+eitherToBool :: Either a b -> Bool
+eitherToBool = either (const False) (const True)

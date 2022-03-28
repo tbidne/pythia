@@ -6,7 +6,7 @@ where
 import Data.Text qualified as T
 import Numeric.Data.Interval (LRInterval (..))
 import Pythia.Services.Battery.Acpi qualified as Acpi
-import Pythia.Services.Battery.Types (BatteryState (..))
+import Pythia.Services.Battery.Types (BatteryStatus (..))
 import Unit.Prelude
 
 tests :: TestTree
@@ -35,7 +35,7 @@ parsePending = parseX 50 ("Not charging", Pending)
 parseUnknown :: TestTree
 parseUnknown = parseX 20 ("some bad status-20", Unknown "some bad status-20")
 
-parseX :: Int -> (Text, BatteryState) -> TestTree
+parseX :: Int -> (Text, BatteryStatus) -> TestTree
 parseX lvl (csTxt, cs) = testCase desc $ do
   parser <-
     maybe

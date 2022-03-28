@@ -1,9 +1,10 @@
 -- | This module provides functionality for retrieving battery information
--- using UPower.
+-- using ACPI.
 --
 -- @since 0.1.0.0
 module Pythia.Services.Battery.Acpi
   ( batteryShellApp,
+    supported,
   )
 where
 
@@ -15,9 +16,10 @@ import Pythia.Prelude
 import Pythia.Services.Battery.Types
   ( Battery (..),
     BatteryLevel,
-    BatteryState (..),
+    BatteryStatus (..),
   )
 import Pythia.ShellApp (ShellApp (..), SimpleShell (..))
+import System.Directory qualified as Dir
 import Text.Megaparsec (Parsec, (<?>))
 import Text.Megaparsec qualified as MP
 import Text.Megaparsec.Char qualified as MPC
@@ -34,6 +36,13 @@ batteryShellApp =
       { command = "acpi",
         parser = parseBattery
       }
+
+-- | Returns a boolean determining if this program is supported on the
+-- current system.
+--
+-- @since 0.1.0.0
+supported :: IO Bool
+supported = maybe False (const True) <$> Dir.findExecutable "acpi"
 
 parseBattery :: Text -> Either QueryError Battery
 parseBattery txt = first mkErr parseResult
@@ -61,7 +70,7 @@ mparseBattery = do
   level <- mparsePercent
   pure $ MkBattery level state
 
-mparseState :: MParser BatteryState
+mparseState :: MParser BatteryStatus
 mparseState =
   MP.try discharging
     <|> MP.try charging

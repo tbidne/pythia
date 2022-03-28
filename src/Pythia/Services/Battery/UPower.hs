@@ -4,6 +4,7 @@
 -- @since 0.1.0.0
 module Pythia.Services.Battery.UPower
   ( batteryShellApp,
+    supported,
   )
 where
 
@@ -15,9 +16,10 @@ import Pythia.Prelude
 import Pythia.Services.Battery.Types
   ( Battery (..),
     BatteryLevel,
-    BatteryState (..),
+    BatteryStatus (..),
   )
 import Pythia.ShellApp (ShellApp (..), SimpleShell (..))
+import System.Directory qualified as Dir
 import Text.Megaparsec (Parsec)
 import Text.Megaparsec qualified as MP
 import Text.Megaparsec.Char qualified as MPC
@@ -33,6 +35,13 @@ batteryShellApp =
       { command = "upower -i `upower -e | grep 'BAT'`",
         parser = parseBattery
       }
+
+-- | Returns a boolean determining if this program is supported on the
+-- current system.
+--
+-- @since 0.1.0.0
+supported :: IO Bool
+supported = maybe False (const True) <$> Dir.findExecutable "upower"
 
 parseBattery :: Text -> Either QueryError Battery
 parseBattery txt = case foldMap parseLine ts of
@@ -52,7 +61,7 @@ parseBattery txt = case foldMap parseLine ts of
 data BatteryResult
   = None
   | Percent BatteryLevel
-  | Status BatteryState
+  | Status BatteryStatus
   | Both Battery
   deriving (Show)
 
@@ -93,7 +102,7 @@ parsePercent = do
 
     readInterval = Interval.mkLRInterval <=< TR.readMaybe . T.unpack
 
-parseStatus :: MParser BatteryState
+parseStatus :: MParser BatteryStatus
 parseStatus = do
   MPC.space
   MPC.string "state:"

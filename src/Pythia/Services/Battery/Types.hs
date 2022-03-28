@@ -6,7 +6,7 @@
 --
 -- @since 0.1.0.0
 module Pythia.Services.Battery.Types
-  ( BatteryState (..),
+  ( BatteryStatus (..),
     BatteryLevel,
     Battery (..),
   )
@@ -20,7 +20,7 @@ import Pythia.Printer (PrettyPrinter (..))
 -- | Represents battery charging status.
 --
 -- @since 0.1.0.0
-data BatteryState
+data BatteryStatus
   = -- | @since 0.1.0.0
     Charging
   | -- | @since 0.1.0.0
@@ -42,7 +42,7 @@ data BatteryState
       PrettyPrinter
     )
 
-makePrismLabels ''BatteryState
+makePrismLabels ''BatteryStatus
 
 -- | Represents battery levels.
 --
@@ -56,7 +56,7 @@ data Battery = MkBattery
   { -- | @since 0.1.0.0
     level :: BatteryLevel,
     -- | @since 0.1.0.0
-    status :: BatteryState
+    status :: BatteryStatus
   }
   deriving
     ( -- | @since 0.1.0.0

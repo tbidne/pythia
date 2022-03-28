@@ -42,7 +42,9 @@ main :: IO ()
 main = do
   cmd <- OApp.execParser parserInfo
   case cmd of
-    Battery bsa -> Pythia.queryBattery bsa >>= prettyPrint
+    Battery app -> case app of -- Pythia.queryBattery bsa >>= prettyPrint
+      Nothing -> Pythia.queryBattery >>= prettyPrint
+      Just bsa -> Pythia.queryBatteryApp bsa >>= prettyPrint
     NetConnection nca -> Pythia.queryConnection nca >>= prettyPrint
     NetIPLocal lia -> Pythia.queryLocalIP lia >>= prettyPrint
     NetIPGlobal gia is -> Pythia.queryGlobalIPStrategy is gia >>= prettyPrint
@@ -52,7 +54,7 @@ prettyPrint :: PrettyPrinter a => QueryResult a -> IO ()
 prettyPrint = putStrLn . Pythia.prettyQueryResult
 
 data PythiaCommand
-  = Battery BatteryApp
+  = Battery (Maybe BatteryApp)
   | NetConnection NetConnApp
   | NetIPLocal LocalIpApp
   | NetIPGlobal GlobalIpApp IpStrategy
@@ -82,7 +84,11 @@ cmdParser =
     <**> OApp.helper
     <**> version
   where
-    batStateTxt = OApp.progDesc "Queries the battery state (i.e. charging status and current percentage)."
+    batStateTxt =
+      OApp.progDesc $
+        "Queries the battery state (i.e. charging status and current percentage). "
+          <> "If no app is supplied then we will try all in the following order: "
+          <> "[sysfs, acpi, upower]."
     netConnTxt = OApp.progDesc "Queries the network connection status for a given device."
     ipLocalTxt = OApp.progDesc "Queries the local IP addresses associated to a given device."
     ipGlobalTxt = OApp.progDesc "Queries the global IP addresses."
@@ -103,16 +109,16 @@ parseBattery =
   Battery
     <$> OApp.option
       reader
-      (OApp.long "app" <> OApp.metavar "APP" <> OApp.help helpTxt)
+      (OApp.value Nothing <> OApp.long "app" <> OApp.metavar "APP" <> OApp.help helpTxt)
   where
     helpTxt = "App must be one of [acpi | sysfs | upower | <custom command>]"
     reader = do
       a <- OApp.str
       case a of
-        "acpi" -> pure BatteryAcpi
-        "sysfs" -> pure BatterySysFs
-        "upower" -> pure BatteryUPower
-        custom -> pure $ BatteryCustom custom
+        "acpi" -> pure $ Just BatteryAcpi
+        "sysfs" -> pure $ Just BatterySysFs
+        "upower" -> pure $ Just BatteryUPower
+        custom -> pure $ Just $ BatteryCustom custom
 
 parseNetConn :: Parser PythiaCommand
 parseNetConn = do

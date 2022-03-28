@@ -2,23 +2,21 @@
 --
 -- @since 0.1.0.0
 module Pythia.Services.Battery
-  ( -- * State
+  ( -- * Queries
     queryBattery,
-    BatteryApp (..),
-    Battery (..),
-    BatteryLevel,
+    queryBatteryApp,
 
-    -- * Misc Types
-    QueryResult,
-    QueryError (..),
+    -- * Types
+    BatteryApp (..),
+    module Pythia.Services.Battery.Types,
   )
 where
 
-import Pythia.Data (Command (..), QueryError (..), QueryResult)
+import Pythia.Data (Command (..), QueryResult)
 import Pythia.Prelude
 import Pythia.Services.Battery.Acpi qualified as Acpi
 import Pythia.Services.Battery.SysFs qualified as SysFs
-import Pythia.Services.Battery.Types (Battery (..), BatteryLevel)
+import Pythia.Services.Battery.Types (Battery (..), BatteryLevel, BatteryStatus (..))
 import Pythia.Services.Battery.UPower qualified as UPower
 import Pythia.ShellApp (ShellApp (..))
 import Pythia.ShellApp qualified as ShellApp
@@ -34,11 +32,11 @@ import Pythia.ShellApp qualified as ShellApp
 --
 -- @since 0.1.0.0
 data BatteryApp
-  = -- | Uses the ACPI utility
+  = -- | Uses the ACPI utility.
     --
     -- @since 0.1.0.0
     BatteryAcpi
-  | -- | Reads the information under /sys.
+  | -- | Uses the sysfs interface i.e. /sys.
     --
     -- @since 0.1.0.0
     BatterySysFs
@@ -57,6 +55,20 @@ data BatteryApp
       Show
     )
 
+-- | Attempts to query for battery information by detecting supported
+-- apps. Tries, in the following order: ['BatterySysFs', 'BatteryAcpi',
+-- 'BatteryUPower']
+--
+-- @since 0.1.0.0
+queryBattery :: IO (QueryResult Battery)
+queryBattery = ShellApp.tryApps toShellApp allApps
+  where
+    allApps =
+      [ (BatterySysFs, SysFs.supported),
+        (BatteryAcpi, Acpi.supported),
+        (BatteryUPower, UPower.supported)
+      ]
+
 -- | This is the primary function that attempts to use the given
 -- program to retrieve battery information.
 --
@@ -64,11 +76,14 @@ data BatteryApp
 -- Right (MkBattery {level = MkUnsafeBoundedN {unBoundedN = 24}, status = Charging})
 --
 -- @since 0.1.0.0
-queryBattery :: BatteryApp -> IO (QueryResult Battery)
-queryBattery BatteryAcpi = ShellApp.runShellApp Acpi.batteryShellApp
-queryBattery BatterySysFs = ShellApp.runShellApp SysFs.batteryShellApp
-queryBattery BatteryUPower = ShellApp.runShellApp UPower.batteryShellApp
-queryBattery (BatteryCustom c) = ShellApp.runShellApp $ customShellApp c
+queryBatteryApp :: BatteryApp -> IO (QueryResult Battery)
+queryBatteryApp = ShellApp.runShellApp . toShellApp
+
+toShellApp :: BatteryApp -> ShellApp Battery
+toShellApp BatteryAcpi = Acpi.batteryShellApp
+toShellApp BatterySysFs = SysFs.batteryShellApp
+toShellApp BatteryUPower = UPower.batteryShellApp
+toShellApp (BatteryCustom c) = customShellApp c
 
 -- Reuse UPower's parser
 customShellApp :: Text -> ShellApp Battery

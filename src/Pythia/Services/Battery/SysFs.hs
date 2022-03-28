@@ -1,9 +1,10 @@
 -- | This module provides functionality for retrieving battery information
--- using UPower.
+-- using SysFS.
 --
 -- @since 0.1.0.0
 module Pythia.Services.Battery.SysFs
   ( batteryShellApp,
+    supported,
   )
 where
 
@@ -15,14 +16,15 @@ import Pythia.Prelude
 import Pythia.Services.Battery.Types
   ( Battery (..),
     BatteryLevel,
-    BatteryState (..),
+    BatteryStatus (..),
   )
 import Pythia.ShellApp (GeneralShell (..), ShellApp (..))
+import Pythia.Utils qualified as Utils
 import System.Directory qualified as Dir
 import System.FilePath ((</>))
 import Text.Read qualified as TR
 
--- | /sys/class 'ShellApp' for 'Battery'.
+-- | @/sys/class@ 'ShellApp' for 'Battery'.
 --
 -- @since 0.1.0.0
 batteryShellApp :: ShellApp Battery
@@ -30,34 +32,52 @@ batteryShellApp =
   GeneralApp $
     MkGeneralShell $ ExceptT.runExceptT queryBattery
 
+-- | Returns a boolean determining if this program is supported on the
+-- current system. In particular, we return 'True' if the directory
+--
+-- @\/sys(fs)\/class\/power_supply\/BAT[0-5]+@ exists.
+--
+-- Example valid paths:
+--
+-- * @\/sys\/class\/power_supply\/BAT0@
+-- * @\/sysfs\/class\/power_supply\/BAT3@
+-- * @\/sys\/class\/power_supply\/BAT@
+--
+-- @since 0.1.0.0
+supported :: IO Bool
+supported = Utils.eitherToBool <$> ExceptT.runExceptT findSysBatDir
+
 type Result a = ExceptT [QueryError] IO a
 
 queryBattery :: Result Battery
 queryBattery = do
+  batDir <- findSysBatDir
+  statusPath <- dirExistsExceptT (batDir </> "status")
+  status <- parseStatus statusPath
+  percentPath <- dirExistsExceptT (batDir </> "capacity")
+  level <- parseLevel percentPath
+  pure $ MkBattery level status
+
+findSysBatDir :: Result FilePath
+findSysBatDir = do
   sysExists <- liftIO $ Dir.doesDirectoryExist sys
   sysBase <-
     if sysExists
       then pure sys
       else do
-        sysFsExists <- liftIO $ Dir.doesDirectoryExist sysFs
+        sysFsExists <- liftIO $ Dir.doesDirectoryExist sysfs
         if sysFsExists
-          then pure sysFs
-          else ExceptT.throwE [noSysErr]
-
-  batDir <- ExceptT (findBatteryDir sysBase)
-  statePath <- dirExistsExceptT (batDir </> "status")
-  state <- parseState statePath
-  percentPath <- dirExistsExceptT (batDir </> "capacity")
-  level <- parseLevel percentPath
-  pure $ MkBattery level state
+          then pure sysfs
+          else throwE [noSysErr]
+  ExceptT (findBatteryDir sysBase)
   where
     sys = "/sys/class/power_supply"
-    sysFs = "/sysFs/class/power_supply"
+    sysfs = "/sysfs/class/power_supply"
     noSysErr =
       MkQueryError
         { name = "Pythia.Services.Battery.SysFs",
           short = "/sys error",
-          long = "No " <> T.pack sys <> " or " <> T.pack sysFs <> " directory found"
+          long = "No " <> T.pack sys <> " or " <> T.pack sysfs <> " directory found"
         }
 
 findBatteryDir :: FilePath -> IO (Either [QueryError] FilePath)
@@ -81,7 +101,7 @@ findBatteryDir sysBase = foldr firstExists (pure (Left [noneFoundErr])) batDirs
       MkQueryError
         { name = "Pythia.Services.Battery.SysFs",
           short = "Exe error",
-          long = "No BAT[0-5]* directory found"
+          long = "No BAT[0-5]* directory found in: " <> T.pack (show sysBase)
         }
 
 dirExists :: FilePath -> IO (Maybe FilePath)
@@ -106,10 +126,10 @@ dirExistsExceptT fp = do
           long = "Could not find file: " <> T.pack fp
         }
 
-parseState :: FilePath -> Result BatteryState
-parseState fp = do
-  stateTxt <- T.toLower . T.strip <$> readFileUtf8LenientExceptT mkFileErr fp
-  case stateTxt of
+parseStatus :: FilePath -> Result BatteryStatus
+parseStatus fp = do
+  statusTxt <- T.toLower . T.strip <$> readFileUtf8LenientExceptT mkFileErr fp
+  case statusTxt of
     "charging" -> pure Charging
     "discharging" -> pure Discharging
     "not charging" -> pure Pending
@@ -121,7 +141,7 @@ parseState fp = do
           { name = "Pythia.Services.Battery.SysFs",
             short = "FileNotFound",
             long =
-              "Could not find battery state file at "
+              "Could not find battery status file at "
                 <> T.pack (show fp)
                 <> ": "
                 <> T.pack (show ex)
@@ -140,7 +160,7 @@ parseLevel fp = do
           { name = "Pythia.Services.Battery.SysFs",
             short = "FileNotFound",
             long =
-              "Could not find battery state file at "
+              "Could not find battery percentage file at "
                 <> T.pack (show fp)
                 <> ": "
                 <> T.pack (show ex)

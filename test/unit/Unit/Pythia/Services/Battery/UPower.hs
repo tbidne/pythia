@@ -5,7 +5,7 @@ where
 
 import Data.Text qualified as T
 import Numeric.Data.Interval (LRInterval (..))
-import Pythia.Services.Battery.Types (BatteryState (..))
+import Pythia.Services.Battery.Types (BatteryStatus (..))
 import Pythia.Services.Battery.UPower qualified as UPower
 import Unit.Prelude
 
@@ -35,7 +35,7 @@ parsePending = parseX 100 ("pending-charge", Pending)
 parseUnknown :: TestTree
 parseUnknown = parseX 100 ("some bad status-20", Unknown "some bad status-20")
 
-parseX :: Int -> (Text, BatteryState) -> TestTree
+parseX :: Int -> (Text, BatteryStatus) -> TestTree
 parseX lvl (csTxt, cs) = testCase desc $ do
   parser <-
     maybe

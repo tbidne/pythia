@@ -9,7 +9,7 @@ where
 
 import Data.Char qualified as Ch
 import Data.Text qualified as T
-import Optics.Core (Iso', _Left, _Right)
+import Optics.Core (Iso')
 import Pythia.Data (Command (..), QueryError)
 import Pythia.Data qualified as Data
 import Pythia.Prelude

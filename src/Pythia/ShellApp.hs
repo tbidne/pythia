@@ -14,6 +14,7 @@ module Pythia.ShellApp
 
     -- * Running a 'ShellApp'
     runShellApp,
+    tryApps,
 
     -- * Utilities
     runCommand,
@@ -77,7 +78,7 @@ makePrismLabels ''ShellApp
 --
 -- @since 0.1.0.0
 runShellApp :: ShellApp result -> IO (QueryResult result)
-runShellApp (SimpleApp simple) = (#_Left %~ (: [])) <$> runSimple simple
+runShellApp (SimpleApp simple) = (_Left %~ (: [])) <$> runSimple simple
 runShellApp (GeneralApp general) = general ^. #query
 
 runSimple :: SimpleShell result -> IO (Either QueryError result)
@@ -131,3 +132,43 @@ shellErr exitCode cmd err =
           " and message: ",
           err'
         ]
+
+-- | Queries for information via multiple apps. Returns the first success
+-- or all errors, if there are no successes.
+--
+-- @since 0.1.0.0
+tryApps ::
+  Show a =>
+  (a -> ShellApp r) ->
+  [(a, IO Bool)] ->
+  IO (QueryResult r)
+tryApps queryApp = foldr (tryApp queryApp) (pure (Left []))
+
+tryApp ::
+  Show a =>
+  (a -> ShellApp r) ->
+  (a, IO Bool) ->
+  IO (QueryResult r) ->
+  IO (QueryResult r)
+tryApp toShellApp (app, supportedFn) acc = do
+  isSupported <- supportedFn
+  if isSupported
+    then do
+      eResult <- runShellApp (toShellApp app)
+      case eResult of
+        Right result -> pure $ Right result
+        Left errs -> appendErrs errs <$> acc
+    else appendErr (notSupported app) <$> acc
+  where
+    notSupported app' =
+      MkQueryError
+        { name = "Pythia.ShellApp",
+          short = "AppError",
+          long = "App not supported: " <> T.pack (show app')
+        }
+
+    appendErr :: a -> Either [a] b -> Either [a] b
+    appendErr e = _Left %~ (e :)
+
+    appendErrs :: [a] -> Either [a] b -> Either [a] b
+    appendErrs errs = _Left %~ (<> errs)
