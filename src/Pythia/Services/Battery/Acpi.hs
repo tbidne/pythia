@@ -33,7 +33,7 @@ import Text.Megaparsec.Char qualified as MPC
 import Text.Megaparsec.Error qualified as MPE
 import Text.Read qualified as TR
 
--- | ACPI 'ShellApp' for 'Battery'.
+-- | ACPI query for 'Battery'.
 --
 -- @since 0.1.0.0
 batteryShellApp :: IO Battery

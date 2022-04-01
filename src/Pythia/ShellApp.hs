@@ -85,8 +85,7 @@ newtype CmdError = MkCmdErr String
 
 -- | Runs a 'Command' and returns either the text result or error encountered.
 -- This is used by 'SimpleShell' to run its command before the result is
--- parsed. This function is exported as it can be convenient to use with a
--- 'GeneralShell' (e.g. running multiple commands via 'runCommand').
+-- parsed. This function is exported as it can be for convenience.
 --
 -- @since 0.1.0.0
 runCommand :: Command -> IO Text

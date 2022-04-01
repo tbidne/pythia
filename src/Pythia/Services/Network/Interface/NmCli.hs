@@ -35,7 +35,7 @@ import Text.Megaparsec (ErrorFancy (..), Parsec, (<?>))
 import Text.Megaparsec qualified as MP
 import Text.Megaparsec.Char qualified as MPC
 
--- | NmCli 'ShellApp' for 'Connection'.
+-- | NmCli query for 'Interfaces'.
 --
 -- @since 0.1.0.0
 netInterfaceShellApp :: IO Interfaces

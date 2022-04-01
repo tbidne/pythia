@@ -26,7 +26,7 @@ import System.Directory qualified as Dir
 import System.FilePath ((</>))
 import Text.Read qualified as TR
 
--- | @/sys/class@ 'ShellApp' for 'Battery'.
+-- | @/sys/class@ query for 'Battery'.
 --
 -- @since 0.1.0.0
 batteryQuery :: IO Battery

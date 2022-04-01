@@ -22,16 +22,13 @@ import Pythia.ShellApp (AppAction (..))
 import Pythia.ShellApp qualified as ShellApp
 
 -- | Attempts to query for interface information by detecting supported
--- apps. Tries, in the following order: ['InterfaceSysFs', 'InterfaceAcpi',
--- 'InterfaceUPower']
+-- apps. Tries, in the following order: ['NetInterfaceNmCli', 'NetInterfaceIp'
 --
 -- @since 0.1.0.0
 queryNetInterfaces :: IO Interfaces
 queryNetInterfaces = queryNetInterfacesConfig mempty
 
--- | Attempts to query for interface information by detecting supported
--- apps. Tries, in the following order: ['InterfaceSysFs', 'InterfaceAcpi',
--- 'InterfaceUPower']
+-- | Attempts to query for interface information.
 --
 -- @since 0.1.0.0
 queryNetInterfacesConfig :: NetInterfaceConfig -> IO Interfaces

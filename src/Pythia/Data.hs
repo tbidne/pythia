@@ -33,6 +33,7 @@ newtype Command = MkCommand
     )
     via Text
 
+-- | @since 0.1.0.0
 makeFieldLabelsNoPrefix ''Command
 
 -- | @since 0.1.0.0
@@ -48,12 +49,15 @@ data RunApp a
       Show
     )
 
+-- | @since 0.1.0.0
 makePrismLabels ''RunApp
 
+-- | @since 0.1.0.0
 instance Semigroup a => Semigroup (RunApp a) where
   Many <> r = r
   l <> Many = l
   Single l <> Single r = Single (l <> r)
 
+-- | @since 0.1.0.0
 instance Semigroup a => Monoid (RunApp a) where
   mempty = Many

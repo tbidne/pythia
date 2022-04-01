@@ -32,7 +32,7 @@ import Text.Megaparsec qualified as MP
 import Text.Megaparsec.Char qualified as MPC
 import Text.Read qualified as TR
 
--- | UPower 'ShellApp' for 'Battery'.
+-- | UPower query for 'Battery'.
 --
 -- @since 0.1.0.0
 batteryShellApp :: IO Battery

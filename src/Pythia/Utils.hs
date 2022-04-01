@@ -23,7 +23,7 @@ import Text.Megaparsec.Char qualified as MPC
 -- $setup
 -- >>> :set -XOverloadedStrings
 
--- | Safe version of 'head'.
+-- | Safe version of 'Prelude.head'.
 --
 -- @since 0.1.0.0
 headMaybe :: [a] -> Maybe a

@@ -3,7 +3,6 @@
 -- @since 0.1.0.0
 module Pythia.Prelude
   ( readFileUtf8Lenient,
-    readFileUtf8LenientExceptT,
     readFileUtf8LenientEither,
     decodeUtf8Lenient,
     module X,
@@ -14,7 +13,6 @@ import Control.Applicative as X (Alternative (..), Applicative (..))
 import Control.Exception.Safe as X (Exception (..), SomeException (..), throw, try)
 import Control.Monad as X (Monad (..), join, void, (<=<), (>=>))
 import Control.Monad.IO.Class as X (MonadIO (..))
-import Control.Monad.Trans.Except as X (ExceptT (..), throwE)
 import Data.Bifunctor as X (Bifunctor (..))
 import Data.Bool as X (Bool (..), not, otherwise, (&&), (||))
 import Data.ByteString as X (ByteString)
@@ -61,19 +59,6 @@ readFileUtf8LenientEither fp = do
   case eByteString of
     Left ex -> pure $ Left ex
     Right bs -> pure $ Right $ decodeUtf8Lenient bs
-
--- fmap decodeUtf8Lenient
---  . BS.readFile
-
--- | 'readFileUtf8Lenient' in 'ExceptT'.
---
--- @since 0.1.0.0
-readFileUtf8LenientExceptT :: (SomeException -> e) -> FilePath -> ExceptT e IO Text
-readFileUtf8LenientExceptT errFn fp = do
-  eByteString <- liftIO $ try (BS.readFile fp)
-  case eByteString of
-    Left ex -> throwE $ errFn ex
-    Right bs -> pure $ decodeUtf8Lenient bs
 
 -- | Lenient UTF8 decode.
 --
