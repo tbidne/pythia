@@ -9,10 +9,10 @@ module Pythia.Data
     QueryError (..),
     QueryResult,
     refineExToQueryError,
+    RunApp (..),
   )
 where
 
-import Data.String (IsString)
 import Data.Text qualified as T
 import Pythia.Prelude
 import Refined (RefineException (..))
@@ -86,3 +86,26 @@ refineExToQueryError ex = qe
           short = T.pack shortErr,
           long = longErr
         }
+
+-- | @since 0.1.0.0
+data RunApp a
+  = -- | @since 0.1.0.0
+    Many
+  | -- | @since 0.1.0.0
+    Single a
+  deriving
+    ( -- | @since 0.1.0.0
+      Eq,
+      -- | @since 0.1.0.0
+      Show
+    )
+
+makePrismLabels ''RunApp
+
+instance Semigroup a => Semigroup (RunApp a) where
+  Many <> r = r
+  l <> Many = l
+  Single l <> Single r = Single (l <> r)
+
+instance Semigroup a => Monoid (RunApp a) where
+  mempty = Many

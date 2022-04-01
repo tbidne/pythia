@@ -1,4 +1,3 @@
-{-# LANGUAGE ApplicativeDo #-}
 {-# LANGUAGE TemplateHaskell #-}
 
 -- | This modules provides an executable for querying system information.
@@ -7,11 +6,13 @@
 module Main (main) where
 
 import Control.Applicative qualified as A
+import Data.Text qualified as T
 import Data.Version.Package qualified as PV
 import Development.GitRev qualified as GitRev
 import Options.Applicative
   ( CommandFields,
     Mod,
+    ParseError (..),
     Parser,
     ParserInfo (..),
     (<**>),
@@ -20,20 +21,19 @@ import Options.Applicative qualified as OApp
 import Options.Applicative.Help (Chunk (..))
 import Options.Applicative.Types (ArgPolicy (..))
 import Pythia qualified
-import Pythia.Data (QueryResult)
+import Pythia.Data (QueryResult, RunApp (..))
 import Pythia.Prelude
 import Pythia.Printer (PrettyPrinter (..))
-import Pythia.Services.Battery (BatteryApp (..))
-import Pythia.Services.Network.Connection (NetConnApp (..))
-import Pythia.Services.Network.IP.Global
+import Pythia.Services.Battery (BatteryApp (..), BatteryConfig (..))
+import Pythia.Services.Network.GlobalIP.Types
   ( GlobalIpApp (..),
-    GlobalIpCommand (..),
-    IpStrategy (..),
-    Ipv4Command,
-    Ipv6Command,
+    GlobalIpConfig (..),
+    GlobalIpRequest (..),
+    GlobalIpSources (..),
+    UrlSource (..),
   )
-import Pythia.Services.Network.IP.Global qualified as Pythia
-import Pythia.Services.Network.IP.Local (LocalIpApp (..))
+import Pythia.Services.Network.Interface (NetInterfaceApp (..), NetInterfaceConfig (..))
+import Pythia.Services.Network.Types (Device (..), IpType (..))
 
 -- | Runs the executable.
 --
@@ -42,55 +42,59 @@ main :: IO ()
 main = do
   cmd <- OApp.execParser parserInfo
   case cmd of
-    Battery app -> case app of -- Pythia.queryBattery bsa >>= prettyPrint
-      Nothing -> Pythia.queryBattery >>= prettyPrint
-      Just bsa -> Pythia.queryBatteryApp bsa >>= prettyPrint
-    NetConnection nca -> Pythia.queryConnection nca >>= prettyPrint
-    NetIPLocal lia -> Pythia.queryLocalIP lia >>= prettyPrint
-    NetIPGlobal gia is -> Pythia.queryGlobalIPStrategy is gia >>= prettyPrint
-    NetIPGlobalCustom gic -> Pythia.queryGlobalCustom gic >>= prettyPrint
+    Battery cfg -> Pythia.queryBatteryConfig cfg >>= prettyPrint
+    NetInterface cfg -> Pythia.queryNetInterfacesConfig cfg >>= prettyPrint
+    NetIpGlobal cfg -> Pythia.queryGlobalIpConfig cfg >>= prettyPrint
 
 prettyPrint :: PrettyPrinter a => QueryResult a -> IO ()
 prettyPrint = putStrLn . Pythia.prettyQueryResult
 
 data PythiaCommand
-  = Battery (Maybe BatteryApp)
-  | NetConnection NetConnApp
-  | NetIPLocal LocalIpApp
-  | NetIPGlobal GlobalIpApp IpStrategy
-  | NetIPGlobalCustom GlobalIpCommand
-  deriving (Eq, Show)
+  = Battery BatteryConfig
+  | NetInterface NetInterfaceConfig
+  | NetIpGlobal GlobalIpConfig
+  deriving
+    ( Eq,
+      Show
+    )
 
 parserInfo :: ParserInfo PythiaCommand
 parserInfo =
   ParserInfo
     { infoParser = cmdParser,
       infoFullDesc = True,
-      infoProgDesc = Chunk Nothing,
-      infoHeader = Chunk Nothing,
-      infoFooter = Chunk Nothing,
+      infoProgDesc = Chunk desc,
+      infoHeader = Chunk header,
+      infoFooter = Chunk footer,
       infoFailureCode = 1,
       infoPolicy = Intersperse
     }
+  where
+    header = Just "Pythia: A tool for querying system information."
+    footer = Just $ fromString ""
+    desc =
+      Just $
+        "\nPythia queries system information. This is achieved by "
+          <> "using applications on the machine whose output pythia knows how to "
+          <> "parse. For instance, pythia can retrieve battery information by "
+          <> "using acpi, upower, or reading /sys/class directly. In general, "
+          <> "if the application is unspecified then pythia will try all "
+          <> "applications that exist on the current system, returning the first "
+          <> "success."
 
 cmdParser :: Parser PythiaCommand
 cmdParser =
   OApp.hsubparser
     ( mkCommand "battery" parseBattery batStateTxt
-        <> mkCommand "net-conn" parseNetConn netConnTxt
-        <> mkCommand "ip-local" parseIpLocal ipLocalTxt
-        <> mkCommand "ip-global" parseIpGlobal ipGlobalTxt
+        <> mkCommand "net-if" parseNetInterface netInterfaceTxt
+        <> mkCommand "global-ip" parseIpGlobal ipGlobalTxt
     )
     <**> OApp.helper
     <**> version
   where
     batStateTxt =
-      OApp.progDesc $
-        "Queries the battery state (i.e. charging status and current percentage). "
-          <> "If no app is supplied then we will try all in the following order: "
-          <> "[sysfs, acpi, upower]."
-    netConnTxt = OApp.progDesc "Queries the network connection status for a given device."
-    ipLocalTxt = OApp.progDesc "Queries the local IP addresses associated to a given device."
+      OApp.progDesc "Queries the battery state."
+    netInterfaceTxt = OApp.progDesc "Queries network interfaces."
     ipGlobalTxt = OApp.progDesc "Queries the global IP addresses."
 
 version :: Parser (a -> a)
@@ -105,140 +109,147 @@ version = OApp.infoOption txt (OApp.long "version" <> OApp.short 'v')
         ]
 
 parseBattery :: Parser PythiaCommand
-parseBattery =
-  Battery
-    <$> OApp.option
+parseBattery = do
+  app <-
+    OApp.option
       reader
-      (OApp.value Nothing <> OApp.long "app" <> OApp.metavar "APP" <> OApp.help helpTxt)
+      ( OApp.value Many
+          <> OApp.long "app"
+          <> OApp.short 'a'
+          <> OApp.metavar "APP"
+          <> OApp.help helpTxt
+      )
+  pure $ Battery $ MkBatteryConfig app
   where
-    helpTxt = "App must be one of [acpi | sysfs | upower | <custom command>]"
+    helpTxt = "App must be one of [acpi | sysfs | upower]."
     reader = do
       a <- OApp.str
       case a of
-        "acpi" -> pure $ Just BatteryAcpi
-        "sysfs" -> pure $ Just BatterySysFs
-        "upower" -> pure $ Just BatteryUPower
-        custom -> pure $ Just $ BatteryCustom custom
+        "acpi" -> pure $ Single BatteryAcpi
+        "sysfs" -> pure $ Single BatterySysFs
+        "upower" -> pure $ Single BatteryUPower
+        _ -> OApp.readerAbort $ ErrorMsg $ "Unrecognized battery app: " <> T.unpack a
 
-parseNetConn :: Parser PythiaCommand
-parseNetConn = do
-  app <-
-    OApp.option
-      OApp.str
-      (OApp.long "app" <> OApp.metavar "APP" <> OApp.help helpTxt)
-  device <-
-    OApp.option
-      OApp.str
-      (OApp.long "device" <> OApp.metavar "NAME" <> OApp.help deviceTxt)
-  pure $ case app of
-    "nmcli" -> NetConnection $ NetConNmCli device
-    custom -> NetConnection $ NetConCustom device custom
-  where
-    helpTxt = "App must be one of [nmcli | <custom command>]"
-    deviceTxt = "The name of the network device e.g. wlp0s20f3"
+parseNetInterface :: Parser PythiaCommand
+parseNetInterface = do
+  app <- netInterfaceAppOption
+  device <- netInterfaceDeviceOption
+  pure $ NetInterface $ MkNetInterfaceConfig app device
 
-parseIpLocal :: Parser PythiaCommand
-parseIpLocal = do
-  app <-
-    OApp.option
-      OApp.str
-      (OApp.long "app" <> OApp.metavar "APP" <> OApp.help helpTxt)
-  device <-
-    OApp.option
-      OApp.str
-      (OApp.long "device" <> OApp.metavar "NAME" <> OApp.help deviceTxt)
-
-  pure $ case app of
-    "ifconfig" -> NetIPLocal $ LocalIfConfig device
-    "nmcli" -> NetIPLocal $ LocalNmCli device
-    custom -> NetIPLocal $ LocalCustom device custom
-  where
-    helpTxt = "App must be one of [ifconfig | nmcli | <custom command>]"
-    deviceTxt = "The name of the network device e.g. wlp0s20f3"
-
-parseIpGlobal :: Parser PythiaCommand
-parseIpGlobal =
-  OApp.hsubparser
-    ( OApp.command "dig" (OApp.info digParser digText)
-        <> OApp.command "curl" (OApp.info curlParser curlText)
-        <> OApp.command "custom" (OApp.info customGlobalIPParser customText)
-    )
-  where
-    digText =
-      OApp.progDesc $
-        "Queries IP addresses via the dig utility, "
-          <> "using built-in URLs. Additional commands (e.g. dig <url>) can be "
-          <> "provided via the ipv4 and ipv6 arguments."
-    curlText =
-      OApp.progDesc $
-        "Queries IP addresses via the curl utility, "
-          <> "using built-in URLs. Additional commands (e.g. curl <url>) can be "
-          <> "provided via the ipv4 and ipv6 arguments."
-    customText =
-      OApp.progDesc $
-        "Queries IP addresses via custom command(s), "
-          <> " with no built-in URLs being used. At least one of ipv4 or ipv6"
-          <> " is mandatory."
-
-digParser :: Parser PythiaCommand
-digParser = do
-  mIpv4 <- A.optional (ipv4Option "dig")
-  mIpv6 <- A.optional ipv6Option
-  pure $ ipsToPythia GlobalDig mIpv4 mIpv6
-
-curlParser :: Parser PythiaCommand
-curlParser = do
-  mIpv4 <- A.optional (ipv4Option "curl")
-  mIpv6 <- A.optional ipv6Option
-  pure $ ipsToPythia GlobalCurl mIpv4 mIpv6
-
-ipv4Option :: String -> Parser Ipv4Command
-ipv4Option exCmd =
+netInterfaceAppOption :: Parser (RunApp NetInterfaceApp)
+netInterfaceAppOption =
   OApp.option
-    OApp.str
-    ( OApp.long "ipv4"
-        <> OApp.metavar "CMD"
+    readApp
+    ( OApp.value Many
+        <> OApp.long "app"
+        <> OApp.short 'a'
+        <> OApp.metavar "APP"
         <> OApp.help helpTxt
     )
   where
     helpTxt =
-      "Custom command for retrieving the IPv4 address"
-        <> " e.g. "
-        <> exCmd
-        <> " http://whatismyip.akamai.com/"
+      "App must be one of [nmcli | ip]."
+    readApp = do
+      a <- OApp.str
+      case a of
+        "nmcli" -> pure $ Single NetInterfaceNmCli
+        "ip" -> pure $ Single NetInterfaceIp
+        _ -> OApp.readerAbort $ ErrorMsg $ "Unrecognized network interface app: " <> T.unpack a
 
-ipv6Option :: Parser Ipv6Command
-ipv6Option =
+netInterfaceDeviceOption :: Parser (Maybe Device)
+netInterfaceDeviceOption =
   OApp.option
-    OApp.str
-    ( OApp.long "ipv6"
-        <> OApp.metavar "CMD"
+    (Just . MkDevice <$> OApp.str)
+    ( OApp.value Nothing
+        <> OApp.long "device"
+        <> OApp.short 'd'
+        <> OApp.metavar "NAME"
+        <> OApp.help deviceTxt
+    )
+  where
+    deviceTxt = "The name of the network device to filter on e.g. wlp0s20f3"
+
+parseIpGlobal :: Parser PythiaCommand
+parseIpGlobal = do
+  app <- ipAppOption
+  ipType <- ipTypeOption
+  ipv4Urls <- ipv4SrcOption
+  ipv6Urls <- ipv6SrcOption
+  pure $ NetIpGlobal $ MkGlobalIpConfig app ipType (MkGlobalIpSources ipv4Urls ipv6Urls)
+
+ipAppOption :: Parser (RunApp GlobalIpApp)
+ipAppOption =
+  OApp.option
+    readApp
+    ( OApp.value Many
+        <> OApp.long "app"
+        <> OApp.short 'a'
+        <> OApp.metavar "APP"
         <> OApp.help helpTxt
     )
   where
-    helpTxt = "Custom command for retrieving the IPv6 address"
+    helpTxt =
+      "App must be one of [dig | curl]."
+    readApp = do
+      a <- OApp.str
+      case a of
+        "dig" -> pure $ Single GlobalIpDig
+        "curl" -> pure $ Single GlobalIpCurl
+        _ ->
+          OApp.readerAbort $
+            ErrorMsg $
+              "Unrecognized network interface app: " <> T.unpack a
 
-ipsToPythia :: GlobalIpApp -> Maybe Ipv4Command -> Maybe Ipv6Command -> PythiaCommand
-ipsToPythia app mIpv4 mIpv6 = case (mIpv4, mIpv6) of
-  (Nothing, Nothing) -> NetIPGlobal app Defaults
-  (Just ipv4s, Nothing) -> NetIPGlobal app (CustomWithDefaults (GIpv4Command [ipv4s]))
-  (Nothing, Just ipv6s) -> NetIPGlobal app (CustomWithDefaults (GIpv6Command [ipv6s]))
-  (Just ipv4s, Just ipv6s) -> NetIPGlobal app (CustomWithDefaults (GIpBothCommand [ipv4s] [ipv6s]))
-
-customGlobalIPParser :: Parser PythiaCommand
-customGlobalIPParser =
-  NetIPGlobalCustom
-    . combineIps
-    <$> parseIpv4AndIpv6
+ipTypeOption :: Parser GlobalIpRequest
+ipTypeOption =
+  OApp.option
+    readIpType
+    ( OApp.value GlobalIpRequestIpv4
+        <> OApp.long "ip-type"
+        <> OApp.short 't'
+        <> OApp.metavar "TYPE"
+        <> OApp.help helpTxt
+    )
   where
-    parseIpv4AndIpv6 =
-      A.some $
-        Left <$> ipv4Option "curl" <|> Right <$> ipv6Option
-    combineIps xs =
-      let (ipv4s, ipv6s) = foldl' splitIps ([], []) xs
-       in GIpBothCommand ipv4s ipv6s
-    splitIps (ip4s, ip6s) (Left x) = (x : ip4s, ip6s)
-    splitIps (ip4s, ip6s) (Right y) = (ip4s, y : ip6s)
+    helpTxt =
+      "Whether to retrieve IPv4 or IPv6 address. One of: [ipv4 | ipv6 | "
+        <> "both]. Defaults to ipv4."
+    readIpType = do
+      a <- OApp.str
+      case a of
+        "ipv4" -> pure GlobalIpRequestIpv4
+        "ipv6" -> pure GlobalIpRequestIpv6
+        "both" -> pure GlobalIpRequestBoth
+        _ -> OApp.readerAbort $ ErrorMsg $ "Unrecognized ip type: " <> T.unpack a
+
+ipv4SrcOption :: Parser [UrlSource 'Ipv4]
+ipv4SrcOption =
+  A.many $
+    OApp.option
+      OApp.str
+      ( OApp.long "ipv4-src"
+          <> OApp.metavar "URL"
+          <> OApp.help helpTxt
+      )
+  where
+    helpTxt =
+      "Custom server URL for retrieving the IPv4 address e.g. "
+        <> "http://whatismyip.akamai.com/. Can be specified multiple times. "
+        <> "Overrides the defaults."
+
+ipv6SrcOption :: Parser [UrlSource 'Ipv6]
+ipv6SrcOption =
+  A.many $
+    OApp.option
+      OApp.str
+      ( OApp.long "ipv6-src"
+          <> OApp.metavar "URL"
+          <> OApp.help helpTxt
+      )
+  where
+    helpTxt =
+      "Custom server URL for retrieving the IPv6 address. Can be specified "
+      <> "multiple times. Overrides the defaults."
 
 mkCommand :: String -> Parser a -> OApp.InfoMod a -> Mod CommandFields a
 mkCommand cmdTxt parser helpTxt = OApp.command cmdTxt (OApp.info parser helpTxt)

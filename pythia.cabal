@@ -45,6 +45,7 @@ common common-exts
     FlexibleInstances
     FunctionalDependencies
     GADTs
+    GeneralizedNewtypeDeriving
     ImportQualifiedPost
     InstanceSigs
     LambdaCase
@@ -76,26 +77,22 @@ library
     Pythia.Services.Battery.Types
     Pythia.Services.Battery.UPower
     Pythia.Services.Network
-    Pythia.Services.Network.Connection
-    Pythia.Services.Network.Connection.NmCli
-    Pythia.Services.Network.Connection.Types
-    Pythia.Services.Network.IP.Global
-    Pythia.Services.Network.IP.Global.Common
-    Pythia.Services.Network.IP.Global.Types
-    Pythia.Services.Network.IP.Local
-    Pythia.Services.Network.IP.Local.IfConfig
-    Pythia.Services.Network.IP.Local.NmCli
-    Pythia.Services.Network.IP.Local.Types
-    Pythia.Services.Network.IP.Types
+    Pythia.Services.Network.GlobalIP
+    Pythia.Services.Network.GlobalIP.Types
+    Pythia.Services.Network.Interface
+    Pythia.Services.Network.Interface.Ip
+    Pythia.Services.Network.Interface.NmCli
+    Pythia.Services.Network.Interface.Types
     Pythia.Services.Network.Types
     Pythia.ShellApp
+    Pythia.Supremum
     Pythia.Utils
 
   ghc-options:      -Wunused-packages
   build-depends:
-    , attoparsec       >=0.13.2.3  && <0.15
     , base             >=4.14.1.0  && <4.17
     , bytestring       >=0.10.10.0 && <0.12
+    , containers       ^>=0.6.2.1
     , directory        ^>=1.3.5.0
     , filepath         ^>=1.4.2.1
     , megaparsec       >=7.0.5     && <9.3
@@ -115,13 +112,13 @@ library
 executable pythia
   import:           common-exts
   main-is:          Main.hs
-  ghc-options:      -Wunused-packages
   build-depends:
     , base
     , gitrev                >=1.2.0    && <1.4
     , optparse-applicative  >=0.16.1.0 && <0.18
     , package-version       ^>=0.1.0.0
     , pythia
+    , text
 
   hs-source-dirs:   app
   ghc-options:      -threaded -with-rtsopts=-N
@@ -135,12 +132,12 @@ test-suite unit
     Unit.Prelude
     Unit.Pythia.Services.Battery.Acpi
     Unit.Pythia.Services.Battery.UPower
-    Unit.Pythia.Services.Network.Connection.NmCli
-    Unit.Pythia.Services.Network.IP.Local.IfConfig
-    Unit.Pythia.Services.Network.IP.Local.NmCli
+    Unit.Pythia.Services.Network.Interface.Ip
+    Unit.Pythia.Services.Network.Interface.NmCli
 
   build-depends:
     , base
+    , containers
     , pythia
     , refined
     , smart-math

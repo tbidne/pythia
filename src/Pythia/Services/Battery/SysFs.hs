@@ -152,7 +152,7 @@ parseLevel :: FilePath -> Result BatteryLevel
 parseLevel fp = do
   percentTxt <- readFileUtf8LenientExceptT mkFileErr fp
   case readInterval percentTxt of
-    Nothing -> throwE undefined
+    Nothing -> throwE $ [intervalErr percentTxt]
     Just bs -> pure bs
   where
     mkFileErr ex =
@@ -166,4 +166,10 @@ parseLevel fp = do
                 <> T.pack (show ex)
           }
       ]
+    intervalErr p =
+      MkQueryError
+        { name = "Pythia.Services.Battery.SysFs",
+          short = "PercentError",
+          long = "Percentage was not in [0, 100]: " <> p
+        }
     readInterval = Interval.mkLRInterval <=< TR.readMaybe . T.unpack

@@ -1,4 +1,5 @@
 {-# LANGUAGE DefaultSignatures #-}
+{-# LANGUAGE DeriveAnyClass #-}
 
 -- | This modules provides functionality for pretty printing query results.
 --
@@ -32,6 +33,11 @@ instance PrettyPrinter String where
 -- | @since 0.1.0.0
 instance PrettyPrinter Text where
   pretty = T.unpack
+
+-- | @since 0.1.0.0
+instance PrettyPrinter a => PrettyPrinter (Maybe a) where
+  pretty Nothing = ""
+  pretty (Just x) = pretty x
 
 -- | Pretty prints a 'QueryResult'.
 --

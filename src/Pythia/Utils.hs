@@ -5,13 +5,19 @@ module Pythia.Utils
   ( headMaybe,
     eitherToBool,
     foldAlt,
-    takeLine1,
+    mAlt,
+    takeLine,
+    takeLineLabel,
+    takeLine_,
+    exeSupported,
   )
 where
 
-import Data.Attoparsec.Text (Parser)
-import Data.Attoparsec.Text qualified as AP
 import Pythia.Prelude
+import System.Directory qualified as Dir
+import Text.Megaparsec (Parsec, Stream, Token, Tokens)
+import Text.Megaparsec qualified as MP
+import Text.Megaparsec.Char qualified as MPC
 
 -- $setup
 -- >>> :set -XOverloadedStrings
@@ -29,30 +35,23 @@ headMaybe (x : _) = Just x
 foldAlt :: (Foldable t, Alternative f) => (a -> f b) -> t a -> f b
 foldAlt f = foldr ((<|>) . f) empty
 
--- | Takes the rest of the line, including 1 or more new line characters.
---
--- ==== __Examples__
--- >>> AP.parseOnly takeLine1 "abc edf \n\n\n"
--- Right ()
---
--- >>> AP.parseOnly takeLine1 "\n"
--- Right ()
---
--- >>> AP.parseOnly takeLine1 "abc"
--- Left "not enough input"
---
--- >>> AP.parseOnly takeLine1 ""
--- Left "not enough input"
---
--- @since 0.1.0.0
-takeLine1 :: Parser ()
-takeLine1 =
-  AP.takeWhile (not . AP.isEndOfLine)
-    *> AP.many1 AP.endOfLine
-    $> ()
+mAlt :: Alternative f => Maybe (f a) -> f a
+mAlt = fromMaybe empty
+
+takeLine :: (Ord e, Stream s, Token s ~ Char) => Parsec e s (Tokens s)
+takeLine = takeLineLabel Nothing
+
+takeLineLabel :: (Ord e, Stream s, Token s ~ Char) => Maybe String -> Parsec e s (Tokens s)
+takeLineLabel desc = MP.takeWhileP desc (/= '\n') <* MPC.eol
+
+takeLine_ :: (Ord e, Stream s, Token s ~ Char) => Parsec e s ()
+takeLine_ = MP.takeWhileP Nothing (/= '\n') *> void MPC.eol
 
 -- | Maps 'Left' to 'False, 'Right' to 'True'.
 --
 -- @since 0.1.0.0
 eitherToBool :: Either a b -> Bool
 eitherToBool = either (const False) (const True)
+
+exeSupported :: String -> IO Bool
+exeSupported exeName = maybe False (const True) <$> Dir.findExecutable exeName

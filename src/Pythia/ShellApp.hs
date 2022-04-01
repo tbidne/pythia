@@ -14,9 +14,9 @@ module Pythia.ShellApp
 
     -- * Running a 'ShellApp'
     runShellApp,
-    tryApps,
 
     -- * Utilities
+    tryIOs,
     runCommand,
   )
 where
@@ -137,34 +137,30 @@ shellErr exitCode cmd err =
 -- or all errors, if there are no successes.
 --
 -- @since 0.1.0.0
-tryApps ::
-  Show a =>
-  (a -> ShellApp r) ->
-  [(a, IO Bool)] ->
+tryIOs ::
+  [(IO (QueryResult r), IO Bool)] ->
   IO (QueryResult r)
-tryApps queryApp = foldr (tryApp queryApp) (pure (Left []))
+tryIOs = foldr tryIO (pure (Left []))
 
-tryApp ::
-  Show a =>
-  (a -> ShellApp r) ->
-  (a, IO Bool) ->
+tryIO ::
+  (IO (QueryResult r), IO Bool) ->
   IO (QueryResult r) ->
   IO (QueryResult r)
-tryApp toShellApp (app, supportedFn) acc = do
+tryIO (ioFn, supportedFn) acc = do
   isSupported <- supportedFn
   if isSupported
     then do
-      eResult <- runShellApp (toShellApp app)
+      eResult <- ioFn
       case eResult of
         Right result -> pure $ Right result
         Left errs -> appendErrs errs <$> acc
-    else appendErr (notSupported app) <$> acc
+    else appendErr notSupported <$> acc
   where
-    notSupported app' =
+    notSupported =
       MkQueryError
         { name = "Pythia.ShellApp",
           short = "AppError",
-          long = "App not supported: " <> T.pack (show app')
+          long = "App not supported"
         }
 
     appendErr :: a -> Either [a] b -> Either [a] b

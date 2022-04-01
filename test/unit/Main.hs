@@ -7,9 +7,8 @@ import Test.Tasty qualified as Tasty
 import Unit.Prelude
 import Unit.Pythia.Services.Battery.Acpi qualified as Battery.Acpi
 import Unit.Pythia.Services.Battery.UPower qualified as Battery.UPower
-import Unit.Pythia.Services.Network.Connection.NmCli qualified as Connection.NmCli
-import Unit.Pythia.Services.Network.IP.Local.IfConfig qualified as IP.Local.IfConfig
-import Unit.Pythia.Services.Network.IP.Local.NmCli qualified as IP.Local.NmCli
+import Unit.Pythia.Services.Network.Interface.Ip qualified as Interface.Ip
+import Unit.Pythia.Services.Network.Interface.NmCli qualified as Interface.NmCli
 
 -- | Runs unit tests.
 --
@@ -21,7 +20,6 @@ main = do
       "Unit tests"
       [ Battery.Acpi.tests,
         Battery.UPower.tests,
-        Connection.NmCli.tests,
-        IP.Local.IfConfig.tests,
-        IP.Local.NmCli.tests
+        Interface.Ip.tests,
+        Interface.NmCli.tests
       ]
