@@ -12,13 +12,13 @@ module Pythia.Services.Network.Interface
   )
 where
 
-import Pythia.Data (QueryResult, RunApp (..))
+import Pythia.Data (RunApp (..))
 import Pythia.Prelude
 import Pythia.Services.Network.Interface.Ip qualified as Ip
 import Pythia.Services.Network.Interface.NmCli qualified as NmCli
 import Pythia.Services.Network.Interface.Types (Interface, Interfaces (..), NetInterfaceApp (..), NetInterfaceConfig (..))
 import Pythia.Services.Network.Types (Device)
-import Pythia.ShellApp (ShellApp (..))
+import Pythia.ShellApp (AppAction (..))
 import Pythia.ShellApp qualified as ShellApp
 
 -- | Attempts to query for interface information by detecting supported
@@ -26,7 +26,7 @@ import Pythia.ShellApp qualified as ShellApp
 -- 'InterfaceUPower']
 --
 -- @since 0.1.0.0
-queryNetInterfaces :: IO (QueryResult Interfaces)
+queryNetInterfaces :: IO Interfaces
 queryNetInterfaces = queryNetInterfacesConfig mempty
 
 -- | Attempts to query for interface information by detecting supported
@@ -34,30 +34,30 @@ queryNetInterfaces = queryNetInterfacesConfig mempty
 -- 'InterfaceUPower']
 --
 -- @since 0.1.0.0
-queryNetInterfacesConfig :: NetInterfaceConfig -> IO (QueryResult Interfaces)
+queryNetInterfacesConfig :: NetInterfaceConfig -> IO Interfaces
 queryNetInterfacesConfig config = do
   case config ^. #interfaceApp of
-    Many -> ShellApp.tryIOs allApps
+    Many -> ShellApp.tryAppActions allApps
     Single app -> singleRun app
   where
     allApps =
-      [ (singleRun NetInterfaceNmCli, NmCli.supported),
-        (singleRun NetInterfaceIp, Ip.supported)
+      [ MkAppAction (singleRun NetInterfaceNmCli) NmCli.supported (show NetInterfaceNmCli),
+        MkAppAction (singleRun NetInterfaceIp) Ip.supported (show NetInterfaceIp)
       ]
     singleRun a =
       queryNetInterfacesDeviceApp device a
-    device = (config ^. #interfaceDevice)
+    device = config ^. #interfaceDevice
 
-queryNetInterfacesDeviceApp :: Maybe Device -> NetInterfaceApp -> IO (QueryResult Interfaces)
-queryNetInterfacesDeviceApp Nothing app = ShellApp.runShellApp (toSingleShellApp app)
+queryNetInterfacesDeviceApp :: Maybe Device -> NetInterfaceApp -> IO Interfaces
+queryNetInterfacesDeviceApp Nothing app = toSingleShellApp app
 queryNetInterfacesDeviceApp (Just device) app =
-  second (filterDevice device) <$> ShellApp.runShellApp (toSingleShellApp app)
+  filterDevice device <$> toSingleShellApp app
 
 filterDevice :: Device -> Interfaces -> Interfaces
 filterDevice device (MkInterfaces ifs) =
   MkInterfaces $
     filter ((== device) . view #idevice) ifs
 
-toSingleShellApp :: NetInterfaceApp -> ShellApp Interfaces
+toSingleShellApp :: NetInterfaceApp -> IO Interfaces
 toSingleShellApp NetInterfaceNmCli = NmCli.netInterfaceShellApp
 toSingleShellApp NetInterfaceIp = Ip.netInterfaceShellApp

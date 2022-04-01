@@ -1,12 +1,10 @@
 {-# LANGUAGE DefaultSignatures #-}
-{-# LANGUAGE DeriveAnyClass #-}
 
 -- | This modules provides functionality for pretty printing query results.
 --
 -- @since 0.1.0.0
 module Pythia.Printer
   ( PrettyPrinter (..),
-    prettyQueryResult,
     joinCommas,
     joinNewlines,
   )
@@ -14,7 +12,6 @@ where
 
 import Data.List qualified as L
 import Data.Text qualified as T
-import Pythia.Data (QueryResult)
 import Pythia.Prelude
 
 -- | Typeclass for pretty printing.
@@ -38,13 +35,6 @@ instance PrettyPrinter Text where
 instance PrettyPrinter a => PrettyPrinter (Maybe a) where
   pretty Nothing = ""
   pretty (Just x) = pretty x
-
--- | Pretty prints a 'QueryResult'.
---
--- @since 0.1.0.0
-prettyQueryResult :: PrettyPrinter a => QueryResult a -> String
-prettyQueryResult (Right result) = pretty result
-prettyQueryResult (Left errs) = "Received errors: " <> show errs
 
 -- | Join with commas.
 --

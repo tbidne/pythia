@@ -1,25 +1,32 @@
+{-# LANGUAGE DeriveAnyClass #-}
+
 -- | This module provides functionality for retrieving battery information
 -- using UPower.
 --
 -- @since 0.1.0.0
 module Pythia.Services.Battery.UPower
-  ( batteryShellApp,
+  ( -- * Query
+    batteryShellApp,
     supported,
+
+    -- * Misc
+    UPowerError (..),
+    parseBattery,
   )
 where
 
 import Data.Char qualified as Char
 import Data.Text qualified as T
 import Numeric.Data.Interval qualified as Interval
-import Pythia.Data (QueryError (..))
 import Pythia.Prelude
 import Pythia.Services.Battery.Types
   ( Battery (..),
     BatteryLevel,
     BatteryStatus (..),
   )
-import Pythia.ShellApp (ShellApp (..), SimpleShell (..))
-import System.Directory qualified as Dir
+import Pythia.ShellApp (SimpleShell (..))
+import Pythia.ShellApp qualified as ShellApp
+import Pythia.Utils qualified as U
 import Text.Megaparsec (Parsec)
 import Text.Megaparsec qualified as MP
 import Text.Megaparsec.Char qualified as MPC
@@ -28,9 +35,9 @@ import Text.Read qualified as TR
 -- | UPower 'ShellApp' for 'Battery'.
 --
 -- @since 0.1.0.0
-batteryShellApp :: ShellApp Battery
+batteryShellApp :: IO Battery
 batteryShellApp =
-  SimpleApp $
+  ShellApp.runSimple $
     MkSimpleShell
       { command = "upower -i `upower -e | grep 'BAT'`",
         parser = parseBattery
@@ -41,22 +48,19 @@ batteryShellApp =
 --
 -- @since 0.1.0.0
 supported :: IO Bool
-supported = maybe False (const True) <$> Dir.findExecutable "upower"
+supported = U.exeSupported "upower"
 
-parseBattery :: Text -> Either QueryError Battery
+-- | Attempts to parse the output of UPower.
+--
+-- @since 0.1.0.0
+parseBattery :: Text -> Either UPowerError Battery
 parseBattery txt = case foldMap parseLine ts of
-  None -> Left $ mkErr $ "Did not find percent or status in: " <> txt
-  Percent _ -> Left $ mkErr $ "Did not find status in: " <> txt
-  Status _ -> Left $ mkErr $ "Did not find percent in:" <> txt
+  None -> Left $ UPowerNoPercentageNorStatus $ T.unpack txt
+  Percent _ -> Left $ UPowerNoStatus $ T.unpack txt
+  Status _ -> Left $ UPowerNoPercentage $ T.unpack txt
   Both bs -> Right bs
   where
     ts = T.lines txt
-    mkErr err =
-      MkQueryError
-        { name = "Pythia.Services.Battery.UPower",
-          short = "Parse error",
-          long = err
-        }
 
 data BatteryResult
   = None
@@ -122,3 +126,31 @@ parseStatus = do
       MP.eof
       pure $ Unknown s
     rest = MPC.space *> MP.eof
+
+-- | Errors that can occur when reading sysfs.
+--
+-- @since 0.1.0.0
+data UPowerError
+  = -- | Error searching for /sys/class/power_supply or
+    -- /sysfs/class/power_supply.
+    --
+    -- @since 0.1.0.0
+    UPowerNoPercentage String
+  | -- | Error searching for <sysfs>/BAT{0-5}{0-1}.
+    --
+    -- @since 0.1.0.0
+    UPowerNoStatus String
+  | -- | Errors searching for files.
+    --
+    -- @since 0.1.0.0
+    UPowerNoPercentageNorStatus String
+  deriving stock
+    ( -- | @since 0.1.0.0
+      Eq,
+      -- | @since 0.1.0.0
+      Show
+    )
+  deriving anyclass
+    ( -- | @since0.1.0.0
+      Exception
+    )

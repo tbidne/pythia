@@ -48,6 +48,7 @@ newtype Device = MkDevice
     )
     via Text
 
+-- | @since 0.1.0.0
 makeFieldLabelsNoPrefix ''Device
 
 -- | Type for an Ipv4Address address, i.e., a string of max length 15 with a mix of
@@ -70,8 +71,10 @@ newtype Ipv4Address = MkIpv4Address
 instance PrettyPrinter Ipv4Address where
   pretty = T.unpack . R.unrefine . unIpv4
 
+-- | @since 0.1.0.0
 makeFieldLabelsNoPrefix ''Ipv4Address
 
+-- | @since 0.1.0.0
 unsafeIpv4Address :: Text -> Ipv4Address
 unsafeIpv4Address = MkIpv4Address . R.unsafeRefine
 
@@ -95,11 +98,19 @@ newtype Ipv6Address = MkIpv6Address
 instance PrettyPrinter Ipv6Address where
   pretty = T.unpack . R.unrefine . unIpv6
 
+-- | @since 0.1.0.0
 makeFieldLabelsNoPrefix ''Ipv6Address
 
+-- | @since 0.1.0.0
 unsafeIpv6Address :: Text -> Ipv6Address
 unsafeIpv6Address = MkIpv6Address . R.unsafeRefine
 
+-- | IP types.
+--
+-- @since 0.1.0.0
 data IpType
-  = Ipv4
-  | Ipv6
+  = -- | @since 0.1.0.0
+    Ipv4
+  | -- | @since 0.1.0.0
+    Ipv6
+  deriving (Eq, Show)

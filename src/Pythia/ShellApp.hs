@@ -1,3 +1,4 @@
+{-# LANGUAGE DeriveAnyClass #-}
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE UndecidableInstances #-}
 
@@ -6,17 +7,21 @@
 --
 -- @since 0.1.0.0
 module Pythia.ShellApp
-  ( -- * Types
-    ShellApp (..),
+  ( -- * SimpleShell
     SimpleShell (..),
-    GeneralShell (..),
-    QueryResult,
+    runSimple,
 
-    -- * Running a 'ShellApp'
-    runShellApp,
+    -- * Trying Multiple IO
+    AppAction (..),
+    tryAppActions,
+    tryIOs,
+
+    -- * Exceptions
+    CmdError (..),
+    NotSupportedError (..),
+    Exceptions (..),
 
     -- * Utilities
-    tryIOs,
     runCommand,
   )
 where
@@ -25,7 +30,7 @@ import Data.ByteString.Lazy qualified as LBS
 import Data.Text qualified as T
 import Data.Text.Encoding qualified as TEnc
 import GHC.IO.Exception (ExitCode (..))
-import Pythia.Data (Command (..), QueryError (..), QueryResult)
+import Pythia.Data (Command (..))
 import Pythia.Prelude
 import System.Process.Typed qualified as TP
 
@@ -33,7 +38,7 @@ import System.Process.Typed qualified as TP
 -- The 'parser' is used to parse the result.
 --
 -- @since 0.1.0.0
-data SimpleShell result = MkSimpleShell
+data SimpleShell err result = MkSimpleShell
   { -- | The shell command to run.
     --
     -- @since 0.1.0.0
@@ -41,50 +46,42 @@ data SimpleShell result = MkSimpleShell
     -- | The parser for the result of running the command.
     --
     -- @since 0.1.0.0
-    parser :: Text -> Either QueryError result
+    parser :: Text -> Either err result
   }
 
+-- | @since 0.1.0.0
 makeFieldLabelsNoPrefix ''SimpleShell
 
--- | Type for running a more general action than 'SimpleShell'. As this is
--- 'IO' we have more freedom to implement more complex behavior, e.g.,
--- running multiple commands, non-deterministic behavior, etc.
+-- | @since 0.1.0.0
+instance Bifunctor SimpleShell where
+  bimap f g (MkSimpleShell c p) = MkSimpleShell c p'
+    where
+      p' = bimap f g . p
+
+-- | Runs a simple shell, throwing an error if any occur.
 --
 -- @since 0.1.0.0
-newtype GeneralShell result = MkGeneralShell
-  { -- | The action to run.
-    --
-    -- @since 0.1.0.0
-    query :: IO (QueryResult result)
-  }
-
-makeFieldLabelsNoPrefix ''GeneralShell
-
--- | Sum type for running shell applications. Most actions should be simple
--- shell command + parse output, hence 'SimpleShell', but we also provide
--- 'GeneralShell' for when more complex behavior is needed.
---
--- @since 0.1.0.0
-data ShellApp result
-  = -- | @since 0.1.0.0
-    SimpleApp (SimpleShell result)
-  | -- | @since 0.1.0.0
-    GeneralApp (GeneralShell result)
-
-makePrismLabels ''ShellApp
-
--- | Runs the shell app and returns either the result or any errors
--- encountered.
---
--- @since 0.1.0.0
-runShellApp :: ShellApp result -> IO (QueryResult result)
-runShellApp (SimpleApp simple) = (_Left %~ (: [])) <$> runSimple simple
-runShellApp (GeneralApp general) = general ^. #query
-
-runSimple :: SimpleShell result -> IO (Either QueryError result)
+runSimple :: Exception err => SimpleShell err result -> IO result
 runSimple simple =
   runCommand (simple ^. #command)
-    >>= \t -> pure $ t >>= (simple ^. #parser)
+    >>= parseAndThrow
+  where
+    parseAndThrow t' = case (simple ^. #parser) t' of
+      Left err -> throw err
+      Right r -> pure r
+
+-- | Error that can occur when running a shell command.
+--
+-- @since 0.1.0.0
+newtype CmdError = MkCmdErr String
+  deriving stock
+    ( -- | @since 0.1.0.0
+      Show
+    )
+  deriving anyclass
+    ( -- | @since 0.1.0.0
+      Exception
+    )
 
 -- | Runs a 'Command' and returns either the text result or error encountered.
 -- This is used by 'SimpleShell' to run its command before the result is
@@ -92,79 +89,114 @@ runSimple simple =
 -- 'GeneralShell' (e.g. running multiple commands via 'runCommand').
 --
 -- @since 0.1.0.0
-runCommand :: Command -> IO (Either QueryError Text)
+runCommand :: Command -> IO Text
 runCommand command = do
   (exitCode, out, err) <- TP.readProcess $ TP.shell $ T.unpack cmdStr
-  pure $ case exitCode of
+  case exitCode of
     ExitSuccess -> case TEnc.decodeUtf8' (LBS.toStrict out) of
-      Right result -> Right result
-      Left ex -> Left $ utf8Err $ T.pack (show ex)
+      Right result -> pure result
+      Left ex -> throw $ MkCmdErr $ "Decode UTF-8 error: " <> show ex
     ExitFailure n ->
-      Left $ shellErr n cmdStr (LBS.toStrict err)
+      throw $ MkCmdErr $ T.unpack $ shellErr n cmdStr (LBS.toStrict err)
   where
     cmdStr = command ^. #unCommand
 
-utf8Err :: Text -> QueryError
-utf8Err err =
-  MkQueryError
-    { name = "Pythia.ShellApp",
-      short = "Decode UTF-8 error",
-      long = err
-    }
-
-shellErr :: Int -> Text -> ByteString -> QueryError
-shellErr exitCode cmd err =
-  MkQueryError
-    { name = "Pythia.ShellApp",
-      short = "Shell error",
-      long = long
-    }
+shellErr :: Int -> Text -> ByteString -> Text
+shellErr exitCode cmd err = err'
   where
-    err' = case TEnc.decodeUtf8' err of
-      Right result -> result
-      Left ex -> "<decode utf 8 err>: " <> T.pack (show ex)
-    long =
+    err' =
       T.concat
         [ "Error running command `",
           cmd,
           "`. Received exit code ",
           T.pack $ show exitCode,
           " and message: ",
-          err'
+          -- err'
+          decodeUtf8Lenient err
         ]
+
+-- | Represents some IO app to retrieve a result @r@. Includes a string
+-- name and support query for determining if this action is supported by the
+-- current system. Intended for when we want to try multiple actions
+-- i.e. 'tryAppActions'.
+--
+-- @since 0.1.0.0
+data AppAction r = MkAppAction
+  { action :: IO r,
+    supported :: IO Bool,
+    name :: String
+  }
+
+-- | @since 0.1.0.0
+makeFieldLabelsNoPrefix ''AppAction
 
 -- | Queries for information via multiple apps. Returns the first success
 -- or all errors, if there are no successes.
 --
 -- @since 0.1.0.0
-tryIOs ::
-  [(IO (QueryResult r), IO Bool)] ->
-  IO (QueryResult r)
-tryIOs = foldr tryIO (pure (Left []))
+tryAppActions :: [AppAction result] -> IO result
+tryAppActions apps = do
+  eResult <- foldr tryAppAction (pure (Left mempty)) apps
+  case eResult of
+    Left errs -> throw errs
+    Right result -> pure result
+
+-- | Error for when the current app is not supported.
+--
+-- @since 0.1.0.0
+newtype NotSupportedError = MkNotSupportedErr String
+  deriving stock (Show)
+  deriving anyclass (Exception)
+
+-- | Collects multiple errors.
+--
+-- @since 0.1.0.0
+newtype Exceptions = MkExceptions {unExceptions :: [SomeException]}
+  deriving stock (Show)
+  deriving anyclass (Exception)
+
+-- | @since 0.1.0.0
+instance Semigroup Exceptions where
+  MkExceptions l <> MkExceptions r = MkExceptions $ l <> r
+
+-- | @since 0.1.0.0
+instance Monoid Exceptions where
+  mempty = MkExceptions mempty
+
+tryAppAction ::
+  forall result.
+  AppAction result ->
+  IO (Either Exceptions result) ->
+  IO (Either Exceptions result)
+tryAppAction appAction acc = do
+  isSupported <- appAction ^. #supported
+  if isSupported
+    then tryIO (appAction ^. #action) acc
+    else first (appendEx appUnsupportedEx) <$> acc
+  where
+    appendEx e (MkExceptions es) = MkExceptions (e : es)
+    appUnsupportedEx = toException $ MkNotSupportedErr $ show $ appAction ^. #name
+
+-- | Generalized 'tryAppActions' to any 'IO'. Has the same semantics
+-- (i.e. returns the first success or all errs if none succeeds) without
+-- checking for "support".
+--
+-- @since 0.1.0.0
+tryIOs :: [IO result] -> IO result
+tryIOs actions = do
+  eResult <- foldr tryIO (pure (Left mempty)) actions
+  case eResult of
+    Left errs -> throw errs
+    Right result -> pure result
 
 tryIO ::
-  (IO (QueryResult r), IO Bool) ->
-  IO (QueryResult r) ->
-  IO (QueryResult r)
-tryIO (ioFn, supportedFn) acc = do
-  isSupported <- supportedFn
-  if isSupported
-    then do
-      eResult <- ioFn
-      case eResult of
-        Right result -> pure $ Right result
-        Left errs -> appendErrs errs <$> acc
-    else appendErr notSupported <$> acc
+  IO result ->
+  IO (Either Exceptions result) ->
+  IO (Either Exceptions result)
+tryIO action acc = do
+  eResult :: Either SomeException result <- try action
+  case eResult of
+    Right result -> pure $ Right result
+    Left ex -> first (appendEx ex) <$> acc
   where
-    notSupported =
-      MkQueryError
-        { name = "Pythia.ShellApp",
-          short = "AppError",
-          long = "App not supported"
-        }
-
-    appendErr :: a -> Either [a] b -> Either [a] b
-    appendErr e = _Left %~ (e :)
-
-    appendErrs :: [a] -> Either [a] b -> Either [a] b
-    appendErrs errs = _Left %~ (<> errs)
+    appendEx e (MkExceptions es) = MkExceptions (e : es)

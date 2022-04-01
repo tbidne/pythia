@@ -12,7 +12,7 @@ module Pythia.Services.Battery
   )
 where
 
-import Pythia.Data (QueryResult, RunApp (..))
+import Pythia.Data (RunApp (..))
 import Pythia.Prelude
 import Pythia.Services.Battery.Acpi qualified as Acpi
 import Pythia.Services.Battery.SysFs qualified as SysFs
@@ -24,7 +24,7 @@ import Pythia.Services.Battery.Types
     BatteryStatus (..),
   )
 import Pythia.Services.Battery.UPower qualified as UPower
-import Pythia.ShellApp (ShellApp (..))
+import Pythia.ShellApp (AppAction (..))
 import Pythia.ShellApp qualified as ShellApp
 
 -- | Attempts to query for battery information by detecting supported
@@ -32,7 +32,7 @@ import Pythia.ShellApp qualified as ShellApp
 -- 'BatteryUPower']
 --
 -- @since 0.1.0.0
-queryBattery :: IO (QueryResult Battery)
+queryBattery :: IO Battery
 queryBattery = queryBatteryConfig mempty
 
 -- | This is the primary function that attempts to use the given
@@ -42,23 +42,19 @@ queryBattery = queryBatteryConfig mempty
 -- Right (MkBattery {level = MkUnsafeBoundedN {unBoundedN = 24}, status = Charging})
 --
 -- @since 0.1.0.0
--- queryBatteryApp :: BatteryApp -> IO (QueryResult Battery)
--- queryBatteryApp = ShellApp.runShellApp . toShellApp
-queryBatteryConfig :: BatteryConfig -> IO (QueryResult Battery)
+queryBatteryConfig :: BatteryConfig -> IO Battery
 queryBatteryConfig config =
   case config ^. #batteryApp of
-    Many -> ShellApp.tryIOs allApps
-    Single app -> ShellApp.runShellApp $ toShellApp app
+    Many -> ShellApp.tryAppActions allApps
+    Single app -> toShellApp app
   where
     allApps =
-      [ (singleRun BatterySysFs, SysFs.supported),
-        (singleRun BatteryAcpi, Acpi.supported),
-        (singleRun BatteryUPower, UPower.supported)
+      [ MkAppAction (toShellApp BatterySysFs) SysFs.supported (show BatterySysFs),
+        MkAppAction (toShellApp BatteryAcpi) Acpi.supported (show BatteryAcpi),
+        MkAppAction (toShellApp BatteryUPower) UPower.supported (show BatteryUPower)
       ]
-    singleRun :: BatteryApp -> IO (QueryResult Battery)
-    singleRun = ShellApp.runShellApp . toShellApp
 
-toShellApp :: BatteryApp -> ShellApp Battery
+toShellApp :: BatteryApp -> IO Battery
 toShellApp BatteryAcpi = Acpi.batteryShellApp
-toShellApp BatterySysFs = SysFs.batteryShellApp
+toShellApp BatterySysFs = SysFs.batteryQuery
 toShellApp BatteryUPower = UPower.batteryShellApp

@@ -1,17 +1,23 @@
+{-# LANGUAGE DeriveAnyClass #-}
+
 -- | This module provides functionality for retrieving network connection
 -- information using ip utility.
 --
 -- @since 0.1.0.0
 module Pythia.Services.Network.Interface.Ip
-  ( netInterfaceShellApp,
+  ( -- * Query
+    netInterfaceShellApp,
     supported,
+
+    -- * Misc
+    IpError (..),
+    parseInterfaces,
   )
 where
 
 import Data.Char qualified as Char
 import Data.Set qualified as Set
 import Data.Text qualified as T
-import Pythia.Data (QueryError (..))
 import Pythia.Prelude
 import Pythia.Services.Network.Interface.Types
   ( Interface (..),
@@ -19,11 +25,11 @@ import Pythia.Services.Network.Interface.Types
     Interfaces (..),
   )
 import Pythia.Services.Network.Types (Device (..), Ipv4Address (..), Ipv6Address (..))
-import Pythia.ShellApp (ShellApp (..), SimpleShell (..))
+import Pythia.ShellApp (SimpleShell (..))
+import Pythia.ShellApp qualified as ShellApp
 import Pythia.Utils qualified as U
 import Refined (Predicate, Refined)
 import Refined qualified as R
-import System.Directory qualified as Dir
 import Text.Megaparsec (ErrorFancy (..), Parsec, (<?>))
 import Text.Megaparsec qualified as MP
 import Text.Megaparsec.Char qualified as MPC
@@ -31,9 +37,9 @@ import Text.Megaparsec.Char qualified as MPC
 -- | Ip 'ShellApp' for 'Interface'.
 --
 -- @since 0.1.0.0
-netInterfaceShellApp :: ShellApp Interfaces
+netInterfaceShellApp :: IO Interfaces
 netInterfaceShellApp =
-  SimpleApp $
+  ShellApp.runSimple $
     MkSimpleShell
       { command = "ip address",
         parser = parseInterfaces
@@ -44,23 +50,18 @@ netInterfaceShellApp =
 --
 -- @since 0.1.0.0
 supported :: IO Bool
-supported = maybe False (const True) <$> Dir.findExecutable "ip"
-
--- TODO: FIX PARSING
--- missing interfaces and multiple ips
+supported = U.exeSupported "ip"
 
 type MParser = Parsec Void Text
 
-parseInterfaces :: Text -> Either QueryError Interfaces
+-- | Attemps to parse the output of IP.
+--
+-- @since 0.1.0.0
+parseInterfaces :: Text -> Either IpError Interfaces
 parseInterfaces txt = case MP.parse mparseInterfaces "" txt of
   Left ex ->
     let prettyErr = MP.errorBundlePretty ex
-     in Left $
-          MkQueryError
-            { name = "Pythia.Services.Network.Interface.Ip",
-              short = "Parse error",
-              long = T.pack prettyErr
-            }
+     in Left $ IpParseErr prettyErr
   Right ifs -> Right ifs
 
 mparseInterfaces :: MParser Interfaces
@@ -110,7 +111,7 @@ parseIps p cons = do
             "Malformed ipv"
               <> T.unpack p
               <> " address found: "
-              <> (show (T.unpack <$> addrs))
+              <> show (T.unpack <$> addrs)
               <> ". Error: "
               <> show ex
        in MP.fancyFailure $ Set.fromList [ErrorFail errMsg]
@@ -148,3 +149,19 @@ parseInterfaceState = do
     up = MPC.string "UP" $> Up
     down = MPC.string "DOWN" $> Down
     unknown = UnknownState <$> MP.takeWhile1P (Just "type") (not . Char.isSpace)
+
+-- | Errors that can occur when reading sysfs.
+--
+-- @since 0.1.0.0
+newtype IpError
+  = -- | Parse error.
+    --
+    -- @since 0.1.0.0
+    IpParseErr String
+  deriving stock
+    ( -- | @since 0.1.0.0
+      Eq,
+      -- | @since 0.1.0.0
+      Show
+    )
+  deriving anyclass (Exception)

@@ -4,12 +4,14 @@
 module Pythia.Prelude
   ( readFileUtf8Lenient,
     readFileUtf8LenientExceptT,
+    readFileUtf8LenientEither,
+    decodeUtf8Lenient,
     module X,
   )
 where
 
 import Control.Applicative as X (Alternative (..), Applicative (..))
-import Control.Exception.Safe as X (SomeException, try)
+import Control.Exception.Safe as X (Exception (..), SomeException (..), throw, try)
 import Control.Monad as X (Monad (..), join, void, (<=<), (>=>))
 import Control.Monad.IO.Class as X (MonadIO (..))
 import Control.Monad.Trans.Except as X (ExceptT (..), throwE)
@@ -48,9 +50,20 @@ import System.IO as X (FilePath, IO, print, putStrLn)
 --
 -- @since 0.1.0.0
 readFileUtf8Lenient :: FilePath -> IO Text
-readFileUtf8Lenient =
-  fmap (TextEnc.decodeUtf8With TextEncErr.lenientDecode)
-    . BS.readFile
+readFileUtf8Lenient = fmap decodeUtf8Lenient . BS.readFile
+
+-- | Strictly reads a file and leniently converts the contents to UTF8.
+--
+-- @since 0.1.0.0
+readFileUtf8LenientEither :: FilePath -> IO (Either SomeException Text)
+readFileUtf8LenientEither fp = do
+  eByteString :: Either SomeException ByteString <- try $ BS.readFile fp
+  case eByteString of
+    Left ex -> pure $ Left ex
+    Right bs -> pure $ Right $ decodeUtf8Lenient bs
+
+-- fmap decodeUtf8Lenient
+--  . BS.readFile
 
 -- | 'readFileUtf8Lenient' in 'ExceptT'.
 --
@@ -60,4 +73,10 @@ readFileUtf8LenientExceptT errFn fp = do
   eByteString <- liftIO $ try (BS.readFile fp)
   case eByteString of
     Left ex -> throwE $ errFn ex
-    Right bs -> pure $ TextEnc.decodeUtf8With TextEncErr.lenientDecode bs
+    Right bs -> pure $ decodeUtf8Lenient bs
+
+-- | Lenient UTF8 decode.
+--
+-- @since 0.1.0.0
+decodeUtf8Lenient :: ByteString -> Text
+decodeUtf8Lenient = TextEnc.decodeUtf8With TextEncErr.lenientDecode

@@ -21,7 +21,7 @@ import Options.Applicative qualified as OApp
 import Options.Applicative.Help (Chunk (..))
 import Options.Applicative.Types (ArgPolicy (..))
 import Pythia qualified
-import Pythia.Data (QueryResult, RunApp (..))
+import Pythia.Data (RunApp (..))
 import Pythia.Prelude
 import Pythia.Printer (PrettyPrinter (..))
 import Pythia.Services.Battery (BatteryApp (..), BatteryConfig (..))
@@ -46,8 +46,8 @@ main = do
     NetInterface cfg -> Pythia.queryNetInterfacesConfig cfg >>= prettyPrint
     NetIpGlobal cfg -> Pythia.queryGlobalIpConfig cfg >>= prettyPrint
 
-prettyPrint :: PrettyPrinter a => QueryResult a -> IO ()
-prettyPrint = putStrLn . Pythia.prettyQueryResult
+prettyPrint :: PrettyPrinter a => a -> IO ()
+prettyPrint = putStrLn . Pythia.pretty
 
 data PythiaCommand
   = Battery BatteryConfig
@@ -249,7 +249,7 @@ ipv6SrcOption =
   where
     helpTxt =
       "Custom server URL for retrieving the IPv6 address. Can be specified "
-      <> "multiple times. Overrides the defaults."
+        <> "multiple times. Overrides the defaults."
 
 mkCommand :: String -> Parser a -> OApp.InfoMod a -> Mod CommandFields a
 mkCommand cmdTxt parser helpTxt = OApp.command cmdTxt (OApp.info parser helpTxt)

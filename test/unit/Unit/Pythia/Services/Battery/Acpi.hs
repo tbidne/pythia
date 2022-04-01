@@ -37,12 +37,7 @@ parseUnknown = parseX 20 ("some bad status-20", Unknown "some bad status-20")
 
 parseX :: Int -> (Text, BatteryStatus) -> TestTree
 parseX lvl (csTxt, cs) = testCase desc $ do
-  parser <-
-    maybe
-      (assertFailure "Failed to retrieve parser")
-      pure
-      (Acpi.batteryShellApp ^? #_SimpleApp % #parser)
-  let result = parser (battery lvl csTxt)
+  let result = Acpi.parseBattery (battery lvl csTxt)
   Just cs @=? result ^? #_Right % #status
   Just (MkLRInterval lvl) @=? result ^? #_Right % #level
   where

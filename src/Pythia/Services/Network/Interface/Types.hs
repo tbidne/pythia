@@ -2,6 +2,9 @@
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE UndecidableInstances #-}
 
+-- | Provides network interface types.
+--
+-- @since 0.1.0.0
 module Pythia.Services.Network.Interface.Types
   ( -- * Configuration
     NetInterfaceApp (..),
@@ -121,6 +124,7 @@ data InterfaceType
       PrettyPrinter
     )
 
+-- | @since 0.1.0.0
 makePrismLabels ''InterfaceType
 
 -- | Various connection states.
@@ -146,6 +150,7 @@ data InterfaceState
       PrettyPrinter
     )
 
+-- | @since 0.1.0.0
 makePrismLabels ''InterfaceState
 
 -- | Full connection data.
@@ -176,6 +181,7 @@ data Interface = MkInterface
       Show
     )
 
+-- | @since 0.1.0.0
 makeFieldLabelsNoPrefix ''Interface
 
 -- | @since 0.1.0.0
@@ -197,6 +203,7 @@ instance PrettyPrinter Interface where
       ipv4s = "IPv4: " <> Printer.joinCommas (netif ^. #ipv4s)
       ipv6s = "IPv6: " <> Printer.joinCommas (netif ^. #ipv6s)
 
+-- | @since 0.1.0.0
 newtype Interfaces = MkInterfaces {unInterfaces :: [Interface]}
   deriving
     ( -- | @since 0.1.0.0
@@ -207,10 +214,12 @@ newtype Interfaces = MkInterfaces {unInterfaces :: [Interface]}
       Show
     )
 
+-- | @since 0.1.0.0
 instance PrettyPrinter Interfaces where
   pretty (MkInterfaces ifs) = "Network Interfaces" <> go ifs
     where
       go [] = ""
       go (x : xs) = "\n\n" <> pretty x <> go xs
 
+-- | @since 0.1.0.0
 makeFieldLabelsNoPrefix ''Interfaces

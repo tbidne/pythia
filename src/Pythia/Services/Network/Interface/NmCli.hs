@@ -1,17 +1,23 @@
+{-# LANGUAGE DeriveAnyClass #-}
+
 -- | This module provides functionality for retrieving network connection
 -- information using nmcli.
 --
 -- @since 0.1.0.0
 module Pythia.Services.Network.Interface.NmCli
-  ( netInterfaceShellApp,
+  ( -- * Query
+    netInterfaceShellApp,
     supported,
+
+    -- * Misc
+    NmCliError (..),
+    parseInterfaces,
   )
 where
 
 import Data.Char qualified as Char
 import Data.Set qualified as Set
 import Data.Text qualified as T
-import Pythia.Data (QueryError (..))
 import Pythia.Prelude
 import Pythia.Services.Network.Interface.Types
   ( Interface (..),
@@ -20,7 +26,8 @@ import Pythia.Services.Network.Interface.Types
     Interfaces (..),
   )
 import Pythia.Services.Network.Types (Device (..), Ipv4Address (..), Ipv6Address (..))
-import Pythia.ShellApp (ShellApp (..), SimpleShell (..))
+import Pythia.ShellApp (SimpleShell (..))
+import Pythia.ShellApp qualified as ShellApp
 import Pythia.Utils qualified as U
 import Refined (Predicate, Refined)
 import Refined qualified as R
@@ -31,9 +38,9 @@ import Text.Megaparsec.Char qualified as MPC
 -- | NmCli 'ShellApp' for 'Connection'.
 --
 -- @since 0.1.0.0
-netInterfaceShellApp :: ShellApp Interfaces
+netInterfaceShellApp :: IO Interfaces
 netInterfaceShellApp =
-  SimpleApp $
+  ShellApp.runSimple $
     MkSimpleShell
       { command = "nmcli -t -m multiline device show",
         parser = parseInterfaces
@@ -48,16 +55,14 @@ supported = U.exeSupported "nmcli"
 
 type MParser = Parsec Void Text
 
-parseInterfaces :: Text -> Either QueryError Interfaces
+-- | Attemps to parse the output of nmcli.
+--
+-- @since 0.1.0.0
+parseInterfaces :: Text -> Either NmCliError Interfaces
 parseInterfaces txt = case MP.parse mparseInterfaces "Pythia.Services.Network.Interface.NmCli" txt of
   Left ex ->
     let prettyErr = MP.errorBundlePretty ex
-     in Left $
-          MkQueryError
-            { name = "Pythia.Services.Network.Interface.Ip",
-              short = "Parse error",
-              long = T.pack prettyErr
-            }
+     in Left $ NmCliParseErr prettyErr
   Right ifs -> Right ifs
 
 mparseInterfaces :: MParser Interfaces
@@ -180,7 +185,7 @@ parseIps p cons = do
             "Malformed ipv"
               <> T.unpack p
               <> " address found: "
-              <> (show (T.unpack <$> addrs))
+              <> show (T.unpack <$> addrs)
               <> ". Error: "
               <> show ex
        in MP.fancyFailure $ Set.fromList [ErrorFail errMsg]
@@ -211,3 +216,19 @@ parseDns :: Text -> MParser ()
 parseDns = void . MP.many . dns
   where
     dns p = MPC.string ("IP" <> p <> ".DNS[") *> U.takeLine_
+
+-- | Errors that can occur when reading sysfs.
+--
+-- @since 0.1.0.0
+newtype NmCliError
+  = -- | Parse error.
+    --
+    -- @since 0.1.0.0
+    NmCliParseErr String
+  deriving stock
+    ( -- | @since 0.1.0.0
+      Eq,
+      -- | @since 0.1.0.0
+      Show
+    )
+  deriving anyclass (Exception)

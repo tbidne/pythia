@@ -28,12 +28,7 @@ tests =
 
 parseAll :: TestTree
 parseAll = testCase "Parses all interfaces" $ do
-  parser <-
-    maybe
-      (assertFailure "Failed to retrieve parser")
-      pure
-      (Ip.netInterfaceShellApp ^? #_SimpleApp % #parser)
-  let eResult = parser netinfo
+  let eResult = Ip.parseInterfaces netinfo
   resultSet <- case eResult of
     Left ex -> THU.assertFailure $ "Parser failed in test: " <> show ex
     Right (MkInterfaces result) -> pure $ Set.fromList result

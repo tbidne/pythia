@@ -1,25 +1,32 @@
+{-# LANGUAGE DeriveAnyClass #-}
+
 -- | This module provides functionality for retrieving battery information
 -- using ACPI.
 --
 -- @since 0.1.0.0
 module Pythia.Services.Battery.Acpi
-  ( batteryShellApp,
+  ( -- * Query
+    batteryShellApp,
     supported,
+
+    -- * Misc
+    AcpiError (..),
+    parseBattery,
   )
 where
 
 import Data.Char qualified as Char
 import Data.Text qualified as T
 import Numeric.Data.Interval qualified as Interval
-import Pythia.Data (QueryError (..))
 import Pythia.Prelude
 import Pythia.Services.Battery.Types
   ( Battery (..),
     BatteryLevel,
     BatteryStatus (..),
   )
-import Pythia.ShellApp (ShellApp (..), SimpleShell (..))
-import System.Directory qualified as Dir
+import Pythia.ShellApp (SimpleShell (..))
+import Pythia.ShellApp qualified as ShellApp
+import Pythia.Utils qualified as U
 import Text.Megaparsec (Parsec, (<?>))
 import Text.Megaparsec qualified as MP
 import Text.Megaparsec.Char qualified as MPC
@@ -29,9 +36,9 @@ import Text.Read qualified as TR
 -- | ACPI 'ShellApp' for 'Battery'.
 --
 -- @since 0.1.0.0
-batteryShellApp :: ShellApp Battery
+batteryShellApp :: IO Battery
 batteryShellApp =
-  SimpleApp $
+  ShellApp.runSimple $
     MkSimpleShell
       { command = "acpi",
         parser = parseBattery
@@ -42,18 +49,16 @@ batteryShellApp =
 --
 -- @since 0.1.0.0
 supported :: IO Bool
-supported = maybe False (const True) <$> Dir.findExecutable "acpi"
+supported = U.exeSupported "acpi"
 
-parseBattery :: Text -> Either QueryError Battery
+-- | Attempts to parse the output of acpi.
+--
+-- @since 0.1.0.0
+parseBattery :: Text -> Either AcpiError Battery
 parseBattery txt = first mkErr parseResult
   where
     parseResult = MP.parse mparseBattery "Acpi.hs" txt
-    mkErr err =
-      MkQueryError
-        { name = "Pythia.Services.Battery.Acpi",
-          short = "Parse error",
-          long = T.pack $ MPE.errorBundlePretty err
-        }
+    mkErr err = AcpiParseErr $ MPE.errorBundlePretty err
 
 type MParser = Parsec Void Text
 
@@ -95,3 +100,19 @@ mparsePercent = do
   pure level
   where
     readInterval = Interval.mkLRInterval <=< TR.readMaybe . T.unpack
+
+-- | Errors that can occur when reading sysfs.
+--
+-- @since 0.1.0.0
+newtype AcpiError
+  = -- | Parse error.
+    --
+    -- @since 0.1.0.0
+    AcpiParseErr String
+  deriving stock
+    ( -- | @since 0.1.0.0
+      Eq,
+      -- | @since 0.1.0.0
+      Show
+    )
+  deriving anyclass (Exception)

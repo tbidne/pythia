@@ -22,12 +22,7 @@ tests = testGroup "Pythia.Services.Network.Interface.NmCli" [parseAll]
 
 parseAll :: TestTree
 parseAll = testCase "Parses all interfaces" $ do
-  parser <-
-    maybe
-      (assertFailure "Failed to retrieve parser")
-      pure
-      (NmCli.netInterfaceShellApp ^? #_SimpleApp % #parser)
-  let eResult = parser netinfo
+  let eResult = NmCli.parseInterfaces netinfo
   resultSet <- case eResult of
     Left ex -> THU.assertFailure $ "Parser failed in test: " <> show ex
     Right (MkInterfaces result) -> pure $ Set.fromList result
