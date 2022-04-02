@@ -24,7 +24,7 @@ import Pythia.Services.Battery.Types
     BatteryLevel,
     BatteryStatus (..),
   )
-import Pythia.ShellApp (SimpleShell (..))
+import Pythia.ShellApp (CmdError (..), SimpleShell (..))
 import Pythia.ShellApp qualified as ShellApp
 import Pythia.Utils qualified as U
 import Text.Megaparsec (Parsec)
@@ -35,7 +35,7 @@ import Text.Read qualified as TR
 -- | UPower query for 'Battery'.
 --
 -- @since 0.1.0.0
-batteryShellApp :: IO Battery
+batteryShellApp :: (Throws CmdError, Throws UPowerError) => IO Battery
 batteryShellApp =
   ShellApp.runSimple $
     MkSimpleShell
@@ -127,20 +127,19 @@ parseStatus = do
       pure $ Unknown s
     rest = MPC.space *> MP.eof
 
--- | Errors that can occur when reading sysfs.
+-- | Errors that can occur when running upower.
 --
 -- @since 0.1.0.0
 data UPowerError
-  = -- | Error searching for /sys/class/power_supply or
-    -- /sysfs/class/power_supply.
+  = -- | Did not find percentage.
     --
     -- @since 0.1.0.0
     UPowerNoPercentage String
-  | -- | Error searching for <sysfs>/BAT{0-5}{0-1}.
+  | -- | Did not find status.
     --
     -- @since 0.1.0.0
     UPowerNoStatus String
-  | -- | Errors searching for files.
+  | -- | Found neither.
     --
     -- @since 0.1.0.0
     UPowerNoPercentageNorStatus String

@@ -42,9 +42,9 @@ main :: IO ()
 main = do
   cmd <- OApp.execParser parserInfo
   case cmd of
-    Battery cfg -> Pythia.queryBatteryConfig cfg >>= prettyPrint
-    NetInterface cfg -> Pythia.queryNetInterfacesConfig cfg >>= prettyPrint
-    NetIpGlobal cfg -> Pythia.queryGlobalIpConfig cfg >>= prettyPrint
+    Battery cfg -> Pythia.uncheckBattery $ Pythia.queryBatteryConfig cfg >>= prettyPrint
+    NetInterface cfg -> Pythia.uncheckNetInterface $ Pythia.queryNetInterfacesConfig cfg >>= prettyPrint
+    NetIpGlobal cfg -> Pythia.uncheckGlobalIp $ Pythia.queryGlobalIpConfig cfg >>= prettyPrint
 
 prettyPrint :: PrettyPrinter a => a -> IO ()
 prettyPrint = putStrLn . Pythia.pretty

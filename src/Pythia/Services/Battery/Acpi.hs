@@ -24,7 +24,7 @@ import Pythia.Services.Battery.Types
     BatteryLevel,
     BatteryStatus (..),
   )
-import Pythia.ShellApp (SimpleShell (..))
+import Pythia.ShellApp (CmdError (..), SimpleShell (..))
 import Pythia.ShellApp qualified as ShellApp
 import Pythia.Utils qualified as U
 import Text.Megaparsec (Parsec, (<?>))
@@ -36,7 +36,7 @@ import Text.Read qualified as TR
 -- | ACPI query for 'Battery'.
 --
 -- @since 0.1.0.0
-batteryShellApp :: IO Battery
+batteryShellApp :: (Throws AcpiError, Throws CmdError) => IO Battery
 batteryShellApp =
   ShellApp.runSimple $
     MkSimpleShell
@@ -101,7 +101,7 @@ mparsePercent = do
   where
     readInterval = Interval.mkLRInterval <=< TR.readMaybe . T.unpack
 
--- | Errors that can occur when reading sysfs.
+-- | Errors that can occur when running acpi.
 --
 -- @since 0.1.0.0
 newtype AcpiError
@@ -115,4 +115,7 @@ newtype AcpiError
       -- | @since 0.1.0.0
       Show
     )
-  deriving anyclass (Exception)
+  deriving anyclass
+    ( -- | @since 0.1.0.0
+      Exception
+    )

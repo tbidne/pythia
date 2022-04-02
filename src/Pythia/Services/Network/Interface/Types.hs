@@ -36,11 +36,11 @@ import Pythia.Supremum (Supremum (..))
 --
 -- @since 0.1.0.0
 data NetInterfaceApp
-  = -- | Uses the ACPI utility.
+  = -- | Uses the Network Manager cli utility.
     --
     -- @since 0.1.0.0
     NetInterfaceNmCli
-  | -- | Uses the sysfs interface i.e. /sys.
+  | -- | Uses the \'ip\' utility.
     --
     -- @since 0.1.0.0
     NetInterfaceIp

@@ -7,14 +7,27 @@ module Pythia.Services.Battery
     queryBatteryConfig,
 
     -- * Types
+    Battery (..),
+    BatteryLevel,
+    BatteryStatus (..),
+
+    -- ** Configuration
+    BatteryConfig (..),
     BatteryApp (..),
-    module Pythia.Services.Battery.Types,
+
+    -- ** Errors
+    uncheckBattery,
+    AcpiError (..),
+    UPowerError (..),
+    SysFsError (..),
   )
 where
 
 import Pythia.Data (RunApp (..))
 import Pythia.Prelude
+import Pythia.Services.Battery.Acpi (AcpiError (..))
 import Pythia.Services.Battery.Acpi qualified as Acpi
+import Pythia.Services.Battery.SysFs (SysFsError (..))
 import Pythia.Services.Battery.SysFs qualified as SysFs
 import Pythia.Services.Battery.Types
   ( Battery (..),
@@ -23,8 +36,9 @@ import Pythia.Services.Battery.Types
     BatteryLevel,
     BatteryStatus (..),
   )
+import Pythia.Services.Battery.UPower (UPowerError (..))
 import Pythia.Services.Battery.UPower qualified as UPower
-import Pythia.ShellApp (AppAction (..))
+import Pythia.ShellApp (AppAction (..), CmdError (..), Exceptions (..))
 import Pythia.ShellApp qualified as ShellApp
 
 -- | Attempts to query for battery information by detecting supported
@@ -32,17 +46,28 @@ import Pythia.ShellApp qualified as ShellApp
 -- 'BatteryUPower']
 --
 -- @since 0.1.0.0
-queryBattery :: IO Battery
+queryBattery ::
+  ( Throws AcpiError,
+    Throws CmdError,
+    Throws Exceptions,
+    Throws SysFsError,
+    Throws UPowerError
+  ) =>
+  IO Battery
 queryBattery = queryBatteryConfig mempty
 
--- | This is the primary function that attempts to use the given
--- program to retrieve battery information.
---
--- >>> queryBattery UPower
--- Right (MkBattery {level = MkUnsafeBoundedN {unBoundedN = 24}, status = Charging})
+-- | Queries the battery based on the configuration.
 --
 -- @since 0.1.0.0
-queryBatteryConfig :: BatteryConfig -> IO Battery
+queryBatteryConfig ::
+  ( Throws AcpiError,
+    Throws CmdError,
+    Throws Exceptions,
+    Throws SysFsError,
+    Throws UPowerError
+  ) =>
+  BatteryConfig ->
+  IO Battery
 queryBatteryConfig config =
   case config ^. #batteryApp of
     Many -> ShellApp.tryAppActions allApps
@@ -54,7 +79,29 @@ queryBatteryConfig config =
         MkAppAction (toShellApp BatteryUPower) UPower.supported (show BatteryUPower)
       ]
 
-toShellApp :: BatteryApp -> IO Battery
+toShellApp ::
+  ( Throws AcpiError,
+    Throws CmdError,
+    Throws SysFsError,
+    Throws UPowerError
+  ) =>
+  BatteryApp ->
+  IO Battery
 toShellApp BatteryAcpi = Acpi.batteryShellApp
 toShellApp BatterySysFs = SysFs.batteryQuery
 toShellApp BatteryUPower = UPower.batteryShellApp
+
+-- | Unchecks all exceptions returns by battery queries.
+--
+-- @since 0.1.0.0
+uncheckBattery ::
+  ( ( Throws AcpiError,
+      Throws CmdError,
+      Throws Exceptions,
+      Throws SysFsError,
+      Throws UPowerError
+    ) =>
+    IO a
+  ) ->
+  IO a
+uncheckBattery = uncheck5 @AcpiError @CmdError @Exceptions @SysFsError @UPowerError

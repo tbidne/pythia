@@ -26,7 +26,7 @@ import Pythia.Services.Network.Interface.Types
     Interfaces (..),
   )
 import Pythia.Services.Network.Types (Device (..), Ipv4Address (..), Ipv6Address (..))
-import Pythia.ShellApp (SimpleShell (..))
+import Pythia.ShellApp (CmdError (..), SimpleShell (..))
 import Pythia.ShellApp qualified as ShellApp
 import Pythia.Utils qualified as U
 import Refined (Predicate, Refined)
@@ -38,7 +38,7 @@ import Text.Megaparsec.Char qualified as MPC
 -- | NmCli query for 'Interfaces'.
 --
 -- @since 0.1.0.0
-netInterfaceShellApp :: IO Interfaces
+netInterfaceShellApp :: (Throws CmdError, Throws NmCliError) => IO Interfaces
 netInterfaceShellApp =
   ShellApp.runSimple $
     MkSimpleShell
@@ -217,7 +217,7 @@ parseDns = void . MP.many . dns
   where
     dns p = MPC.string ("IP" <> p <> ".DNS[") *> U.takeLine_
 
--- | Errors that can occur when reading sysfs.
+-- | Errors that can occur when running \'nmcli\'.
 --
 -- @since 0.1.0.0
 newtype NmCliError

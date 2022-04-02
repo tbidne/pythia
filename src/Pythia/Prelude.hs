@@ -2,15 +2,25 @@
 --
 -- @since 0.1.0.0
 module Pythia.Prelude
-  ( readFileUtf8Lenient,
+  ( -- * File
+    readFileUtf8Lenient,
     readFileUtf8LenientEither,
     decodeUtf8Lenient,
+
+    -- * Unchecking exceptions
+    uncheck2,
+    uncheck3,
+    uncheck4,
+    uncheck5,
+
+    -- * Base
     module X,
   )
 where
 
 import Control.Applicative as X (Alternative (..), Applicative (..))
-import Control.Exception.Safe as X (Exception (..), SomeException (..), throw, try)
+import Control.Exception as X (Exception (..), SomeException (..))
+import Control.Exception.Safe.Checked as X (Throws, catch, throw, try, uncheck)
 import Control.Monad as X (Monad (..), join, void, (<=<), (>=>))
 import Control.Monad.IO.Class as X (MonadIO (..))
 import Data.Bifunctor as X (Bifunctor (..))
@@ -29,6 +39,7 @@ import Data.List as X (filter)
 import Data.Maybe as X (Maybe (..), fromMaybe, maybe)
 import Data.Monoid as X (Monoid (..))
 import Data.Ord as X (Ord (..))
+import Data.Proxy (Proxy (..))
 import Data.Semigroup as X (Semigroup (..))
 import Data.String as X (IsString (..), String)
 import Data.Text as X (Text)
@@ -65,3 +76,27 @@ readFileUtf8LenientEither fp = do
 -- @since 0.1.0.0
 decodeUtf8Lenient :: ByteString -> Text
 decodeUtf8Lenient = TextEnc.decodeUtf8With TextEncErr.lenientDecode
+
+-- | Uncheck two checked exceptions.
+--
+-- @since 0.1.0.0
+uncheck2 :: forall e f a. ((Throws e, Throws f) => a) -> a
+uncheck2 x = uncheck (Proxy @e) $ uncheck (Proxy @f) x
+
+-- | Uncheck 2 checked exceptions.
+--
+-- @since 0.1.0.0
+uncheck3 :: forall e f g a. ((Throws e, Throws f, Throws g) => a) -> a
+uncheck3 x = uncheck (Proxy @e) $ uncheck2 @f @g x
+
+-- | Uncheck 4 checked exceptions.
+--
+-- @since 0.1.0.0
+uncheck4 :: forall e f g h a. ((Throws e, Throws f, Throws g, Throws h) => a) -> a
+uncheck4 x = uncheck (Proxy @e) $ uncheck3 @f @g @h x
+
+-- | Uncheck 5 checked exceptions.
+--
+-- @since 0.1.0.0
+uncheck5 :: forall e f g h i a. ((Throws e, Throws f, Throws g, Throws h, Throws i) => a) -> a
+uncheck5 x = uncheck (Proxy @e) $ uncheck4 @f @g @h @i x

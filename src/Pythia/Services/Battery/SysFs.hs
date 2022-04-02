@@ -29,7 +29,7 @@ import Text.Read qualified as TR
 -- | @/sys/class@ query for 'Battery'.
 --
 -- @since 0.1.0.0
-batteryQuery :: IO Battery
+batteryQuery :: Throws SysFsError => IO Battery
 batteryQuery = queryBattery
 
 -- | Returns a boolean determining if this program is supported on the
@@ -46,12 +46,12 @@ batteryQuery = queryBattery
 -- @since 0.1.0.0
 supported :: IO Bool
 supported = do
-  efp :: Either SomeException FilePath <- try findSysBatDir
+  efp <- try @_ @SysFsError findSysBatDir
   case efp of
     Left _ -> pure False
     Right _ -> pure True
 
-queryBattery :: IO Battery
+queryBattery :: Throws SysFsError => IO Battery
 queryBattery = do
   batDir <- findSysBatDir
   statusPath <- fileExists (batDir </> "status")
@@ -60,7 +60,7 @@ queryBattery = do
   level <- parseLevel percentPath
   pure $ MkBattery level status
 
-findSysBatDir :: IO FilePath
+findSysBatDir :: Throws SysFsError => IO FilePath
 findSysBatDir = do
   sysExists <- liftIO $ Dir.doesDirectoryExist sys
   sysBase <-
@@ -76,7 +76,7 @@ findSysBatDir = do
     sys = "/sys/class/power_supply"
     sysfs = "/sysfs/class/power_supply"
 
-findBatteryDir :: FilePath -> IO FilePath
+findBatteryDir :: Throws SysFsError => FilePath -> IO FilePath
 findBatteryDir sysBase = do
   mResult <- foldr firstExists (pure Nothing) batDirs
   case mResult of
@@ -106,7 +106,7 @@ maybeDirExists fp = do
       then Just fp
       else Nothing
 
-fileExists :: FilePath -> IO FilePath
+fileExists :: Throws SysFsError => FilePath -> IO FilePath
 fileExists fp = do
   b <- Dir.doesFileExist fp
   if b
@@ -123,7 +123,7 @@ parseStatus fp = do
     "full" -> pure Full
     bad -> pure $ Unknown bad
 
-parseLevel :: FilePath -> IO BatteryLevel
+parseLevel :: Throws SysFsError => FilePath -> IO BatteryLevel
 parseLevel fp = do
   percentTxt <- readFileUtf8Lenient fp
   case readInterval percentTxt of
@@ -141,7 +141,7 @@ data SysFsError
     --
     -- @since 0.1.0.0
     SysFsDirErr
-  | -- | Error searching for <sysfs>/BAT{0-5}{0-1}.
+  | -- | Error searching for <sysfs>/BAT{0-5}?.
     --
     -- @since 0.1.0.0
     SysFsBatteryDirErr

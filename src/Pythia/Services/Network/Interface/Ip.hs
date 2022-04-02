@@ -25,7 +25,7 @@ import Pythia.Services.Network.Interface.Types
     Interfaces (..),
   )
 import Pythia.Services.Network.Types (Device (..), Ipv4Address (..), Ipv6Address (..))
-import Pythia.ShellApp (SimpleShell (..))
+import Pythia.ShellApp (CmdError (..), SimpleShell (..))
 import Pythia.ShellApp qualified as ShellApp
 import Pythia.Utils qualified as U
 import Refined (Predicate, Refined)
@@ -37,7 +37,7 @@ import Text.Megaparsec.Char qualified as MPC
 -- | Ip query for 'Interface'.
 --
 -- @since 0.1.0.0
-netInterfaceShellApp :: IO Interfaces
+netInterfaceShellApp :: (Throws CmdError, Throws IpError) => IO Interfaces
 netInterfaceShellApp =
   ShellApp.runSimple $
     MkSimpleShell
@@ -150,7 +150,7 @@ parseInterfaceState = do
     down = MPC.string "DOWN" $> Down
     unknown = UnknownState <$> MP.takeWhile1P (Just "type") (not . Char.isSpace)
 
--- | Errors that can occur when reading sysfs.
+-- | Errors that can occur when running the \'ip\' command.
 --
 -- @since 0.1.0.0
 newtype IpError

@@ -61,7 +61,7 @@ instance Bifunctor SimpleShell where
 -- | Runs a simple shell, throwing an error if any occur.
 --
 -- @since 0.1.0.0
-runSimple :: Exception err => SimpleShell err result -> IO result
+runSimple :: (Exception err, Throws CmdError, Throws err) => SimpleShell err result -> IO result
 runSimple simple =
   runCommand (simple ^. #command)
     >>= parseAndThrow
@@ -88,7 +88,7 @@ newtype CmdError = MkCmdErr String
 -- parsed. This function is exported as it can be for convenience.
 --
 -- @since 0.1.0.0
-runCommand :: Command -> IO Text
+runCommand :: Throws CmdError => Command -> IO Text
 runCommand command = do
   (exitCode, out, err) <- TP.readProcess $ TP.shell $ T.unpack cmdStr
   case exitCode of
@@ -133,7 +133,7 @@ makeFieldLabelsNoPrefix ''AppAction
 -- or all errors, if there are no successes.
 --
 -- @since 0.1.0.0
-tryAppActions :: [AppAction result] -> IO result
+tryAppActions :: Throws Exceptions => [AppAction result] -> IO result
 tryAppActions apps = do
   eResult <- foldr tryAppAction (pure (Left mempty)) apps
   case eResult of
@@ -181,7 +181,7 @@ tryAppAction appAction acc = do
 -- checking for "support".
 --
 -- @since 0.1.0.0
-tryIOs :: [IO result] -> IO result
+tryIOs :: Throws Exceptions => [IO result] -> IO result
 tryIOs actions = do
   eResult <- foldr tryIO (pure (Left mempty)) actions
   case eResult of

@@ -10,7 +10,17 @@ module Pythia.Services.Network.GlobalIP
     queryGlobalIpConfig,
 
     -- * Types
-    module Pythia.Services.Network.GlobalIP.Types,
+    GlobalIpAddresses (..),
+    Ipv4Address (..),
+    Ipv6Address (..),
+
+    -- ** Configuration
+    uncheckGlobalIp,
+    GlobalIpConfig (..),
+    GlobalIpApp (..),
+    GlobalIpRequest (..),
+    GlobalIpSources (..),
+    UrlSource (..),
   )
 where
 
@@ -29,7 +39,7 @@ import Pythia.Services.Network.GlobalIP.Types
   )
 import Pythia.Services.Network.GlobalIP.Types qualified as GIpTypes
 import Pythia.Services.Network.Types (IpType (..), Ipv4Address (..), Ipv6Address (..))
-import Pythia.ShellApp (AppAction (..))
+import Pythia.ShellApp (AppAction (..), CmdError (..), Exceptions (..))
 import Pythia.ShellApp qualified as ShellApp
 import Pythia.Utils qualified as U
 import Refined (Predicate, Refined)
@@ -39,14 +49,18 @@ import Refined qualified as R
 -- We try dig first, then curl.
 --
 -- @since 0.1.0.0
-queryGlobalIp :: IO GlobalIpAddresses
+queryGlobalIp :: (Throws CmdError, Throws Exceptions) => IO GlobalIpAddresses
 queryGlobalIp = queryGlobalIpConfig mempty
 
--- | Attempts to query for global ip addresses by detecting supported apps.
--- We try dig first, then curl.
+-- | Queries for global ip address based on the configuration.
 --
 -- @since 0.1.0.0
-queryGlobalIpConfig :: GlobalIpConfig -> IO GlobalIpAddresses
+queryGlobalIpConfig ::
+  ( Throws CmdError,
+    Throws Exceptions
+  ) =>
+  GlobalIpConfig ->
+  IO GlobalIpAddresses
 queryGlobalIpConfig config =
   case config ^. #ipApp of
     Many -> ShellApp.tryAppActions allApps
@@ -61,7 +75,14 @@ queryGlobalIpConfig config =
         (config ^. #ipRequestType)
         (config ^. #ipSources)
 
-toSingleShellApp :: GlobalIpRequest -> GlobalIpSources -> GlobalIpApp -> IO GlobalIpAddresses
+toSingleShellApp ::
+  ( Throws CmdError,
+    Throws Exceptions
+  ) =>
+  GlobalIpRequest ->
+  GlobalIpSources ->
+  GlobalIpApp ->
+  IO GlobalIpAddresses
 toSingleShellApp ipType (MkGlobalIpSources ipv4Srcs ipv6Srcs) app = do
   case ipType of
     GlobalIpRequestIpv4 -> getIpv4s app ipv4Srcs
@@ -74,23 +95,48 @@ curlSupported = U.exeSupported "curl"
 digSupported :: IO Bool
 digSupported = U.exeSupported "dig"
 
-getBoth :: GlobalIpApp -> [UrlSource 'Ipv4] -> [UrlSource 'Ipv6] -> IO GlobalIpAddresses
+getBoth ::
+  ( Throws CmdError,
+    Throws Exceptions
+  ) =>
+  GlobalIpApp ->
+  [UrlSource 'Ipv4] ->
+  [UrlSource 'Ipv6] ->
+  IO GlobalIpAddresses
 getBoth app ipv4Srcs ipv6Srcs = GIpBoth <$> getIpv4s' app ipv4Srcs <*> getIpv6s' app ipv6Srcs
 
-getIpv4s :: GlobalIpApp -> [UrlSource 'Ipv4] -> IO GlobalIpAddresses
+getIpv4s ::
+  ( Throws CmdError,
+    Throws Exceptions
+  ) =>
+  GlobalIpApp ->
+  [UrlSource 'Ipv4] ->
+  IO GlobalIpAddresses
 getIpv4s app srcs = GIpv4 <$> getIpv4s' app srcs
 
-getIpv4s' :: GlobalIpApp -> [UrlSource 'Ipv4] -> IO Ipv4Address
+getIpv4s' ::
+  ( Throws CmdError,
+    Throws Exceptions
+  ) =>
+  GlobalIpApp ->
+  [UrlSource 'Ipv4] ->
+  IO Ipv4Address
 getIpv4s' app extraSrcs = do
   let sources = case extraSrcs of
         [] -> ipv4Defaults app
         _ -> prependApp app extraSrcs
   getIpv4 sources
 
-getIpv6s :: GlobalIpApp -> [UrlSource 'Ipv6] -> IO GlobalIpAddresses
+getIpv6s ::
+  ( Throws CmdError,
+    Throws Exceptions
+  ) =>
+  GlobalIpApp ->
+  [UrlSource 'Ipv6] ->
+  IO GlobalIpAddresses
 getIpv6s app srcs = GIpv6 <$> getIpv6s' app srcs
 
-getIpv6s' :: GlobalIpApp -> [UrlSource 'Ipv6] -> IO Ipv6Address
+getIpv6s' :: (Throws CmdError, Throws Exceptions) => GlobalIpApp -> [UrlSource 'Ipv6] -> IO Ipv6Address
 getIpv6s' app extraSrcs = do
   let sources = case extraSrcs of
         [] -> ipv6Defaults app
@@ -133,15 +179,18 @@ digDefaults = MkGlobalIpSources ipv4s ipv6s
       ]
     ipv6s = []
 
-getIpv4 :: [UrlSource 'Ipv4] -> IO Ipv4Address
+getIpv4 :: (Throws CmdError, Throws Exceptions) => [UrlSource 'Ipv4] -> IO Ipv4Address
 getIpv4 = fmap MkIpv4Address . getIp GIpTypes.urlSourceCmdIso
 
-getIpv6 :: [UrlSource 'Ipv6] -> IO Ipv6Address
+getIpv6 :: (Throws CmdError, Throws Exceptions) => [UrlSource 'Ipv6] -> IO Ipv6Address
 getIpv6 = fmap MkIpv6Address . getIp GIpTypes.urlSourceCmdIso
 
 getIp ::
   forall p a.
-  Predicate p Text =>
+  ( Predicate p Text,
+    Throws CmdError,
+    Throws Exceptions
+  ) =>
   Iso' a Command ->
   [a] ->
   IO (Refined p Text)
@@ -185,3 +234,15 @@ data GlobalIpError
     ( -- | @since 0.1.0.0
       Exception
     )
+
+-- | Unchecks all exceptions returns by global ip queries.
+--
+-- @since 0.1.0.0
+uncheckGlobalIp ::
+  ( ( Throws CmdError,
+      Throws Exceptions
+    ) =>
+    IO a
+  ) ->
+  IO a
+uncheckGlobalIp = uncheck2 @CmdError @Exceptions

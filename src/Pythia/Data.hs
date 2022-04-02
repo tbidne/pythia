@@ -36,11 +36,19 @@ newtype Command = MkCommand
 -- | @since 0.1.0.0
 makeFieldLabelsNoPrefix ''Command
 
--- | @since 0.1.0.0
+-- | Used in conjunction for our services for indicating how we want to run
+-- queries.
+--
+-- @since 0.1.0.0
 data RunApp a
-  = -- | @since 0.1.0.0
+  = -- | Do not specify an application. Attempt to run all, returning
+    -- the first success.
+    --
+    -- @since 0.1.0.0
     Many
-  | -- | @since 0.1.0.0
+  | -- | Runs a single query based on the parameter app.
+    --
+    -- @since 0.1.0.0
     Single a
   deriving
     ( -- | @since 0.1.0.0
