@@ -215,8 +215,8 @@ makePrismLabels ''GlobalIpAddresses
 
 -- | @since 0.1.0.0
 instance PrettyPrinter GlobalIpAddresses where
-  pretty (GIpv4 ipv4) = "IPv4: " <> pretty ipv4
-  pretty (GIpv6 ipv6) = "IPv6: " <> pretty ipv6
+  pretty (GIpv4 ipv4) = pretty ipv4
+  pretty (GIpv6 ipv6) = pretty ipv6
   pretty (GIpBoth ipv4 ipv6) =
     Pretty.joinNewlines
       [ "IPv4: " <> pretty ipv4,

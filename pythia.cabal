@@ -111,6 +111,7 @@ library
 executable pythia
   import:           common-exts
   main-is:          Main.hs
+  other-modules:    Args
   build-depends:
     , base
     , gitrev                >=1.2.0    && <1.4

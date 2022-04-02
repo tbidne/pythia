@@ -51,7 +51,7 @@ import GHC.Err as X (undefined)
 import GHC.Read as X (Read (..))
 import GHC.Real as X (even)
 import GHC.Show as X (Show (..))
-import Optics.Core as X (view, (%), (%~), (.~), (^.), (^?), _Left, _Right)
+import Optics.Core as X (over, view, (%), (%~), (.~), (^.), (^?), _Left, _Right)
 import Optics.TH as X (makeFieldLabelsNoPrefix, makePrismLabels)
 import System.IO as X (FilePath, IO, print, putStrLn)
 
