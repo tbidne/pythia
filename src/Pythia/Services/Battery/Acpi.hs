@@ -21,7 +21,7 @@ import Numeric.Data.Interval qualified as Interval
 import Pythia.Prelude
 import Pythia.Services.Battery.Types
   ( Battery (..),
-    BatteryLevel,
+    BatteryPercentage,
     BatteryStatus (..),
   )
 import Pythia.ShellApp (CmdError (..), SimpleShell (..))
@@ -55,16 +55,16 @@ supported = U.exeSupported "acpi"
 --
 -- ==== __Examples__
 -- >>> parseBattery "Battery 0: Full, 100%"
--- Right (MkBattery {level = UnsafeLRInterval 100, status = Full})
+-- Right (MkBattery {percentage = UnsafeLRInterval 100, status = Full})
 --
 -- >>> parseBattery "Battery 0: Discharging, 80%"
--- Right (MkBattery {level = UnsafeLRInterval 80, status = Discharging})
+-- Right (MkBattery {percentage = UnsafeLRInterval 80, status = Discharging})
 --
 -- >>> parseBattery "Battery 0: Charging, 40%"
--- Right (MkBattery {level = UnsafeLRInterval 40, status = Charging})
+-- Right (MkBattery {percentage = UnsafeLRInterval 40, status = Charging})
 --
 -- >>> parseBattery "Battery 0: bad status, 80%"
--- Right (MkBattery {level = UnsafeLRInterval 80, status = Unknown "bad status"})
+-- Right (MkBattery {percentage = UnsafeLRInterval 80, status = Unknown "bad status"})
 --
 -- >>> parseBattery "Battery 0: Discharging, 150%"
 -- Left (AcpiParseErr "Acpi.hs:1:28:\n  |\n1 | Battery 0: Discharging, 150%\n  |                            ^\nexpecting percentage\n")
@@ -88,8 +88,8 @@ mparseBattery = do
   state <- mparseState
   MPC.char ','
   MPC.space
-  level <- mparsePercent
-  pure $ MkBattery level state
+  percentage <- mparsePercent
+  pure $ MkBattery percentage state
 
 mparseState :: MParser BatteryStatus
 mparseState =
@@ -108,12 +108,12 @@ mparseState =
       s <- MP.takeWhile1P Nothing (/= ',')
       pure $ Unknown s
 
-mparsePercent :: MParser BatteryLevel
+mparsePercent :: MParser BatteryPercentage
 mparsePercent = do
   percent <- MP.takeWhile1P (Just "percentage") Char.isDigit
-  level <- maybe empty pure (readInterval percent)
+  percentage <- maybe empty pure (readInterval percent)
   MPC.char '%'
-  pure level
+  pure percentage
   where
     readInterval = Interval.mkLRInterval <=< TR.readMaybe . T.unpack
 

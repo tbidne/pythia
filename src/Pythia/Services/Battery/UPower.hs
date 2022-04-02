@@ -21,7 +21,7 @@ import Numeric.Data.Interval qualified as Interval
 import Pythia.Prelude
 import Pythia.Services.Battery.Types
   ( Battery (..),
-    BatteryLevel,
+    BatteryPercentage,
     BatteryStatus (..),
   )
 import Pythia.ShellApp (CmdError (..), SimpleShell (..))
@@ -54,19 +54,19 @@ supported = U.exeSupported "upower"
 --
 -- ==== __Examples__
 -- >>> parseBattery "state: fully-charged\npercentage: 100%"
--- Right (MkBattery {level = UnsafeLRInterval 100, status = Full})
+-- Right (MkBattery {percentage = UnsafeLRInterval 100, status = Full})
 --
 -- >>> parseBattery "state: discharging\npercentage: 70%"
--- Right (MkBattery {level = UnsafeLRInterval 70, status = Discharging})
+-- Right (MkBattery {percentage = UnsafeLRInterval 70, status = Discharging})
 --
 -- >>> parseBattery "state: charging\npercentage: 40%"
--- Right (MkBattery {level = UnsafeLRInterval 40, status = Charging})
+-- Right (MkBattery {percentage = UnsafeLRInterval 40, status = Charging})
 --
 -- >>> parseBattery "state: bad\npercentage: 40%"
--- Right (MkBattery {level = UnsafeLRInterval 40, status = Unknown "bad"})
+-- Right (MkBattery {percentage = UnsafeLRInterval 40, status = Unknown "bad"})
 --
 -- >>> parseBattery "state: pending-charge\npercentage: 40%"
--- Right (MkBattery {level = UnsafeLRInterval 40, status = Pending})
+-- Right (MkBattery {percentage = UnsafeLRInterval 40, status = Pending})
 --
 -- >>> parseBattery "state: fully-charged"
 -- Left (UPowerNoPercentage "state: fully-charged")
@@ -89,7 +89,7 @@ parseBattery txt = case foldMap parseLine ts of
 
 data BatteryResult
   = None
-  | Percent BatteryLevel
+  | Percent BatteryPercentage
   | Status BatteryStatus
   | Both Battery
   deriving (Show)
@@ -115,7 +115,7 @@ parseLine ln = case MP.parse parseStatus "Pythia.Services.battery.UPower" ln of
 
 type MParser = Parsec Void Text
 
-parsePercent :: MParser BatteryLevel
+parsePercent :: MParser BatteryPercentage
 parsePercent = do
   MPC.space
   MPC.string "percentage:"

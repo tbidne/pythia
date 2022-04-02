@@ -8,7 +8,7 @@ module Pythia.Services.Battery
 
     -- * Types
     Battery (..),
-    BatteryLevel,
+    BatteryPercentage,
     BatteryStatus (..),
 
     -- ** Configuration
@@ -33,7 +33,7 @@ import Pythia.Services.Battery.Types
   ( Battery (..),
     BatteryApp (..),
     BatteryConfig (..),
-    BatteryLevel,
+    BatteryPercentage,
     BatteryStatus (..),
   )
 import Pythia.Services.Battery.UPower (UPowerError (..))

@@ -39,7 +39,7 @@ parseX :: Int -> (Text, BatteryStatus) -> TestTree
 parseX lvl (csTxt, cs) = testCase desc $ do
   let result = UPower.parseBattery (state lvl csTxt)
   Just cs @=? result ^? #_Right % #status
-  Just (MkLRInterval lvl) @=? result ^? #_Right % #level
+  Just (MkLRInterval lvl) @=? result ^? #_Right % #percentage
   where
     desc = "Parses percentage " <> show lvl <> ", status " <> T.unpack csTxt
 
@@ -58,7 +58,7 @@ state percentage status =
       "  present:             yes",
       "  rechargeable:        yes",
       "  state:               " <> status,
-      "  warning-level:       none",
+      "  warning-percentage:       none",
       "  energy:              47.73 Wh",
       "  energy-empty:        0 Wh",
       "  energy-full:         51.99 Wh",

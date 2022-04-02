@@ -19,7 +19,7 @@ import Numeric.Data.Interval qualified as Interval
 import Pythia.Prelude
 import Pythia.Services.Battery.Types
   ( Battery (..),
-    BatteryLevel,
+    BatteryPercentage,
     BatteryStatus (..),
   )
 import System.Directory qualified as Dir
@@ -57,8 +57,8 @@ queryBattery = do
   statusPath <- fileExists (batDir </> "status")
   status <- parseStatus statusPath
   percentPath <- fileExists (batDir </> "capacity")
-  level <- parseLevel percentPath
-  pure $ MkBattery level status
+  percentage <- parsePercentage percentPath
+  pure $ MkBattery percentage status
 
 findSysBatDir :: Throws SysFsError => IO FilePath
 findSysBatDir = do
@@ -123,8 +123,8 @@ parseStatus fp = do
     "full" -> pure Full
     bad -> pure $ Unknown bad
 
-parseLevel :: Throws SysFsError => FilePath -> IO BatteryLevel
-parseLevel fp = do
+parsePercentage :: Throws SysFsError => FilePath -> IO BatteryPercentage
+parsePercentage fp = do
   percentTxt <- readFileUtf8Lenient fp
   case readInterval percentTxt of
     Nothing -> throw $ SysFsBatteryFormatErr $ T.unpack percentTxt

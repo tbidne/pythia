@@ -39,7 +39,7 @@ parseX :: Int -> (Text, BatteryStatus) -> TestTree
 parseX lvl (csTxt, cs) = testCase desc $ do
   let result = Acpi.parseBattery (battery lvl csTxt)
   Just cs @=? result ^? #_Right % #status
-  Just (MkLRInterval lvl) @=? result ^? #_Right % #level
+  Just (MkLRInterval lvl) @=? result ^? #_Right % #percentage
   where
     desc = "Parses percentage " <> show lvl <> ", state " <> T.unpack csTxt
 

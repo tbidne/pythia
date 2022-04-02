@@ -12,7 +12,7 @@ module Pythia.Services.Battery.Types
 
     -- * Battery Fields
     BatteryStatus (..),
-    BatteryLevel,
+    BatteryPercentage,
     Battery (..),
   )
 where
@@ -114,17 +114,17 @@ data BatteryStatus
 -- | @since 0.1.0.0
 makePrismLabels ''BatteryStatus
 
--- | Represents battery levels.
+-- | Represents battery percentages.
 --
 -- @since 0.1.0.0
-type BatteryLevel = LRInterval 0 100 Int
+type BatteryPercentage = LRInterval 0 100 Int
 
--- | Full battery state, including level and status data.
+-- | Full battery state, including percentage and status data.
 --
 -- @since 0.1.0.0
 data Battery = MkBattery
   { -- | @since 0.1.0.0
-    level :: BatteryLevel,
+    percentage :: BatteryPercentage,
     -- | @since 0.1.0.0
     status :: BatteryStatus
   }
@@ -140,7 +140,7 @@ makeFieldLabelsNoPrefix ''Battery
 
 -- | @since 0.1.0.0
 instance PrettyPrinter Battery where
-  pretty bs = status <> ": " <> level <> "%"
+  pretty bs = status <> ": " <> percentage <> "%"
     where
       status = pretty $ bs ^. #status
-      level = show $ Interval.unLRInterval $ bs ^. #level
+      percentage = show $ Interval.unLRInterval $ bs ^. #percentage
