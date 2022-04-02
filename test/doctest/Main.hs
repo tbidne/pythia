@@ -32,13 +32,19 @@ exts :: [String]
 exts =
   [ "-XNoImplicitPrelude",
     "-XNoStarIsType",
+    "-XAllowAmbiguousTypes",
     "-XApplicativeDo",
+    "-XConstraintKinds",
     "-XDataKinds",
+    "-XDeriveFunctor",
     "-XDeriveGeneric",
     "-XDerivingVia",
     "-XDuplicateRecordFields",
     "-XFlexibleContexts",
     "-XFlexibleInstances",
+    "-XFunctionalDependencies",
+    "-XGADTs",
+    "-XGeneralizedNewtypeDeriving",
     "-XImportQualifiedPost",
     "-XInstanceSigs",
     "-XLambdaCase",
@@ -49,9 +55,11 @@ exts =
     "-XOverloadedLabels",
     "-XOverloadedStrings",
     "-XPatternSynonyms",
+    "-XRankNTypes",
     "-XScopedTypeVariables",
     "-XStandaloneKindSignatures",
     "-XTupleSections",
     "-XTypeApplications",
-    "-XTypeFamilies"
+    "-XTypeFamilyDependencies",
+    "-XTypeOperators"
   ]
