@@ -52,6 +52,31 @@ supported = U.exeSupported "upower"
 
 -- | Attempts to parse the output of UPower.
 --
+-- ==== __Examples__
+-- >>> parseBattery "state: fully-charged\npercentage: 100%"
+-- Right (MkBattery {level = UnsafeLRInterval 100, status = Full})
+--
+-- >>> parseBattery "state: discharging\npercentage: 70%"
+-- Right (MkBattery {level = UnsafeLRInterval 70, status = Discharging})
+--
+-- >>> parseBattery "state: charging\npercentage: 40%"
+-- Right (MkBattery {level = UnsafeLRInterval 40, status = Charging})
+--
+-- >>> parseBattery "state: bad\npercentage: 40%"
+-- Right (MkBattery {level = UnsafeLRInterval 40, status = Unknown "bad"})
+--
+-- >>> parseBattery "state: pending-charge\npercentage: 40%"
+-- Right (MkBattery {level = UnsafeLRInterval 40, status = Pending})
+--
+-- >>> parseBattery "state: fully-charged"
+-- Left (UPowerNoPercentage "state: fully-charged")
+--
+-- >>> parseBattery "percentage: 80%"
+-- Left (UPowerNoStatus "percentage: 80%")
+--
+-- >>> parseBattery "nothing"
+-- Left (UPowerNoPercentageNorStatus "nothing")
+--
 -- @since 0.1.0.0
 parseBattery :: Text -> Either UPowerError Battery
 parseBattery txt = case foldMap parseLine ts of
@@ -82,9 +107,9 @@ instance Monoid BatteryResult where
   mempty = None
 
 parseLine :: Text -> BatteryResult
-parseLine ln = case MP.parse parseStatus "" ln of
+parseLine ln = case MP.parse parseStatus "Pythia.Services.battery.UPower" ln of
   Right s -> Status s
-  Left _ -> case MP.parse parsePercent "" ln of
+  Left _ -> case MP.parse parsePercent "Pythia.Services.battery.UPower" ln of
     Right n -> Percent n
     Left _ -> None
 

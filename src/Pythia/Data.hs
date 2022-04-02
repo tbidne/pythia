@@ -37,7 +37,17 @@ newtype Command = MkCommand
 makeFieldLabelsNoPrefix ''Command
 
 -- | Used in conjunction for our services for indicating how we want to run
--- queries.
+-- queries. 'Many' is the identity for its monoid instance.
+--
+-- ==== __Examples__
+-- >>> Many <> Single "r"
+-- Single "r"
+--
+-- >>> Single "l" <> Many
+-- Single "l"
+--
+-- >>> mempty @(RunApp String)
+-- Many
 --
 -- @since 0.1.0.0
 data RunApp a

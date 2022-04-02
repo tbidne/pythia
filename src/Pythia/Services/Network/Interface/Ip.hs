@@ -54,7 +54,7 @@ supported = U.exeSupported "ip"
 
 type MParser = Parsec Void Text
 
--- | Attemps to parse the output of IP.
+-- | Attempts to parse the output of IP.
 --
 -- @since 0.1.0.0
 parseInterfaces :: Text -> Either IpError Interfaces

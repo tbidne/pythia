@@ -69,6 +69,9 @@ makePrismLabels ''NetInterfaceApp
 
 -- | Complete configuration for querying network interfaces.
 --
+-- >>> mempty @NetInterfaceConfig
+-- MkNetInterfaceConfig {interfaceApp = Many, interfaceDevice = Nothing}
+--
 -- @since 0.1.0.0
 data NetInterfaceConfig = MkNetInterfaceConfig
   { -- | @since 0.1.0.0

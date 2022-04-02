@@ -53,6 +53,22 @@ supported = U.exeSupported "acpi"
 
 -- | Attempts to parse the output of acpi.
 --
+-- ==== __Examples__
+-- >>> parseBattery "Battery 0: Full, 100%"
+-- Right (MkBattery {level = UnsafeLRInterval 100, status = Full})
+--
+-- >>> parseBattery "Battery 0: Discharging, 80%"
+-- Right (MkBattery {level = UnsafeLRInterval 80, status = Discharging})
+--
+-- >>> parseBattery "Battery 0: Charging, 40%"
+-- Right (MkBattery {level = UnsafeLRInterval 40, status = Charging})
+--
+-- >>> parseBattery "Battery 0: bad status, 80%"
+-- Right (MkBattery {level = UnsafeLRInterval 80, status = Unknown "bad status"})
+--
+-- >>> parseBattery "Battery 0: Discharging, 150%"
+-- Left (AcpiParseErr "Acpi.hs:1:28:\n  |\n1 | Battery 0: Discharging, 150%\n  |                            ^\nexpecting percentage\n")
+--
 -- @since 0.1.0.0
 parseBattery :: Text -> Either AcpiError Battery
 parseBattery txt = first mkErr parseResult

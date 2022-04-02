@@ -38,11 +38,19 @@ instance PrettyPrinter a => PrettyPrinter (Maybe a) where
 
 -- | Join with commas.
 --
+-- ==== __Examples__
+-- >>> joinCommas ["foo", "bar"]
+-- "foo, bar"
+--
 -- @since 0.1.0.0
 joinCommas :: PrettyPrinter a => [a] -> String
 joinCommas = L.intercalate ", " . fmap pretty
 
 -- | Join with newlines.
+--
+-- ==== __Examples__
+-- >>> joinNewlines ["foo", "bar"]
+-- "foo\nbar"
 --
 -- @since 0.1.0.0
 joinNewlines :: PrettyPrinter a => [a] -> String

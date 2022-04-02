@@ -159,6 +159,9 @@ instance Monoid GlobalIpSources where
 
 -- | Complete configuration for querying global IP addresses.
 --
+-- >>> mempty @GlobalIpConfig
+-- MkGlobalIpConfig {ipApp = Many, ipRequestType = GlobalIpRequestIpv4, ipSources = MkGlobalIpSources {ipv4Sources = [], ipv6Sources = []}}
+--
 -- @since 0.1.0.0
 data GlobalIpConfig = MkGlobalIpConfig
   { -- | @since 0.1.0.0
