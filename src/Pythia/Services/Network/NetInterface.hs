@@ -1,16 +1,16 @@
 -- | This module exports interface related services.
 --
 -- @since 0.1.0.0
-module Pythia.Services.Network.Interface
+module Pythia.Services.Network.NetInterface
   ( -- * Queries
     queryNetInterfaces,
     queryNetInterfacesConfig,
 
     -- * Types
-    Interfaces (..),
-    Interface (..),
-    InterfaceState (..),
-    InterfaceType (..),
+    NetInterfaces (..),
+    NetInterface (..),
+    NetInterfaceState (..),
+    NetInterfaceType (..),
     Device (..),
     -- Ipv4Address (..),
     -- Ipv6Address (..),
@@ -28,15 +28,15 @@ where
 
 import Pythia.Data (RunApp (..))
 import Pythia.Prelude
-import Pythia.Services.Network.Interface.Ip (IpError)
-import Pythia.Services.Network.Interface.Ip qualified as Ip
-import Pythia.Services.Network.Interface.NmCli (NmCliError)
-import Pythia.Services.Network.Interface.NmCli qualified as NmCli
-import Pythia.Services.Network.Interface.Types
-  ( Interface (..),
-    InterfaceState (..),
-    InterfaceType (..),
-    Interfaces (..),
+import Pythia.Services.Network.NetInterface.Ip (IpError)
+import Pythia.Services.Network.NetInterface.Ip qualified as Ip
+import Pythia.Services.Network.NetInterface.NmCli (NmCliError)
+import Pythia.Services.Network.NetInterface.NmCli qualified as NmCli
+import Pythia.Services.Network.NetInterface.Types
+  ( NetInterface (..),
+    NetInterfaceState (..),
+    NetInterfaceType (..),
+    NetInterfaces (..),
     NetInterfaceApp (..),
     NetInterfaceConfig (..),
   )
@@ -55,7 +55,7 @@ queryNetInterfaces ::
     Throws IpError,
     Throws NmCliError
   ) =>
-  IO Interfaces
+  IO NetInterfaces
 queryNetInterfaces = queryNetInterfacesConfig mempty
 
 -- | Queries for network information based on the configuration.
@@ -68,7 +68,7 @@ queryNetInterfacesConfig ::
     Throws NmCliError
   ) =>
   NetInterfaceConfig ->
-  IO Interfaces
+  IO NetInterfaces
 queryNetInterfacesConfig config = do
   case config ^. #interfaceApp of
     Many -> ShellApp.tryAppActions allApps
@@ -89,14 +89,14 @@ queryNetInterfacesDeviceApp ::
   ) =>
   Maybe Device ->
   NetInterfaceApp ->
-  IO Interfaces
+  IO NetInterfaces
 queryNetInterfacesDeviceApp Nothing app = toSingleShellApp app
 queryNetInterfacesDeviceApp (Just device) app =
   filterDevice device <$> toSingleShellApp app
 
-filterDevice :: Device -> Interfaces -> Interfaces
-filterDevice device (MkInterfaces ifs) =
-  MkInterfaces $
+filterDevice :: Device -> NetInterfaces -> NetInterfaces
+filterDevice device (MkNetInterfaces ifs) =
+  MkNetInterfaces $
     filter ((== device) . view #idevice) ifs
 
 toSingleShellApp ::
@@ -105,7 +105,7 @@ toSingleShellApp ::
     Throws NmCliError
   ) =>
   NetInterfaceApp ->
-  IO Interfaces
+  IO NetInterfaces
 toSingleShellApp NetInterfaceNmCli = NmCli.netInterfaceShellApp
 toSingleShellApp NetInterfaceIp = Ip.netInterfaceShellApp
 

@@ -1,4 +1,4 @@
-module Unit.Pythia.Services.Network.Interface.NmCli
+module Unit.Pythia.Services.Network.NetInterface.NmCli
   ( tests,
   )
 where
@@ -6,26 +6,26 @@ where
 import Data.Set ((\\))
 import Data.Set qualified as Set
 import Data.Text qualified as T
-import Pythia.Services.Network.Interface.NmCli qualified as NmCli
-import Pythia.Services.Network.Interface.Types
-  ( Interface (..),
-    InterfaceState (..),
-    InterfaceType (..),
-    Interfaces (..),
+import Pythia.Services.Network.NetInterface.NmCli qualified as NmCli
+import Pythia.Services.Network.NetInterface.Types
+  ( NetInterface (..),
+    NetInterfaceState (..),
+    NetInterfaceType (..),
+    NetInterfaces (..),
   )
 import Pythia.Services.Network.Types (unsafeIpv4Address, unsafeIpv6Address)
 import Test.Tasty.HUnit qualified as THU
 import Unit.Prelude
 
 tests :: TestTree
-tests = testGroup "Pythia.Services.Network.Interface.NmCli" [parseAll]
+tests = testGroup "Pythia.Services.Network.NetInterface.NmCli" [parseAll]
 
 parseAll :: TestTree
 parseAll = testCase "Parses all interfaces" $ do
   let eResult = NmCli.parseInterfaces netinfo
   resultSet <- case eResult of
     Left ex -> THU.assertFailure $ "Parser failed in test: " <> show ex
-    Right (MkInterfaces result) -> pure $ Set.fromList result
+    Right (MkNetInterfaces result) -> pure $ Set.fromList result
 
   let notFound = expectedSet \\ resultSet
       extras = resultSet \\ expectedSet
@@ -57,13 +57,13 @@ parseAll = testCase "Parses all interfaces" $ do
           vpn
         ]
 
-prettyInterfaces :: [Interface] -> String
+prettyInterfaces :: [NetInterface] -> String
 prettyInterfaces [] = ""
 prettyInterfaces (x : xs) = "\n\n" <> show x <> prettyInterfaces xs
 
-wifi :: Interface
+wifi :: NetInterface
 wifi =
-  MkInterface
+  MkNetInterface
     "wlp0s20f3"
     (Just Wifi)
     Up
@@ -71,9 +71,9 @@ wifi =
     [unsafeIpv4Address "192.168.1.2"]
     [unsafeIpv6Address "fe80::fe44:82ff:fede:f814", unsafeIpv6Address "fe80::a328:482:5263:10b8"]
 
-wifiP2p :: Interface
+wifiP2p :: NetInterface
 wifiP2p =
-  MkInterface
+  MkNetInterface
     "p2p-dev-wlp0s20f3"
     (Just Wifi_P2P)
     Down
@@ -81,9 +81,9 @@ wifiP2p =
     []
     []
 
-ethernet :: Interface
+ethernet :: NetInterface
 ethernet =
-  MkInterface
+  MkNetInterface
     "enp0s31f6"
     (Just Ethernet)
     Down
@@ -91,9 +91,9 @@ ethernet =
     []
     []
 
-loopback :: Interface
+loopback :: NetInterface
 loopback =
-  MkInterface
+  MkNetInterface
     "lo"
     (Just Loopback)
     (UnknownState "unmanaged")
@@ -101,9 +101,9 @@ loopback =
     [unsafeIpv4Address "127.0.0.1"]
     [unsafeIpv6Address "::1"]
 
-vpn :: Interface
+vpn :: NetInterface
 vpn =
-  MkInterface
+  MkNetInterface
     "tailscale0"
     (Just Tun)
     (UnknownState "unmanaged")

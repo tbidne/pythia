@@ -5,16 +5,16 @@
 -- | Provides network interface types.
 --
 -- @since 0.1.0.0
-module Pythia.Services.Network.Interface.Types
+module Pythia.Services.Network.NetInterface.Types
   ( -- * Configuration
     NetInterfaceApp (..),
     NetInterfaceConfig (..),
 
-    -- * Interface Fields
-    InterfaceType (..),
-    InterfaceState (..),
-    Interface (..),
-    Interfaces (..),
+    -- * NetInterface Fields
+    NetInterfaceType (..),
+    NetInterfaceState (..),
+    NetInterface (..),
+    NetInterfaces (..),
   )
 where
 
@@ -94,7 +94,7 @@ instance Monoid NetInterfaceConfig where
 -- | Various connection types.
 --
 -- @since 0.1.0.0
-data InterfaceType
+data NetInterfaceType
   = -- | @since 0.1.0.0
     Ethernet
   | -- | @since 0.1.0.0
@@ -121,12 +121,12 @@ data InterfaceType
     )
 
 -- | @since 0.1.0.0
-makePrismLabels ''InterfaceType
+makePrismLabels ''NetInterfaceType
 
 -- | Various connection states.
 --
 -- @since 0.1.0.0
-data InterfaceState
+data NetInterfaceState
   = -- | @since 0.1.0.0
     Up
   | -- | @since 0.1.0.0
@@ -147,18 +147,18 @@ data InterfaceState
     )
 
 -- | @since 0.1.0.0
-makePrismLabels ''InterfaceState
+makePrismLabels ''NetInterfaceState
 
 -- | Full connection data.
 --
 -- @since 0.1.0.0
-data Interface = MkInterface
+data NetInterface = MkNetInterface
   { -- | @since 0.1.0.0
     idevice :: Device,
     -- | @since 0.1.0.0
-    itype :: Maybe InterfaceType,
+    itype :: Maybe NetInterfaceType,
     -- | @since 0.1.0.0
-    istate :: InterfaceState,
+    istate :: NetInterfaceState,
     -- | The name of the connection (e.g. Wifi SSID).
     --
     -- @since 0.1.0.0
@@ -178,10 +178,10 @@ data Interface = MkInterface
     )
 
 -- | @since 0.1.0.0
-makeFieldLabelsNoPrefix ''Interface
+makeFieldLabelsNoPrefix ''NetInterface
 
 -- | @since 0.1.0.0
-instance PrettyPrinter Interface where
+instance PrettyPrinter NetInterface where
   pretty netif =
     Printer.joinNewlines
       [ device,
@@ -200,7 +200,7 @@ instance PrettyPrinter Interface where
       ipv6s = "IPv6: " <> Printer.joinCommas (netif ^. #ipv6s)
 
 -- | @since 0.1.0.0
-newtype Interfaces = MkInterfaces {unInterfaces :: [Interface]}
+newtype NetInterfaces = MkNetInterfaces {unNetInterfaces :: [NetInterface]}
   deriving
     ( -- | @since 0.1.0.0
       Eq,
@@ -211,11 +211,11 @@ newtype Interfaces = MkInterfaces {unInterfaces :: [Interface]}
     )
 
 -- | @since 0.1.0.0
-instance PrettyPrinter Interfaces where
-  pretty (MkInterfaces ifs) = "Network Interfaces" <> go ifs
+instance PrettyPrinter NetInterfaces where
+  pretty (MkNetInterfaces ifs) = "Network NetInterfaces" <> go ifs
     where
       go [] = ""
       go (x : xs) = "\n\n" <> pretty x <> go xs
 
 -- | @since 0.1.0.0
-makeFieldLabelsNoPrefix ''Interfaces
+makeFieldLabelsNoPrefix ''NetInterfaces

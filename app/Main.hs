@@ -32,7 +32,7 @@ import Pythia.Services.Network.GlobalIP.Types
     GlobalIpSources (..),
     UrlSource (..),
   )
-import Pythia.Services.Network.Interface (NetInterfaceApp (..), NetInterfaceConfig (..))
+import Pythia.Services.Network.NetInterface (NetInterfaceApp (..), NetInterfaceConfig (..))
 import Pythia.Services.Network.Types (Device (..), IpType (..))
 
 -- | Runs the executable.

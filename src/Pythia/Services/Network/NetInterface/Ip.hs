@@ -4,7 +4,7 @@
 -- information using ip utility.
 --
 -- @since 0.1.0.0
-module Pythia.Services.Network.Interface.Ip
+module Pythia.Services.Network.NetInterface.Ip
   ( -- * Query
     netInterfaceShellApp,
     supported,
@@ -19,10 +19,10 @@ import Data.Char qualified as Char
 import Data.Set qualified as Set
 import Data.Text qualified as T
 import Pythia.Prelude
-import Pythia.Services.Network.Interface.Types
-  ( Interface (..),
-    InterfaceState (..),
-    Interfaces (..),
+import Pythia.Services.Network.NetInterface.Types
+  ( NetInterface (..),
+    NetInterfaceState (..),
+    NetInterfaces (..),
   )
 import Pythia.Services.Network.Types (Device (..), Ipv4Address (..), Ipv6Address (..))
 import Pythia.ShellApp (CmdError (..), SimpleShell (..))
@@ -34,10 +34,10 @@ import Text.Megaparsec (ErrorFancy (..), Parsec, (<?>))
 import Text.Megaparsec qualified as MP
 import Text.Megaparsec.Char qualified as MPC
 
--- | Ip query for 'Interface'.
+-- | Ip query for 'NetInterface'.
 --
 -- @since 0.1.0.0
-netInterfaceShellApp :: (Throws CmdError, Throws IpError) => IO Interfaces
+netInterfaceShellApp :: (Throws CmdError, Throws IpError) => IO NetInterfaces
 netInterfaceShellApp =
   ShellApp.runSimple $
     MkSimpleShell
@@ -57,17 +57,17 @@ type MParser = Parsec Void Text
 -- | Attempts to parse the output of IP.
 --
 -- @since 0.1.0.0
-parseInterfaces :: Text -> Either IpError Interfaces
+parseInterfaces :: Text -> Either IpError NetInterfaces
 parseInterfaces txt = case MP.parse mparseInterfaces "" txt of
   Left ex ->
     let prettyErr = MP.errorBundlePretty ex
      in Left $ IpParseErr prettyErr
   Right ifs -> Right ifs
 
-mparseInterfaces :: MParser Interfaces
-mparseInterfaces = MkInterfaces <$> MP.many parseInterface
+mparseInterfaces :: MParser NetInterfaces
+mparseInterfaces = MkNetInterfaces <$> MP.many parseInterface
 
-parseInterface :: MParser Interface
+parseInterface :: MParser NetInterface
 parseInterface = do
   MP.takeWhile1P (Just "device num") Char.isDigit
   MPC.char ':'
@@ -75,14 +75,14 @@ parseInterface = do
   device' <- MP.takeWhile1P (Just "device") (/= ':')
   MPC.char ':'
   MP.manyTill MP.anySingle (MPC.string "state ")
-  state' <- parseInterfaceState
+  state' <- parseNetInterfaceState
   U.takeLine
   MP.optional parseLink
   ipv4s' <- parseIpv4s
   ipv6s' <- parseIpv6s
 
   pure $
-    MkInterface
+    MkNetInterface
       { idevice = MkDevice device',
         itype = Nothing,
         istate = state',
@@ -139,8 +139,8 @@ lft = do
   MPC.string "valid_lft"
   U.takeLine_
 
-parseInterfaceState :: MParser InterfaceState
-parseInterfaceState = do
+parseNetInterfaceState :: MParser NetInterfaceState
+parseNetInterfaceState = do
   MP.try up
     <|> down
     <|> unknown

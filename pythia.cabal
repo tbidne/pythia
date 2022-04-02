@@ -79,10 +79,10 @@ library
     Pythia.Services.Network
     Pythia.Services.Network.GlobalIP
     Pythia.Services.Network.GlobalIP.Types
-    Pythia.Services.Network.Interface
-    Pythia.Services.Network.Interface.Ip
-    Pythia.Services.Network.Interface.NmCli
-    Pythia.Services.Network.Interface.Types
+    Pythia.Services.Network.NetInterface
+    Pythia.Services.Network.NetInterface.Ip
+    Pythia.Services.Network.NetInterface.NmCli
+    Pythia.Services.Network.NetInterface.Types
     Pythia.Services.Network.Types
     Pythia.ShellApp
     Pythia.Supremum
@@ -131,8 +131,8 @@ test-suite unit
     Unit.Prelude
     Unit.Pythia.Services.Battery.Acpi
     Unit.Pythia.Services.Battery.UPower
-    Unit.Pythia.Services.Network.Interface.Ip
-    Unit.Pythia.Services.Network.Interface.NmCli
+    Unit.Pythia.Services.Network.NetInterface.Ip
+    Unit.Pythia.Services.Network.NetInterface.NmCli
 
   build-depends:
     , base

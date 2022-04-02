@@ -4,7 +4,7 @@
 -- information using nmcli.
 --
 -- @since 0.1.0.0
-module Pythia.Services.Network.Interface.NmCli
+module Pythia.Services.Network.NetInterface.NmCli
   ( -- * Query
     netInterfaceShellApp,
     supported,
@@ -19,11 +19,11 @@ import Data.Char qualified as Char
 import Data.Set qualified as Set
 import Data.Text qualified as T
 import Pythia.Prelude
-import Pythia.Services.Network.Interface.Types
-  ( Interface (..),
-    InterfaceState (..),
-    InterfaceType (..),
-    Interfaces (..),
+import Pythia.Services.Network.NetInterface.Types
+  ( NetInterface (..),
+    NetInterfaceState (..),
+    NetInterfaceType (..),
+    NetInterfaces (..),
   )
 import Pythia.Services.Network.Types (Device (..), Ipv4Address (..), Ipv6Address (..))
 import Pythia.ShellApp (CmdError (..), SimpleShell (..))
@@ -35,10 +35,10 @@ import Text.Megaparsec (ErrorFancy (..), Parsec, (<?>))
 import Text.Megaparsec qualified as MP
 import Text.Megaparsec.Char qualified as MPC
 
--- | NmCli query for 'Interfaces'.
+-- | NmCli query for 'NetInterfaces'.
 --
 -- @since 0.1.0.0
-netInterfaceShellApp :: (Throws CmdError, Throws NmCliError) => IO Interfaces
+netInterfaceShellApp :: (Throws CmdError, Throws NmCliError) => IO NetInterfaces
 netInterfaceShellApp =
   ShellApp.runSimple $
     MkSimpleShell
@@ -58,23 +58,23 @@ type MParser = Parsec Void Text
 -- | Attemps to parse the output of nmcli.
 --
 -- @since 0.1.0.0
-parseInterfaces :: Text -> Either NmCliError Interfaces
-parseInterfaces txt = case MP.parse mparseInterfaces "Pythia.Services.Network.Interface.NmCli" txt of
+parseInterfaces :: Text -> Either NmCliError NetInterfaces
+parseInterfaces txt = case MP.parse mparseInterfaces "Pythia.Services.Network.NetInterface.NmCli" txt of
   Left ex ->
     let prettyErr = MP.errorBundlePretty ex
      in Left $ NmCliParseErr prettyErr
   Right ifs -> Right ifs
 
-mparseInterfaces :: MParser Interfaces
-mparseInterfaces = MkInterfaces <$> MP.many parseInterface
+mparseInterfaces :: MParser NetInterfaces
+mparseInterfaces = MkNetInterfaces <$> MP.many parseInterface
 
-parseInterface :: MParser Interface
+parseInterface :: MParser NetInterface
 parseInterface = do
   device' <- parseDevice
-  type' <- parseInterfaceType
+  type' <- parseNetInterfaceType
   parseHwaddr
   parseMTU
-  state' <- parseInterfaceState
+  state' <- parseNetInterfaceState
   name' <- parseName
   parseConPath
   MP.optional parseWiredProp
@@ -82,7 +82,7 @@ parseInterface = do
   ipv6s' <- U.mAlt <$> MP.optional parseIpv6s
   MP.many MPC.eol
   pure $
-    MkInterface
+    MkNetInterface
       { idevice = device',
         itype = Just type',
         istate = state',
@@ -97,8 +97,8 @@ parseDevice = do
   device' <- U.takeLineLabel (Just "device")
   pure $ MkDevice device'
 
-parseInterfaceType :: MParser InterfaceType
-parseInterfaceType = do
+parseNetInterfaceType :: MParser NetInterfaceType
+parseNetInterfaceType = do
   MPC.string "GENERAL.TYPE:"
   type' <-
     MP.try wifiP2p
@@ -124,8 +124,8 @@ parseHwaddr = MPC.string "GENERAL.HWADDR:" *> U.takeLine_
 parseMTU :: MParser ()
 parseMTU = MPC.string "GENERAL.MTU:" *> U.takeLine_
 
-parseInterfaceState :: MParser InterfaceState
-parseInterfaceState = do
+parseNetInterfaceState :: MParser NetInterfaceState
+parseNetInterfaceState = do
   MPC.string "GENERAL.STATE:"
   MP.takeWhile1P (Just "state int code") Char.isDigit
   MPC.space

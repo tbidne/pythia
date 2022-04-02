@@ -20,7 +20,7 @@ files =
     "src/Pythia/Services/Battery/Types.hs",
     "src/Pythia/Services/Battery/UPower.hs",
     "src/Pythia/Services/Network/GlobalIP/Types.hs",
-    "src/Pythia/Services/Network/Interface/Types.hs",
+    "src/Pythia/Services/Network/NetInterface/Types.hs",
     "src/Pythia/Data.hs",
     "src/Pythia/Printer.hs",
     "src/Pythia/Utils.hs"

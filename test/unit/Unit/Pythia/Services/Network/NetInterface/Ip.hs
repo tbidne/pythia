@@ -1,19 +1,19 @@
-module Unit.Pythia.Services.Network.Interface.Ip
+module Unit.Pythia.Services.Network.NetInterface.Ip
   ( tests,
   )
 where
 
 -- import Pythia.Data (QueryError (..))
--- import Pythia.Services.Network.Interface.Ip qualified as Ip
+-- import Pythia.Services.Network.NetInterface.Ip qualified as Ip
 
 import Data.Set ((\\))
 import Data.Set qualified as Set
 import Data.Text qualified as T
-import Pythia.Services.Network.Interface.Ip qualified as Ip
-import Pythia.Services.Network.Interface.Types
-  ( Interface (..),
-    InterfaceState (..),
-    Interfaces (..),
+import Pythia.Services.Network.NetInterface.Ip qualified as Ip
+import Pythia.Services.Network.NetInterface.Types
+  ( NetInterface (..),
+    NetInterfaceState (..),
+    NetInterfaces (..),
   )
 import Pythia.Services.Network.Types (unsafeIpv4Address, unsafeIpv6Address)
 import Test.Tasty.HUnit qualified as THU
@@ -22,7 +22,7 @@ import Unit.Prelude
 tests :: TestTree
 tests =
   testGroup
-    "Pythia.Services.Network.Interface.Ip"
+    "Pythia.Services.Network.NetInterface.Ip"
     [ parseAll
     ]
 
@@ -31,7 +31,7 @@ parseAll = testCase "Parses all interfaces" $ do
   let eResult = Ip.parseInterfaces netinfo
   resultSet <- case eResult of
     Left ex -> THU.assertFailure $ "Parser failed in test: " <> show ex
-    Right (MkInterfaces result) -> pure $ Set.fromList result
+    Right (MkNetInterfaces result) -> pure $ Set.fromList result
 
   let notFound = expectedSet \\ resultSet
       extras = resultSet \\ expectedSet
@@ -62,13 +62,13 @@ parseAll = testCase "Parses all interfaces" $ do
           vpn
         ]
 
-prettyInterfaces :: [Interface] -> String
+prettyInterfaces :: [NetInterface] -> String
 prettyInterfaces [] = ""
 prettyInterfaces (x : xs) = "\n\n" <> show x <> prettyInterfaces xs
 
-wifi :: Interface
+wifi :: NetInterface
 wifi =
-  MkInterface
+  MkNetInterface
     "wlp0s20f3"
     Nothing
     Up
@@ -76,9 +76,9 @@ wifi =
     [unsafeIpv4Address "192.168.1.2"]
     [unsafeIpv6Address "fe80::a328:482:5263:10b8", unsafeIpv6Address "fe80::fe44:82ff:fede:f814"]
 
-ethernet :: Interface
+ethernet :: NetInterface
 ethernet =
-  MkInterface
+  MkNetInterface
     "enp0s31f6"
     Nothing
     Down
@@ -86,9 +86,9 @@ ethernet =
     []
     []
 
-loopback :: Interface
+loopback :: NetInterface
 loopback =
-  MkInterface
+  MkNetInterface
     "lo"
     Nothing
     (UnknownState "UNKNOWN")
@@ -96,9 +96,9 @@ loopback =
     [unsafeIpv4Address "127.0.0.1"]
     [unsafeIpv6Address "::1"]
 
-vpn :: Interface
+vpn :: NetInterface
 vpn =
-  MkInterface
+  MkNetInterface
     "tailscale0"
     Nothing
     (UnknownState "UNKNOWN")
