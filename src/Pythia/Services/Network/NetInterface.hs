@@ -12,8 +12,8 @@ module Pythia.Services.Network.NetInterface
     NetInterfaceState (..),
     NetInterfaceType (..),
     Device (..),
-    -- Ipv4Address (..),
-    -- Ipv6Address (..),
+    Ipv4Address (..),
+    Ipv6Address (..),
 
     -- ** Configuration
     NetInterfaceConfig (..),
@@ -34,13 +34,13 @@ import Pythia.Services.Network.NetInterface.NmCli (NmCliError)
 import Pythia.Services.Network.NetInterface.NmCli qualified as NmCli
 import Pythia.Services.Network.NetInterface.Types
   ( NetInterface (..),
+    NetInterfaceApp (..),
+    NetInterfaceConfig (..),
     NetInterfaceState (..),
     NetInterfaceType (..),
     NetInterfaces (..),
-    NetInterfaceApp (..),
-    NetInterfaceConfig (..),
   )
-import Pythia.Services.Network.Types (Device (..))
+import Pythia.Services.Network.Types (Device (..), Ipv4Address (..), Ipv6Address (..))
 import Pythia.ShellApp (AppAction (..), CmdError (..), Exceptions (..))
 import Pythia.ShellApp qualified as ShellApp
 
