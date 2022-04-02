@@ -5,7 +5,8 @@
 -- @since 0.1.0.0
 module Args
   ( PythiaCommand (..),
-    NetInterfaceSelector (..),
+    BatteryField (..),
+    NetInterfaceField (..),
     parserInfo,
   )
 where
@@ -43,18 +44,26 @@ import Pythia.Services.Network.Types (Device (..), IpType (..))
 --
 -- @since 0.1.0.0
 data PythiaCommand
-  = Battery BatteryConfig
-  | NetInterface NetInterfaceConfig (Maybe NetInterfaceSelector)
+  = Battery BatteryConfig (Maybe BatteryField)
+  | NetInterface NetInterfaceConfig (Maybe NetInterfaceField)
   | NetIpGlobal GlobalIpConfig
   deriving stock (Eq, Show)
 
--- | Extra optiona for NetInterface.
+-- | Extra option for Battery.
 --
 -- @since 0.1.0.0
-data NetInterfaceSelector
-  = NetInterfaceSelectorName
-  | NetInterfaceSelectorIpv4
-  | NetInterfaceSelectorIpv6
+data BatteryField
+  = BatteryFieldPercentage
+  | BatteryFieldStatus
+  deriving stock (Eq, Show)
+
+-- | Extra option for NetInterface.
+--
+-- @since 0.1.0.0
+data NetInterfaceField
+  = NetInterfaceFieldName
+  | NetInterfaceFieldIpv4
+  | NetInterfaceFieldIpv6
   deriving stock (Eq, Show)
 
 -- | Optparse-Applicative info.
@@ -119,7 +128,8 @@ parseBattery = do
           <> OApp.metavar "APP"
           <> OApp.help helpTxt
       )
-  pure $ Battery $ MkBatteryConfig app
+  field <- parseBatteryField
+  pure $ Battery (MkBatteryConfig app) field
   where
     helpTxt = "App must be one of [acpi | sysfs | upower]."
     reader = do
@@ -130,15 +140,35 @@ parseBattery = do
         "upower" -> pure $ Single BatteryUPower
         _ -> OApp.readerAbort $ ErrorMsg $ "Unrecognized battery app: " <> T.unpack a
 
+parseBatteryField :: Parser (Maybe BatteryField)
+parseBatteryField =
+  A.optional $
+    OApp.option
+      readApp
+      ( OApp.long "field"
+          <> OApp.short 'f'
+          <> OApp.metavar "FIELD"
+          <> OApp.help helpTxt
+      )
+  where
+    helpTxt =
+      "If specified, prints only the given field. Must be one of [percentage | status]."
+    readApp = do
+      a <- OApp.str
+      case a of
+        "percentage" -> pure $ BatteryFieldPercentage
+        "status" -> pure $ BatteryFieldStatus
+        _ -> OApp.readerAbort $ ErrorMsg $ "Unrecognized battery field: " <> T.unpack a
+
 parseNetInterface :: Parser PythiaCommand
 parseNetInterface = do
   app <- netInterfaceAppOption
   device <- netInterfaceDeviceOption
-  val <- parseNetInterfaceSelector
+  val <- parseNetInterfaceField
   pure $ NetInterface (MkNetInterfaceConfig app device) val
 
-parseNetInterfaceSelector :: Parser (Maybe NetInterfaceSelector)
-parseNetInterfaceSelector =
+parseNetInterfaceField :: Parser (Maybe NetInterfaceField)
+parseNetInterfaceField =
   A.optional $
     OApp.option
       readApp
@@ -153,9 +183,9 @@ parseNetInterfaceSelector =
     readApp = do
       a <- OApp.str
       case a of
-        "name" -> pure $ NetInterfaceSelectorName
-        "ipv4" -> pure $ NetInterfaceSelectorIpv4
-        "ipv6" -> pure $ NetInterfaceSelectorIpv6
+        "name" -> pure $ NetInterfaceFieldName
+        "ipv4" -> pure $ NetInterfaceFieldIpv4
+        "ipv6" -> pure $ NetInterfaceFieldIpv6
         _ -> OApp.readerAbort $ ErrorMsg $ "Unrecognized network interface field: " <> T.unpack a
 
 netInterfaceAppOption :: Parser (RunApp NetInterfaceApp)

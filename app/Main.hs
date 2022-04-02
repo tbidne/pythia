@@ -5,9 +5,14 @@
 -- @since 0.1.0.0
 module Main (main) where
 
-import Args (NetInterfaceSelector (..), PythiaCommand (..), parserInfo)
+import Args
+  ( BatteryField (..),
+    NetInterfaceField (..),
+    PythiaCommand (..),
+    parserInfo,
+  )
 import Options.Applicative qualified as OApp
-import Pythia (NetInterface (..), NetInterfaceConfig, NetInterfaces (..))
+import Pythia (BatteryConfig, NetInterfaceConfig, NetInterfaces (..))
 import Pythia qualified
 import Pythia.Prelude
 import Pythia.Printer (PrettyPrinter (..))
@@ -19,28 +24,36 @@ main :: IO ()
 main = do
   cmd <- OApp.execParser parserInfo
   case cmd of
-    Battery cfg -> Pythia.uncheckBattery $ Pythia.queryBatteryConfig cfg >>= prettyPrint
+    Battery cfg field -> handleBattery cfg field
     NetInterface cfg val -> handleNetInterface cfg val
     NetIpGlobal cfg -> Pythia.uncheckGlobalIp $ Pythia.queryGlobalIpConfig cfg >>= prettyPrint
 
-handleNetInterface :: NetInterfaceConfig -> Maybe NetInterfaceSelector -> IO ()
+handleBattery :: BatteryConfig -> Maybe BatteryField -> IO ()
+handleBattery cfg mfield = do
+  result <- Pythia.uncheckBattery $ Pythia.queryBatteryConfig cfg
+  case mfield of
+    Nothing -> prettyPrint result
+    Just field -> putStrLn (toField field result)
+  where
+    toField BatteryFieldPercentage = Pythia.pretty . view #percentage
+    toField BatteryFieldStatus = Pythia.pretty . view #status
+
+handleNetInterface :: NetInterfaceConfig -> Maybe NetInterfaceField -> IO ()
 handleNetInterface cfg val = do
   result <- Pythia.uncheckNetInterface $ Pythia.queryNetInterfacesConfig cfg
   case val of
     Nothing -> prettyPrint result
     Just sel -> printField sel result
   where
-    printField :: NetInterfaceSelector -> NetInterfaces -> IO ()
     printField s =
       putStrLn
         . Pythia.joinNewlines
         . fmap (toField s)
         . unNetInterfaces
 
-    toField :: NetInterfaceSelector -> NetInterface -> String
-    toField NetInterfaceSelectorName netif = Pythia.pretty $ netif ^. #iname
-    toField NetInterfaceSelectorIpv4 netif = Pythia.joinCommas $ netif ^. #ipv4s
-    toField NetInterfaceSelectorIpv6 netif = Pythia.joinCommas $ netif ^. #ipv6s
+    toField NetInterfaceFieldName = Pythia.pretty . view #iname
+    toField NetInterfaceFieldIpv4 = Pythia.joinCommas . view #ipv4s
+    toField NetInterfaceFieldIpv6 = Pythia.joinCommas . view #ipv6s
 
 prettyPrint :: PrettyPrinter a => a -> IO ()
 prettyPrint = putStrLn . Pythia.pretty

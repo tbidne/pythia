@@ -19,7 +19,7 @@ import Numeric.Data.Interval qualified as Interval
 import Pythia.Prelude
 import Pythia.Services.Battery.Types
   ( Battery (..),
-    BatteryPercentage,
+    BatteryPercentage (..),
     BatteryStatus (..),
   )
 import System.Directory qualified as Dir
@@ -128,7 +128,7 @@ parsePercentage fp = do
   percentTxt <- readFileUtf8Lenient fp
   case readInterval percentTxt of
     Nothing -> throw $ SysFsBatteryFormatErr $ T.unpack percentTxt
-    Just bs -> pure bs
+    Just bs -> pure $ MkBatteryPercentage bs
   where
     readInterval = Interval.mkLRInterval <=< TR.readMaybe . T.unpack
 

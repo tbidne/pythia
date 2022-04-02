@@ -21,7 +21,7 @@ import Numeric.Data.Interval qualified as Interval
 import Pythia.Prelude
 import Pythia.Services.Battery.Types
   ( Battery (..),
-    BatteryPercentage,
+    BatteryPercentage (..),
     BatteryStatus (..),
   )
 import Pythia.ShellApp (CmdError (..), SimpleShell (..))
@@ -54,19 +54,19 @@ supported = U.exeSupported "upower"
 --
 -- ==== __Examples__
 -- >>> parseBattery "state: fully-charged\npercentage: 100%"
--- Right (MkBattery {percentage = UnsafeLRInterval 100, status = Full})
+-- Right (MkBattery {percentage = MkBatteryPercentage {unBatteryPercentage = UnsafeLRInterval 100}, status = Full})
 --
 -- >>> parseBattery "state: discharging\npercentage: 70%"
--- Right (MkBattery {percentage = UnsafeLRInterval 70, status = Discharging})
+-- Right (MkBattery {percentage = MkBatteryPercentage {unBatteryPercentage = UnsafeLRInterval 70}, status = Discharging})
 --
 -- >>> parseBattery "state: charging\npercentage: 40%"
--- Right (MkBattery {percentage = UnsafeLRInterval 40, status = Charging})
+-- Right (MkBattery {percentage = MkBatteryPercentage {unBatteryPercentage = UnsafeLRInterval 40}, status = Charging})
 --
 -- >>> parseBattery "state: bad\npercentage: 40%"
--- Right (MkBattery {percentage = UnsafeLRInterval 40, status = Unknown "bad"})
+-- Right (MkBattery {percentage = MkBatteryPercentage {unBatteryPercentage = UnsafeLRInterval 40}, status = Unknown "bad"})
 --
 -- >>> parseBattery "state: pending-charge\npercentage: 40%"
--- Right (MkBattery {percentage = UnsafeLRInterval 40, status = Pending})
+-- Right (MkBattery {percentage = MkBatteryPercentage {unBatteryPercentage = UnsafeLRInterval 40}, status = Pending})
 --
 -- >>> parseBattery "state: fully-charged"
 -- Left (UPowerNoPercentage "state: fully-charged")
@@ -123,7 +123,7 @@ parsePercent = do
   nn <- parseNN
   MPC.char '%'
   MPC.space
-  pure nn
+  pure $ MkBatteryPercentage nn
   where
     parseNN = do
       num <- MP.takeWhile1P Nothing Char.isDigit

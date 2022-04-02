@@ -21,7 +21,7 @@ import Numeric.Data.Interval qualified as Interval
 import Pythia.Prelude
 import Pythia.Services.Battery.Types
   ( Battery (..),
-    BatteryPercentage,
+    BatteryPercentage (..),
     BatteryStatus (..),
   )
 import Pythia.ShellApp (CmdError (..), SimpleShell (..))
@@ -55,16 +55,16 @@ supported = U.exeSupported "acpi"
 --
 -- ==== __Examples__
 -- >>> parseBattery "Battery 0: Full, 100%"
--- Right (MkBattery {percentage = UnsafeLRInterval 100, status = Full})
+-- Right (MkBattery {percentage = MkBatteryPercentage {unBatteryPercentage = UnsafeLRInterval 100}, status = Full})
 --
 -- >>> parseBattery "Battery 0: Discharging, 80%"
--- Right (MkBattery {percentage = UnsafeLRInterval 80, status = Discharging})
+-- Right (MkBattery {percentage = MkBatteryPercentage {unBatteryPercentage = UnsafeLRInterval 80}, status = Discharging})
 --
 -- >>> parseBattery "Battery 0: Charging, 40%"
--- Right (MkBattery {percentage = UnsafeLRInterval 40, status = Charging})
+-- Right (MkBattery {percentage = MkBatteryPercentage {unBatteryPercentage = UnsafeLRInterval 40}, status = Charging})
 --
 -- >>> parseBattery "Battery 0: bad status, 80%"
--- Right (MkBattery {percentage = UnsafeLRInterval 80, status = Unknown "bad status"})
+-- Right (MkBattery {percentage = MkBatteryPercentage {unBatteryPercentage = UnsafeLRInterval 80}, status = Unknown "bad status"})
 --
 -- >>> parseBattery "Battery 0: Discharging, 150%"
 -- Left (AcpiParseErr "Acpi.hs:1:28:\n  |\n1 | Battery 0: Discharging, 150%\n  |                            ^\nexpecting percentage\n")
@@ -113,7 +113,7 @@ mparsePercent = do
   percent <- MP.takeWhile1P (Just "percentage") Char.isDigit
   percentage <- maybe empty pure (readInterval percent)
   MPC.char '%'
-  pure percentage
+  pure $ MkBatteryPercentage percentage
   where
     readInterval = Interval.mkLRInterval <=< TR.readMaybe . T.unpack
 

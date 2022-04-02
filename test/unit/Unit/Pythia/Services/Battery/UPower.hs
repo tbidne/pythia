@@ -38,8 +38,8 @@ parseUnknown = parseX 100 ("some bad status-20", Unknown "some bad status-20")
 parseX :: Int -> (Text, BatteryStatus) -> TestTree
 parseX lvl (csTxt, cs) = testCase desc $ do
   let result = UPower.parseBattery (state lvl csTxt)
-  Just cs @=? result ^? #_Right % #status
-  Just (MkLRInterval lvl) @=? result ^? #_Right % #percentage
+  Just cs @=? result ^? _Right % #status
+  Just (MkLRInterval lvl) @=? result ^? _Right % #percentage % #unBatteryPercentage
   where
     desc = "Parses percentage " <> show lvl <> ", status " <> T.unpack csTxt
 
