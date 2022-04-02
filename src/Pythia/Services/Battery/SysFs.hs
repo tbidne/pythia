@@ -29,8 +29,8 @@ import Text.Read qualified as TR
 -- | @/sys/class@ query for 'Battery'.
 --
 -- @since 0.1.0.0
-batteryQuery :: Throws SysFsError => IO Battery
-batteryQuery = queryBattery
+batteryQuery :: (MonadIO m, Throws SysFsError) => m Battery
+batteryQuery = liftIO queryBattery
 
 -- | Returns a boolean determining if this program is supported on the
 -- current system. In particular, we return 'True' if the directory
@@ -44,8 +44,8 @@ batteryQuery = queryBattery
 -- * @\/sys\/class\/power_supply\/BAT@
 --
 -- @since 0.1.0.0
-supported :: IO Bool
-supported = do
+supported :: MonadIO m => m Bool
+supported = liftIO $ do
   efp <- try @_ @SysFsError findSysBatDir
   case efp of
     Left _ -> pure False
@@ -62,12 +62,12 @@ queryBattery = do
 
 findSysBatDir :: Throws SysFsError => IO FilePath
 findSysBatDir = do
-  sysExists <- liftIO $ Dir.doesDirectoryExist sys
+  sysExists <- Dir.doesDirectoryExist sys
   sysBase <-
     if sysExists
       then pure sys
       else do
-        sysFsExists <- liftIO $ Dir.doesDirectoryExist sysfs
+        sysFsExists <- Dir.doesDirectoryExist sysfs
         if sysFsExists
           then pure sysfs
           else throw SysFsDirErr

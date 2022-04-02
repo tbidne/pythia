@@ -35,7 +35,7 @@ import Text.Read qualified as TR
 -- | UPower query for 'Battery'.
 --
 -- @since 0.1.0.0
-batteryShellApp :: (Throws CmdError, Throws UPowerError) => IO Battery
+batteryShellApp :: (MonadIO m, Throws CmdError, Throws UPowerError) => m Battery
 batteryShellApp =
   ShellApp.runSimple $
     MkSimpleShell
@@ -47,7 +47,7 @@ batteryShellApp =
 -- current system.
 --
 -- @since 0.1.0.0
-supported :: IO Bool
+supported :: MonadIO m => m Bool
 supported = U.exeSupported "upower"
 
 -- | Attempts to parse the output of UPower.

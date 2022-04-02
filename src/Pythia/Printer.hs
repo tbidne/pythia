@@ -7,6 +7,7 @@ module Pythia.Printer
   ( PrettyPrinter (..),
     joinCommas,
     joinNewlines,
+    joinX,
   )
 where
 
@@ -44,7 +45,7 @@ instance PrettyPrinter a => PrettyPrinter (Maybe a) where
 --
 -- @since 0.1.0.0
 joinCommas :: PrettyPrinter a => [a] -> String
-joinCommas = L.intercalate ", " . fmap pretty
+joinCommas = joinX ", "
 
 -- | Join with newlines.
 --
@@ -54,4 +55,14 @@ joinCommas = L.intercalate ", " . fmap pretty
 --
 -- @since 0.1.0.0
 joinNewlines :: PrettyPrinter a => [a] -> String
-joinNewlines = L.intercalate "\n" . fmap pretty
+joinNewlines = joinX "\n"
+
+-- | General list join.
+--
+-- ==== __Examples__
+-- >>> joinX "--" ["foo", "bar"]
+-- "foo--bar"
+--
+-- @since 0.1.0.0
+joinX :: PrettyPrinter a => String -> [a] -> String
+joinX s = L.intercalate s . fmap pretty

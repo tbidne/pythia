@@ -212,10 +212,7 @@ newtype NetInterfaces = MkNetInterfaces {unNetInterfaces :: [NetInterface]}
 
 -- | @since 0.1.0.0
 instance PrettyPrinter NetInterfaces where
-  pretty (MkNetInterfaces ifs) = "Network NetInterfaces" <> go ifs
-    where
-      go [] = ""
-      go (x : xs) = "\n\n" <> pretty x <> go xs
+  pretty = Printer.joinX "\n\n" . unNetInterfaces
 
 -- | @since 0.1.0.0
 makeFieldLabelsNoPrefix ''NetInterfaces

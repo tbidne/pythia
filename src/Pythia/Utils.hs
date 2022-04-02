@@ -118,5 +118,5 @@ eitherToBool = either (const False) (const True)
 -- supported on this system.
 --
 -- @since 0.1.0.0
-exeSupported :: String -> IO Bool
-exeSupported exeName = May.isJust <$> Dir.findExecutable exeName
+exeSupported :: MonadIO m => String -> m Bool
+exeSupported exeName = liftIO $ May.isJust <$> Dir.findExecutable exeName

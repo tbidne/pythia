@@ -49,18 +49,26 @@ import Refined qualified as R
 -- We try dig first, then curl.
 --
 -- @since 0.1.0.0
-queryGlobalIp :: (Throws CmdError, Throws Exceptions) => IO GlobalIpAddresses
+queryGlobalIp ::
+  ( MonadCatch m,
+    MonadIO m,
+    Throws CmdError,
+    Throws Exceptions
+  ) =>
+  m GlobalIpAddresses
 queryGlobalIp = queryGlobalIpConfig mempty
 
 -- | Queries for global ip address based on the configuration.
 --
 -- @since 0.1.0.0
 queryGlobalIpConfig ::
-  ( Throws CmdError,
+  ( MonadCatch m,
+    MonadIO m,
+    Throws CmdError,
     Throws Exceptions
   ) =>
   GlobalIpConfig ->
-  IO GlobalIpAddresses
+  m GlobalIpAddresses
 queryGlobalIpConfig config =
   case config ^. #ipApp of
     Many -> ShellApp.tryAppActions allApps
@@ -76,23 +84,24 @@ queryGlobalIpConfig config =
         (config ^. #ipSources)
 
 toSingleShellApp ::
-  ( Throws CmdError,
+  ( MonadIO m,
+    Throws CmdError,
     Throws Exceptions
   ) =>
   GlobalIpRequest ->
   GlobalIpSources ->
   GlobalIpApp ->
-  IO GlobalIpAddresses
-toSingleShellApp ipType (MkGlobalIpSources ipv4Srcs ipv6Srcs) app = do
+  m GlobalIpAddresses
+toSingleShellApp ipType (MkGlobalIpSources ipv4Srcs ipv6Srcs) app = liftIO $ do
   case ipType of
     GlobalIpRequestIpv4 -> getIpv4s app ipv4Srcs
     GlobalIpRequestIpv6 -> getIpv6s app ipv6Srcs
     GlobalIpRequestBoth -> getBoth app ipv4Srcs ipv6Srcs
 
-curlSupported :: IO Bool
+curlSupported :: MonadIO m => m Bool
 curlSupported = U.exeSupported "curl"
 
-digSupported :: IO Bool
+digSupported :: MonadIO m => m Bool
 digSupported = U.exeSupported "dig"
 
 getBoth ::

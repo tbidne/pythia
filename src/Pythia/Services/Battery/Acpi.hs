@@ -36,7 +36,7 @@ import Text.Read qualified as TR
 -- | ACPI query for 'Battery'.
 --
 -- @since 0.1.0.0
-batteryShellApp :: (Throws AcpiError, Throws CmdError) => IO Battery
+batteryShellApp :: (MonadIO m, Throws AcpiError, Throws CmdError) => m Battery
 batteryShellApp =
   ShellApp.runSimple $
     MkSimpleShell
@@ -48,7 +48,7 @@ batteryShellApp =
 -- current system.
 --
 -- @since 0.1.0.0
-supported :: IO Bool
+supported :: MonadIO m => m Bool
 supported = U.exeSupported "acpi"
 
 -- | Attempts to parse the output of acpi.

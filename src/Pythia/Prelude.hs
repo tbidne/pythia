@@ -4,7 +4,6 @@
 module Pythia.Prelude
   ( -- * File
     readFileUtf8Lenient,
-    readFileUtf8LenientEither,
     decodeUtf8Lenient,
 
     -- * Unchecking exceptions
@@ -20,7 +19,7 @@ where
 
 import Control.Applicative as X (Alternative (..), Applicative (..))
 import Control.Exception as X (Exception (..), SomeException (..))
-import Control.Exception.Safe.Checked as X (Throws, catch, throw, try, uncheck)
+import Control.Exception.Safe.Checked as X (MonadCatch, Throws, catch, throw, try, uncheck)
 import Control.Monad as X (Monad (..), join, void, (<=<), (>=>))
 import Control.Monad.IO.Class as X (MonadIO (..))
 import Data.Bifunctor as X (Bifunctor (..))
@@ -35,7 +34,7 @@ import Data.Function as X (const, id, ($), (.))
 import Data.Functor as X (Functor (..), ($>), (<$>))
 import Data.Int as X (Int)
 import Data.Kind as X (Type)
-import Data.List as X (filter)
+import Data.List as X (filter, replicate)
 import Data.Maybe as X (Maybe (..), fromMaybe, maybe)
 import Data.Monoid as X (Monoid (..))
 import Data.Ord as X (Ord (..))
@@ -59,18 +58,8 @@ import System.IO as X (FilePath, IO, print, putStrLn)
 -- | Strictly reads a file and leniently converts the contents to UTF8.
 --
 -- @since 0.1.0.0
-readFileUtf8Lenient :: FilePath -> IO Text
-readFileUtf8Lenient = fmap decodeUtf8Lenient . BS.readFile
-
--- | Strictly reads a file and leniently converts the contents to UTF8.
---
--- @since 0.1.0.0
-readFileUtf8LenientEither :: FilePath -> IO (Either SomeException Text)
-readFileUtf8LenientEither fp = do
-  eByteString :: Either SomeException ByteString <- try $ BS.readFile fp
-  case eByteString of
-    Left ex -> pure $ Left ex
-    Right bs -> pure $ Right $ decodeUtf8Lenient bs
+readFileUtf8Lenient :: MonadIO m => FilePath -> m Text
+readFileUtf8Lenient = fmap decodeUtf8Lenient . liftIO . BS.readFile
 
 -- | Lenient UTF8 decode.
 --

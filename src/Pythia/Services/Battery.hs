@@ -47,27 +47,31 @@ import Pythia.ShellApp qualified as ShellApp
 --
 -- @since 0.1.0.0
 queryBattery ::
-  ( Throws AcpiError,
+  ( MonadCatch m,
+    MonadIO m,
+    Throws AcpiError,
     Throws CmdError,
     Throws Exceptions,
     Throws SysFsError,
     Throws UPowerError
   ) =>
-  IO Battery
+  m Battery
 queryBattery = queryBatteryConfig mempty
 
 -- | Queries the battery based on the configuration.
 --
 -- @since 0.1.0.0
 queryBatteryConfig ::
-  ( Throws AcpiError,
+  ( MonadCatch m,
+    MonadIO m,
+    Throws AcpiError,
     Throws CmdError,
     Throws Exceptions,
     Throws SysFsError,
     Throws UPowerError
   ) =>
   BatteryConfig ->
-  IO Battery
+  m Battery
 queryBatteryConfig config =
   case config ^. #batteryApp of
     Many -> ShellApp.tryAppActions allApps
@@ -80,13 +84,14 @@ queryBatteryConfig config =
       ]
 
 toShellApp ::
-  ( Throws AcpiError,
+  ( MonadIO m,
+    Throws AcpiError,
     Throws CmdError,
     Throws SysFsError,
     Throws UPowerError
   ) =>
   BatteryApp ->
-  IO Battery
+  m Battery
 toShellApp BatteryAcpi = Acpi.batteryShellApp
 toShellApp BatterySysFs = SysFs.batteryQuery
 toShellApp BatteryUPower = UPower.batteryShellApp
@@ -101,7 +106,7 @@ uncheckBattery ::
       Throws SysFsError,
       Throws UPowerError
     ) =>
-    IO a
+    m a
   ) ->
-  IO a
+  m a
 uncheckBattery = uncheck5 @AcpiError @CmdError @Exceptions @SysFsError @UPowerError

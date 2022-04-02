@@ -61,12 +61,12 @@ instance Bifunctor SimpleShell where
 -- | Runs a simple shell, throwing an error if any occur.
 --
 -- @since 0.1.0.0
-runSimple :: (Exception err, Throws CmdError, Throws err) => SimpleShell err result -> IO result
+runSimple :: (Exception err, MonadIO m, Throws CmdError, Throws err) => SimpleShell err result -> m result
 runSimple simple =
   runCommand (simple ^. #command)
     >>= parseAndThrow
   where
-    parseAndThrow t' = case (simple ^. #parser) t' of
+    parseAndThrow t' = liftIO $ case (simple ^. #parser) t' of
       Left err -> throw err
       Right r -> pure r
 
@@ -88,8 +88,8 @@ newtype CmdError = MkCmdErr String
 -- parsed. This function is exported as it can be for convenience.
 --
 -- @since 0.1.0.0
-runCommand :: Throws CmdError => Command -> IO Text
-runCommand command = do
+runCommand :: (MonadIO m, Throws CmdError) => Command -> m Text
+runCommand command = liftIO $ do
   (exitCode, out, err) <- TP.readProcess $ TP.shell $ T.unpack cmdStr
   case exitCode of
     ExitSuccess -> case TEnc.decodeUtf8' (LBS.toStrict out) of
@@ -120,9 +120,9 @@ shellErr exitCode cmd err = err'
 -- i.e. 'tryAppActions'.
 --
 -- @since 0.1.0.0
-data AppAction r = MkAppAction
-  { action :: IO r,
-    supported :: IO Bool,
+data AppAction m r = MkAppAction
+  { action :: m r,
+    supported :: m Bool,
     name :: String
   }
 
@@ -133,11 +133,11 @@ makeFieldLabelsNoPrefix ''AppAction
 -- or all errors, if there are no successes.
 --
 -- @since 0.1.0.0
-tryAppActions :: Throws Exceptions => [AppAction result] -> IO result
+tryAppActions :: (MonadCatch m, MonadIO m, Throws Exceptions) => [AppAction m result] -> m result
 tryAppActions apps = do
   eResult <- foldr tryAppAction (pure (Left mempty)) apps
   case eResult of
-    Left errs -> throw errs
+    Left errs -> liftIO $ throw errs
     Right result -> pure result
 
 -- | Error for when the current app is not supported.
@@ -163,10 +163,10 @@ instance Monoid Exceptions where
   mempty = MkExceptions mempty
 
 tryAppAction ::
-  forall result.
-  AppAction result ->
-  IO (Either Exceptions result) ->
-  IO (Either Exceptions result)
+  MonadCatch m =>
+  AppAction m result ->
+  m (Either Exceptions result) ->
+  m (Either Exceptions result)
 tryAppAction appAction acc = do
   isSupported <- appAction ^. #supported
   if isSupported
@@ -181,7 +181,7 @@ tryAppAction appAction acc = do
 -- checking for "support".
 --
 -- @since 0.1.0.0
-tryIOs :: Throws Exceptions => [IO result] -> IO result
+tryIOs :: (MonadCatch m, Throws Exceptions) => [m result] -> m result
 tryIOs actions = do
   eResult <- foldr tryIO (pure (Left mempty)) actions
   case eResult of
@@ -189,9 +189,10 @@ tryIOs actions = do
     Right result -> pure result
 
 tryIO ::
-  IO result ->
-  IO (Either Exceptions result) ->
-  IO (Either Exceptions result)
+  MonadCatch m =>
+  m result ->
+  m (Either Exceptions result) ->
+  m (Either Exceptions result)
 tryIO action acc = do
   eResult :: Either SomeException result <- try action
   case eResult of

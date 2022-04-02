@@ -38,7 +38,7 @@ import Text.Megaparsec.Char qualified as MPC
 -- | NmCli query for 'NetInterfaces'.
 --
 -- @since 0.1.0.0
-netInterfaceShellApp :: (Throws CmdError, Throws NmCliError) => IO NetInterfaces
+netInterfaceShellApp :: (MonadIO m, Throws CmdError, Throws NmCliError) => m NetInterfaces
 netInterfaceShellApp =
   ShellApp.runSimple $
     MkSimpleShell
@@ -50,7 +50,7 @@ netInterfaceShellApp =
 -- current system.
 --
 -- @since 0.1.0.0
-supported :: IO Bool
+supported :: MonadIO m => m Bool
 supported = U.exeSupported "nmcli"
 
 type MParser = Parsec Void Text

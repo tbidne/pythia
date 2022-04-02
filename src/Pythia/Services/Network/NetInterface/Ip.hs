@@ -37,7 +37,7 @@ import Text.Megaparsec.Char qualified as MPC
 -- | Ip query for 'NetInterface'.
 --
 -- @since 0.1.0.0
-netInterfaceShellApp :: (Throws CmdError, Throws IpError) => IO NetInterfaces
+netInterfaceShellApp :: (MonadIO m, Throws CmdError, Throws IpError) => m NetInterfaces
 netInterfaceShellApp =
   ShellApp.runSimple $
     MkSimpleShell
@@ -49,7 +49,7 @@ netInterfaceShellApp =
 -- current system.
 --
 -- @since 0.1.0.0
-supported :: IO Bool
+supported :: MonadIO m => m Bool
 supported = U.exeSupported "ip"
 
 type MParser = Parsec Void Text

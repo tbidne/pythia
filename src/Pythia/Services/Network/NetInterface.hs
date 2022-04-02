@@ -50,25 +50,29 @@ import Pythia.ShellApp qualified as ShellApp
 --
 -- @since 0.1.0.0
 queryNetInterfaces ::
-  ( Throws CmdError,
+  ( MonadCatch m,
+    MonadIO m,
+    Throws CmdError,
     Throws Exceptions,
     Throws IpError,
     Throws NmCliError
   ) =>
-  IO NetInterfaces
+  m NetInterfaces
 queryNetInterfaces = queryNetInterfacesConfig mempty
 
 -- | Queries for network information based on the configuration.
 --
 -- @since 0.1.0.0
 queryNetInterfacesConfig ::
-  ( Throws CmdError,
+  ( MonadCatch m,
+    MonadIO m,
+    Throws CmdError,
     Throws Exceptions,
     Throws IpError,
     Throws NmCliError
   ) =>
   NetInterfaceConfig ->
-  IO NetInterfaces
+  m NetInterfaces
 queryNetInterfacesConfig config = do
   case config ^. #interfaceApp of
     Many -> ShellApp.tryAppActions allApps
@@ -83,13 +87,14 @@ queryNetInterfacesConfig config = do
     device = config ^. #interfaceDevice
 
 queryNetInterfacesDeviceApp ::
-  ( Throws CmdError,
+  ( MonadIO m,
+    Throws CmdError,
     Throws IpError,
     Throws NmCliError
   ) =>
   Maybe Device ->
   NetInterfaceApp ->
-  IO NetInterfaces
+  m NetInterfaces
 queryNetInterfacesDeviceApp Nothing app = toSingleShellApp app
 queryNetInterfacesDeviceApp (Just device) app =
   filterDevice device <$> toSingleShellApp app
@@ -100,12 +105,13 @@ filterDevice device (MkNetInterfaces ifs) =
     filter ((== device) . view #idevice) ifs
 
 toSingleShellApp ::
-  ( Throws CmdError,
+  ( MonadIO m,
+    Throws CmdError,
     Throws IpError,
     Throws NmCliError
   ) =>
   NetInterfaceApp ->
-  IO NetInterfaces
+  m NetInterfaces
 toSingleShellApp NetInterfaceNmCli = NmCli.netInterfaceShellApp
 toSingleShellApp NetInterfaceIp = Ip.netInterfaceShellApp
 
