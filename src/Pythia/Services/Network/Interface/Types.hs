@@ -26,13 +26,6 @@ import Pythia.Services.Network.Types (Device, Ipv4Address, Ipv6Address)
 import Pythia.Supremum (Supremum (..))
 
 -- | Determines how we should query the system for interface state information.
--- The custom option assumes the same output format as UPower, i.e., the
--- output contains lines like:
---
--- @
--- percentage: 20%
--- state: \<discharging|charging|fully-charged\>
--- @
 --
 -- @since 0.1.0.0
 data NetInterfaceApp
