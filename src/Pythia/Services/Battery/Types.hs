@@ -121,7 +121,14 @@ newtype BatteryPercentage = MkBatteryPercentage
   { -- | @since 0.1.0.0
     unBatteryPercentage :: LRInterval 0 100 Int
   }
-  deriving stock (Eq, Show)
+  deriving stock
+    ( -- | @since 0.1.0.0
+      Eq,
+      -- | @since 0.1.0.0
+      Ord,
+      -- | @since 0.1.0.0
+      Show
+    )
 
 -- | @since 0.1.0.0
 makeFieldLabelsNoPrefix ''BatteryPercentage
