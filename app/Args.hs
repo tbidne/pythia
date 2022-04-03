@@ -27,18 +27,18 @@ import Options.Applicative qualified as OApp
 import Options.Applicative.Help (Chunk (..))
 import Options.Applicative.Types (ArgPolicy (..))
 import Pythia qualified
-import Pythia.Data (RunApp (..))
+import Pythia.Data.RunApp (RunApp (..))
 import Pythia.Prelude
 import Pythia.Services.Battery (BatteryApp (..), BatteryConfig (..))
-import Pythia.Services.Network.GlobalIP.Types
+import Pythia.Services.GlobalIP.Types
   ( GlobalIpApp (..),
     GlobalIpConfig (..),
     GlobalIpRequest (..),
     GlobalIpSources (..),
     UrlSource (..),
   )
-import Pythia.Services.Network.NetInterface (NetInterfaceApp (..), NetInterfaceConfig (..))
-import Pythia.Services.Network.Types (Device (..), IpType (..))
+import Pythia.Services.NetInterface (NetInterfaceApp (..), NetInterfaceConfig (..))
+import Pythia.Services.Types (Device (..), IpType (..))
 
 -- | Possible commands
 --

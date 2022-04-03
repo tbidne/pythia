@@ -19,9 +19,9 @@ files =
     "src/Pythia/Services/Battery/Acpi.hs",
     "src/Pythia/Services/Battery/Types.hs",
     "src/Pythia/Services/Battery/UPower.hs",
-    "src/Pythia/Services/Network/GlobalIP/Types.hs",
-    "src/Pythia/Services/Network/NetInterface/Types.hs",
-    "src/Pythia/Data.hs",
+    "src/Pythia/Services/GlobalIP/Types.hs",
+    "src/Pythia/Services/NetInterface/Types.hs",
+    "src/Pythia/Data/RunApp.hs",
     "src/Pythia/Printer.hs",
     "src/Pythia/Utils.hs"
   ]

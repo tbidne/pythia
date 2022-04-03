@@ -1,28 +1,25 @@
-module Unit.Pythia.Services.Network.NetInterface.Ip
+module Unit.Pythia.Services.NetInterface.Ip
   ( tests,
   )
 where
 
--- import Pythia.Data (QueryError (..))
--- import Pythia.Services.Network.NetInterface.Ip qualified as Ip
-
 import Data.Set ((\\))
 import Data.Set qualified as Set
 import Data.Text qualified as T
-import Pythia.Services.Network.NetInterface.Ip qualified as Ip
-import Pythia.Services.Network.NetInterface.Types
+import Pythia.Services.NetInterface.Ip qualified as Ip
+import Pythia.Services.NetInterface.Types
   ( NetInterface (..),
     NetInterfaceState (..),
     NetInterfaces (..),
   )
-import Pythia.Services.Network.Types (unsafeIpv4Address, unsafeIpv6Address)
+import Pythia.Services.Types (unsafeIpv4Address, unsafeIpv6Address)
 import Test.Tasty.HUnit qualified as THU
 import Unit.Prelude
 
 tests :: TestTree
 tests =
   testGroup
-    "Pythia.Services.Network.NetInterface.Ip"
+    "Pythia.Services.NetInterface.Ip"
     [ parseAll
     ]
 

@@ -5,13 +5,21 @@
 module Pythia
   ( -- * Services
     module Pythia.Services.Battery,
-    module Pythia.Services.Network,
+    module Pythia.Services.GlobalIP,
+    module Pythia.Services.NetInterface,
+
+    -- * Data
+    module Pythia.Data.Command,
+    module Pythia.Data.RunApp,
 
     -- * Printing
     module Pythia.Printer,
   )
 where
 
+import Pythia.Data.Command
+import Pythia.Data.RunApp
 import Pythia.Printer
 import Pythia.Services.Battery
-import Pythia.Services.Network
+import Pythia.Services.GlobalIP
+import Pythia.Services.NetInterface

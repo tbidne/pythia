@@ -7,8 +7,8 @@ import Test.Tasty qualified as Tasty
 import Unit.Prelude
 import Unit.Pythia.Services.Battery.Acpi qualified as Battery.Acpi
 import Unit.Pythia.Services.Battery.UPower qualified as Battery.UPower
-import Unit.Pythia.Services.Network.NetInterface.Ip qualified as NetInterface.Ip
-import Unit.Pythia.Services.Network.NetInterface.NmCli qualified as NetInterface.NmCli
+import Unit.Pythia.Services.NetInterface.Ip qualified as NetInterface.Ip
+import Unit.Pythia.Services.NetInterface.NmCli qualified as NetInterface.NmCli
 
 -- | Runs unit tests.
 --

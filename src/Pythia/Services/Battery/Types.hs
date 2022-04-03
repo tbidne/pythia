@@ -19,7 +19,7 @@ where
 
 import Numeric.Data.Interval (LRInterval)
 import Numeric.Data.Interval qualified as Interval
-import Pythia.Data (RunApp)
+import Pythia.Data.RunApp (RunApp)
 import Pythia.Prelude
 import Pythia.Printer (PrettyPrinter (..))
 import Pythia.Supremum (Supremum (..))
@@ -126,6 +126,7 @@ newtype BatteryPercentage = MkBatteryPercentage
 -- | @since 0.1.0.0
 makeFieldLabelsNoPrefix ''BatteryPercentage
 
+-- | @since 0.1.0.0
 instance PrettyPrinter BatteryPercentage where
   pretty (MkBatteryPercentage p) = show (Interval.unLRInterval p) <> "%"
 

@@ -101,7 +101,7 @@ takeLineLabel desc = MP.takeWhileP desc (/= '\n') <* MPC.eol
 takeLine_ :: (Ord e, Stream s, Token s ~ Char) => Parsec e s ()
 takeLine_ = MP.takeWhileP Nothing (/= '\n') *> void MPC.eol
 
--- | Maps 'Left' to 'False, 'Right' to 'True'.
+-- | Maps 'Left' to 'False', 'Right' to 'True'.
 --
 -- ==== __Examples__
 -- >>> eitherToBool (Left ())

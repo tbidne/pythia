@@ -23,7 +23,7 @@ module Pythia.Services.Battery
   )
 where
 
-import Pythia.Data (RunApp (..))
+import Pythia.Data.RunApp (RunApp (..))
 import Pythia.Prelude
 import Pythia.Services.Battery.Acpi (AcpiError (..))
 import Pythia.Services.Battery.Acpi qualified as Acpi

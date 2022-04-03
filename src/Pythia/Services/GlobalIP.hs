@@ -4,7 +4,7 @@
 -- IP addresses.
 --
 -- @since 0.1.0.0
-module Pythia.Services.Network.GlobalIP
+module Pythia.Services.GlobalIP
   ( -- * Queries
     queryGlobalIp,
     queryGlobalIpConfig,
@@ -27,9 +27,10 @@ where
 import Data.Char qualified as Char
 import Data.Text qualified as T
 import Optics.Core (Iso')
-import Pythia.Data (Command, RunApp (..))
+import Pythia.Data.Command (Command)
+import Pythia.Data.RunApp (RunApp (..))
 import Pythia.Prelude
-import Pythia.Services.Network.GlobalIP.Types
+import Pythia.Services.GlobalIP.Types
   ( GlobalIpAddresses (..),
     GlobalIpApp (..),
     GlobalIpConfig (..),
@@ -37,8 +38,8 @@ import Pythia.Services.Network.GlobalIP.Types
     GlobalIpSources (..),
     UrlSource (..),
   )
-import Pythia.Services.Network.GlobalIP.Types qualified as GIpTypes
-import Pythia.Services.Network.Types (IpType (..), Ipv4Address (..), Ipv6Address (..))
+import Pythia.Services.GlobalIP.Types qualified as GIpTypes
+import Pythia.Services.Types (IpType (..), Ipv4Address (..), Ipv6Address (..))
 import Pythia.ShellApp (AppAction (..), CmdError (..), Exceptions (..), NoActionsRunError)
 import Pythia.ShellApp qualified as ShellApp
 import Pythia.Utils qualified as U

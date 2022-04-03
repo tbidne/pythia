@@ -31,7 +31,7 @@ import Data.ByteString.Lazy qualified as LBS
 import Data.Text qualified as T
 import Data.Text.Encoding qualified as TEnc
 import GHC.IO.Exception (ExitCode (..))
-import Pythia.Data (Command (..))
+import Pythia.Data.Command (Command (..))
 import Pythia.Prelude
 import Pythia.Printer (PrettyPrinter (..))
 import Pythia.Printer qualified as Printer
@@ -88,7 +88,7 @@ newtype CmdError = MkCmdErr String
 
 -- | Runs a 'Command' and returns either the text result or error encountered.
 -- This is used by 'SimpleShell' to run its command before the result is
--- parsed. This function is exported as it can be for convenience.
+-- parsed. This function is exported for convenience.
 --
 -- @since 0.1.0.0
 runCommand :: (MonadIO m, Throws CmdError) => Command -> m Text
@@ -123,8 +123,11 @@ shellErr exitCode cmd err = err'
 --
 -- @since 0.1.0.0
 data AppAction m r = MkAppAction
-  { action :: m r,
+  { -- | @since 0.1.0.0
+    action :: m r,
+    -- | @since 0.1.0.0
     supported :: m Bool,
+    -- | @since 0.1.0.0
     name :: String
   }
 
@@ -154,13 +157,22 @@ tryAppActions apps = do
 --
 -- @since 0.1.0.0
 newtype NotSupportedError = MkNotSupportedErr String
-  deriving stock (Show)
-  deriving anyclass (Exception)
+  deriving stock
+    ( -- | @since 0.1.0.0
+      Show
+    )
+  deriving anyclass
+    ( -- | @since 0.1.0.0
+      Exception
+    )
 
 -- | Collects multiple errors.
 --
 -- @since 0.1.0.0
-newtype Exceptions = MkExceptions {unExceptions :: [SomeException]}
+newtype Exceptions = MkExceptions
+  { -- | @since 0.1.0.0
+    unExceptions :: [SomeException]
+  }
 
 -- | Using pretty so that it shows in exception output.
 --
@@ -202,8 +214,14 @@ tryAppAction appAction acc = do
 --
 -- @since 0.1.0.0
 data NoActionsRunError = MkNoActionsRunErr
-  deriving stock (Show)
-  deriving anyclass (Exception)
+  deriving stock
+    ( -- | @since 0.1.0.0
+      Show
+    )
+  deriving anyclass
+    ( -- | @since 0.1.0.0
+      Exception
+    )
 
 -- | Generalized 'tryAppActions' to any 'IO'. Has the same semantics
 -- (i.e. returns the first success or all errs if none succeeds) without

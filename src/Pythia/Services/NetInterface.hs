@@ -1,7 +1,7 @@
 -- | This module exports interface related services.
 --
 -- @since 0.1.0.0
-module Pythia.Services.Network.NetInterface
+module Pythia.Services.NetInterface
   ( -- * Queries
     queryNetInterfaces,
     queryNetInterfacesConfig,
@@ -26,13 +26,13 @@ module Pythia.Services.Network.NetInterface
   )
 where
 
-import Pythia.Data (RunApp (..))
+import Pythia.Data.RunApp (RunApp (..))
 import Pythia.Prelude
-import Pythia.Services.Network.NetInterface.Ip (IpError)
-import Pythia.Services.Network.NetInterface.Ip qualified as Ip
-import Pythia.Services.Network.NetInterface.NmCli (NmCliError)
-import Pythia.Services.Network.NetInterface.NmCli qualified as NmCli
-import Pythia.Services.Network.NetInterface.Types
+import Pythia.Services.NetInterface.Ip (IpError)
+import Pythia.Services.NetInterface.Ip qualified as Ip
+import Pythia.Services.NetInterface.NmCli (NmCliError)
+import Pythia.Services.NetInterface.NmCli qualified as NmCli
+import Pythia.Services.NetInterface.Types
   ( NetInterface (..),
     NetInterfaceApp (..),
     NetInterfaceConfig (..),
@@ -40,7 +40,7 @@ import Pythia.Services.Network.NetInterface.Types
     NetInterfaceType (..),
     NetInterfaces (..),
   )
-import Pythia.Services.Network.Types (Device (..), Ipv4Address (..), Ipv6Address (..))
+import Pythia.Services.Types (Device (..), Ipv4Address (..), Ipv6Address (..))
 import Pythia.ShellApp (AppAction (..), CmdError (..), Exceptions (..), NoActionsRunError)
 import Pythia.ShellApp qualified as ShellApp
 

@@ -1,4 +1,4 @@
-module Unit.Pythia.Services.Network.NetInterface.NmCli
+module Unit.Pythia.Services.NetInterface.NmCli
   ( tests,
   )
 where
@@ -6,19 +6,19 @@ where
 import Data.Set ((\\))
 import Data.Set qualified as Set
 import Data.Text qualified as T
-import Pythia.Services.Network.NetInterface.NmCli qualified as NmCli
-import Pythia.Services.Network.NetInterface.Types
+import Pythia.Services.NetInterface.NmCli qualified as NmCli
+import Pythia.Services.NetInterface.Types
   ( NetInterface (..),
     NetInterfaceState (..),
     NetInterfaceType (..),
     NetInterfaces (..),
   )
-import Pythia.Services.Network.Types (unsafeIpv4Address, unsafeIpv6Address)
+import Pythia.Services.Types (unsafeIpv4Address, unsafeIpv6Address)
 import Test.Tasty.HUnit qualified as THU
 import Unit.Prelude
 
 tests :: TestTree
-tests = testGroup "Pythia.Services.Network.NetInterface.NmCli" [parseAll]
+tests = testGroup "Pythia.Services.NetInterface.NmCli" [parseAll]
 
 parseAll :: TestTree
 parseAll = testCase "Parses all interfaces" $ do

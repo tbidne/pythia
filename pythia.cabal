@@ -68,7 +68,8 @@ library
   import:           common-exts
   exposed-modules:
     Pythia
-    Pythia.Data
+    Pythia.Data.Command
+    Pythia.Data.RunApp
     Pythia.Prelude
     Pythia.Printer
     Pythia.Services.Battery
@@ -76,14 +77,13 @@ library
     Pythia.Services.Battery.SysFs
     Pythia.Services.Battery.Types
     Pythia.Services.Battery.UPower
-    Pythia.Services.Network
-    Pythia.Services.Network.GlobalIP
-    Pythia.Services.Network.GlobalIP.Types
-    Pythia.Services.Network.NetInterface
-    Pythia.Services.Network.NetInterface.Ip
-    Pythia.Services.Network.NetInterface.NmCli
-    Pythia.Services.Network.NetInterface.Types
-    Pythia.Services.Network.Types
+    Pythia.Services.GlobalIP
+    Pythia.Services.GlobalIP.Types
+    Pythia.Services.NetInterface
+    Pythia.Services.NetInterface.Ip
+    Pythia.Services.NetInterface.NmCli
+    Pythia.Services.NetInterface.Types
+    Pythia.Services.Types
     Pythia.ShellApp
     Pythia.Supremum
     Pythia.Utils
@@ -132,8 +132,8 @@ test-suite unit
     Unit.Prelude
     Unit.Pythia.Services.Battery.Acpi
     Unit.Pythia.Services.Battery.UPower
-    Unit.Pythia.Services.Network.NetInterface.Ip
-    Unit.Pythia.Services.Network.NetInterface.NmCli
+    Unit.Pythia.Services.NetInterface.Ip
+    Unit.Pythia.Services.NetInterface.NmCli
 
   build-depends:
     , base

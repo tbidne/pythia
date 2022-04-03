@@ -4,7 +4,7 @@
 -- information using ip utility.
 --
 -- @since 0.1.0.0
-module Pythia.Services.Network.NetInterface.Ip
+module Pythia.Services.NetInterface.Ip
   ( -- * Query
     netInterfaceShellApp,
     supported,
@@ -19,12 +19,12 @@ import Data.Char qualified as Char
 import Data.Set qualified as Set
 import Data.Text qualified as T
 import Pythia.Prelude
-import Pythia.Services.Network.NetInterface.Types
+import Pythia.Services.NetInterface.Types
   ( NetInterface (..),
     NetInterfaceState (..),
     NetInterfaces (..),
   )
-import Pythia.Services.Network.Types (Device (..), Ipv4Address (..), Ipv6Address (..))
+import Pythia.Services.Types (Device (..), Ipv4Address (..), Ipv6Address (..))
 import Pythia.ShellApp (CmdError (..), SimpleShell (..))
 import Pythia.ShellApp qualified as ShellApp
 import Pythia.Utils qualified as U

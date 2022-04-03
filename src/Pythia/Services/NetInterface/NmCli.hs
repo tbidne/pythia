@@ -4,7 +4,7 @@
 -- information using nmcli.
 --
 -- @since 0.1.0.0
-module Pythia.Services.Network.NetInterface.NmCli
+module Pythia.Services.NetInterface.NmCli
   ( -- * Query
     netInterfaceShellApp,
     supported,
@@ -19,13 +19,13 @@ import Data.Char qualified as Char
 import Data.Set qualified as Set
 import Data.Text qualified as T
 import Pythia.Prelude
-import Pythia.Services.Network.NetInterface.Types
+import Pythia.Services.NetInterface.Types
   ( NetInterface (..),
     NetInterfaceState (..),
     NetInterfaceType (..),
     NetInterfaces (..),
   )
-import Pythia.Services.Network.Types (Device (..), Ipv4Address (..), Ipv6Address (..))
+import Pythia.Services.Types (Device (..), Ipv4Address (..), Ipv6Address (..))
 import Pythia.ShellApp (CmdError (..), SimpleShell (..))
 import Pythia.ShellApp qualified as ShellApp
 import Pythia.Utils qualified as U
@@ -59,7 +59,7 @@ type MParser = Parsec Void Text
 --
 -- @since 0.1.0.0
 parseInterfaces :: Text -> Either NmCliError NetInterfaces
-parseInterfaces txt = case MP.parse mparseInterfaces "Pythia.Services.Network.NetInterface.NmCli" txt of
+parseInterfaces txt = case MP.parse mparseInterfaces "Pythia.Services.NetInterface.NmCli" txt of
   Left ex ->
     let prettyErr = MP.errorBundlePretty ex
      in Left $ NmCliParseErr prettyErr

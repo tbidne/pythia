@@ -4,7 +4,7 @@
 -- | Provides types to be used for querying the global IP addresses.
 --
 -- @since 0.1.0.0
-module Pythia.Services.Network.GlobalIP.Types
+module Pythia.Services.GlobalIP.Types
   ( -- * Configuration
     GlobalIpConfig (..),
     GlobalIpApp (..),
@@ -22,11 +22,12 @@ where
 
 import Optics.Core (Iso)
 import Optics.Core qualified as O
-import Pythia.Data (Command (..), RunApp (..))
+import Pythia.Data.Command (Command (..))
+import Pythia.Data.RunApp (RunApp (..))
 import Pythia.Prelude
 import Pythia.Printer (PrettyPrinter (..))
 import Pythia.Printer qualified as Pretty
-import Pythia.Services.Network.Types (IpType (..), Ipv4Address (..), Ipv6Address (..))
+import Pythia.Services.Types (IpType (..), Ipv4Address (..), Ipv6Address (..))
 import Pythia.Supremum (Supremum (..))
 
 -- | This type determines what program we use to lookup the ip address.

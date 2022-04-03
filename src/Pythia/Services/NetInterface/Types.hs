@@ -5,7 +5,7 @@
 -- | Provides network interface types.
 --
 -- @since 0.1.0.0
-module Pythia.Services.Network.NetInterface.Types
+module Pythia.Services.NetInterface.Types
   ( -- * Configuration
     NetInterfaceApp (..),
     NetInterfaceConfig (..),
@@ -18,11 +18,11 @@ module Pythia.Services.Network.NetInterface.Types
   )
 where
 
-import Pythia.Data (RunApp)
+import Pythia.Data.RunApp (RunApp)
 import Pythia.Prelude
 import Pythia.Printer (PrettyPrinter (..))
 import Pythia.Printer qualified as Printer
-import Pythia.Services.Network.Types (Device, Ipv4Address, Ipv6Address)
+import Pythia.Services.Types (Device, Ipv4Address, Ipv6Address)
 import Pythia.Supremum (Supremum (..))
 
 -- | Determines how we should query the system for interface state information.

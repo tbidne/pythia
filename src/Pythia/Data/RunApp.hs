@@ -1,40 +1,15 @@
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE UndecidableInstances #-}
 
--- | This module provides common data types.
+-- | This module provides the 'RunApp' type.
 --
 -- @since 0.1.0.0
-module Pythia.Data
-  ( Command (..),
-    RunApp (..),
+module Pythia.Data.RunApp
+  ( RunApp (..),
   )
 where
 
 import Pythia.Prelude
-
--- | Newtype wrapper over a shell command.
---
--- @since 0.1.0.0
-newtype Command = MkCommand
-  { -- | @since 0.1.0.0
-    unCommand :: Text
-  }
-  deriving
-    ( -- | @since 0.1.0.0
-      Eq,
-      -- | @since 0.1.0.0
-      Ord,
-      -- | @since 0.1.0.0
-      Show
-    )
-  deriving
-    ( -- | @since 0.1.0.0
-      IsString
-    )
-    via Text
-
--- | @since 0.1.0.0
-makeFieldLabelsNoPrefix ''Command
 
 -- | Used in conjunction for our services for indicating how we want to run
 -- queries. 'Many' is the identity for its monoid instance.
