@@ -17,6 +17,7 @@ module Pythia.Services.Battery
 
     -- ** Errors
     uncheckBattery,
+    rethrowBattery,
     AcpiError (..),
     UPowerError (..),
     SysFsError (..),
@@ -40,6 +41,7 @@ import Pythia.Services.Battery.UPower (UPowerError (..))
 import Pythia.Services.Battery.UPower qualified as UPower
 import Pythia.ShellApp (AppAction (..), CmdError (..), Exceptions (..), NoActionsRunError (..))
 import Pythia.ShellApp qualified as ShellApp
+import Pythia.Utils qualified as U
 
 -- | Attempts to query for battery information by detecting supported
 -- apps. Tries, in the following order: ['BatterySysFs', 'BatteryAcpi',
@@ -112,4 +114,23 @@ uncheckBattery ::
     m a
   ) ->
   m a
-uncheckBattery = uncheck6 @AcpiError @CmdError @Exceptions @NoActionsRunError @SysFsError @UPowerError
+uncheckBattery = U.uncheck6 @AcpiError @CmdError @Exceptions @NoActionsRunError @SysFsError @UPowerError
+
+-- | Lifts all battery errors into the current monad, given a suitably
+-- polymorphic function.
+--
+-- @since 0.1.0.0
+rethrowBattery ::
+  MonadCatch m =>
+  (forall e b. Either e b -> m b) ->
+  ( ( Throws AcpiError,
+      Throws CmdError,
+      Throws Exceptions,
+      Throws NoActionsRunError,
+      Throws SysFsError,
+      Throws UPowerError
+    ) =>
+    m a
+  ) ->
+  m a
+rethrowBattery = U.rethrow6 @AcpiError @CmdError @Exceptions @NoActionsRunError @SysFsError @UPowerError

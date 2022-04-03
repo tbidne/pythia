@@ -15,12 +15,15 @@ module Pythia.Services.GlobalIP
     Ipv6Address (..),
 
     -- ** Configuration
-    uncheckGlobalIp,
     GlobalIpConfig (..),
     GlobalIpApp (..),
     GlobalIpRequest (..),
     GlobalIpSources (..),
     UrlSource (..),
+
+    -- ** Errors
+    uncheckGlobalIp,
+    rethrowGlobalIp,
   )
 where
 
@@ -272,4 +275,20 @@ uncheckGlobalIp ::
     IO a
   ) ->
   IO a
-uncheckGlobalIp = uncheck3 @CmdError @Exceptions @NoActionsRunError
+uncheckGlobalIp = U.uncheck3 @CmdError @Exceptions @NoActionsRunError
+
+-- | Lifts all global ip errors into the current monad, given a suitably
+-- polymorphic function.
+--
+-- @since 0.1.0.0
+rethrowGlobalIp ::
+  MonadCatch m =>
+  (forall e b. Either e b -> m b) ->
+  ( ( Throws CmdError,
+      Throws Exceptions,
+      Throws NoActionsRunError
+    ) =>
+    m a
+  ) ->
+  m a
+rethrowGlobalIp = U.rethrow3 @CmdError @Exceptions @NoActionsRunError

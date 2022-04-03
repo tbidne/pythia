@@ -21,6 +21,7 @@ module Pythia.Services.NetInterface
 
     -- ** Errors
     uncheckNetInterface,
+    rethrowNetInterface,
     IpError (..),
     NmCliError (..),
   )
@@ -43,6 +44,7 @@ import Pythia.Services.NetInterface.Types
 import Pythia.Services.Types (Device (..), Ipv4Address (..), Ipv6Address (..))
 import Pythia.ShellApp (AppAction (..), CmdError (..), Exceptions (..), NoActionsRunError)
 import Pythia.ShellApp qualified as ShellApp
+import Pythia.Utils qualified as U
 
 -- | Attempts to query for interface information by detecting supported
 -- apps. Tries, in the following order: ['NetInterfaceNmCli',
@@ -130,4 +132,22 @@ uncheckNetInterface ::
     IO a
   ) ->
   IO a
-uncheckNetInterface = uncheck5 @CmdError @IpError @Exceptions @NmCliError @NoActionsRunError
+uncheckNetInterface = U.uncheck5 @CmdError @IpError @Exceptions @NmCliError @NoActionsRunError
+
+-- | Lifts all network interface errors into the current monad, given a suitably
+-- polymorphic function.
+--
+-- @since 0.1.0.0
+rethrowNetInterface ::
+  MonadCatch m =>
+  (forall e b. Either e b -> m b) ->
+  ( ( Throws CmdError,
+      Throws IpError,
+      Throws Exceptions,
+      Throws NmCliError,
+      Throws NoActionsRunError
+    ) =>
+    m a
+  ) ->
+  m a
+rethrowNetInterface = U.rethrow5 @CmdError @IpError @Exceptions @NmCliError @NoActionsRunError
