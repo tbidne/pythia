@@ -19,6 +19,7 @@ module Pythia.ShellApp
     -- * Exceptions
     CmdError (..),
     NotSupportedError (..),
+    NoActionsRunError (..),
     Exceptions (..),
 
     -- * Utilities
@@ -32,6 +33,8 @@ import Data.Text.Encoding qualified as TEnc
 import GHC.IO.Exception (ExitCode (..))
 import Pythia.Data (Command (..))
 import Pythia.Prelude
+import Pythia.Printer (PrettyPrinter (..))
+import Pythia.Printer qualified as Printer
 import System.Process.Typed qualified as TP
 
 -- | Type for running a "simple" shell command given by 'Command'.
@@ -105,12 +108,11 @@ shellErr exitCode cmd err = err'
   where
     err' =
       T.concat
-        [ "Error running command `",
+        [ "Command: ",
           cmd,
-          "`. Received exit code ",
+          ". Exit code: ",
           T.pack $ show exitCode,
-          " and message: ",
-          -- err'
+          ". Message: ",
           decodeUtf8Lenient err
         ]
 
@@ -133,7 +135,15 @@ makeFieldLabelsNoPrefix ''AppAction
 -- or all errors, if there are no successes.
 --
 -- @since 0.1.0.0
-tryAppActions :: (MonadCatch m, MonadIO m, Throws Exceptions) => [AppAction m result] -> m result
+tryAppActions ::
+  ( MonadCatch m,
+    MonadIO m,
+    Throws Exceptions,
+    Throws NoActionsRunError
+  ) =>
+  [AppAction m result] ->
+  m result
+tryAppActions [] = throw MkNoActionsRunErr
 tryAppActions apps = do
   eResult <- foldr tryAppAction (pure (Left mempty)) apps
   case eResult of
@@ -151,8 +161,20 @@ newtype NotSupportedError = MkNotSupportedErr String
 --
 -- @since 0.1.0.0
 newtype Exceptions = MkExceptions {unExceptions :: [SomeException]}
-  deriving stock (Show)
-  deriving anyclass (Exception)
+
+-- | Using pretty so that it shows in exception output.
+--
+-- @since 0.1.0.0
+instance Show Exceptions where
+  show = pretty
+
+-- | @since 0.1.0.0
+instance PrettyPrinter Exceptions where
+  pretty = Printer.joinNewlines . fmap displayException . unExceptions
+
+-- | @since 0.1.0.0
+instance Exception Exceptions where
+  displayException = pretty
 
 -- | @since 0.1.0.0
 instance Semigroup Exceptions where
@@ -174,14 +196,22 @@ tryAppAction appAction acc = do
     else first (appendEx appUnsupportedEx) <$> acc
   where
     appendEx e (MkExceptions es) = MkExceptions (e : es)
-    appUnsupportedEx = toException $ MkNotSupportedErr $ show $ appAction ^. #name
+    appUnsupportedEx = toException $ MkNotSupportedErr $ appAction ^. #name
+
+-- | Error for when no actions are run.
+--
+-- @since 0.1.0.0
+data NoActionsRunError = MkNoActionsRunErr
+  deriving stock (Show)
+  deriving anyclass (Exception)
 
 -- | Generalized 'tryAppActions' to any 'IO'. Has the same semantics
 -- (i.e. returns the first success or all errs if none succeeds) without
 -- checking for "support".
 --
 -- @since 0.1.0.0
-tryIOs :: (MonadCatch m, Throws Exceptions) => [m result] -> m result
+tryIOs :: (MonadCatch m, Throws Exceptions, Throws NoActionsRunError) => [m result] -> m result
+tryIOs [] = throw MkNoActionsRunErr
 tryIOs actions = do
   eResult <- foldr tryIO (pure (Left mempty)) actions
   case eResult of

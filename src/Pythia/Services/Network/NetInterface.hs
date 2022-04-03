@@ -41,7 +41,7 @@ import Pythia.Services.Network.NetInterface.Types
     NetInterfaces (..),
   )
 import Pythia.Services.Network.Types (Device (..), Ipv4Address (..), Ipv6Address (..))
-import Pythia.ShellApp (AppAction (..), CmdError (..), Exceptions (..))
+import Pythia.ShellApp (AppAction (..), CmdError (..), Exceptions (..), NoActionsRunError)
 import Pythia.ShellApp qualified as ShellApp
 
 -- | Attempts to query for interface information by detecting supported
@@ -55,7 +55,8 @@ queryNetInterfaces ::
     Throws CmdError,
     Throws Exceptions,
     Throws IpError,
-    Throws NmCliError
+    Throws NmCliError,
+    Throws NoActionsRunError
   ) =>
   m NetInterfaces
 queryNetInterfaces = queryNetInterfacesConfig mempty
@@ -69,7 +70,8 @@ queryNetInterfacesConfig ::
     Throws CmdError,
     Throws Exceptions,
     Throws IpError,
-    Throws NmCliError
+    Throws NmCliError,
+    Throws NoActionsRunError
   ) =>
   NetInterfaceConfig ->
   m NetInterfaces
@@ -122,9 +124,10 @@ uncheckNetInterface ::
   ( ( Throws CmdError,
       Throws IpError,
       Throws Exceptions,
-      Throws NmCliError
+      Throws NmCliError,
+      Throws NoActionsRunError
     ) =>
     IO a
   ) ->
   IO a
-uncheckNetInterface = uncheck4 @CmdError @IpError @Exceptions @NmCliError
+uncheckNetInterface = uncheck5 @CmdError @IpError @Exceptions @NmCliError @NoActionsRunError

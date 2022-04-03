@@ -39,7 +39,7 @@ import Pythia.Services.Network.GlobalIP.Types
   )
 import Pythia.Services.Network.GlobalIP.Types qualified as GIpTypes
 import Pythia.Services.Network.Types (IpType (..), Ipv4Address (..), Ipv6Address (..))
-import Pythia.ShellApp (AppAction (..), CmdError (..), Exceptions (..))
+import Pythia.ShellApp (AppAction (..), CmdError (..), Exceptions (..), NoActionsRunError)
 import Pythia.ShellApp qualified as ShellApp
 import Pythia.Utils qualified as U
 import Refined (Predicate, Refined)
@@ -53,7 +53,8 @@ queryGlobalIp ::
   ( MonadCatch m,
     MonadIO m,
     Throws CmdError,
-    Throws Exceptions
+    Throws Exceptions,
+    Throws NoActionsRunError
   ) =>
   m GlobalIpAddresses
 queryGlobalIp = queryGlobalIpConfig mempty
@@ -65,7 +66,8 @@ queryGlobalIpConfig ::
   ( MonadCatch m,
     MonadIO m,
     Throws CmdError,
-    Throws Exceptions
+    Throws Exceptions,
+    Throws NoActionsRunError
   ) =>
   GlobalIpConfig ->
   m GlobalIpAddresses
@@ -86,7 +88,8 @@ queryGlobalIpConfig config =
 toSingleShellApp ::
   ( MonadIO m,
     Throws CmdError,
-    Throws Exceptions
+    Throws Exceptions,
+    Throws NoActionsRunError
   ) =>
   GlobalIpRequest ->
   GlobalIpSources ->
@@ -106,7 +109,8 @@ digSupported = U.exeSupported "dig"
 
 getBoth ::
   ( Throws CmdError,
-    Throws Exceptions
+    Throws Exceptions,
+    Throws NoActionsRunError
   ) =>
   GlobalIpApp ->
   [UrlSource 'Ipv4] ->
@@ -116,16 +120,19 @@ getBoth app ipv4Srcs ipv6Srcs = GIpBoth <$> getIpv4s' app ipv4Srcs <*> getIpv6s'
 
 getIpv4s ::
   ( Throws CmdError,
-    Throws Exceptions
+    Throws Exceptions,
+    Throws NoActionsRunError
   ) =>
   GlobalIpApp ->
   [UrlSource 'Ipv4] ->
   IO GlobalIpAddresses
-getIpv4s app srcs = GIpv4 <$> getIpv4s' app srcs
+getIpv4s app srcs = do
+  GIpv4 <$> getIpv4s' app srcs
 
 getIpv4s' ::
   ( Throws CmdError,
-    Throws Exceptions
+    Throws Exceptions,
+    Throws NoActionsRunError
   ) =>
   GlobalIpApp ->
   [UrlSource 'Ipv4] ->
@@ -138,14 +145,22 @@ getIpv4s' app extraSrcs = do
 
 getIpv6s ::
   ( Throws CmdError,
-    Throws Exceptions
+    Throws Exceptions,
+    Throws NoActionsRunError
   ) =>
   GlobalIpApp ->
   [UrlSource 'Ipv6] ->
   IO GlobalIpAddresses
 getIpv6s app srcs = GIpv6 <$> getIpv6s' app srcs
 
-getIpv6s' :: (Throws CmdError, Throws Exceptions) => GlobalIpApp -> [UrlSource 'Ipv6] -> IO Ipv6Address
+getIpv6s' ::
+  ( Throws CmdError,
+    Throws Exceptions,
+    Throws NoActionsRunError
+  ) =>
+  GlobalIpApp ->
+  [UrlSource 'Ipv6] ->
+  IO Ipv6Address
 getIpv6s' app extraSrcs = do
   let sources = case extraSrcs of
         [] -> ipv6Defaults app
@@ -188,17 +203,30 @@ digDefaults = MkGlobalIpSources ipv4s ipv6s
       ]
     ipv6s = []
 
-getIpv4 :: (Throws CmdError, Throws Exceptions) => [UrlSource 'Ipv4] -> IO Ipv4Address
+getIpv4 ::
+  ( Throws CmdError,
+    Throws Exceptions,
+    Throws NoActionsRunError
+  ) =>
+  [UrlSource 'Ipv4] ->
+  IO Ipv4Address
 getIpv4 = fmap MkIpv4Address . getIp GIpTypes.urlSourceCmdIso
 
-getIpv6 :: (Throws CmdError, Throws Exceptions) => [UrlSource 'Ipv6] -> IO Ipv6Address
+getIpv6 ::
+  ( Throws CmdError,
+    Throws Exceptions,
+    Throws NoActionsRunError
+  ) =>
+  [UrlSource 'Ipv6] ->
+  IO Ipv6Address
 getIpv6 = fmap MkIpv6Address . getIp GIpTypes.urlSourceCmdIso
 
 getIp ::
   forall p a.
   ( Predicate p Text,
     Throws CmdError,
-    Throws Exceptions
+    Throws Exceptions,
+    Throws NoActionsRunError
   ) =>
   Iso' a Command ->
   [a] ->
@@ -212,7 +240,7 @@ getIp iso cmds = ShellApp.tryIOs (fmap go cmds)
 trim :: Text -> Text
 trim = T.dropAround Char.isSpace
 
--- | Errors that can occur when reading sysfs.
+-- | Errors that can occur when trying to retrieve the global IP address.
 --
 -- @since 0.1.0.0
 data GlobalIpError
@@ -220,19 +248,7 @@ data GlobalIpError
     -- /sysfs/class/power_supply.
     --
     -- @since 0.1.0.0
-    SysFsDirErr
-  | -- | Error searching for <sysfs>/BAT{0-5}{0-1}.
-    --
-    -- @since 0.1.0.0
-    SysFsBatteryDirErr
-  | -- | Errors searching for files.
-    --
-    -- @since 0.1.0.0
-    SysFsFileNotFoundErr FilePath
-  | -- | Errors with the battery percentage format.
-    --
-    -- @since 0.1.0.0
-    SysFsBatteryFormatErr String
+    Ipv4Failed
   deriving stock
     ( -- | @since 0.1.0.0
       Eq,
@@ -249,9 +265,10 @@ data GlobalIpError
 -- @since 0.1.0.0
 uncheckGlobalIp ::
   ( ( Throws CmdError,
-      Throws Exceptions
+      Throws Exceptions,
+      Throws NoActionsRunError
     ) =>
     IO a
   ) ->
   IO a
-uncheckGlobalIp = uncheck2 @CmdError @Exceptions
+uncheckGlobalIp = uncheck3 @CmdError @Exceptions @NoActionsRunError

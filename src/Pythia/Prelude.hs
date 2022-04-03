@@ -11,6 +11,7 @@ module Pythia.Prelude
     uncheck3,
     uncheck4,
     uncheck5,
+    uncheck6,
 
     -- * Base
     module X,
@@ -90,3 +91,20 @@ uncheck4 x = uncheck (Proxy @e) $ uncheck3 @f @g @h x
 -- @since 0.1.0.0
 uncheck5 :: forall e f g h i a. ((Throws e, Throws f, Throws g, Throws h, Throws i) => a) -> a
 uncheck5 x = uncheck (Proxy @e) $ uncheck4 @f @g @h @i x
+
+-- | Uncheck 6 checked exceptions.
+--
+-- @since 0.1.0.0
+uncheck6 ::
+  forall e f g h i j a.
+  ( ( Throws e,
+      Throws f,
+      Throws g,
+      Throws h,
+      Throws i,
+      Throws j
+    ) =>
+    a
+  ) ->
+  a
+uncheck6 x = uncheck (Proxy @e) $ uncheck5 @f @g @h @i @j x

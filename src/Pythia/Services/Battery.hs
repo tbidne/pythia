@@ -38,7 +38,7 @@ import Pythia.Services.Battery.Types
   )
 import Pythia.Services.Battery.UPower (UPowerError (..))
 import Pythia.Services.Battery.UPower qualified as UPower
-import Pythia.ShellApp (AppAction (..), CmdError (..), Exceptions (..))
+import Pythia.ShellApp (AppAction (..), CmdError (..), Exceptions (..), NoActionsRunError (..))
 import Pythia.ShellApp qualified as ShellApp
 
 -- | Attempts to query for battery information by detecting supported
@@ -52,6 +52,7 @@ queryBattery ::
     Throws AcpiError,
     Throws CmdError,
     Throws Exceptions,
+    Throws NoActionsRunError,
     Throws SysFsError,
     Throws UPowerError
   ) =>
@@ -67,6 +68,7 @@ queryBatteryConfig ::
     Throws AcpiError,
     Throws CmdError,
     Throws Exceptions,
+    Throws NoActionsRunError,
     Throws SysFsError,
     Throws UPowerError
   ) =>
@@ -103,10 +105,11 @@ uncheckBattery ::
   ( ( Throws AcpiError,
       Throws CmdError,
       Throws Exceptions,
+      Throws NoActionsRunError,
       Throws SysFsError,
       Throws UPowerError
     ) =>
     m a
   ) ->
   m a
-uncheckBattery = uncheck5 @AcpiError @CmdError @Exceptions @SysFsError @UPowerError
+uncheckBattery = uncheck6 @AcpiError @CmdError @Exceptions @NoActionsRunError @SysFsError @UPowerError
