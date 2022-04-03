@@ -1,5 +1,3 @@
-{-# LANGUAGE TemplateHaskell #-}
-
 -- | This modules provides an executable for querying system information.
 --
 -- @since 0.1.0.0

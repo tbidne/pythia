@@ -156,8 +156,8 @@ parseBatteryField =
     readApp = do
       a <- OApp.str
       case a of
-        "percentage" -> pure $ BatteryFieldPercentage
-        "status" -> pure $ BatteryFieldStatus
+        "percentage" -> pure BatteryFieldPercentage
+        "status" -> pure BatteryFieldStatus
         _ -> OApp.readerAbort $ ErrorMsg $ "Unrecognized battery field: " <> T.unpack a
 
 parseNetInterface :: Parser PythiaCommand
@@ -183,9 +183,9 @@ parseNetInterfaceField =
     readApp = do
       a <- OApp.str
       case a of
-        "name" -> pure $ NetInterfaceFieldName
-        "ipv4" -> pure $ NetInterfaceFieldIpv4
-        "ipv6" -> pure $ NetInterfaceFieldIpv6
+        "name" -> pure NetInterfaceFieldName
+        "ipv4" -> pure NetInterfaceFieldIpv4
+        "ipv6" -> pure NetInterfaceFieldIpv6
         _ -> OApp.readerAbort $ ErrorMsg $ "Unrecognized network interface field: " <> T.unpack a
 
 netInterfaceAppOption :: Parser (RunApp NetInterfaceApp)
