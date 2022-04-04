@@ -68,6 +68,7 @@ library
   import:           common-exts
   exposed-modules:
     Pythia
+    Pythia.Control.Exception
     Pythia.Data.Command
     Pythia.Data.RunApp
     Pythia.Prelude

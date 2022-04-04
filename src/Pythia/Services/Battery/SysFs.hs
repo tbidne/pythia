@@ -1,5 +1,3 @@
-{-# LANGUAGE DeriveAnyClass #-}
-
 -- | This module provides functionality for retrieving battery information
 -- using SysFS.
 --
@@ -10,7 +8,7 @@ module Pythia.Services.Battery.SysFs
     supported,
 
     -- * Misc
-    SysFsError (..),
+    SysFsException (..),
   )
 where
 
@@ -21,6 +19,8 @@ import Pythia.Services.Battery.Types
   ( Battery (..),
     BatteryPercentage (..),
     BatteryStatus (..),
+    batteryExFromException,
+    batteryExToException,
   )
 import System.Directory qualified as Dir
 import System.FilePath ((</>))
@@ -29,7 +29,7 @@ import Text.Read qualified as TR
 -- | @/sys/class@ query for 'Battery'.
 --
 -- @since 0.1.0.0
-batteryQuery :: (MonadIO m, Throws SysFsError) => m Battery
+batteryQuery :: (MonadIO m, Throws SysFsException) => m Battery
 batteryQuery = liftIO queryBattery
 
 -- | Returns a boolean determining if this program is supported on the
@@ -46,12 +46,12 @@ batteryQuery = liftIO queryBattery
 -- @since 0.1.0.0
 supported :: MonadIO m => m Bool
 supported = liftIO $ do
-  efp <- try @_ @SysFsError findSysBatDir
+  efp <- try @_ @SysFsException findSysBatDir
   case efp of
     Left _ -> pure False
     Right _ -> pure True
 
-queryBattery :: Throws SysFsError => IO Battery
+queryBattery :: Throws SysFsException => IO Battery
 queryBattery = do
   batDir <- findSysBatDir
   statusPath <- fileExists (batDir </> "status")
@@ -60,7 +60,7 @@ queryBattery = do
   percentage <- parsePercentage percentPath
   pure $ MkBattery percentage status
 
-findSysBatDir :: Throws SysFsError => IO FilePath
+findSysBatDir :: Throws SysFsException => IO FilePath
 findSysBatDir = do
   sysExists <- Dir.doesDirectoryExist sys
   sysBase <-
@@ -76,7 +76,7 @@ findSysBatDir = do
     sys = "/sys/class/power_supply"
     sysfs = "/sysfs/class/power_supply"
 
-findBatteryDir :: Throws SysFsError => FilePath -> IO FilePath
+findBatteryDir :: Throws SysFsException => FilePath -> IO FilePath
 findBatteryDir sysBase = do
   mResult <- foldr firstExists (pure Nothing) batDirs
   case mResult of
@@ -106,7 +106,7 @@ maybeDirExists fp = do
       then Just fp
       else Nothing
 
-fileExists :: Throws SysFsError => FilePath -> IO FilePath
+fileExists :: Throws SysFsException => FilePath -> IO FilePath
 fileExists fp = do
   b <- Dir.doesFileExist fp
   if b
@@ -123,7 +123,7 @@ parseStatus fp = do
     "full" -> pure Full
     bad -> pure $ Unknown bad
 
-parsePercentage :: Throws SysFsError => FilePath -> IO BatteryPercentage
+parsePercentage :: Throws SysFsException => FilePath -> IO BatteryPercentage
 parsePercentage fp = do
   percentTxt <- readFileUtf8Lenient fp
   case readInterval percentTxt of
@@ -135,7 +135,7 @@ parsePercentage fp = do
 -- | Errors that can occur when reading sysfs.
 --
 -- @since 0.1.0.0
-data SysFsError
+data SysFsException
   = -- | Error searching for /sys/class/power_supply or
     -- /sysfs/class/power_supply.
     --
@@ -159,7 +159,8 @@ data SysFsError
       -- | @since 0.1.0.0
       Show
     )
-  deriving anyclass
-    ( -- | @since 0.1.0.0
-      Exception
-    )
+
+-- | @since 0.1.0.0
+instance Exception SysFsException where
+  toException = batteryExToException
+  fromException = batteryExFromException

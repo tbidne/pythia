@@ -16,6 +16,7 @@ main = do
 files :: [String]
 files =
   [ "-isrc",
+    "src/Pythia.hs",
     "src/Pythia/Services/Battery/Acpi.hs",
     "src/Pythia/Services/Battery/Types.hs",
     "src/Pythia/Services/Battery/UPower.hs",
@@ -57,6 +58,7 @@ exts =
     "-XPatternSynonyms",
     "-XRankNTypes",
     "-XScopedTypeVariables",
+    "-XStandaloneDeriving",
     "-XStandaloneKindSignatures",
     "-XTupleSections",
     "-XTypeApplications",

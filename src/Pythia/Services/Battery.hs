@@ -14,34 +14,38 @@ module Pythia.Services.Battery
     -- ** Configuration
     BatteryConfig (..),
     BatteryApp (..),
+    RunApp (..),
 
     -- ** Errors
+    BatteryException (..),
     uncheckBattery,
     rethrowBattery,
-    AcpiError (..),
-    UPowerError (..),
-    SysFsError (..),
+
+    -- *** Sub-errors
+    AcpiException (..),
+    UPowerException (..),
+    SysFsException (..),
   )
 where
 
 import Pythia.Data.RunApp (RunApp (..))
 import Pythia.Prelude
-import Pythia.Services.Battery.Acpi (AcpiError (..))
+import Pythia.Services.Battery.Acpi (AcpiException (..))
 import Pythia.Services.Battery.Acpi qualified as Acpi
-import Pythia.Services.Battery.SysFs (SysFsError (..))
+import Pythia.Services.Battery.SysFs (SysFsException (..))
 import Pythia.Services.Battery.SysFs qualified as SysFs
 import Pythia.Services.Battery.Types
   ( Battery (..),
     BatteryApp (..),
     BatteryConfig (..),
+    BatteryException (..),
     BatteryPercentage (..),
     BatteryStatus (..),
   )
-import Pythia.Services.Battery.UPower (UPowerError (..))
+import Pythia.Services.Battery.UPower (UPowerException (..))
 import Pythia.Services.Battery.UPower qualified as UPower
-import Pythia.ShellApp (AppAction (..), CmdError (..), Exceptions (..), NoActionsRunError (..))
+import Pythia.ShellApp (AppAction (..), MultiExceptions (..))
 import Pythia.ShellApp qualified as ShellApp
-import Pythia.Utils qualified as U
 
 -- | Attempts to query for battery information by detecting supported
 -- apps. Tries, in the following order: ['BatterySysFs', 'BatteryAcpi',
@@ -51,12 +55,7 @@ import Pythia.Utils qualified as U
 queryBattery ::
   ( MonadCatch m,
     MonadIO m,
-    Throws AcpiError,
-    Throws CmdError,
-    Throws Exceptions,
-    Throws NoActionsRunError,
-    Throws SysFsError,
-    Throws UPowerError
+    Throws BatteryException
   ) =>
   m Battery
 queryBattery = queryBatteryConfig mempty
@@ -67,18 +66,13 @@ queryBattery = queryBatteryConfig mempty
 queryBatteryConfig ::
   ( MonadCatch m,
     MonadIO m,
-    Throws AcpiError,
-    Throws CmdError,
-    Throws Exceptions,
-    Throws NoActionsRunError,
-    Throws SysFsError,
-    Throws UPowerError
+    Throws BatteryException
   ) =>
   BatteryConfig ->
   m Battery
 queryBatteryConfig config =
   case config ^. #batteryApp of
-    Many -> ShellApp.tryAppActions allApps
+    Many -> rethrowBattery @MultiExceptions $ ShellApp.tryAppActions allApps
     Single app -> toShellApp app
   where
     allApps =
@@ -88,49 +82,24 @@ queryBatteryConfig config =
       ]
 
 toShellApp ::
-  ( MonadIO m,
-    Throws AcpiError,
-    Throws CmdError,
-    Throws SysFsError,
-    Throws UPowerError
+  ( MonadCatch m,
+    MonadIO m,
+    Throws BatteryException
   ) =>
   BatteryApp ->
   m Battery
-toShellApp BatteryAcpi = Acpi.batteryShellApp
-toShellApp BatterySysFs = SysFs.batteryQuery
-toShellApp BatteryUPower = UPower.batteryShellApp
+toShellApp BatteryAcpi = rethrowBattery @AcpiException Acpi.batteryShellApp
+toShellApp BatterySysFs = rethrowBattery @SysFsException SysFs.batteryQuery
+toShellApp BatteryUPower = rethrowBattery @UPowerException UPower.batteryShellApp
 
--- | Unchecks all exceptions returns by battery queries.
+-- | 'uncheck' specialized to 'BatteryException'.
 --
 -- @since 0.1.0.0
-uncheckBattery ::
-  ( ( Throws AcpiError,
-      Throws CmdError,
-      Throws Exceptions,
-      Throws NoActionsRunError,
-      Throws SysFsError,
-      Throws UPowerError
-    ) =>
-    m a
-  ) ->
-  m a
-uncheckBattery = U.uncheck6 @AcpiError @CmdError @Exceptions @NoActionsRunError @SysFsError @UPowerError
+uncheckBattery :: ((Throws BatteryException) => m a) -> m a
+uncheckBattery = uncheck (Proxy @BatteryException)
 
--- | Lifts all battery errors into the current monad, given a suitably
--- polymorphic function.
+-- | Rethrows a checked exception as a 'BatteryException'.
 --
 -- @since 0.1.0.0
-rethrowBattery ::
-  MonadCatch m =>
-  (forall e b. Either e b -> m b) ->
-  ( ( Throws AcpiError,
-      Throws CmdError,
-      Throws Exceptions,
-      Throws NoActionsRunError,
-      Throws SysFsError,
-      Throws UPowerError
-    ) =>
-    m a
-  ) ->
-  m a
-rethrowBattery = U.rethrow6 @AcpiError @CmdError @Exceptions @NoActionsRunError @SysFsError @UPowerError
+rethrowBattery :: forall e m a. (Exception e, MonadCatch m, Throws BatteryException) => (Throws e => m a) -> m a
+rethrowBattery = handle (\(ex :: e) -> throw $ MkBatteryErr ex)

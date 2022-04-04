@@ -1,5 +1,3 @@
-{-# LANGUAGE DeriveAnyClass #-}
-
 -- | This modules exports everything needed for retrieving global
 -- IP addresses.
 --
@@ -20,8 +18,11 @@ module Pythia.Services.GlobalIP
     GlobalIpRequest (..),
     GlobalIpSources (..),
     UrlSource (..),
+    IpType (..),
+    RunApp (..),
 
     -- ** Errors
+    GlobalIpException (..),
     uncheckGlobalIp,
     rethrowGlobalIp,
   )
@@ -37,13 +38,14 @@ import Pythia.Services.GlobalIP.Types
   ( GlobalIpAddresses (..),
     GlobalIpApp (..),
     GlobalIpConfig (..),
+    GlobalIpException (..),
     GlobalIpRequest (..),
     GlobalIpSources (..),
     UrlSource (..),
   )
 import Pythia.Services.GlobalIP.Types qualified as GIpTypes
 import Pythia.Services.Types (IpType (..), Ipv4Address (..), Ipv6Address (..))
-import Pythia.ShellApp (AppAction (..), CmdError (..), Exceptions (..), NoActionsRunError)
+import Pythia.ShellApp (AppAction (..), CmdException (..), MultiExceptions (..))
 import Pythia.ShellApp qualified as ShellApp
 import Pythia.Utils qualified as U
 import Refined (Predicate, Refined)
@@ -54,30 +56,19 @@ import Refined qualified as R
 --
 -- @since 0.1.0.0
 queryGlobalIp ::
-  ( MonadCatch m,
-    MonadIO m,
-    Throws CmdError,
-    Throws Exceptions,
-    Throws NoActionsRunError
-  ) =>
-  m GlobalIpAddresses
+  (MonadCatch m, MonadIO m, Throws GlobalIpException) => m GlobalIpAddresses
 queryGlobalIp = queryGlobalIpConfig mempty
 
 -- | Queries for global ip address based on the configuration.
 --
 -- @since 0.1.0.0
 queryGlobalIpConfig ::
-  ( MonadCatch m,
-    MonadIO m,
-    Throws CmdError,
-    Throws Exceptions,
-    Throws NoActionsRunError
-  ) =>
+  (MonadCatch m, MonadIO m, Throws GlobalIpException) =>
   GlobalIpConfig ->
   m GlobalIpAddresses
 queryGlobalIpConfig config =
   case config ^. #ipApp of
-    Many -> ShellApp.tryAppActions allApps
+    Many -> rethrowGlobalIp @MultiExceptions $ ShellApp.tryAppActions allApps
     Single app -> singleRun app
   where
     allApps =
@@ -90,11 +81,7 @@ queryGlobalIpConfig config =
         (config ^. #ipSources)
 
 toSingleShellApp ::
-  ( MonadIO m,
-    Throws CmdError,
-    Throws Exceptions,
-    Throws NoActionsRunError
-  ) =>
+  (MonadIO m, Throws GlobalIpException) =>
   GlobalIpRequest ->
   GlobalIpSources ->
   GlobalIpApp ->
@@ -112,10 +99,7 @@ digSupported :: MonadIO m => m Bool
 digSupported = U.exeSupported "dig"
 
 getBoth ::
-  ( Throws CmdError,
-    Throws Exceptions,
-    Throws NoActionsRunError
-  ) =>
+  Throws GlobalIpException =>
   GlobalIpApp ->
   [UrlSource 'Ipv4] ->
   [UrlSource 'Ipv6] ->
@@ -123,10 +107,7 @@ getBoth ::
 getBoth app ipv4Srcs ipv6Srcs = GIpBoth <$> getIpv4s' app ipv4Srcs <*> getIpv6s' app ipv6Srcs
 
 getIpv4s ::
-  ( Throws CmdError,
-    Throws Exceptions,
-    Throws NoActionsRunError
-  ) =>
+  Throws GlobalIpException =>
   GlobalIpApp ->
   [UrlSource 'Ipv4] ->
   IO GlobalIpAddresses
@@ -134,10 +115,7 @@ getIpv4s app srcs = do
   GIpv4 <$> getIpv4s' app srcs
 
 getIpv4s' ::
-  ( Throws CmdError,
-    Throws Exceptions,
-    Throws NoActionsRunError
-  ) =>
+  Throws GlobalIpException =>
   GlobalIpApp ->
   [UrlSource 'Ipv4] ->
   IO Ipv4Address
@@ -148,20 +126,14 @@ getIpv4s' app extraSrcs = do
   getIpv4 sources
 
 getIpv6s ::
-  ( Throws CmdError,
-    Throws Exceptions,
-    Throws NoActionsRunError
-  ) =>
+  Throws GlobalIpException =>
   GlobalIpApp ->
   [UrlSource 'Ipv6] ->
   IO GlobalIpAddresses
 getIpv6s app srcs = GIpv6 <$> getIpv6s' app srcs
 
 getIpv6s' ::
-  ( Throws CmdError,
-    Throws Exceptions,
-    Throws NoActionsRunError
-  ) =>
+  Throws GlobalIpException =>
   GlobalIpApp ->
   [UrlSource 'Ipv6] ->
   IO Ipv6Address
@@ -207,88 +179,36 @@ digDefaults = MkGlobalIpSources ipv4s ipv6s
       ]
     ipv6s = []
 
-getIpv4 ::
-  ( Throws CmdError,
-    Throws Exceptions,
-    Throws NoActionsRunError
-  ) =>
-  [UrlSource 'Ipv4] ->
-  IO Ipv4Address
+getIpv4 :: Throws GlobalIpException => [UrlSource 'Ipv4] -> IO Ipv4Address
 getIpv4 = fmap MkIpv4Address . getIp GIpTypes.urlSourceCmdIso
 
-getIpv6 ::
-  ( Throws CmdError,
-    Throws Exceptions,
-    Throws NoActionsRunError
-  ) =>
-  [UrlSource 'Ipv6] ->
-  IO Ipv6Address
+getIpv6 :: Throws GlobalIpException => [UrlSource 'Ipv6] -> IO Ipv6Address
 getIpv6 = fmap MkIpv6Address . getIp GIpTypes.urlSourceCmdIso
 
 getIp ::
   forall p a.
-  ( Predicate p Text,
-    Throws CmdError,
-    Throws Exceptions,
-    Throws NoActionsRunError
-  ) =>
+  (Predicate p Text, Throws GlobalIpException) =>
   Iso' a Command ->
   [a] ->
   IO (Refined p Text)
-getIp iso cmds = ShellApp.tryIOs (fmap go cmds)
+getIp iso cmds =
+  rethrowGlobalIp @MultiExceptions $ ShellApp.tryIOs (fmap go cmds)
   where
-    go cmd = do
+    go cmd = rethrowGlobalIp @CmdException $ do
       txt <- ShellApp.runCommand $ cmd ^. iso
       R.refineThrow (trim txt)
 
 trim :: Text -> Text
 trim = T.dropAround Char.isSpace
 
--- | Errors that can occur when trying to retrieve the global IP address.
+-- | 'uncheck' specialized to 'GlobalIpException'.
 --
 -- @since 0.1.0.0
-data GlobalIpError
-  = -- | Error searching for /sys/class/power_supply or
-    -- /sysfs/class/power_supply.
-    --
-    -- @since 0.1.0.0
-    Ipv4Failed
-  deriving stock
-    ( -- | @since 0.1.0.0
-      Eq,
-      -- | @since 0.1.0.0
-      Show
-    )
-  deriving anyclass
-    ( -- | @since 0.1.0.0
-      Exception
-    )
+uncheckGlobalIp :: ((Throws GlobalIpException) => m a) -> m a
+uncheckGlobalIp = uncheck (Proxy @GlobalIpException)
 
--- | Unchecks all exceptions returns by global ip queries.
+-- | Rethrows a checked exception as a 'GlobalIpException'.
 --
 -- @since 0.1.0.0
-uncheckGlobalIp ::
-  ( ( Throws CmdError,
-      Throws Exceptions,
-      Throws NoActionsRunError
-    ) =>
-    IO a
-  ) ->
-  IO a
-uncheckGlobalIp = U.uncheck3 @CmdError @Exceptions @NoActionsRunError
-
--- | Lifts all global ip errors into the current monad, given a suitably
--- polymorphic function.
---
--- @since 0.1.0.0
-rethrowGlobalIp ::
-  MonadCatch m =>
-  (forall e b. Either e b -> m b) ->
-  ( ( Throws CmdError,
-      Throws Exceptions,
-      Throws NoActionsRunError
-    ) =>
-    m a
-  ) ->
-  m a
-rethrowGlobalIp = U.rethrow3 @CmdError @Exceptions @NoActionsRunError
+rethrowGlobalIp :: forall e m a. (Exception e, MonadCatch m, Throws GlobalIpException) => (Throws e => m a) -> m a
+rethrowGlobalIp = handle (\(ex :: e) -> throw $ MkGlobalIpErr ex)

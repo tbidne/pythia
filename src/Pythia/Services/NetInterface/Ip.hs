@@ -1,5 +1,3 @@
-{-# LANGUAGE DeriveAnyClass #-}
-
 -- | This module provides functionality for retrieving network connection
 -- information using ip utility.
 --
@@ -10,7 +8,7 @@ module Pythia.Services.NetInterface.Ip
     supported,
 
     -- * Misc
-    IpError (..),
+    IpException (..),
     parseInterfaces,
   )
 where
@@ -23,9 +21,11 @@ import Pythia.Services.NetInterface.Types
   ( NetInterface (..),
     NetInterfaceState (..),
     NetInterfaces (..),
+    netInterfaceExFromException,
+    netInterfaceExToException,
   )
 import Pythia.Services.Types (Device (..), Ipv4Address (..), Ipv6Address (..))
-import Pythia.ShellApp (CmdError (..), SimpleShell (..))
+import Pythia.ShellApp (CmdException (..), SimpleShell (..))
 import Pythia.ShellApp qualified as ShellApp
 import Pythia.Utils qualified as U
 import Refined (Predicate, Refined)
@@ -37,13 +37,16 @@ import Text.Megaparsec.Char qualified as MPC
 -- | Ip query for 'NetInterface'.
 --
 -- @since 0.1.0.0
-netInterfaceShellApp :: (MonadIO m, Throws CmdError, Throws IpError) => m NetInterfaces
+netInterfaceShellApp :: (MonadCatch m, MonadIO m, Throws IpException) => m NetInterfaces
 netInterfaceShellApp =
-  ShellApp.runSimple $
-    MkSimpleShell
-      { command = "ip address",
-        parser = parseInterfaces
-      }
+  ShellApp.runSimple shell
+    `catch` \(MkCmdErr ex) -> throw (IpCmdErr ex)
+  where
+    shell =
+      MkSimpleShell
+        { command = "ip address",
+          parser = parseInterfaces
+        }
 
 -- | Returns a boolean determining if this program is supported on the
 -- current system.
@@ -57,7 +60,7 @@ type MParser = Parsec Void Text
 -- | Attempts to parse the output of IP.
 --
 -- @since 0.1.0.0
-parseInterfaces :: Text -> Either IpError NetInterfaces
+parseInterfaces :: Text -> Either IpException NetInterfaces
 parseInterfaces txt = case MP.parse mparseInterfaces "" txt of
   Left ex ->
     let prettyErr = MP.errorBundlePretty ex
@@ -153,8 +156,12 @@ parseNetInterfaceState = do
 -- | Errors that can occur when running the \'ip\' command.
 --
 -- @since 0.1.0.0
-newtype IpError
-  = -- | Parse error.
+data IpException
+  = -- | Error running ip command.
+    --
+    -- @since 0.1.0.0
+    IpCmdErr String
+  | -- | Parse error.
     --
     -- @since 0.1.0.0
     IpParseErr String
@@ -164,4 +171,8 @@ newtype IpError
       -- | @since 0.1.0.0
       Show
     )
-  deriving anyclass (Exception)
+
+-- | @since 0.1.0.0
+instance Exception IpException where
+  toException = netInterfaceExToException
+  fromException = netInterfaceExFromException

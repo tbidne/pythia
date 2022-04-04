@@ -1,5 +1,3 @@
-{-# LANGUAGE DeriveAnyClass #-}
-
 -- | This module provides functionality for retrieving battery information
 -- using UPower.
 --
@@ -10,7 +8,7 @@ module Pythia.Services.Battery.UPower
     supported,
 
     -- * Misc
-    UPowerError (..),
+    UPowerException (..),
     parseBattery,
   )
 where
@@ -23,8 +21,10 @@ import Pythia.Services.Battery.Types
   ( Battery (..),
     BatteryPercentage (..),
     BatteryStatus (..),
+    batteryExFromException,
+    batteryExToException,
   )
-import Pythia.ShellApp (CmdError (..), SimpleShell (..))
+import Pythia.ShellApp (CmdException (..), SimpleShell (..))
 import Pythia.ShellApp qualified as ShellApp
 import Pythia.Utils qualified as U
 import Text.Megaparsec (Parsec)
@@ -35,13 +35,16 @@ import Text.Read qualified as TR
 -- | UPower query for 'Battery'.
 --
 -- @since 0.1.0.0
-batteryShellApp :: (MonadIO m, Throws CmdError, Throws UPowerError) => m Battery
+batteryShellApp :: (MonadCatch m, MonadIO m, Throws UPowerException) => m Battery
 batteryShellApp =
-  ShellApp.runSimple $
-    MkSimpleShell
-      { command = "upower -i `upower -e | grep 'BAT'`",
-        parser = parseBattery
-      }
+  ShellApp.runSimple shell
+    `catch` \(MkCmdErr ex) -> throw (UPowerCmdErr ex)
+  where
+    shell =
+      MkSimpleShell
+        { command = "upower -i `upower -e | grep 'BAT'`",
+          parser = parseBattery
+        }
 
 -- | Returns a boolean determining if this program is supported on the
 -- current system.
@@ -78,7 +81,7 @@ supported = U.exeSupported "upower"
 -- Left (UPowerNoPercentageNorStatus "nothing")
 --
 -- @since 0.1.0.0
-parseBattery :: Text -> Either UPowerError Battery
+parseBattery :: Text -> Either UPowerException Battery
 parseBattery txt = case foldMap parseLine ts of
   None -> Left $ UPowerNoPercentageNorStatus $ T.unpack txt
   Percent _ -> Left $ UPowerNoStatus $ T.unpack txt
@@ -155,8 +158,12 @@ parseStatus = do
 -- | Errors that can occur when running upower.
 --
 -- @since 0.1.0.0
-data UPowerError
-  = -- | Did not find percentage.
+data UPowerException
+  = -- | Error running upower command.
+    --
+    -- @since 0.1.0.0
+    UPowerCmdErr String
+  | -- | Did not find percentage.
     --
     -- @since 0.1.0.0
     UPowerNoPercentage String
@@ -174,7 +181,8 @@ data UPowerError
       -- | @since 0.1.0.0
       Show
     )
-  deriving anyclass
-    ( -- | @since0.1.0.0
-      Exception
-    )
+
+-- | @since 0.1.0.0
+instance Exception UPowerException where
+  toException = batteryExToException
+  fromException = batteryExFromException

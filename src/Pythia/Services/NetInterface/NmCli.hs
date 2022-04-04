@@ -1,5 +1,3 @@
-{-# LANGUAGE DeriveAnyClass #-}
-
 -- | This module provides functionality for retrieving network connection
 -- information using nmcli.
 --
@@ -10,7 +8,7 @@ module Pythia.Services.NetInterface.NmCli
     supported,
 
     -- * Misc
-    NmCliError (..),
+    NmCliException (..),
     parseInterfaces,
   )
 where
@@ -24,9 +22,11 @@ import Pythia.Services.NetInterface.Types
     NetInterfaceState (..),
     NetInterfaceType (..),
     NetInterfaces (..),
+    netInterfaceExFromException,
+    netInterfaceExToException,
   )
 import Pythia.Services.Types (Device (..), Ipv4Address (..), Ipv6Address (..))
-import Pythia.ShellApp (CmdError (..), SimpleShell (..))
+import Pythia.ShellApp (CmdException (..), SimpleShell (..))
 import Pythia.ShellApp qualified as ShellApp
 import Pythia.Utils qualified as U
 import Refined (Predicate, Refined)
@@ -38,13 +38,16 @@ import Text.Megaparsec.Char qualified as MPC
 -- | NmCli query for 'NetInterfaces'.
 --
 -- @since 0.1.0.0
-netInterfaceShellApp :: (MonadIO m, Throws CmdError, Throws NmCliError) => m NetInterfaces
+netInterfaceShellApp :: (MonadCatch m, MonadIO m, Throws NmCliException) => m NetInterfaces
 netInterfaceShellApp =
-  ShellApp.runSimple $
-    MkSimpleShell
-      { command = "nmcli -t -m multiline device show",
-        parser = parseInterfaces
-      }
+  ShellApp.runSimple shell
+    `catch` \(MkCmdErr ex) -> throw (NmCliCmdErr ex)
+  where
+    shell =
+      MkSimpleShell
+        { command = "nmcli -t -m multiline device show",
+          parser = parseInterfaces
+        }
 
 -- | Returns a boolean determining if this program is supported on the
 -- current system.
@@ -58,7 +61,7 @@ type MParser = Parsec Void Text
 -- | Attemps to parse the output of nmcli.
 --
 -- @since 0.1.0.0
-parseInterfaces :: Text -> Either NmCliError NetInterfaces
+parseInterfaces :: Text -> Either NmCliException NetInterfaces
 parseInterfaces txt = case MP.parse mparseInterfaces "Pythia.Services.NetInterface.NmCli" txt of
   Left ex ->
     let prettyErr = MP.errorBundlePretty ex
@@ -220,8 +223,12 @@ parseDns = void . MP.many . dns
 -- | Errors that can occur when running \'nmcli\'.
 --
 -- @since 0.1.0.0
-newtype NmCliError
-  = -- | Parse error.
+data NmCliException
+  = -- | Error running nmcli command.
+    --
+    -- @since 0.1.0.0
+    NmCliCmdErr String
+  | -- | Parse error.
     --
     -- @since 0.1.0.0
     NmCliParseErr String
@@ -231,4 +238,8 @@ newtype NmCliError
       -- | @since 0.1.0.0
       Show
     )
-  deriving anyclass (Exception)
+
+-- | @since 0.1.0.0
+instance Exception NmCliException where
+  toException = netInterfaceExToException
+  fromException = netInterfaceExFromException

@@ -18,33 +18,37 @@ module Pythia.Services.NetInterface
     -- ** Configuration
     NetInterfaceConfig (..),
     NetInterfaceApp (..),
+    RunApp (..),
 
     -- ** Errors
+    NetInterfaceException (..),
     uncheckNetInterface,
     rethrowNetInterface,
-    IpError (..),
-    NmCliError (..),
+
+    -- *** Sub-errors
+    IpException (..),
+    NmCliException (..),
   )
 where
 
 import Pythia.Data.RunApp (RunApp (..))
 import Pythia.Prelude
-import Pythia.Services.NetInterface.Ip (IpError)
+import Pythia.Services.NetInterface.Ip (IpException)
 import Pythia.Services.NetInterface.Ip qualified as Ip
-import Pythia.Services.NetInterface.NmCli (NmCliError)
+import Pythia.Services.NetInterface.NmCli (NmCliException)
 import Pythia.Services.NetInterface.NmCli qualified as NmCli
 import Pythia.Services.NetInterface.Types
   ( NetInterface (..),
     NetInterfaceApp (..),
     NetInterfaceConfig (..),
+    NetInterfaceException (..),
     NetInterfaceState (..),
     NetInterfaceType (..),
     NetInterfaces (..),
   )
 import Pythia.Services.Types (Device (..), Ipv4Address (..), Ipv6Address (..))
-import Pythia.ShellApp (AppAction (..), CmdError (..), Exceptions (..), NoActionsRunError)
+import Pythia.ShellApp (AppAction (..), MultiExceptions (..))
 import Pythia.ShellApp qualified as ShellApp
-import Pythia.Utils qualified as U
 
 -- | Attempts to query for interface information by detecting supported
 -- apps. Tries, in the following order: ['NetInterfaceNmCli',
@@ -54,11 +58,7 @@ import Pythia.Utils qualified as U
 queryNetInterfaces ::
   ( MonadCatch m,
     MonadIO m,
-    Throws CmdError,
-    Throws Exceptions,
-    Throws IpError,
-    Throws NmCliError,
-    Throws NoActionsRunError
+    Throws NetInterfaceException
   ) =>
   m NetInterfaces
 queryNetInterfaces = queryNetInterfacesConfig mempty
@@ -69,17 +69,13 @@ queryNetInterfaces = queryNetInterfacesConfig mempty
 queryNetInterfacesConfig ::
   ( MonadCatch m,
     MonadIO m,
-    Throws CmdError,
-    Throws Exceptions,
-    Throws IpError,
-    Throws NmCliError,
-    Throws NoActionsRunError
+    Throws NetInterfaceException
   ) =>
   NetInterfaceConfig ->
   m NetInterfaces
 queryNetInterfacesConfig config = do
   case config ^. #interfaceApp of
-    Many -> ShellApp.tryAppActions allApps
+    Many -> rethrowNetInterface @MultiExceptions $ ShellApp.tryAppActions allApps
     Single app -> singleRun app
   where
     allApps =
@@ -91,10 +87,9 @@ queryNetInterfacesConfig config = do
     device = config ^. #interfaceDevice
 
 queryNetInterfacesDeviceApp ::
-  ( MonadIO m,
-    Throws CmdError,
-    Throws IpError,
-    Throws NmCliError
+  ( MonadCatch m,
+    MonadIO m,
+    Throws NetInterfaceException
   ) =>
   Maybe Device ->
   NetInterfaceApp ->
@@ -109,45 +104,23 @@ filterDevice device (MkNetInterfaces ifs) =
     filter ((== device) . view #idevice) ifs
 
 toSingleShellApp ::
-  ( MonadIO m,
-    Throws CmdError,
-    Throws IpError,
-    Throws NmCliError
+  ( MonadCatch m,
+    MonadIO m,
+    Throws NetInterfaceException
   ) =>
   NetInterfaceApp ->
   m NetInterfaces
-toSingleShellApp NetInterfaceNmCli = NmCli.netInterfaceShellApp
-toSingleShellApp NetInterfaceIp = Ip.netInterfaceShellApp
+toSingleShellApp NetInterfaceNmCli = rethrowNetInterface @NmCliException NmCli.netInterfaceShellApp
+toSingleShellApp NetInterfaceIp = rethrowNetInterface @IpException Ip.netInterfaceShellApp
 
--- | Unchecks all exceptions returns by network interface queries.
+-- | 'uncheck' specialized to 'NetInterfaceException'.
 --
 -- @since 0.1.0.0
-uncheckNetInterface ::
-  ( ( Throws CmdError,
-      Throws IpError,
-      Throws Exceptions,
-      Throws NmCliError,
-      Throws NoActionsRunError
-    ) =>
-    IO a
-  ) ->
-  IO a
-uncheckNetInterface = U.uncheck5 @CmdError @IpError @Exceptions @NmCliError @NoActionsRunError
+uncheckNetInterface :: ((Throws NetInterfaceException) => m a) -> m a
+uncheckNetInterface = uncheck (Proxy @NetInterfaceException)
 
--- | Lifts all network interface errors into the current monad, given a suitably
--- polymorphic function.
+-- | Rethrows a checked exception as a 'NetInterfaceException'.
 --
 -- @since 0.1.0.0
-rethrowNetInterface ::
-  MonadCatch m =>
-  (forall e b. Either e b -> m b) ->
-  ( ( Throws CmdError,
-      Throws IpError,
-      Throws Exceptions,
-      Throws NmCliError,
-      Throws NoActionsRunError
-    ) =>
-    m a
-  ) ->
-  m a
-rethrowNetInterface = U.rethrow5 @CmdError @IpError @Exceptions @NmCliError @NoActionsRunError
+rethrowNetInterface :: forall e m a. (Exception e, MonadCatch m, Throws NetInterfaceException) => (Throws e => m a) -> m a
+rethrowNetInterface = handle (\(ex :: e) -> throw $ MkNetInterfaceErr ex)

@@ -1,5 +1,3 @@
-{-# LANGUAGE DeriveAnyClass #-}
-
 -- | This module provides functionality for retrieving battery information
 -- using ACPI.
 --
@@ -10,7 +8,7 @@ module Pythia.Services.Battery.Acpi
     supported,
 
     -- * Misc
-    AcpiError (..),
+    AcpiException (..),
     parseBattery,
   )
 where
@@ -23,8 +21,10 @@ import Pythia.Services.Battery.Types
   ( Battery (..),
     BatteryPercentage (..),
     BatteryStatus (..),
+    batteryExFromException,
+    batteryExToException,
   )
-import Pythia.ShellApp (CmdError (..), SimpleShell (..))
+import Pythia.ShellApp (CmdException (..), SimpleShell (..))
 import Pythia.ShellApp qualified as ShellApp
 import Pythia.Utils qualified as U
 import Text.Megaparsec (Parsec, (<?>))
@@ -36,13 +36,16 @@ import Text.Read qualified as TR
 -- | ACPI query for 'Battery'.
 --
 -- @since 0.1.0.0
-batteryShellApp :: (MonadIO m, Throws AcpiError, Throws CmdError) => m Battery
+batteryShellApp :: (MonadCatch m, MonadIO m, Throws AcpiException) => m Battery
 batteryShellApp =
-  ShellApp.runSimple $
-    MkSimpleShell
-      { command = "acpi",
-        parser = parseBattery
-      }
+  ShellApp.runSimple shell
+    `catch` \(MkCmdErr ex) -> throw (AcpiCmdErr ex)
+  where
+    shell =
+      MkSimpleShell
+        { command = "acpi",
+          parser = parseBattery
+        }
 
 -- | Returns a boolean determining if this program is supported on the
 -- current system.
@@ -70,7 +73,7 @@ supported = U.exeSupported "acpi"
 -- Left (AcpiParseErr "Acpi.hs:1:28:\n  |\n1 | Battery 0: Discharging, 150%\n  |                            ^\nexpecting percentage\n")
 --
 -- @since 0.1.0.0
-parseBattery :: Text -> Either AcpiError Battery
+parseBattery :: Text -> Either AcpiException Battery
 parseBattery txt = first mkErr parseResult
   where
     parseResult = MP.parse mparseBattery "Acpi.hs" txt
@@ -120,18 +123,23 @@ mparsePercent = do
 -- | Errors that can occur when running acpi.
 --
 -- @since 0.1.0.0
-newtype AcpiError
+data AcpiException
   = -- | Parse error.
     --
     -- @since 0.1.0.0
     AcpiParseErr String
+  | -- | Error running acpi command.
+    --
+    -- @since 0.1.0.0
+    AcpiCmdErr String
   deriving stock
     ( -- | @since 0.1.0.0
       Eq,
       -- | @since 0.1.0.0
       Show
     )
-  deriving anyclass
-    ( -- | @since 0.1.0.0
-      Exception
-    )
+
+-- | @since 0.1.0.0
+instance Exception AcpiException where
+  toException = batteryExToException
+  fromException = batteryExFromException
