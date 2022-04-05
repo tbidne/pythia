@@ -16,24 +16,23 @@ module Pythia.ShellApp
     tryAppActions,
     tryIOs,
 
-    -- * MultiExceptions
-    CmdException (..),
-    NotSupportedException (..),
-    MultiExceptions (..),
-
     -- * Utilities
     runCommand,
   )
 where
 
 import Data.ByteString.Lazy qualified as LBS
+import Data.List.NonEmpty (NonEmpty (..))
 import Data.Text qualified as T
-import Data.Text.Encoding qualified as TEnc
 import GHC.IO.Exception (ExitCode (..))
+import Pythia.Control.Exception
+  ( CommandException (..),
+    MultiExceptions (..),
+    NoActionsRunException (..),
+    NotSupportedException (..),
+  )
 import Pythia.Data.Command (Command (..))
 import Pythia.Prelude
-import Pythia.Printer (PrettyPrinter (..))
-import Pythia.Printer qualified as Printer
 import System.Process.Typed qualified as TP
 
 -- | Type for running a "simple" shell command given by 'Command'.
@@ -60,72 +59,12 @@ instance Bifunctor SimpleShell where
     where
       p' = bimap f g . p
 
--- | Error that can occur when running a shell command.
+-- | Runs a simple shell. Can throw an exception if either the command or
+-- parse fails.
 --
 -- @since 0.1.0.0
-newtype CmdException = MkCmdErr String
-  deriving stock
-    ( -- | @since 0.1.0.0
-      Show
-    )
-  deriving anyclass
-    ( -- | @since 0.1.0.0
-      Exception
-    )
-
--- | Error for when the current app is not supported.
---
--- @since 0.1.0.0
-newtype NotSupportedException = MkNotSupportedErr String
-  deriving stock
-    ( -- | @since 0.1.0.0
-      Show
-    )
-  deriving anyclass
-    ( -- | @since 0.1.0.0
-      Exception
-    )
-
--- | Collects multiple errors.
---
--- @since 0.1.0.0
-newtype MultiExceptions = MkMultiExceptions
-  { -- | @since 0.1.0.0
-    unExceptions :: [SomeException]
-  }
-
--- | Using pretty so that it shows in exception output.
---
--- @since 0.1.0.0
-instance Show MultiExceptions where
-  show = pretty
-
--- | @since 0.1.0.0
-instance PrettyPrinter MultiExceptions where
-  pretty (MkMultiExceptions []) = "MkMultiExceptions: []"
-  pretty (MkMultiExceptions xs) =
-    "MkMultiExceptions\n\t"
-      <> Printer.joinX "\n\t" (fmap displayException xs)
-
--- | @since 0.1.0.0
-instance Exception MultiExceptions where
-  displayException = pretty
-
--- | @since 0.1.0.0
-instance Semigroup MultiExceptions where
-  MkMultiExceptions l <> MkMultiExceptions r = MkMultiExceptions $ l <> r
-
--- | @since 0.1.0.0
-instance Monoid MultiExceptions where
-  mempty = MkMultiExceptions mempty
-
--- | Runs a simple shell, throwing an error if any occur.
---
--- @since 0.1.0.0
-runSimple :: (Exception err, MonadIO m, Throws CmdException, Throws err) => SimpleShell err result -> m result
-runSimple simple =
-  runCommand (simple ^. #command)
-    >>= parseAndThrow
+runSimple :: (Exception err, MonadCatch m, MonadIO m) => SimpleShell err result -> m result
+runSimple simple = runCommand (simple ^. #command) >>= parseAndThrow
   where
     parseAndThrow t' = liftIO $ case (simple ^. #parser) t' of
       Left err -> throw err
@@ -136,30 +75,15 @@ runSimple simple =
 -- parsed. This function is exported for convenience.
 --
 -- @since 0.1.0.0
-runCommand :: (MonadIO m, Throws CmdException) => Command -> m Text
+runCommand :: MonadIO m => Command -> m Text
 runCommand command = liftIO $ do
   (exitCode, out, err) <- TP.readProcess $ TP.shell $ T.unpack cmdStr
   case exitCode of
-    ExitSuccess -> case TEnc.decodeUtf8' (LBS.toStrict out) of
-      Right result -> pure result
-      Left ex -> throw $ MkCmdErr $ "Decode UTF-8 error: " <> show ex
-    ExitFailure n ->
-      throw $ MkCmdErr $ T.unpack $ shellErr n cmdStr (LBS.toStrict err)
+    ExitSuccess -> pure $ decodeUtf8Lenient (LBS.toStrict out)
+    ExitFailure _ ->
+      throw $ MkCommandException command $ show $ LBS.toStrict err
   where
     cmdStr = command ^. #unCommand
-
-shellErr :: Int -> Text -> ByteString -> Text
-shellErr exitCode cmd err = err'
-  where
-    err' =
-      T.concat
-        [ "Command: ",
-          cmd,
-          ". Exit code: ",
-          T.pack $ show exitCode,
-          ". Message: ",
-          decodeUtf8Lenient err
-        ]
 
 -- | Represents some IO app to retrieve a result @r@. Includes a string
 -- name and support query for determining if this action is supported by the
@@ -179,58 +103,80 @@ data AppAction m r = MkAppAction
 -- | @since 0.1.0.0
 makeFieldLabelsNoPrefix ''AppAction
 
--- | Queries for information via multiple apps. Returns the first success
--- or all errors, if there are no successes.
+-- Three possible results when running actions:
+--
+-- 1. None are given/supported, so none are run.
+-- 2. We encounter at least one error.
+-- 3. We have a success.
+--
+-- The semigroup takes the first success, as that gives us the semantics we
+-- want.
+data ActionsResult r
+  = NoRuns
+  | Errs (NonEmpty SomeException)
+  | Success r
+
+instance Semigroup (ActionsResult r) where
+  Success x <> _ = Success x
+  _ <> Success x = Success x
+  NoRuns <> r = r
+  l <> NoRuns = l
+  Errs x <> Errs y = Errs $ x <> y
+
+instance Monoid (ActionsResult r) where
+  mempty = NoRuns
+
+-- | Queries for information via multiple apps. Returns the first success.
+-- If any errors are encountered or no actions are run (either because the
+-- list is empty or none are supported), and exception is thrown.
 --
 -- @since 0.1.0.0
-tryAppActions ::
-  ( MonadCatch m,
-    MonadIO m,
-    Throws MultiExceptions
-  ) =>
-  [AppAction m result] ->
-  m result
+tryAppActions :: MonadCatch m => [AppAction m result] -> m result
 tryAppActions apps = do
-  eResult <- foldr tryAppAction (pure (Left mempty)) apps
+  eResult <- foldr tryAppAction (pure mempty) apps
   case eResult of
-    Left errs -> liftIO $ throw errs
-    Right result -> pure result
+    Success result -> pure result
+    Errs errs -> throw $ MkMultiExceptions errs
+    NoRuns -> throw MkNoActionsRunException
 
 tryAppAction ::
   MonadCatch m =>
   AppAction m result ->
-  m (Either MultiExceptions result) ->
-  m (Either MultiExceptions result)
+  m (ActionsResult result) ->
+  m (ActionsResult result)
 tryAppAction appAction acc = do
   isSupported <- appAction ^. #supported
   if isSupported
     then tryIO (appAction ^. #action) acc
-    else first (appendEx appUnsupportedEx) <$> acc
+    else appendEx appUnsupportedEx <$> acc
   where
-    appendEx e (MkMultiExceptions es) = MkMultiExceptions (e : es)
-    appUnsupportedEx = toException $ MkNotSupportedErr $ appAction ^. #name
+    appUnsupportedEx = toException $ MkNotSupportedException $ appAction ^. #name
 
 -- | Generalized 'tryAppActions' to any 'IO'. Has the same semantics
--- (i.e. returns the first success or all errs if none succeeds) without
--- checking for "support".
+-- (i.e. returns the first success or throws an exception if none
+-- succeeds) without checking for "support".
 --
 -- @since 0.1.0.0
-tryIOs :: (MonadCatch m, Throws MultiExceptions) => [m result] -> m result
+tryIOs :: MonadCatch m => [m result] -> m result
 tryIOs actions = do
-  eResult <- foldr tryIO (pure (Left mempty)) actions
+  eResult <- foldr tryIO (pure mempty) actions
   case eResult of
-    Left errs -> throw errs
-    Right result -> pure result
+    Success result -> pure result
+    Errs errs -> throw $ MkMultiExceptions errs
+    NoRuns -> throw MkNoActionsRunException
 
 tryIO ::
   MonadCatch m =>
   m result ->
-  m (Either MultiExceptions result) ->
-  m (Either MultiExceptions result)
+  m (ActionsResult result) ->
+  m (ActionsResult result)
 tryIO action acc = do
   eResult :: Either SomeException result <- try action
   case eResult of
-    Right result -> pure $ Right result
-    Left ex -> first (appendEx ex) <$> acc
+    Right result -> pure $ Success result
+    Left ex -> appendEx ex <$> acc
+
+appendEx :: SomeException -> ActionsResult r -> ActionsResult r
+appendEx e x = errs <> x
   where
-    appendEx e (MkMultiExceptions es) = MkMultiExceptions (e : es)
+    errs = Errs $ e :| []

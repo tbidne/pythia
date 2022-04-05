@@ -26,48 +26,20 @@ import Pythia.Services.GlobalIP
 import Pythia.Services.NetInterface
 
 -- $setup
--- >>> import Pythia.Prelude (IO, Throws, pure)
+-- >>> import Pythia.Prelude (IO)
+-- >>> import Pythia.Services.Battery.Acpi (AcpiException)
 
 -- $services
 -- Each service is self-contained in that it should have everything you need
 -- to use it.
 
 -- $exceptions
--- Pythia's error handling is defined in terms of @safe-exceptions-checked@.
--- That is, service functions (e.g. 'queryBattery') either return a result
--- or throw a checked exception. Each service has a function that allows one
--- to swallow such an exception for convenience e.g.
---
--- >>> :{
--- -- without 'uncheckBattery' we would have to include the error i.e.
--- -- getBatteryUnchecked :: Throws BatteryException => IO Battery
--- getBatteryUnchecked :: IO Battery
--- getBatteryUnchecked = uncheckBattery queryBattery
--- :}
---
--- Additionally, we define these service exceptions in terms of a
--- 'Pythia.Control.Exception.PythiaException' supertype, defined in
--- "Pythia.Control.Exception". This is the root of our exception
--- hierarchy. This is not necessary to work with any individual service,
--- though it can be used to unify exceptions if, say, you would like to run
--- multiple services and not have to mention every error. For example:
---
--- >>> :{
---   -- Notice our signature mentions PythiaException but not BatteryException nor
---   -- NetInterfacesException.
---   batteryAndNetInterfaces :: Throws PythiaException => IO (Battery, NetInterfaces)
---   batteryAndNetInterfaces = do
---     battery <- rethrowPythia @BatteryException queryBattery
---     netInterfaces <- rethrowPythia @NetInterfaceException queryNetInterfaces
---     pure (battery, netInterfaces)
--- :}
---
--- Naturally, this can also be unchecked:
---
--- >>> :{
---   batteryAndNetInterfacesUnchecked :: IO (Battery, NetInterfaces)
---   batteryAndNetInterfacesUnchecked = uncheckPythia batteryAndNetInterfaces
--- :}
+-- Pythia's error handling is defined in terms of @safe-exceptions@.
+-- "Pythia.Control.Exception" defines general exceptions that can be thrown
+-- from 'IO'; Additionally, services can also throw specific exceptions (e.g.
+-- 'AcpiException' from "Pythia.Services.Battery.Acpi"). Because there is no
+-- unifying exception type, if you would like to catch all possible
+-- synchronous exceptions, catch 'SomeException'.
 
 -- $printing
 -- This module contains a typeclass used for pretty printing various types.

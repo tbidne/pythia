@@ -18,18 +18,11 @@ module Pythia.Services.GlobalIP.Types
 
     -- * Result
     GlobalIpAddresses (..),
-
-    -- * Errors
-    GlobalIpException (..),
   )
 where
 
 import Optics.Core (Iso)
 import Optics.Core qualified as O
-import Pythia.Control.Exception
-  ( pythiaExFromException,
-    pythiaExToException,
-  )
 import Pythia.Data.Command (Command (..))
 import Pythia.Data.RunApp (RunApp (..))
 import Pythia.Prelude
@@ -242,19 +235,3 @@ instance PrettyPrinter GlobalIpAddresses where
       [ "IPv4: " <> pretty ipv4,
         "IPv6: " <> pretty ipv6
       ]
-
--- | General battery errors.
---
--- @since 0.1.0.0
-data GlobalIpException = forall e. Exception e => MkGlobalIpErr e
-
--- | @since 0.1.0.0
-deriving stock instance Show GlobalIpException
-
--- | @since 0.1.0.0
-deriving anyclass instance PrettyPrinter GlobalIpException
-
--- | @since 0.1.0.0
-instance Exception GlobalIpException where
-  toException = pythiaExToException
-  fromException = pythiaExFromException

@@ -1,3 +1,6 @@
+{-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE UndecidableInstances #-}
+
 -- | This module provides functionality for retrieving battery information
 -- using ACPI.
 --
@@ -16,15 +19,15 @@ where
 import Data.Char qualified as Char
 import Data.Text qualified as T
 import Numeric.Data.Interval qualified as Interval
+import Pythia.Control.Exception (PrettyException (..))
 import Pythia.Prelude
+import Pythia.Printer (PrettyPrinter (..))
 import Pythia.Services.Battery.Types
   ( Battery (..),
     BatteryPercentage (..),
     BatteryStatus (..),
-    batteryExFromException,
-    batteryExToException,
   )
-import Pythia.ShellApp (CmdException (..), SimpleShell (..))
+import Pythia.ShellApp (SimpleShell (..))
 import Pythia.ShellApp qualified as ShellApp
 import Pythia.Utils qualified as U
 import Text.Megaparsec (Parsec, (<?>))
@@ -33,13 +36,36 @@ import Text.Megaparsec.Char qualified as MPC
 import Text.Megaparsec.Error qualified as MPE
 import Text.Read qualified as TR
 
--- | ACPI query for 'Battery'.
+-- | Errors that can occur with acpi.
 --
 -- @since 0.1.0.0
-batteryShellApp :: (MonadCatch m, MonadIO m, Throws AcpiException) => m Battery
-batteryShellApp =
-  ShellApp.runSimple shell
-    `catch` \(MkCmdErr ex) -> throw (AcpiCmdErr ex)
+newtype AcpiException = AcpiParseException
+  { -- | @since 0.1.0.0
+    unAcpiParseException :: String
+  }
+  deriving stock
+    ( -- | @since 0.1.0.0
+      Eq,
+      -- | @since 0.1.0.0
+      Show
+    )
+
+-- | @since 0.1.0.0
+makeFieldLabelsNoPrefix ''AcpiException
+
+-- | @since 0.1.0.0
+instance PrettyPrinter AcpiException where
+  pretty (AcpiParseException s) = "Acpi parse error: <" <> s <> ">"
+
+-- | @since 0.1.0.0
+deriving via (PrettyException AcpiException) instance Exception AcpiException
+
+-- | ACPI query for 'Battery'. Throws exceptions if the command fails or
+-- or we have a parse error.
+--
+-- @since 0.1.0.0
+batteryShellApp :: (MonadCatch m, MonadIO m) => m Battery
+batteryShellApp = ShellApp.runSimple shell
   where
     shell =
       MkSimpleShell
@@ -70,14 +96,14 @@ supported = U.exeSupported "acpi"
 -- Right (MkBattery {percentage = MkBatteryPercentage {unBatteryPercentage = UnsafeLRInterval 80}, status = Unknown "bad status"})
 --
 -- >>> parseBattery "Battery 0: Discharging, 150%"
--- Left (AcpiParseErr "Acpi.hs:1:28:\n  |\n1 | Battery 0: Discharging, 150%\n  |                            ^\nexpecting percentage\n")
+-- Left (AcpiParseException {unAcpiParseException = "Acpi.hs:1:28:\n  |\n1 | Battery 0: Discharging, 150%\n  |                            ^\nexpecting percentage\n"})
 --
 -- @since 0.1.0.0
 parseBattery :: Text -> Either AcpiException Battery
 parseBattery txt = first mkErr parseResult
   where
     parseResult = MP.parse mparseBattery "Acpi.hs" txt
-    mkErr err = AcpiParseErr $ MPE.errorBundlePretty err
+    mkErr err = AcpiParseException $ MPE.errorBundlePretty err
 
 type MParser = Parsec Void Text
 
@@ -119,27 +145,3 @@ mparsePercent = do
   pure $ MkBatteryPercentage percentage
   where
     readInterval = Interval.mkLRInterval <=< TR.readMaybe . T.unpack
-
--- | Errors that can occur when running acpi.
---
--- @since 0.1.0.0
-data AcpiException
-  = -- | Parse error.
-    --
-    -- @since 0.1.0.0
-    AcpiParseErr String
-  | -- | Error running acpi command.
-    --
-    -- @since 0.1.0.0
-    AcpiCmdErr String
-  deriving stock
-    ( -- | @since 0.1.0.0
-      Eq,
-      -- | @since 0.1.0.0
-      Show
-    )
-
--- | @since 0.1.0.0
-instance Exception AcpiException where
-  toException = batteryExToException
-  fromException = batteryExFromException

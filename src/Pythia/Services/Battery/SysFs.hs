@@ -1,3 +1,6 @@
+{-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE UndecidableInstances #-}
+
 -- | This module provides functionality for retrieving battery information
 -- using SysFS.
 --
@@ -14,22 +17,70 @@ where
 
 import Data.Text qualified as T
 import Numeric.Data.Interval qualified as Interval
+import Pythia.Control.Exception (PrettyException (..))
 import Pythia.Prelude
+import Pythia.Printer (PrettyPrinter (..))
 import Pythia.Services.Battery.Types
   ( Battery (..),
     BatteryPercentage (..),
     BatteryStatus (..),
-    batteryExFromException,
-    batteryExToException,
   )
 import System.Directory qualified as Dir
 import System.FilePath ((</>))
 import Text.Read qualified as TR
 
--- | @/sys/class@ query for 'Battery'.
+-- | Errors that can occur with sysfs.
 --
 -- @since 0.1.0.0
-batteryQuery :: (MonadIO m, Throws SysFsException) => m Battery
+data SysFsException
+  = -- | Error searching for /sys/class/power_supply or
+    -- /sysfs/class/power_supply.
+    --
+    -- @since 0.1.0.0
+    SysFsDirNotFound
+  | -- | Error searching for <sysfs>/BAT{0-5}?.
+    --
+    -- @since 0.1.0.0
+    SysFsBatteryDirNotFound
+  | -- | Errors searching for files.
+    --
+    -- @since 0.1.0.0
+    SysFsFileNotFound FilePath
+  | -- | Errors with the battery percentage format.
+    --
+    -- @since 0.1.0.0
+    SysFsBatteryParseException String
+  deriving stock
+    ( -- | @since 0.1.0.0
+      Eq,
+      -- | @since 0.1.0.0
+      Show
+    )
+
+-- | @since 0.1.0.0
+makePrismLabels ''SysFsException
+
+-- | @since 0.1.0.0
+instance PrettyPrinter SysFsException where
+  pretty SysFsDirNotFound =
+    "SysFs exception: Could not find /sys/class/power_supply"
+      <> " nor /sysfs/class/power_supply"
+  pretty SysFsBatteryDirNotFound =
+    "SysFs exception: Could not find BAT[0-5]? subdirectory under"
+      <> " /sys(fs)/class/power_supply"
+  pretty (SysFsFileNotFound f) =
+    "SysFs exception: Could not find file: " <> show f
+  pretty (SysFsBatteryParseException e) =
+    "SysFs parse error: " <> e <> ">"
+
+-- | @since 0.1.0.0
+deriving via (PrettyException SysFsException) instance Exception SysFsException
+
+-- | @/sys/class@ query for 'Battery'. Throws exceptions if the command fails
+-- or we have a parse error.
+--
+-- @since 0.1.0.0
+batteryQuery :: MonadIO m => m Battery
 batteryQuery = liftIO queryBattery
 
 -- | Returns a boolean determining if this program is supported on the
@@ -51,7 +102,7 @@ supported = liftIO $ do
     Left _ -> pure False
     Right _ -> pure True
 
-queryBattery :: Throws SysFsException => IO Battery
+queryBattery :: IO Battery
 queryBattery = do
   batDir <- findSysBatDir
   statusPath <- fileExists (batDir </> "status")
@@ -60,7 +111,7 @@ queryBattery = do
   percentage <- parsePercentage percentPath
   pure $ MkBattery percentage status
 
-findSysBatDir :: Throws SysFsException => IO FilePath
+findSysBatDir :: IO FilePath
 findSysBatDir = do
   sysExists <- Dir.doesDirectoryExist sys
   sysBase <-
@@ -70,17 +121,17 @@ findSysBatDir = do
         sysFsExists <- Dir.doesDirectoryExist sysfs
         if sysFsExists
           then pure sysfs
-          else throw SysFsDirErr
+          else throw SysFsDirNotFound
   findBatteryDir sysBase
   where
     sys = "/sys/class/power_supply"
     sysfs = "/sysfs/class/power_supply"
 
-findBatteryDir :: Throws SysFsException => FilePath -> IO FilePath
+findBatteryDir :: FilePath -> IO FilePath
 findBatteryDir sysBase = do
   mResult <- foldr firstExists (pure Nothing) batDirs
   case mResult of
-    Nothing -> throw SysFsBatteryDirErr
+    Nothing -> throw SysFsBatteryDirNotFound
     Just result -> pure result
   where
     firstExists bd acc = do
@@ -100,18 +151,18 @@ findBatteryDir sysBase = do
 
 maybeDirExists :: FilePath -> IO (Maybe FilePath)
 maybeDirExists fp = do
-  b <- Dir.doesFileExist fp
+  b <- Dir.doesDirectoryExist fp
   pure $
     if b
       then Just fp
       else Nothing
 
-fileExists :: Throws SysFsException => FilePath -> IO FilePath
+fileExists :: FilePath -> IO FilePath
 fileExists fp = do
   b <- Dir.doesFileExist fp
   if b
     then pure fp
-    else throw $ SysFsFileNotFoundErr fp
+    else throw $ SysFsFileNotFound fp
 
 parseStatus :: FilePath -> IO BatteryStatus
 parseStatus fp = do
@@ -123,44 +174,13 @@ parseStatus fp = do
     "full" -> pure Full
     bad -> pure $ Unknown bad
 
-parsePercentage :: Throws SysFsException => FilePath -> IO BatteryPercentage
+parsePercentage :: FilePath -> IO BatteryPercentage
 parsePercentage fp = do
-  percentTxt <- readFileUtf8Lenient fp
+  percentTxt <-
+    readFileUtf8Lenient fp
+      `catch` \(e :: SomeException) -> throw e
   case readInterval percentTxt of
-    Nothing -> throw $ SysFsBatteryFormatErr $ T.unpack percentTxt
+    Nothing -> throw $ SysFsBatteryParseException $ T.unpack percentTxt
     Just bs -> pure $ MkBatteryPercentage bs
   where
     readInterval = Interval.mkLRInterval <=< TR.readMaybe . T.unpack
-
--- | Errors that can occur when reading sysfs.
---
--- @since 0.1.0.0
-data SysFsException
-  = -- | Error searching for /sys/class/power_supply or
-    -- /sysfs/class/power_supply.
-    --
-    -- @since 0.1.0.0
-    SysFsDirErr
-  | -- | Error searching for <sysfs>/BAT{0-5}?.
-    --
-    -- @since 0.1.0.0
-    SysFsBatteryDirErr
-  | -- | Errors searching for files.
-    --
-    -- @since 0.1.0.0
-    SysFsFileNotFoundErr FilePath
-  | -- | Errors with the battery percentage format.
-    --
-    -- @since 0.1.0.0
-    SysFsBatteryFormatErr String
-  deriving stock
-    ( -- | @since 0.1.0.0
-      Eq,
-      -- | @since 0.1.0.0
-      Show
-    )
-
--- | @since 0.1.0.0
-instance Exception SysFsException where
-  toException = batteryExToException
-  fromException = batteryExFromException

@@ -1,3 +1,6 @@
+{-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE UndecidableInstances #-}
+
 -- | This module provides functionality for retrieving network connection
 -- information using nmcli.
 --
@@ -16,17 +19,17 @@ where
 import Data.Char qualified as Char
 import Data.Set qualified as Set
 import Data.Text qualified as T
+import Pythia.Control.Exception (PrettyException (..))
 import Pythia.Prelude
+import Pythia.Printer (PrettyPrinter (..))
 import Pythia.Services.NetInterface.Types
   ( NetInterface (..),
     NetInterfaceState (..),
     NetInterfaceType (..),
     NetInterfaces (..),
-    netInterfaceExFromException,
-    netInterfaceExToException,
   )
 import Pythia.Services.Types (Device (..), Ipv4Address (..), Ipv6Address (..))
-import Pythia.ShellApp (CmdException (..), SimpleShell (..))
+import Pythia.ShellApp (SimpleShell (..))
 import Pythia.ShellApp qualified as ShellApp
 import Pythia.Utils qualified as U
 import Refined (Predicate, Refined)
@@ -35,13 +38,36 @@ import Text.Megaparsec (ErrorFancy (..), Parsec, (<?>))
 import Text.Megaparsec qualified as MP
 import Text.Megaparsec.Char qualified as MPC
 
--- | NmCli query for 'NetInterfaces'.
+-- | Errors that can occur with nmcli.
 --
 -- @since 0.1.0.0
-netInterfaceShellApp :: (MonadCatch m, MonadIO m, Throws NmCliException) => m NetInterfaces
-netInterfaceShellApp =
-  ShellApp.runSimple shell
-    `catch` \(MkCmdErr ex) -> throw (NmCliCmdErr ex)
+newtype NmCliException = NmCliParseException
+  { -- | @since 0.1.0.0
+    unNmCliParseException :: String
+  }
+  deriving stock
+    ( -- | @since 0.1.0.0
+      Eq,
+      -- | @since 0.1.0.0
+      Show
+    )
+
+-- | @since 0.1.0.0
+makeFieldLabelsNoPrefix ''NmCliException
+
+-- | @since 0.1.0.0
+instance PrettyPrinter NmCliException where
+  pretty (NmCliParseException s) = "Nmcli parse exception: " <> show s
+
+-- | @since 0.1.0.0
+deriving via (PrettyException NmCliException) instance Exception NmCliException
+
+-- | NmCli query for 'NetInterfaces'. Throws exceptions if the command fails
+-- or we have a parse error.
+--
+-- @since 0.1.0.0
+netInterfaceShellApp :: (MonadCatch m, MonadIO m) => m NetInterfaces
+netInterfaceShellApp = ShellApp.runSimple shell
   where
     shell =
       MkSimpleShell
@@ -65,7 +91,7 @@ parseInterfaces :: Text -> Either NmCliException NetInterfaces
 parseInterfaces txt = case MP.parse mparseInterfaces "Pythia.Services.NetInterface.NmCli" txt of
   Left ex ->
     let prettyErr = MP.errorBundlePretty ex
-     in Left $ NmCliParseErr prettyErr
+     in Left $ NmCliParseException prettyErr
   Right ifs -> Right ifs
 
 mparseInterfaces :: MParser NetInterfaces
@@ -219,27 +245,3 @@ parseDns :: Text -> MParser ()
 parseDns = void . MP.many . dns
   where
     dns p = MPC.string ("IP" <> p <> ".DNS[") *> U.takeLine_
-
--- | Errors that can occur when running \'nmcli\'.
---
--- @since 0.1.0.0
-data NmCliException
-  = -- | Error running nmcli command.
-    --
-    -- @since 0.1.0.0
-    NmCliCmdErr String
-  | -- | Parse error.
-    --
-    -- @since 0.1.0.0
-    NmCliParseErr String
-  deriving stock
-    ( -- | @since 0.1.0.0
-      Eq,
-      -- | @since 0.1.0.0
-      Show
-    )
-
--- | @since 0.1.0.0
-instance Exception NmCliException where
-  toException = netInterfaceExToException
-  fromException = netInterfaceExFromException

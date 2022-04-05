@@ -20,11 +20,6 @@ module Pythia.Services.GlobalIP
     UrlSource (..),
     IpType (..),
     RunApp (..),
-
-    -- ** Errors
-    GlobalIpException (..),
-    uncheckGlobalIp,
-    rethrowGlobalIp,
   )
 where
 
@@ -38,14 +33,13 @@ import Pythia.Services.GlobalIP.Types
   ( GlobalIpAddresses (..),
     GlobalIpApp (..),
     GlobalIpConfig (..),
-    GlobalIpException (..),
     GlobalIpRequest (..),
     GlobalIpSources (..),
     UrlSource (..),
   )
 import Pythia.Services.GlobalIP.Types qualified as GIpTypes
 import Pythia.Services.Types (IpType (..), Ipv4Address (..), Ipv6Address (..))
-import Pythia.ShellApp (AppAction (..), CmdException (..), MultiExceptions (..))
+import Pythia.ShellApp (AppAction (..))
 import Pythia.ShellApp qualified as ShellApp
 import Pythia.Utils qualified as U
 import Refined (Predicate, Refined)
@@ -56,19 +50,19 @@ import Refined qualified as R
 --
 -- @since 0.1.0.0
 queryGlobalIp ::
-  (MonadCatch m, MonadIO m, Throws GlobalIpException) => m GlobalIpAddresses
+  (MonadCatch m, MonadIO m) => m GlobalIpAddresses
 queryGlobalIp = queryGlobalIpConfig mempty
 
 -- | Queries for global ip address based on the configuration.
 --
 -- @since 0.1.0.0
 queryGlobalIpConfig ::
-  (MonadCatch m, MonadIO m, Throws GlobalIpException) =>
+  (MonadCatch m, MonadIO m) =>
   GlobalIpConfig ->
   m GlobalIpAddresses
 queryGlobalIpConfig config =
   case config ^. #ipApp of
-    Many -> rethrowGlobalIp @MultiExceptions $ ShellApp.tryAppActions allApps
+    Many -> ShellApp.tryAppActions allApps
     Single app -> singleRun app
   where
     allApps =
@@ -81,7 +75,7 @@ queryGlobalIpConfig config =
         (config ^. #ipSources)
 
 toSingleShellApp ::
-  (MonadIO m, Throws GlobalIpException) =>
+  MonadIO m =>
   GlobalIpRequest ->
   GlobalIpSources ->
   GlobalIpApp ->
@@ -99,7 +93,6 @@ digSupported :: MonadIO m => m Bool
 digSupported = U.exeSupported "dig"
 
 getBoth ::
-  Throws GlobalIpException =>
   GlobalIpApp ->
   [UrlSource 'Ipv4] ->
   [UrlSource 'Ipv6] ->
@@ -107,7 +100,6 @@ getBoth ::
 getBoth app ipv4Srcs ipv6Srcs = GIpBoth <$> getIpv4s' app ipv4Srcs <*> getIpv6s' app ipv6Srcs
 
 getIpv4s ::
-  Throws GlobalIpException =>
   GlobalIpApp ->
   [UrlSource 'Ipv4] ->
   IO GlobalIpAddresses
@@ -115,7 +107,6 @@ getIpv4s app srcs = do
   GIpv4 <$> getIpv4s' app srcs
 
 getIpv4s' ::
-  Throws GlobalIpException =>
   GlobalIpApp ->
   [UrlSource 'Ipv4] ->
   IO Ipv4Address
@@ -126,14 +117,12 @@ getIpv4s' app extraSrcs = do
   getIpv4 sources
 
 getIpv6s ::
-  Throws GlobalIpException =>
   GlobalIpApp ->
   [UrlSource 'Ipv6] ->
   IO GlobalIpAddresses
 getIpv6s app srcs = GIpv6 <$> getIpv6s' app srcs
 
 getIpv6s' ::
-  Throws GlobalIpException =>
   GlobalIpApp ->
   [UrlSource 'Ipv6] ->
   IO Ipv6Address
@@ -179,36 +168,23 @@ digDefaults = MkGlobalIpSources ipv4s ipv6s
       ]
     ipv6s = []
 
-getIpv4 :: Throws GlobalIpException => [UrlSource 'Ipv4] -> IO Ipv4Address
+getIpv4 :: [UrlSource 'Ipv4] -> IO Ipv4Address
 getIpv4 = fmap MkIpv4Address . getIp GIpTypes.urlSourceCmdIso
 
-getIpv6 :: Throws GlobalIpException => [UrlSource 'Ipv6] -> IO Ipv6Address
+getIpv6 :: [UrlSource 'Ipv6] -> IO Ipv6Address
 getIpv6 = fmap MkIpv6Address . getIp GIpTypes.urlSourceCmdIso
 
 getIp ::
   forall p a.
-  (Predicate p Text, Throws GlobalIpException) =>
+  Predicate p Text =>
   Iso' a Command ->
   [a] ->
   IO (Refined p Text)
-getIp iso cmds =
-  rethrowGlobalIp @MultiExceptions $ ShellApp.tryIOs (fmap go cmds)
+getIp iso cmds = ShellApp.tryIOs (fmap go cmds)
   where
-    go cmd = rethrowGlobalIp @CmdException $ do
+    go cmd = do
       txt <- ShellApp.runCommand $ cmd ^. iso
       R.refineThrow (trim txt)
 
 trim :: Text -> Text
 trim = T.dropAround Char.isSpace
-
--- | 'uncheck' specialized to 'GlobalIpException'.
---
--- @since 0.1.0.0
-uncheckGlobalIp :: ((Throws GlobalIpException) => m a) -> m a
-uncheckGlobalIp = uncheck (Proxy @GlobalIpException)
-
--- | Rethrows a checked exception as a 'GlobalIpException'.
---
--- @since 0.1.0.0
-rethrowGlobalIp :: forall e m a. (Exception e, MonadCatch m, Throws GlobalIpException) => (Throws e => m a) -> m a
-rethrowGlobalIp = handle (\(ex :: e) -> throw $ MkGlobalIpErr ex)

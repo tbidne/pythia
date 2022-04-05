@@ -1,3 +1,6 @@
+{-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE UndecidableInstances #-}
+
 -- | This module provides functionality for retrieving battery information
 -- using UPower.
 --
@@ -16,15 +19,15 @@ where
 import Data.Char qualified as Char
 import Data.Text qualified as T
 import Numeric.Data.Interval qualified as Interval
+import Pythia.Control.Exception (PrettyException (..))
 import Pythia.Prelude
+import Pythia.Printer (PrettyPrinter (..))
 import Pythia.Services.Battery.Types
   ( Battery (..),
     BatteryPercentage (..),
     BatteryStatus (..),
-    batteryExFromException,
-    batteryExToException,
   )
-import Pythia.ShellApp (CmdException (..), SimpleShell (..))
+import Pythia.ShellApp (SimpleShell (..))
 import Pythia.ShellApp qualified as ShellApp
 import Pythia.Utils qualified as U
 import Text.Megaparsec (Parsec)
@@ -32,13 +35,55 @@ import Text.Megaparsec qualified as MP
 import Text.Megaparsec.Char qualified as MPC
 import Text.Read qualified as TR
 
--- | UPower query for 'Battery'.
+-- | Errors that can occur with upower.
 --
 -- @since 0.1.0.0
-batteryShellApp :: (MonadCatch m, MonadIO m, Throws UPowerException) => m Battery
-batteryShellApp =
-  ShellApp.runSimple shell
-    `catch` \(MkCmdErr ex) -> throw (UPowerCmdErr ex)
+data UPowerException
+  = -- | Did not find percentage.
+    --
+    -- @since 0.1.0.0
+    UPowerNoPercentage String
+  | -- | Did not find status.
+    --
+    -- @since 0.1.0.0
+    UPowerNoStatus String
+  | -- | Found neither percentage nor status.
+    --
+    -- @since 0.1.0.0
+    UPowerNoPercentageNorStatus String
+  deriving stock
+    ( -- | @since 0.1.0.0
+      Eq,
+      -- | @since 0.1.0.0
+      Show
+    )
+
+makePrismLabels ''UPowerException
+
+-- | @since 0.1.0.0
+instance PrettyPrinter UPowerException where
+  pretty (UPowerNoPercentage s) =
+    "UPower parse error. No percentage found in output <"
+      <> s
+      <> ">"
+  pretty (UPowerNoStatus s) =
+    "UPower parse error. No status found in output: <"
+      <> s
+      <> ">"
+  pretty (UPowerNoPercentageNorStatus s) =
+    "UPower parse error. No percentage nor status found in output: <"
+      <> s
+      <> ">"
+
+-- | @since 0.1.0.0
+deriving via (PrettyException UPowerException) instance Exception UPowerException
+
+-- | UPower query for 'Battery'. Throws exceptions if the command fails or
+-- or we have a parse error.
+--
+-- @since 0.1.0.0
+batteryShellApp :: (MonadCatch m, MonadIO m) => m Battery
+batteryShellApp = ShellApp.runSimple shell
   where
     shell =
       MkSimpleShell
@@ -154,35 +199,3 @@ parseStatus = do
       MP.eof
       pure $ Unknown s
     rest = MPC.space *> MP.eof
-
--- | Errors that can occur when running upower.
---
--- @since 0.1.0.0
-data UPowerException
-  = -- | Error running upower command.
-    --
-    -- @since 0.1.0.0
-    UPowerCmdErr String
-  | -- | Did not find percentage.
-    --
-    -- @since 0.1.0.0
-    UPowerNoPercentage String
-  | -- | Did not find status.
-    --
-    -- @since 0.1.0.0
-    UPowerNoStatus String
-  | -- | Found neither.
-    --
-    -- @since 0.1.0.0
-    UPowerNoPercentageNorStatus String
-  deriving stock
-    ( -- | @since 0.1.0.0
-      Eq,
-      -- | @since 0.1.0.0
-      Show
-    )
-
--- | @since 0.1.0.0
-instance Exception UPowerException where
-  toException = batteryExToException
-  fromException = batteryExFromException

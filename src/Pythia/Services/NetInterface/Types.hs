@@ -15,16 +15,9 @@ module Pythia.Services.NetInterface.Types
     NetInterfaceState (..),
     NetInterface (..),
     NetInterfaces (..),
-
-    -- * Errors
-    NetInterfaceException (..),
-    netInterfaceExToException,
-    netInterfaceExFromException,
   )
 where
 
-import Data.Typeable (cast)
-import Pythia.Control.Exception (pythiaExFromException, pythiaExToException)
 import Pythia.Data.RunApp (RunApp)
 import Pythia.Prelude
 import Pythia.Printer (PrettyPrinter (..))
@@ -223,33 +216,3 @@ instance PrettyPrinter NetInterfaces where
 
 -- | @since 0.1.0.0
 makeFieldLabelsNoPrefix ''NetInterfaces
-
--- | General battery errors.
---
--- @since 0.1.0.0
-data NetInterfaceException = forall e. Exception e => MkNetInterfaceErr e
-
--- | @since 0.1.0.0
-deriving stock instance Show NetInterfaceException
-
--- | @since 0.1.0.0
-deriving anyclass instance PrettyPrinter NetInterfaceException
-
--- | @since 0.1.0.0
-instance Exception NetInterfaceException where
-  toException = pythiaExToException
-  fromException = pythiaExFromException
-
--- | Converts any 'Exception' to a 'SomeException' via 'NetInterfaceException'.
---
--- @since 0.1.0.0
-netInterfaceExToException :: Exception e => e -> SomeException
-netInterfaceExToException = toException . MkNetInterfaceErr
-
--- | Converts any 'SomeException' to an 'Exception' via 'NetInterfaceException'.
---
--- @since 0.1.0.0
-netInterfaceExFromException :: Exception e => SomeException -> Maybe e
-netInterfaceExFromException x = do
-  MkNetInterfaceErr a <- fromException x
-  cast a

@@ -13,15 +13,13 @@ where
 
 import Control.Applicative as X (Alternative (..), Applicative (..))
 import Control.Exception as X (Exception (..), SomeException (..))
-import Control.Exception.Safe.Checked as X
+import Control.Exception.Safe as X
   ( MonadCatch,
     MonadThrow,
-    Throws,
     catch,
     handle,
     throw,
     try,
-    uncheck,
   )
 import Control.Monad as X (Monad (..), join, void, (<=<), (=<<), (>=>))
 import Control.Monad.IO.Class as X (MonadIO (..))

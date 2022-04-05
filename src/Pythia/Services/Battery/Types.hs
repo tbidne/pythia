@@ -14,21 +14,11 @@ module Pythia.Services.Battery.Types
     BatteryStatus (..),
     BatteryPercentage (..),
     Battery (..),
-
-    -- * Errors
-    BatteryException (..),
-    batteryExToException,
-    batteryExFromException,
   )
 where
 
-import Data.Typeable (cast)
 import Numeric.Data.Interval (LRInterval)
 import Numeric.Data.Interval qualified as Interval
-import Pythia.Control.Exception
-  ( pythiaExFromException,
-    pythiaExToException,
-  )
 import Pythia.Data.RunApp (RunApp)
 import Pythia.Prelude
 import Pythia.Printer (PrettyPrinter (..))
@@ -172,33 +162,3 @@ instance PrettyPrinter Battery where
     where
       status = pretty $ bs ^. #status
       percentage = pretty $ bs ^. #percentage
-
--- | General battery errors.
---
--- @since 0.1.0.0
-data BatteryException = forall e. Exception e => MkBatteryErr e
-
--- | @since 0.1.0.0
-deriving stock instance Show BatteryException
-
--- | @since 0.1.0.0
-deriving anyclass instance PrettyPrinter BatteryException
-
--- | @since 0.1.0.0
-instance Exception BatteryException where
-  toException = pythiaExToException
-  fromException = pythiaExFromException
-
--- | Converts any 'Exception' to a 'SomeException' via 'BatteryException'.
---
--- @since 0.1.0.0
-batteryExToException :: Exception e => e -> SomeException
-batteryExToException = toException . MkBatteryErr
-
--- | Converts any 'SomeException' to an 'Exception' via 'BatteryException'.
---
--- @since 0.1.0.0
-batteryExFromException :: Exception e => SomeException -> Maybe e
-batteryExFromException x = do
-  MkBatteryErr a <- fromException x
-  cast a

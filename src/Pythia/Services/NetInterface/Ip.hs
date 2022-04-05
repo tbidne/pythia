@@ -1,3 +1,6 @@
+{-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE UndecidableInstances #-}
+
 -- | This module provides functionality for retrieving network connection
 -- information using ip utility.
 --
@@ -16,16 +19,16 @@ where
 import Data.Char qualified as Char
 import Data.Set qualified as Set
 import Data.Text qualified as T
+import Pythia.Control.Exception (PrettyException (..))
 import Pythia.Prelude
+import Pythia.Printer (PrettyPrinter (..))
 import Pythia.Services.NetInterface.Types
   ( NetInterface (..),
     NetInterfaceState (..),
     NetInterfaces (..),
-    netInterfaceExFromException,
-    netInterfaceExToException,
   )
 import Pythia.Services.Types (Device (..), Ipv4Address (..), Ipv6Address (..))
-import Pythia.ShellApp (CmdException (..), SimpleShell (..))
+import Pythia.ShellApp (SimpleShell (..))
 import Pythia.ShellApp qualified as ShellApp
 import Pythia.Utils qualified as U
 import Refined (Predicate, Refined)
@@ -34,13 +37,36 @@ import Text.Megaparsec (ErrorFancy (..), Parsec, (<?>))
 import Text.Megaparsec qualified as MP
 import Text.Megaparsec.Char qualified as MPC
 
--- | Ip query for 'NetInterface'.
+-- | Errors that can occur with ip.
 --
 -- @since 0.1.0.0
-netInterfaceShellApp :: (MonadCatch m, MonadIO m, Throws IpException) => m NetInterfaces
-netInterfaceShellApp =
-  ShellApp.runSimple shell
-    `catch` \(MkCmdErr ex) -> throw (IpCmdErr ex)
+newtype IpException = IpParseException
+  { -- | @since 0.1.0.0
+    unIpParseException :: String
+  }
+  deriving stock
+    ( -- | @since 0.1.0.0
+      Eq,
+      -- | @since 0.1.0.0
+      Show
+    )
+
+-- | @since 0.1.0.0
+makeFieldLabelsNoPrefix ''IpException
+
+-- | @since 0.1.0.0
+instance PrettyPrinter IpException where
+  pretty (IpParseException s) = "Ip parse exception: " <> show s
+
+-- | @since 0.1.0.0
+deriving via (PrettyException IpException) instance Exception IpException
+
+-- | Ip query for 'NetInterface'. Throws exceptions if the command fails or
+-- we have a parse error.
+--
+-- @since 0.1.0.0
+netInterfaceShellApp :: (MonadCatch m, MonadIO m) => m NetInterfaces
+netInterfaceShellApp = ShellApp.runSimple shell
   where
     shell =
       MkSimpleShell
@@ -64,7 +90,7 @@ parseInterfaces :: Text -> Either IpException NetInterfaces
 parseInterfaces txt = case MP.parse mparseInterfaces "" txt of
   Left ex ->
     let prettyErr = MP.errorBundlePretty ex
-     in Left $ IpParseErr prettyErr
+     in Left $ IpParseException prettyErr
   Right ifs -> Right ifs
 
 mparseInterfaces :: MParser NetInterfaces
@@ -152,27 +178,3 @@ parseNetInterfaceState = do
     up = MPC.string "UP" $> Up
     down = MPC.string "DOWN" $> Down
     unknown = UnknownState <$> MP.takeWhile1P (Just "type") (not . Char.isSpace)
-
--- | Errors that can occur when running the \'ip\' command.
---
--- @since 0.1.0.0
-data IpException
-  = -- | Error running ip command.
-    --
-    -- @since 0.1.0.0
-    IpCmdErr String
-  | -- | Parse error.
-    --
-    -- @since 0.1.0.0
-    IpParseErr String
-  deriving stock
-    ( -- | @since 0.1.0.0
-      Eq,
-      -- | @since 0.1.0.0
-      Show
-    )
-
--- | @since 0.1.0.0
-instance Exception IpException where
-  toException = netInterfaceExToException
-  fromException = netInterfaceExFromException

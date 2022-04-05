@@ -24,11 +24,12 @@ main = do
   case cmd of
     Battery cfg field -> handleBattery cfg field
     NetInterface cfg val -> handleNetInterface cfg val
-    NetIpGlobal cfg -> Pythia.uncheckGlobalIp $ Pythia.queryGlobalIpConfig cfg >>= prettyPrint
+    NetIpGlobal cfg -> Pythia.queryGlobalIpConfig cfg >>= prettyPrint
+    `catch` \(ex :: SomeException) -> putStrLn (displayException ex)
 
 handleBattery :: BatteryConfig -> Maybe BatteryField -> IO ()
 handleBattery cfg mfield = do
-  result <- Pythia.uncheckBattery $ Pythia.queryBatteryConfig cfg
+  result <- Pythia.queryBatteryConfig cfg
   case mfield of
     Nothing -> prettyPrint result
     Just field -> putStrLn (toField field result)
@@ -38,7 +39,7 @@ handleBattery cfg mfield = do
 
 handleNetInterface :: NetInterfaceConfig -> Maybe NetInterfaceField -> IO ()
 handleNetInterface cfg val = do
-  result <- Pythia.uncheckNetInterface $ Pythia.queryNetInterfacesConfig cfg
+  result <- Pythia.queryNetInterfacesConfig cfg
   case val of
     Nothing -> prettyPrint result
     Just sel -> printField sel result
