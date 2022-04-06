@@ -25,10 +25,6 @@ import Pythia.Services.Battery
 import Pythia.Services.GlobalIP
 import Pythia.Services.NetInterface
 
--- $setup
--- >>> import Pythia.Prelude (IO)
--- >>> import Pythia.Services.Battery.Acpi (AcpiException)
-
 -- $services
 -- Each service is self-contained in that it should have everything you need
 -- to use it.
@@ -36,7 +32,7 @@ import Pythia.Services.NetInterface
 -- $exceptions
 -- Pythia's error handling is defined in terms of @safe-exceptions@.
 -- "Pythia.Control.Exception" defines general exceptions that can be thrown
--- from 'IO'; Additionally, services can also throw specific exceptions (e.g.
+-- from 'GHC.IO.IO'; Additionally, services can also throw specific exceptions (e.g.
 -- 'AcpiException' from "Pythia.Services.Battery.Acpi"). All exceptions are
 -- unifed under the supertype 'PythiaException'.
 

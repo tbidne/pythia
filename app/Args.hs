@@ -7,6 +7,7 @@ module Args
   ( PythiaCommand (..),
     BatteryField (..),
     NetInterfaceField (..),
+    NetConnField (..),
     parserInfo,
   )
 where
@@ -44,12 +45,13 @@ import Pythia.Services.Types (Device (..), IpType (..))
 --
 -- @since 0.1.0.0
 data PythiaCommand
-  = Battery BatteryConfig (Maybe BatteryField)
-  | NetInterface NetInterfaceConfig (Maybe NetInterfaceField)
-  | NetIpGlobal GlobalIpConfig
+  = BatteryCmd BatteryConfig (Maybe BatteryField)
+  | NetInterfaceCmd NetInterfaceConfig (Maybe NetInterfaceField)
+  | NetConnCmd NetInterfaceConfig (Maybe NetConnField)
+  | NetIpGlobalCmd GlobalIpConfig
   deriving stock (Eq, Show)
 
--- | Extra option for Battery.
+-- | Extra option for BatteryCmd.
 --
 -- @since 0.1.0.0
 data BatteryField
@@ -57,13 +59,24 @@ data BatteryField
   | BatteryFieldStatus
   deriving stock (Eq, Show)
 
--- | Extra option for NetInterface.
+-- | Extra option for NetInterfaceCmd.
 --
 -- @since 0.1.0.0
 data NetInterfaceField
   = NetInterfaceFieldName
   | NetInterfaceFieldIpv4
   | NetInterfaceFieldIpv6
+  deriving stock (Eq, Show)
+
+-- | Extra option for NetConnCmd.
+--
+-- @since 0.1.0.0
+data NetConnField
+  = NetConnFieldDevice
+  | NetConnFieldType
+  | NetConnFieldName
+  | NetConnFieldIpv4
+  | NetConnFieldIpv6
   deriving stock (Eq, Show)
 
 -- | Optparse-Applicative info.
@@ -96,6 +109,7 @@ cmdParser =
   OApp.hsubparser
     ( mkCommand "battery" parseBattery batStateTxt
         <> mkCommand "net-if" parseNetInterface netInterfaceTxt
+        <> mkCommand "net-conn" parseNetConn netConnTxt
         <> mkCommand "global-ip" parseIpGlobal ipGlobalTxt
     )
     <**> OApp.helper
@@ -104,6 +118,7 @@ cmdParser =
     batStateTxt =
       OApp.progDesc "Queries the battery state."
     netInterfaceTxt = OApp.progDesc "Queries network interfaces."
+    netConnTxt = OApp.progDesc "Queries network interfaces for a live connection."
     ipGlobalTxt = OApp.progDesc "Queries the global IP addresses."
 
 version :: Parser (a -> a)
@@ -129,7 +144,7 @@ parseBattery = do
           <> OApp.help helpTxt
       )
   field <- parseBatteryField
-  pure $ Battery (MkBatteryConfig app) field
+  pure $ BatteryCmd (MkBatteryConfig app) field
   where
     helpTxt = "App must be one of [acpi | sysfs | upower]."
     reader = do
@@ -165,7 +180,7 @@ parseNetInterface = do
   app <- netInterfaceAppOption
   device <- netInterfaceDeviceOption
   val <- parseNetInterfaceField
-  pure $ NetInterface (MkNetInterfaceConfig app device) val
+  pure $ NetInterfaceCmd (MkNetInterfaceConfig app device) val
 
 parseNetInterfaceField :: Parser (Maybe NetInterfaceField)
 parseNetInterfaceField =
@@ -221,13 +236,46 @@ netInterfaceDeviceOption =
   where
     deviceTxt = "The name of the network device to filter on e.g. wlp0s20f3"
 
+parseNetConn :: Parser PythiaCommand
+parseNetConn = NetConnCmd <$> parseApp <*> parseNetConnField
+  where
+    parseApp = (`MkNetInterfaceConfig` Nothing) <$> netInterfaceAppOption
+
+parseNetConnField :: Parser (Maybe NetConnField)
+parseNetConnField =
+  A.optional $
+    OApp.option
+      readApp
+      ( OApp.long "field"
+          <> OApp.short 'f'
+          <> OApp.metavar "FIELD"
+          <> OApp.help helpTxt
+      )
+  where
+    helpTxt =
+      "If specified, prints only the given field. Must be one of"
+        <> " [device | type | name | ipv4 | ipv6]."
+    readApp = do
+      a <- OApp.str
+      case a of
+        "device" -> pure NetConnFieldDevice
+        "type" -> pure NetConnFieldType
+        "name" -> pure NetConnFieldName
+        "ipv4" -> pure NetConnFieldIpv4
+        "ipv6" -> pure NetConnFieldIpv6
+        _ ->
+          OApp.readerAbort $
+            ErrorMsg $
+              "Unrecognized network interface field: "
+                <> T.unpack a
+
 parseIpGlobal :: Parser PythiaCommand
 parseIpGlobal = do
   app <- ipAppOption
   ipType <- ipTypeOption
   ipv4Urls <- ipv4SrcOption
   ipv6Urls <- ipv6SrcOption
-  pure $ NetIpGlobal $ MkGlobalIpConfig app ipType (MkGlobalIpSources ipv4Urls ipv6Urls)
+  pure $ NetIpGlobalCmd $ MkGlobalIpConfig app ipType (MkGlobalIpSources ipv4Urls ipv6Urls)
 
 ipAppOption :: Parser (RunApp GlobalIpApp)
 ipAppOption =

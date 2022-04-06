@@ -6,6 +6,9 @@ module Pythia.Services.NetInterface
     queryNetInterfaces,
     queryNetInterfacesConfig,
 
+    -- * Functions
+    findUp,
+
     -- * Types
     NetInterfaces (..),
     NetInterface (..),
@@ -26,6 +29,7 @@ module Pythia.Services.NetInterface
   )
 where
 
+import GHC.OldList qualified as OL
 import Pythia.Data.RunApp (RunApp (..))
 import Pythia.Prelude
 import Pythia.Services.NetInterface.Ip (IpException)
@@ -102,3 +106,29 @@ toSingleShellApp ::
   m NetInterfaces
 toSingleShellApp NetInterfaceNmCli = NmCli.netInterfaceShellApp
 toSingleShellApp NetInterfaceIp = Ip.netInterfaceShellApp
+
+-- | Takes the first 'NetInterface' that has state 'Up', according to
+-- 'NetInterfaceState'\'s 'Ord':
+--
+-- @
+-- 'Ethernet' < 'Wifi' < 'Wifi_P2P' < 'Loopback' < 'Tun' < 'UnknownType'
+-- @
+--
+-- __Examples__
+-- >>> findUp $ MkNetInterfaces []
+-- Nothing
+--
+-- >>> :{
+--   let wifiUp = MkNetInterface "" (Just Wifi) Up (Just "WifiUp") [] []
+--       wifiDown = MkNetInterface "" (Just Wifi) Down (Just "WifiDown") [] []
+--       loopUp = MkNetInterface "" (Just Loopback) Up (Just "LoopUp") [] []
+--    in findUp $ MkNetInterfaces [loopUp, wifiDown, wifiUp]
+-- :}
+-- Just (MkNetInterface {idevice = MkDevice {unDevice = ""}, itype = Just Wifi, istate = Up, iname = Just "WifiUp", ipv4s = [], ipv6s = []})
+--
+-- @since 0.1.0.0
+findUp :: NetInterfaces -> Maybe NetInterface
+findUp = headMaybe . (sortType . filterUp) . unNetInterfaces
+  where
+    sortType = OL.sortOn (view #itype)
+    filterUp = filter ((== Up) . view #istate)

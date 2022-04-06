@@ -7,6 +7,7 @@ module Pythia.Prelude
     decodeUtf8Lenient,
 
     -- * Misc
+    headMaybe,
     throwLeft,
 
     -- * Base
@@ -74,6 +75,20 @@ readFileUtf8Lenient = fmap decodeUtf8Lenient . liftIO . BS.readFile
 -- @since 0.1.0.0
 decodeUtf8Lenient :: ByteString -> Text
 decodeUtf8Lenient = TextEnc.decodeUtf8With TextEncErr.lenientDecode
+
+-- | Total version of 'Prelude.head'.
+--
+-- ==== __Examples__
+-- >>> headMaybe []
+-- Nothing
+--
+-- >>> headMaybe [3, 4]
+-- Just 3
+--
+-- @since 0.1.0.0
+headMaybe :: [a] -> Maybe a
+headMaybe [] = Nothing
+headMaybe (x : _) = Just x
 
 -- | Throws 'Left'.
 --

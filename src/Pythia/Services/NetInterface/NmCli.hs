@@ -165,21 +165,19 @@ parseNetInterfaceState = do
   MPC.string "GENERAL.STATE:"
   MP.takeWhile1P (Just "state int code") Char.isDigit
   MPC.space
-  MPC.char '('
   state' <-
     MP.try up
       <|> MP.try down
       <|> MP.try unavail
       <|> unknown
       <?> "state"
-  MPC.char ')'
   U.takeLine_
   pure state'
   where
-    up = MPC.string "connected" $> Up
-    down = MPC.string "disconnected" $> Down
-    unavail = MPC.string "unavailable" $> Down
-    unknown = UnknownState <$> MP.takeWhile1P (Just "type") (/= ')')
+    up = MPC.string "(connected)" $> Up
+    down = MPC.string "(disconnected)" $> Down
+    unavail = MPC.string "(unavailable)" $> Down
+    unknown = UnknownState <$> MP.takeWhile1P (Just "type") (/= '\n')
 
 parseName :: MParser (Maybe Text)
 parseName = do

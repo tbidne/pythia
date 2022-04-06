@@ -96,7 +96,7 @@ loopback =
   MkNetInterface
     "lo"
     (Just Loopback)
-    (UnknownState "unmanaged")
+    (UnknownState "(unmanaged)")
     Nothing
     [unsafeIpv4Address "127.0.0.1"]
     [unsafeIpv6Address "::1"]
@@ -106,7 +106,7 @@ vpn =
   MkNetInterface
     "tailscale0"
     (Just Tun)
-    (UnknownState "unmanaged")
+    (UnknownState "(unmanaged)")
     Nothing
     []
     [unsafeIpv6Address "fe80::a63f:791a:3eaa:9d86"]

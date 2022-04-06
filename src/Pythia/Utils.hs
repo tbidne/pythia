@@ -29,13 +29,6 @@ import Text.Megaparsec.Char qualified as MPC
 -- >>> :set -XOverloadedStrings
 -- >>> import Text.Megaparsec (parseTest)
 
--- | Safe version of 'Prelude.head'.
---
--- @since 0.1.0.0
-headMaybe :: [a] -> Maybe a
-headMaybe [] = Nothing
-headMaybe (x : _) = Just x
-
 -- | Similar to 'foldMap' but for 'Alternative'.
 --
 -- ==== __Examples__

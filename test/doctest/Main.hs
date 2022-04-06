@@ -24,7 +24,7 @@ files =
     "src/Pythia/Services/GlobalIP/Types.hs",
     "src/Pythia/Services/NetInterface/Types.hs",
     "src/Pythia/Data/RunApp.hs",
-    "src/Pythia/Printer.hs",
+    "src/Pythia/Class/Printer.hs",
     "src/Pythia/Utils.hs"
   ]
 

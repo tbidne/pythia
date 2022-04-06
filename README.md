@@ -23,6 +23,7 @@
 * [Services](#services)
   * [Battery](#battery)
   * [Network Interfaces](#network-interfaces)
+  * [Network Connection](#network-connection)
   * [Global IP](#global-ip)
 
 # Introduction
@@ -32,6 +33,8 @@ Pythia is a tool for retrieving system information. It is both a library and an 
 In general, if the specific app is unspecified, then pythia will try all of the applications it knows about, returning the first success.
 
 # Services
+
+This section describes services from the perspective of the executable. The library API is close, but there are some discrepancies, usually where the executable has extra functionality.
 
 ## Battery
 
@@ -78,7 +81,7 @@ $ pythia battery --field percentage
 
 ## Network Interfaces
 
-The service is for reading information about the network interfaces found on this system.
+This service is for reading information about the network interfaces found on this system.
 
 ### Usage
 
@@ -137,25 +140,69 @@ Name:
 IPv4: 
 IPv6: fe80::a63f:791a:3eaa:9d86
 
-$ pythia --device wlp0s20f3
+$ pythia net-if --device wlp0s20f3
 Type: Wifi
 State: Up
 Name: MySSID
 IPv4: 192.168.1.2
 IPv6: fe80::fe44:82ff:fede:f814, fe80::a328:482:5263:10b8
 
-$ pythia --device wlp0s20f3 --field name
+$ pythia net-if --device wlp0s20f3 --field name
 MySSID
 
-$ pythia --device wlp0s20f3 --field ipv4
+$ pythia net-if --device wlp0s20f3 --field ipv4
 192.168.1.2
 
-$ pythia --field ipv6
+$ pythia net-if --field ipv6
 192.168.1.2fe80::fe44:82ff:fede:f814, fe80::a328:482:5263:10b8
 
 
 ::1
 fe80::a63f:791a:3eaa:9d86
+```
+
+## Network Connection
+
+This service is for finding a network interface that represents a live connection. As such it closely resembles [network interfaces](#network-interfaces), except we filter on an active connection.
+
+### Usage
+
+```
+Usage: pythia net-conn [-a|--app APP] [-f|--field FIELD]
+  Queries network interfaces for a live connection.
+
+Available options:
+  -a,--app APP             App must be one of [nmcli | ip].
+  -f,--field FIELD         If specified, prints only the given field. Must be
+                           one of [device, type, name | ipv4 | ipv6].
+  -h,--help                Show this help text
+```
+
+### Supported Apps
+
+The following applications are supported:
+
+* `nmcli`
+* `ip`
+
+`nmcli` is preferred when no option is given, as it returns more information. `pythia` will return the first interface that has state "up". The return fields can be refined via `--field`.
+
+### Examples
+
+```
+$ pythia net-conn
+Device: wlp0s20f3
+Type: Wifi
+State: Up
+Name: MySSID
+IPv4: 192.168.1.2
+IPv6: fe80::a328:482:5263:10b8
+
+pythia net-conn --field name
+MySSID
+
+pythia net-conn --field ipv4
+192.168.1.2
 ```
 
 ## Global IP
