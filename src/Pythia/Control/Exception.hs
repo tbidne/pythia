@@ -6,42 +6,62 @@
 --
 -- @since 0.1.0.0
 module Pythia.Control.Exception
-  ( -- * Primary Types
+  ( -- * Exception Hierarchy Root
+    PythiaException (..),
+    toExceptionViaPythia,
+    fromExceptionViaPythia,
+
+    -- * Miscellaneous Exceptions
     CommandException (..),
     MultiExceptions (..),
     NotSupportedException (..),
     NoActionsRunException (..),
-
-    -- * Utilities
-    PrettyException (..),
   )
 where
 
 import Data.List.NonEmpty (NonEmpty (..))
 import Data.List.NonEmpty qualified as NE
 import Data.Text qualified as T
-import Data.Typeable (Typeable)
+import Data.Typeable (cast)
 import Pythia.Data.Command (Command (..))
 import Pythia.Prelude
 import Pythia.Printer (PrettyPrinter (..))
 import Pythia.Printer qualified as Printer
 
--- | This type exists solely to derive exceptions based on a pretty instance.
--- It is not intended to be thrown anywhere.
+-- | All specific exceptions thrown by pythia are subtypes of
+-- 'PythiaException'.
 --
 -- @since 0.1.0.0
-newtype PrettyException a = MkPrettyException
-  { -- | @since 0.1.0.0
-    unPrettyException :: a
-  }
-  deriving stock
+data PythiaException = forall e. Exception e => MkPythiaException e
+  deriving anyclass
     ( -- | @since 0.1.0.0
-      Show
+      PrettyPrinter
     )
 
 -- | @since 0.1.0.0
-instance (Show e, PrettyPrinter e, Typeable e) => Exception (PrettyException e) where
-  displayException = pretty . unPrettyException
+deriving stock instance Show PythiaException
+
+-- | @since 0.1.0.0
+instance Exception PythiaException where
+  displayException (MkPythiaException e) = displayException e
+
+-- | 'toException' via 'PythiaException'. Used for defining an exception
+
+--- as a subtype of 'PythiaException'.
+--
+-- @since 0.1.0.0
+toExceptionViaPythia :: Exception e => e -> SomeException
+toExceptionViaPythia = toException . MkPythiaException
+
+-- | 'fromException' via 'PythiaException'. Used for defining an exception
+
+--- as a subtype of 'PythiaException'.
+--
+-- @since 0.1.0.0
+fromExceptionViaPythia :: Exception e => SomeException -> Maybe e
+fromExceptionViaPythia x = do
+  MkPythiaException e <- fromException x
+  cast e
 
 -- | Exceptions encountered while running a shell command.
 --
@@ -65,7 +85,10 @@ data CommandException = MkCommandException
 makeFieldLabelsNoPrefix ''CommandException
 
 -- | @since 0.1.0.0
-deriving via (PrettyException CommandException) instance Exception CommandException
+instance Exception CommandException where
+  displayException = pretty
+  toException = toExceptionViaPythia
+  fromException = fromExceptionViaPythia
 
 -- | @since 0.1.0.0
 instance PrettyPrinter CommandException where
@@ -91,7 +114,10 @@ newtype MultiExceptions = MkMultiExceptions
 makeFieldLabelsNoPrefix ''MultiExceptions
 
 -- | @since 0.1.0.0
-deriving via (PrettyException MultiExceptions) instance Exception MultiExceptions
+instance Exception MultiExceptions where
+  displayException = pretty
+  toException = toExceptionViaPythia
+  fromException = fromExceptionViaPythia
 
 -- | @since 0.1.0.0
 instance PrettyPrinter MultiExceptions where
@@ -121,7 +147,10 @@ newtype NotSupportedException = MkNotSupportedException
 makeFieldLabelsNoPrefix ''NotSupportedException
 
 -- | @since 0.1.0.0
-deriving via (PrettyException NotSupportedException) instance Exception NotSupportedException
+instance Exception NotSupportedException where
+  displayException = pretty
+  toException = toExceptionViaPythia
+  fromException = fromExceptionViaPythia
 
 -- | @since 0.1.0.0
 instance PrettyPrinter NotSupportedException where
@@ -135,12 +164,13 @@ data NoActionsRunException = MkNoActionsRunException
     ( -- | @since 0.1.0.0
       Show
     )
-  deriving
-    ( -- | @since 0.1.0.0
-      Exception
-    )
-    via (PrettyException NoActionsRunException)
 
 -- | @since 0.1.0.0
 instance PrettyPrinter NoActionsRunException where
   pretty MkNoActionsRunException = "No actions run"
+
+-- | @since 0.1.0.0
+instance Exception NoActionsRunException where
+  displayException = pretty
+  toException = toExceptionViaPythia
+  fromException = fromExceptionViaPythia

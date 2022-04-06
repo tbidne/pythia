@@ -44,15 +44,19 @@ import Pythia.Services.Types (Device (..), Ipv4Address (..), Ipv6Address (..))
 import Pythia.ShellApp (AppAction (..))
 import Pythia.ShellApp qualified as ShellApp
 
--- | Attempts to query for interface information by detecting supported
--- apps. Tries, in the following order: ['NetInterfaceNmCli',
--- 'NetInterfaceIp'].
+-- | Queries for network interface information with default configuration.
+--
+-- Throws 'PythiaException'.
 --
 -- @since 0.1.0.0
 queryNetInterfaces :: (MonadCatch m, MonadIO m) => m NetInterfaces
 queryNetInterfaces = queryNetInterfacesConfig mempty
 
--- | Queries for network information based on the configuration.
+-- | Queries for network interface information based on the configuration.
+-- If 'interfaceApp' is 'Many' then we try supported apps in the following
+-- order: ['NetInterfaceNmCli', 'NetInterfaceIp'].
+--
+-- Throws 'PythiaException'.
 --
 -- @since 0.1.0.0
 queryNetInterfacesConfig ::

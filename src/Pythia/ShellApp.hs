@@ -47,7 +47,12 @@ data SimpleShell err result = MkSimpleShell
     -- | The parser for the result of running the command.
     --
     -- @since 0.1.0.0
-    parser :: Text -> Either err result
+    parser :: Text -> Either err result,
+    -- | Lifts an exception into @err@. Used so that a 'SimpleShell' will
+    -- throw exceptions of the same type.
+    --
+    -- @since 0.1.0.0
+    liftShellEx :: forall e. Exception e => e -> err
   }
 
 -- | @since 0.1.0.0
@@ -55,20 +60,27 @@ makeFieldLabelsNoPrefix ''SimpleShell
 
 -- | @since 0.1.0.0
 instance Bifunctor SimpleShell where
-  bimap f g (MkSimpleShell c p) = MkSimpleShell c p'
+  bimap f g (MkSimpleShell c p le) = MkSimpleShell c p' (f . le)
     where
       p' = bimap f g . p
 
--- | Runs a simple shell. Can throw an exception if either the command or
--- parse fails.
+-- | Runs a simple shell. If running the command throws 'SomeException', it
+-- will be rethrown as an @err@. Thus if command can throw exceptions of type
+-- @err@, there is a possibility of redundant wrapping.
+--
+-- If parsing fails, then this will also be thrown.
 --
 -- @since 0.1.0.0
-runSimple :: (Exception err, MonadCatch m, MonadIO m) => SimpleShell err result -> m result
-runSimple simple = runCommand (simple ^. #command) >>= parseAndThrow
+runSimple ::
+  forall m err result.
+  (Exception err, MonadCatch m, MonadIO m) =>
+  SimpleShell err result ->
+  m result
+runSimple simple =
+  rethrowErr `handle` runCommand (simple ^. #command) >>= parseAndThrow
   where
-    parseAndThrow t' = liftIO $ case (simple ^. #parser) t' of
-      Left err -> throw err
-      Right r -> pure r
+    rethrowErr = \(e :: SomeException) -> throw $ (simple ^. #liftShellEx) e
+    parseAndThrow t' = throwLeft $ (simple ^. #parser) t'
 
 -- | Runs a 'Command' and returns either the text result or error encountered.
 -- This is used by 'SimpleShell' to run its command before the result is

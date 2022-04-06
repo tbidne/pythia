@@ -19,7 +19,7 @@ where
 import Data.Char qualified as Char
 import Data.Set qualified as Set
 import Data.Text qualified as T
-import Pythia.Control.Exception (PrettyException (..))
+import Pythia.Control.Exception (fromExceptionViaPythia, toExceptionViaPythia)
 import Pythia.Prelude
 import Pythia.Printer (PrettyPrinter (..))
 import Pythia.Services.NetInterface.Types
@@ -40,26 +40,32 @@ import Text.Megaparsec.Char qualified as MPC
 -- | Errors that can occur with ip.
 --
 -- @since 0.1.0.0
-newtype IpException = IpParseException
-  { -- | @since 0.1.0.0
-    unIpParseException :: String
-  }
-  deriving stock
-    ( -- | @since 0.1.0.0
-      Eq,
-      -- | @since 0.1.0.0
-      Show
-    )
+data IpException
+  = -- | General exceptions.
+    --
+    -- @since 0.1.0.0
+    forall e. Exception e => IpGeneralException e
+  | -- | Parse exception.
+    --
+    -- @since 0.1.0.0
+    IpParseException String
 
 -- | @since 0.1.0.0
-makeFieldLabelsNoPrefix ''IpException
+makePrismLabels ''IpException
+
+-- | @since 0.1.0.0
+deriving stock instance Show IpException
 
 -- | @since 0.1.0.0
 instance PrettyPrinter IpException where
-  pretty (IpParseException s) = "Ip parse exception: " <> show s
+  pretty (IpGeneralException e) = "Ip exception: <" <> displayException e <> ">"
+  pretty (IpParseException s) = "Ip parse exception: <" <> show s <> ">"
 
 -- | @since 0.1.0.0
-deriving via (PrettyException IpException) instance Exception IpException
+instance Exception IpException where
+  displayException = pretty
+  toException = toExceptionViaPythia
+  fromException = fromExceptionViaPythia
 
 -- | Ip query for 'NetInterface'. Throws exceptions if the command fails or
 -- we have a parse error.
@@ -71,7 +77,8 @@ netInterfaceShellApp = ShellApp.runSimple shell
     shell =
       MkSimpleShell
         { command = "ip address",
-          parser = parseInterfaces
+          parser = parseInterfaces,
+          liftShellEx = IpGeneralException
         }
 
 -- | Returns a boolean determining if this program is supported on the

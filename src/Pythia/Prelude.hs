@@ -6,6 +6,9 @@ module Pythia.Prelude
     readFileUtf8Lenient,
     decodeUtf8Lenient,
 
+    -- * Misc
+    throwLeft,
+
     -- * Base
     module X,
   )
@@ -48,13 +51,17 @@ import Data.Text.Encoding.Error qualified as TextEncErr
 import Data.Traversable as X (Traversable (..), for)
 import Data.Void as X (Void)
 import GHC.Enum as X (Bounded (..), Enum (..))
-import GHC.Err as X (undefined)
+import GHC.Err as X (error, undefined)
 import GHC.Read as X (Read (..))
 import GHC.Real as X (even)
 import GHC.Show as X (Show (..))
 import Optics.Core as X (over, view, (%), (%~), (.~), (^.), (^?), _Left, _Right)
 import Optics.TH as X (makeFieldLabelsNoPrefix, makePrismLabels)
 import System.IO as X (FilePath, IO, print, putStrLn)
+
+-- $setup
+-- >>> :set -XDeriveAnyClass
+-- >>> data AnException = AnException deriving (Exception, Show)
 
 -- | Strictly reads a file and leniently converts the contents to UTF8.
 --
@@ -67,3 +74,16 @@ readFileUtf8Lenient = fmap decodeUtf8Lenient . liftIO . BS.readFile
 -- @since 0.1.0.0
 decodeUtf8Lenient :: ByteString -> Text
 decodeUtf8Lenient = TextEnc.decodeUtf8With TextEncErr.lenientDecode
+
+-- | Throws 'Left'.
+--
+-- ==== __Examples__
+-- >>> throwLeft @Maybe (Left @AnException @() AnException)
+-- Nothing
+--
+-- >>> throwLeft @Maybe (Right @AnException @() ())
+-- Just ()
+--
+-- @since 0.1.0.0
+throwLeft :: forall m e a. (Exception e, MonadThrow m) => Either e a -> m a
+throwLeft = either throw pure

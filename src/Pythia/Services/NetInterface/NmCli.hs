@@ -19,7 +19,7 @@ where
 import Data.Char qualified as Char
 import Data.Set qualified as Set
 import Data.Text qualified as T
-import Pythia.Control.Exception (PrettyException (..))
+import Pythia.Control.Exception (fromExceptionViaPythia, toExceptionViaPythia)
 import Pythia.Prelude
 import Pythia.Printer (PrettyPrinter (..))
 import Pythia.Services.NetInterface.Types
@@ -41,26 +41,32 @@ import Text.Megaparsec.Char qualified as MPC
 -- | Errors that can occur with nmcli.
 --
 -- @since 0.1.0.0
-newtype NmCliException = NmCliParseException
-  { -- | @since 0.1.0.0
-    unNmCliParseException :: String
-  }
-  deriving stock
-    ( -- | @since 0.1.0.0
-      Eq,
-      -- | @since 0.1.0.0
-      Show
-    )
+data NmCliException
+  = -- | General exceptions.
+    --
+    -- @since 0.1.0.0
+    forall e. Exception e => NmCliGeneralException e
+  | -- | Parse exceptions.
+    --
+    -- @since 0.1.0.0
+    NmCliParseException String
 
 -- | @since 0.1.0.0
-makeFieldLabelsNoPrefix ''NmCliException
+makePrismLabels ''NmCliException
+
+-- | @since 0.1.0.0
+deriving stock instance Show NmCliException
 
 -- | @since 0.1.0.0
 instance PrettyPrinter NmCliException where
-  pretty (NmCliParseException s) = "Nmcli parse exception: " <> show s
+  pretty (NmCliGeneralException e) = "Nmcli exception: <" <> displayException e <> ">"
+  pretty (NmCliParseException s) = "Nmcli parse exception: <" <> show s <> ">"
 
 -- | @since 0.1.0.0
-deriving via (PrettyException NmCliException) instance Exception NmCliException
+instance Exception NmCliException where
+  displayException = pretty
+  toException = toExceptionViaPythia
+  fromException = fromExceptionViaPythia
 
 -- | NmCli query for 'NetInterfaces'. Throws exceptions if the command fails
 -- or we have a parse error.
@@ -72,7 +78,8 @@ netInterfaceShellApp = ShellApp.runSimple shell
     shell =
       MkSimpleShell
         { command = "nmcli -t -m multiline device show",
-          parser = parseInterfaces
+          parser = parseInterfaces,
+          liftShellEx = NmCliGeneralException
         }
 
 -- | Returns a boolean determining if this program is supported on the

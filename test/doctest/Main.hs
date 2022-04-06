@@ -17,6 +17,7 @@ files :: [String]
 files =
   [ "-isrc",
     "src/Pythia.hs",
+    "src/Pythia/Prelude.hs",
     "src/Pythia/Services/Battery/Acpi.hs",
     "src/Pythia/Services/Battery/Types.hs",
     "src/Pythia/Services/Battery/UPower.hs",

@@ -41,15 +41,19 @@ import Pythia.Services.Battery.UPower qualified as UPower
 import Pythia.ShellApp (AppAction (..))
 import Pythia.ShellApp qualified as ShellApp
 
--- | Attempts to query for battery information by detecting supported
--- apps. Tries, in the following order: ['BatterySysFs', 'BatteryAcpi',
--- 'BatteryUPower']
+-- | Queries for battery information with default configuration.
+--
+-- Throws 'PythiaException'.
 --
 -- @since 0.1.0.0
 queryBattery :: (MonadCatch m, MonadIO m) => m Battery
 queryBattery = queryBatteryConfig mempty
 
--- | Queries the battery based on the configuration.
+-- | Queries the battery based on the configuration. If 'batteryApp' is
+-- 'Many' then we try supported apps in the following order:
+-- ['BatterySysFs', 'BatteryAcpi', 'BatteryUPower'].
+--
+-- Throws 'PythiaException'.
 --
 -- @since 0.1.0.0
 queryBatteryConfig :: (MonadCatch m, MonadIO m) => BatteryConfig -> m Battery

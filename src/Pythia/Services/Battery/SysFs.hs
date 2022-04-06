@@ -17,7 +17,7 @@ where
 
 import Data.Text qualified as T
 import Numeric.Data.Interval qualified as Interval
-import Pythia.Control.Exception (PrettyException (..))
+import Pythia.Control.Exception (fromExceptionViaPythia, toExceptionViaPythia)
 import Pythia.Prelude
 import Pythia.Printer (PrettyPrinter (..))
 import Pythia.Services.Battery.Types
@@ -63,18 +63,22 @@ makePrismLabels ''SysFsException
 -- | @since 0.1.0.0
 instance PrettyPrinter SysFsException where
   pretty SysFsDirNotFound =
-    "SysFs exception: Could not find /sys/class/power_supply"
-      <> " nor /sysfs/class/power_supply"
+    "SysFs exception: Could not find either dir: " <> sysDir
+      <> ", "
+      <> sysfsDir
   pretty SysFsBatteryDirNotFound =
     "SysFs exception: Could not find BAT[0-5]? subdirectory under"
       <> " /sys(fs)/class/power_supply"
   pretty (SysFsFileNotFound f) =
-    "SysFs exception: Could not find file: " <> show f
+    "SysFs exception: Could not find file: <" <> show f <> ">"
   pretty (SysFsBatteryParseException e) =
-    "SysFs parse error: " <> e <> ">"
+    "SysFs parse error: <" <> e <> ">"
 
 -- | @since 0.1.0.0
-deriving via (PrettyException SysFsException) instance Exception SysFsException
+instance Exception SysFsException where
+  displayException = pretty
+  toException = toExceptionViaPythia
+  fromException = fromExceptionViaPythia
 
 -- | @/sys/class@ query for 'Battery'. Throws exceptions if the command fails
 -- or we have a parse error.
@@ -113,19 +117,22 @@ queryBattery = do
 
 findSysBatDir :: IO FilePath
 findSysBatDir = do
-  sysExists <- Dir.doesDirectoryExist sys
+  sysExists <- Dir.doesDirectoryExist sysDir
   sysBase <-
     if sysExists
-      then pure sys
+      then pure sysDir
       else do
-        sysFsExists <- Dir.doesDirectoryExist sysfs
+        sysFsExists <- Dir.doesDirectoryExist sysfsDir
         if sysFsExists
-          then pure sysfs
+          then pure sysfsDir
           else throw SysFsDirNotFound
   findBatteryDir sysBase
-  where
-    sys = "/sys/class/power_supply"
-    sysfs = "/sysfs/class/power_supply"
+
+sysDir :: FilePath
+sysDir = "/sys/class/power_supply"
+
+sysfsDir :: FilePath
+sysfsDir = "/sysfs/class/power_supply"
 
 findBatteryDir :: FilePath -> IO FilePath
 findBatteryDir sysBase = do

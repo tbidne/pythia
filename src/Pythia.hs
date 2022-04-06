@@ -37,9 +37,8 @@ import Pythia.Services.NetInterface
 -- Pythia's error handling is defined in terms of @safe-exceptions@.
 -- "Pythia.Control.Exception" defines general exceptions that can be thrown
 -- from 'IO'; Additionally, services can also throw specific exceptions (e.g.
--- 'AcpiException' from "Pythia.Services.Battery.Acpi"). Because there is no
--- unifying exception type, if you would like to catch all possible
--- synchronous exceptions, catch 'SomeException'.
+-- 'AcpiException' from "Pythia.Services.Battery.Acpi"). All exceptions are
+-- unifed under the supertype 'PythiaException'.
 
 -- $printing
 -- This module contains a typeclass used for pretty printing various types.

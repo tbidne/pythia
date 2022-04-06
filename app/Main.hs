@@ -10,7 +10,7 @@ import Args
     parserInfo,
   )
 import Options.Applicative qualified as OApp
-import Pythia (BatteryConfig, NetInterfaceConfig, NetInterfaces (..))
+import Pythia (BatteryConfig, NetInterfaceConfig, NetInterfaces (..), PythiaException)
 import Pythia qualified
 import Pythia.Prelude
 import Pythia.Printer (PrettyPrinter (..))
@@ -25,7 +25,7 @@ main = do
     Battery cfg field -> handleBattery cfg field
     NetInterface cfg val -> handleNetInterface cfg val
     NetIpGlobal cfg -> Pythia.queryGlobalIpConfig cfg >>= prettyPrint
-    `catch` \(ex :: SomeException) -> putStrLn (displayException ex)
+    `catch` \(ex :: PythiaException) -> putStrLn (displayException ex)
 
 handleBattery :: BatteryConfig -> Maybe BatteryField -> IO ()
 handleBattery cfg mfield = do

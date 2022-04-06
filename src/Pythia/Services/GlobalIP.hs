@@ -45,15 +45,20 @@ import Pythia.Utils qualified as U
 import Refined (Predicate, Refined)
 import Refined qualified as R
 
--- | Attempts to query for global ip addresses by detecting supported apps.
--- We try dig first, then curl.
+-- | Queries for global IP addresses with default configuration.
+--
+-- Throws 'PythiaException'.
 --
 -- @since 0.1.0.0
 queryGlobalIp ::
   (MonadCatch m, MonadIO m) => m GlobalIpAddresses
 queryGlobalIp = queryGlobalIpConfig mempty
 
--- | Queries for global ip address based on the configuration.
+-- | Queries for global IP addresses based on the configuration.
+-- If 'ipApp' is 'Many' then we try supported apps in the following
+-- order: ['Dig', 'Curl'].
+--
+-- Throws 'PythiaException'.
 --
 -- @since 0.1.0.0
 queryGlobalIpConfig ::

@@ -19,7 +19,7 @@ where
 import Data.Char qualified as Char
 import Data.Text qualified as T
 import Numeric.Data.Interval qualified as Interval
-import Pythia.Control.Exception (PrettyException (..))
+import Pythia.Control.Exception (fromExceptionViaPythia, toExceptionViaPythia)
 import Pythia.Prelude
 import Pythia.Printer (PrettyPrinter (..))
 import Pythia.Services.Battery.Types
@@ -39,7 +39,11 @@ import Text.Read qualified as TR
 --
 -- @since 0.1.0.0
 data UPowerException
-  = -- | Did not find percentage.
+  = -- | General exceptions.
+    --
+    -- @since 0.1.0.0
+    forall e. Exception e => UPowerGeneralException e
+  | -- | Did not find percentage.
     --
     -- @since 0.1.0.0
     UPowerNoPercentage String
@@ -51,32 +55,29 @@ data UPowerException
     --
     -- @since 0.1.0.0
     UPowerNoPercentageNorStatus String
-  deriving stock
-    ( -- | @since 0.1.0.0
-      Eq,
-      -- | @since 0.1.0.0
-      Show
-    )
 
+-- | @since 0.1.0.0
 makePrismLabels ''UPowerException
 
 -- | @since 0.1.0.0
-instance PrettyPrinter UPowerException where
-  pretty (UPowerNoPercentage s) =
-    "UPower parse error. No percentage found in output <"
-      <> s
-      <> ">"
-  pretty (UPowerNoStatus s) =
-    "UPower parse error. No status found in output: <"
-      <> s
-      <> ">"
-  pretty (UPowerNoPercentageNorStatus s) =
-    "UPower parse error. No percentage nor status found in output: <"
-      <> s
-      <> ">"
+deriving stock instance Show UPowerException
 
 -- | @since 0.1.0.0
-deriving via (PrettyException UPowerException) instance Exception UPowerException
+instance PrettyPrinter UPowerException where
+  pretty (UPowerGeneralException e) = "UPower exception: <" <> displayException e <> ">"
+  pretty (UPowerNoPercentage s) =
+    "UPower parse error. No percentage found in output: <" <> s <> ">"
+  pretty (UPowerNoStatus s) =
+    "UPower parse error. No status found in output: <" <> s <> ">"
+  pretty (UPowerNoPercentageNorStatus s) =
+    "UPower parse error. No percentage nor status found in output: <" <> s <> ">"
+
+-- | @since 0.1.0.0
+-- | @since 0.1.0.0
+instance Exception UPowerException where
+  displayException = pretty
+  toException = toExceptionViaPythia
+  fromException = fromExceptionViaPythia
 
 -- | UPower query for 'Battery'. Throws exceptions if the command fails or
 -- or we have a parse error.
@@ -88,7 +89,8 @@ batteryShellApp = ShellApp.runSimple shell
     shell =
       MkSimpleShell
         { command = "upower -i `upower -e | grep 'BAT'`",
-          parser = parseBattery
+          parser = parseBattery,
+          liftShellEx = UPowerGeneralException
         }
 
 -- | Returns a boolean determining if this program is supported on the

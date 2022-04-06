@@ -19,7 +19,7 @@ where
 import Data.Char qualified as Char
 import Data.Text qualified as T
 import Numeric.Data.Interval qualified as Interval
-import Pythia.Control.Exception (PrettyException (..))
+import Pythia.Control.Exception (fromExceptionViaPythia, toExceptionViaPythia)
 import Pythia.Prelude
 import Pythia.Printer (PrettyPrinter (..))
 import Pythia.Services.Battery.Types
@@ -39,26 +39,32 @@ import Text.Read qualified as TR
 -- | Errors that can occur with acpi.
 --
 -- @since 0.1.0.0
-newtype AcpiException = AcpiParseException
-  { -- | @since 0.1.0.0
-    unAcpiParseException :: String
-  }
-  deriving stock
-    ( -- | @since 0.1.0.0
-      Eq,
-      -- | @since 0.1.0.0
-      Show
-    )
+data AcpiException
+  = -- | For general exceptions.
+    --
+    -- @since 0.1.0.0
+    forall e. Exception e => AcpiGeneralException e
+  | -- | Parse errors.
+    --
+    -- @since 0.1.0.0
+    AcpiParseException String
 
 -- | @since 0.1.0.0
-makeFieldLabelsNoPrefix ''AcpiException
+makePrismLabels ''AcpiException
+
+-- | @since 0.1.0.0
+deriving stock instance Show AcpiException
 
 -- | @since 0.1.0.0
 instance PrettyPrinter AcpiException where
+  pretty (AcpiGeneralException e) = "Acpi exception: <" <> displayException e <> ">"
   pretty (AcpiParseException s) = "Acpi parse error: <" <> s <> ">"
 
 -- | @since 0.1.0.0
-deriving via (PrettyException AcpiException) instance Exception AcpiException
+instance Exception AcpiException where
+  displayException = pretty
+  toException = toExceptionViaPythia
+  fromException = fromExceptionViaPythia
 
 -- | ACPI query for 'Battery'. Throws exceptions if the command fails or
 -- or we have a parse error.
@@ -70,7 +76,8 @@ batteryShellApp = ShellApp.runSimple shell
     shell =
       MkSimpleShell
         { command = "acpi",
-          parser = parseBattery
+          parser = parseBattery,
+          liftShellEx = AcpiGeneralException
         }
 
 -- | Returns a boolean determining if this program is supported on the
@@ -96,7 +103,7 @@ supported = U.exeSupported "acpi"
 -- Right (MkBattery {percentage = MkBatteryPercentage {unBatteryPercentage = UnsafeLRInterval 80}, status = Unknown "bad status"})
 --
 -- >>> parseBattery "Battery 0: Discharging, 150%"
--- Left (AcpiParseException {unAcpiParseException = "Acpi.hs:1:28:\n  |\n1 | Battery 0: Discharging, 150%\n  |                            ^\nexpecting percentage\n"})
+-- Left (AcpiParseException "Acpi.hs:1:28:\n  |\n1 | Battery 0: Discharging, 150%\n  |                            ^\nexpecting percentage\n")
 --
 -- @since 0.1.0.0
 parseBattery :: Text -> Either AcpiException Battery
