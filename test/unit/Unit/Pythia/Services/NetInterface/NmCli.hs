@@ -13,7 +13,7 @@ import Pythia.Services.NetInterface.Types
     NetInterfaceType (..),
     NetInterfaces (..),
   )
-import Pythia.Services.Types (unsafeIpv4Address, unsafeIpv6Address)
+import Pythia.Services.Types.Network (unsafeIpv4Address, unsafeIpv6Address)
 import Test.Tasty.HUnit qualified as THU
 import Unit.Prelude
 

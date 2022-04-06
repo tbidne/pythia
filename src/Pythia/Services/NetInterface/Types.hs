@@ -21,9 +21,9 @@ where
 import Pythia.Class.Printer (PrettyPrinter (..))
 import Pythia.Class.Printer qualified as Printer
 import Pythia.Data.RunApp (RunApp)
+import Pythia.Data.Supremum (Supremum (..))
 import Pythia.Prelude
-import Pythia.Services.Types (Device, Ipv4Address, Ipv6Address)
-import Pythia.Supremum (Supremum (..))
+import Pythia.Services.Types.Network (Device, Ipv4Address, Ipv6Address)
 
 -- | Determines how we should query the system for interface state information.
 --

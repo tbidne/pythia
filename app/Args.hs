@@ -39,7 +39,7 @@ import Pythia.Services.GlobalIP.Types
     UrlSource (..),
   )
 import Pythia.Services.NetInterface (NetInterfaceApp (..), NetInterfaceConfig (..))
-import Pythia.Services.Types (Device (..), IpType (..))
+import Pythia.Services.Types.Network (Device (..), IpType (..))
 
 -- | Possible commands
 --

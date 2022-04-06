@@ -27,9 +27,9 @@ import Pythia.Class.Printer (PrettyPrinter (..))
 import Pythia.Class.Printer qualified as Pretty
 import Pythia.Data.Command (Command (..))
 import Pythia.Data.RunApp (RunApp (..))
+import Pythia.Data.Supremum (Supremum (..))
 import Pythia.Prelude
-import Pythia.Services.Types (IpType (..), Ipv4Address (..), Ipv6Address (..))
-import Pythia.Supremum (Supremum (..))
+import Pythia.Services.Types.Network (IpType (..), Ipv4Address (..), Ipv6Address (..))
 
 -- | This type determines what program we use to lookup the ip address.
 --

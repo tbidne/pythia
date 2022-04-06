@@ -38,7 +38,7 @@ import Pythia.Services.GlobalIP.Types
     UrlSource (..),
   )
 import Pythia.Services.GlobalIP.Types qualified as GIpTypes
-import Pythia.Services.Types (IpType (..), Ipv4Address (..), Ipv6Address (..))
+import Pythia.Services.Types.Network (IpType (..), Ipv4Address (..), Ipv6Address (..))
 import Pythia.ShellApp (AppAction (..))
 import Pythia.ShellApp qualified as ShellApp
 import Pythia.Utils qualified as U

@@ -21,8 +21,8 @@ import Numeric.Data.Interval (LRInterval)
 import Numeric.Data.Interval qualified as Interval
 import Pythia.Class.Printer (PrettyPrinter (..))
 import Pythia.Data.RunApp (RunApp)
+import Pythia.Data.Supremum (Supremum (..))
 import Pythia.Prelude
-import Pythia.Supremum (Supremum (..))
 
 -- | Determines how we should query the system for battery state information.
 --

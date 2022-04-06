@@ -27,7 +27,7 @@ import Pythia.Services.NetInterface.Types
     NetInterfaceState (..),
     NetInterfaces (..),
   )
-import Pythia.Services.Types (Device (..), Ipv4Address (..), Ipv6Address (..))
+import Pythia.Services.Types.Network (Device (..), Ipv4Address (..), Ipv6Address (..))
 import Pythia.ShellApp (SimpleShell (..))
 import Pythia.ShellApp qualified as ShellApp
 import Pythia.Utils qualified as U

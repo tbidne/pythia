@@ -68,11 +68,12 @@ library
   import:           common-exts
   exposed-modules:
     Pythia
+    Pythia.Class.Printer
     Pythia.Control.Exception
     Pythia.Data.Command
     Pythia.Data.RunApp
+    Pythia.Data.Supremum
     Pythia.Prelude
-    Pythia.Class.Printer
     Pythia.Services.Battery
     Pythia.Services.Battery.Acpi
     Pythia.Services.Battery.SysFs
@@ -84,9 +85,8 @@ library
     Pythia.Services.NetInterface.Ip
     Pythia.Services.NetInterface.NmCli
     Pythia.Services.NetInterface.Types
-    Pythia.Services.Types
+    Pythia.Services.Types.Network
     Pythia.ShellApp
-    Pythia.Supremum
     Pythia.Utils
 
   ghc-options:      -Wunused-packages

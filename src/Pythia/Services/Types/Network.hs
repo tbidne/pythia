@@ -4,7 +4,7 @@
 -- | Provides common network types.
 --
 -- @since 0.1.0.0
-module Pythia.Services.Types
+module Pythia.Services.Types.Network
   ( Device (..),
     Ipv4Address (..),
     unsafeIpv4Address,

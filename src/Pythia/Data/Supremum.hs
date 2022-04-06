@@ -1,7 +1,7 @@
 -- | Provides the 'Supremum' type.
 --
 -- @since 0.1.0.0
-module Pythia.Supremum
+module Pythia.Data.Supremum
   ( Supremum (..),
   )
 where
