@@ -79,6 +79,7 @@ decodeUtf8Lenient = TextEnc.decodeUtf8With TextEncErr.lenientDecode
 -- | Total version of 'Prelude.head'.
 --
 -- ==== __Examples__
+--
 -- >>> headMaybe []
 -- Nothing
 --
@@ -93,6 +94,7 @@ headMaybe (x : _) = Just x
 -- | Throws 'Left'.
 --
 -- ==== __Examples__
+--
 -- >>> throwLeft @Maybe (Left @AnException @() AnException)
 -- Nothing
 --

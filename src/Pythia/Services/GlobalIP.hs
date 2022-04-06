@@ -47,7 +47,8 @@ import Refined qualified as R
 
 -- | Queries for global IP addresses with default configuration.
 --
--- Throws 'Pythia.Control.Exception.PythiaException'.
+-- Throws 'Pythia.Control.Exception.PythiaException' if an error is
+-- encountered (e.g. running a command or parse error).
 --
 -- @since 0.1.0.0
 queryGlobalIp ::
@@ -56,9 +57,14 @@ queryGlobalIp = queryGlobalIpConfig mempty
 
 -- | Queries for global IP addresses based on the configuration.
 -- If 'ipApp' is 'Many' then we try supported apps in the following
--- order: ['GlobalIpDig', 'GlobalIpCurl'].
+-- order:
 --
--- Throws 'Pythia.Control.Exception.PythiaException'.
+-- @
+-- ['GlobalIpDig', 'GlobalIpCurl']
+-- @
+--
+-- Throws 'Pythia.Control.Exception.PythiaException' if an error is
+-- encountered (e.g. running a command or parse error).
 --
 -- @since 0.1.0.0
 queryGlobalIpConfig ::

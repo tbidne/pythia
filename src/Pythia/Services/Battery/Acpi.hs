@@ -90,6 +90,7 @@ supported = U.exeSupported "acpi"
 -- | Attempts to parse the output of acpi.
 --
 -- ==== __Examples__
+--
 -- >>> parseBattery "Battery 0: Full, 100%"
 -- Right (MkBattery {percentage = MkBatteryPercentage {unBatteryPercentage = UnsafeLRInterval 100}, status = Full})
 --

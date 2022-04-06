@@ -15,6 +15,7 @@ import Pythia.Prelude
 -- queries. 'Many' is the identity for its monoid instance.
 --
 -- ==== __Examples__
+--
 -- >>> Many <> Single "r"
 -- Single "r"
 --

@@ -103,6 +103,7 @@ supported = U.exeSupported "upower"
 -- | Attempts to parse the output of UPower.
 --
 -- ==== __Examples__
+--
 -- >>> parseBattery "state: fully-charged\npercentage: 100%"
 -- Right (MkBattery {percentage = MkBatteryPercentage {unBatteryPercentage = UnsafeLRInterval 100}, status = Full})
 --

@@ -46,16 +46,14 @@ instance Exception PythiaException where
   displayException (MkPythiaException e) = displayException e
 
 -- | 'toException' via 'PythiaException'. Used for defining an exception
-
---- as a subtype of 'PythiaException'.
+-- as a subtype of 'PythiaException'.
 --
 -- @since 0.1.0.0
 toExceptionViaPythia :: Exception e => e -> SomeException
 toExceptionViaPythia = toException . MkPythiaException
 
 -- | 'fromException' via 'PythiaException'. Used for defining an exception
-
---- as a subtype of 'PythiaException'.
+-- as a subtype of 'PythiaException'.
 --
 -- @since 0.1.0.0
 fromExceptionViaPythia :: Exception e => SomeException -> Maybe e

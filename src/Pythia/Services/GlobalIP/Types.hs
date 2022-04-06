@@ -105,6 +105,7 @@ makePrismLabels ''GlobalIpRequest
 -- be.
 --
 -- ==== __Examples__
+--
 -- @
 -- (dig): "@resolver1.opendns.com myip.opendns.com"
 -- (dig): -4 TXT o-o.myaddr.l.google.com @ns1.google.com

@@ -32,6 +32,7 @@ import Text.Megaparsec.Char qualified as MPC
 -- | Similar to 'foldMap' but for 'Alternative'.
 --
 -- ==== __Examples__
+--
 -- >>> foldAlt (\c -> if even c then Just c else Nothing) [1,2,3,4]
 -- Just 2
 --
@@ -46,6 +47,7 @@ foldAlt f = foldr ((<|>) . f) empty
 -- 'Alternative'.
 --
 -- ==== __Examples__
+--
 -- >>> mAlt @[] Nothing
 -- []
 --
@@ -59,6 +61,7 @@ mAlt = fromMaybe empty
 -- | 'takeLineLabel' with no label.
 --
 -- ==== __Examples__
+--
 -- >>> parseTest @Void takeLine "some text 123 \n"
 -- "some text 123 "
 --
@@ -77,6 +80,7 @@ takeLine = takeLineLabel Nothing
 -- | Variant of 'takeLine' taking in a label.
 --
 -- ==== __Examples__
+--
 -- >>> parseTest @Void (takeLineLabel (Just "a label")) "some text 123"
 -- 1:14:
 --   |
@@ -92,6 +96,7 @@ takeLineLabel desc = MP.takeWhileP desc (/= '\n') <* MPC.eol
 -- | Takes everything up to the first new line, returns unit.
 --
 -- ==== __Examples__
+--
 -- >>> parseTest @Void takeLine_ "some text 123\n"
 -- ()
 --
@@ -102,6 +107,7 @@ takeLine_ = MP.takeWhileP Nothing (/= '\n') *> void MPC.eol
 -- | Maps 'Left' to 'False', 'Right' to 'True'.
 --
 -- ==== __Examples__
+--
 -- >>> eitherToBool (Left ())
 -- False
 --

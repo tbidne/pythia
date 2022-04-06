@@ -40,6 +40,7 @@ instance PrettyPrinter a => PrettyPrinter (Maybe a) where
 -- | Join with commas.
 --
 -- ==== __Examples__
+--
 -- >>> joinCommas ["foo", "bar"]
 -- "foo, bar"
 --
@@ -50,6 +51,7 @@ joinCommas = joinX ", "
 -- | Join with newlines.
 --
 -- ==== __Examples__
+--
 -- >>> joinNewlines ["foo", "bar"]
 -- "foo\nbar"
 --
@@ -60,6 +62,7 @@ joinNewlines = joinX "\n"
 -- | General list join.
 --
 -- ==== __Examples__
+--
 -- >>> joinX "--" ["foo", "bar"]
 -- "foo--bar"
 --
