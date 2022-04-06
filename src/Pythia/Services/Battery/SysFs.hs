@@ -50,15 +50,16 @@ data SysFsException
     --
     -- @since 0.1.0.0
     SysFsBatteryParseException String
-  deriving stock
-    ( -- | @since 0.1.0.0
-      Eq,
-      -- | @since 0.1.0.0
-      Show
-    )
+  | -- | Error reading a file.
+    --
+    -- @since 0.1.0.0
+    forall e. Exception e => SysFsReadFileException FilePath e
 
 -- | @since 0.1.0.0
 makePrismLabels ''SysFsException
+
+-- | @since 0.1.0.0
+deriving stock instance Show SysFsException
 
 -- | @since 0.1.0.0
 instance PrettyPrinter SysFsException where
@@ -73,6 +74,8 @@ instance PrettyPrinter SysFsException where
     "SysFs exception: Could not find file: <" <> show f <> ">"
   pretty (SysFsBatteryParseException e) =
     "SysFs parse error: <" <> e <> ">"
+  pretty (SysFsReadFileException fp e) =
+    "SysFs read file <" <> fp <> "> exception: " <> displayException e
 
 -- | @since 0.1.0.0
 instance Exception SysFsException where
@@ -173,7 +176,9 @@ fileExists fp = do
 
 parseStatus :: FilePath -> IO BatteryStatus
 parseStatus fp = do
-  statusTxt <- T.toLower . T.strip <$> readFileUtf8Lenient fp
+  statusTxt <-
+    T.toLower . T.strip <$> readFileUtf8Lenient fp
+      `catch` \(e :: SomeException) -> throw $ SysFsReadFileException fp e
   case statusTxt of
     "charging" -> pure Charging
     "discharging" -> pure Discharging
@@ -185,7 +190,7 @@ parsePercentage :: FilePath -> IO BatteryPercentage
 parsePercentage fp = do
   percentTxt <-
     readFileUtf8Lenient fp
-      `catch` \(e :: SomeException) -> throw e
+      `catch` \(e :: SomeException) -> throw $ SysFsReadFileException fp e
   case readInterval percentTxt of
     Nothing -> throw $ SysFsBatteryParseException $ T.unpack percentTxt
     Just bs -> pure $ MkBatteryPercentage bs
