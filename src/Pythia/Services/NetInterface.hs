@@ -1,6 +1,6 @@
 -- | This module exports interface related services.
 --
--- @since 0.1.0.0
+-- @since 0.1
 module Pythia.Services.NetInterface
   ( -- * Queries
     queryNetInterfaces,
@@ -53,7 +53,7 @@ import Pythia.ShellApp qualified as ShellApp
 -- Throws 'Pythia.Control.Exception.PythiaException' if an error is
 -- encountered (e.g. running a command or parse error).
 --
--- @since 0.1.0.0
+-- @since 0.1
 queryNetInterfaces :: (MonadCatch m, MonadIO m) => m NetInterfaces
 queryNetInterfaces = queryNetInterfacesConfig mempty
 
@@ -68,7 +68,7 @@ queryNetInterfaces = queryNetInterfacesConfig mempty
 -- Throws 'Pythia.Control.Exception.PythiaException' if an error is
 -- encountered (e.g. running a command or parse error).
 --
--- @since 0.1.0.0
+-- @since 0.1
 queryNetInterfacesConfig ::
   ( MonadCatch m,
     MonadIO m
@@ -133,7 +133,7 @@ toSingleShellApp NetInterfaceIp = Ip.netInterfaceShellApp
 -- :}
 -- Just (MkNetInterface {idevice = MkDevice {unDevice = ""}, itype = Just Wifi, istate = Up, iname = Just "WifiUp", ipv4s = [], ipv6s = []})
 --
--- @since 0.1.0.0
+-- @since 0.1
 findUp :: NetInterfaces -> Maybe NetInterface
 findUp = headMaybe . (sortType . filterUp) . unNetInterfaces
   where

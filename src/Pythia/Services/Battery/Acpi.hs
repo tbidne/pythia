@@ -4,7 +4,7 @@
 -- | This module provides functionality for retrieving battery information
 -- using ACPI.
 --
--- @since 0.1.0.0
+-- @since 0.1
 module Pythia.Services.Battery.Acpi
   ( -- * Query
     batteryShellApp,
@@ -38,29 +38,29 @@ import Text.Read qualified as TR
 
 -- | Errors that can occur with acpi.
 --
--- @since 0.1.0.0
+-- @since 0.1
 data AcpiException
   = -- | For general exceptions.
     --
-    -- @since 0.1.0.0
+    -- @since 0.1
     forall e. Exception e => AcpiGeneralException e
   | -- | Parse errors.
     --
-    -- @since 0.1.0.0
+    -- @since 0.1
     AcpiParseException String
 
--- | @since 0.1.0.0
+-- | @since 0.1
 makePrismLabels ''AcpiException
 
--- | @since 0.1.0.0
+-- | @since 0.1
 deriving stock instance Show AcpiException
 
--- | @since 0.1.0.0
+-- | @since 0.1
 instance PrettyPrinter AcpiException where
   pretty (AcpiGeneralException e) = "Acpi exception: <" <> displayException e <> ">"
   pretty (AcpiParseException s) = "Acpi parse error: <" <> s <> ">"
 
--- | @since 0.1.0.0
+-- | @since 0.1
 instance Exception AcpiException where
   displayException = pretty
   toException = toExceptionViaPythia
@@ -69,7 +69,7 @@ instance Exception AcpiException where
 -- | ACPI query for 'Battery'. Throws exceptions if the command fails or
 -- or we have a parse error.
 --
--- @since 0.1.0.0
+-- @since 0.1
 batteryShellApp :: (MonadCatch m, MonadIO m) => m Battery
 batteryShellApp = ShellApp.runSimple shell
   where
@@ -83,7 +83,7 @@ batteryShellApp = ShellApp.runSimple shell
 -- | Returns a boolean determining if this program is supported on the
 -- current system.
 --
--- @since 0.1.0.0
+-- @since 0.1
 supported :: MonadIO m => m Bool
 supported = U.exeSupported "acpi"
 
@@ -106,7 +106,7 @@ supported = U.exeSupported "acpi"
 -- >>> parseBattery "Battery 0: Discharging, 150%"
 -- Left (AcpiParseException "Acpi.hs:1:28:\n  |\n1 | Battery 0: Discharging, 150%\n  |                            ^\nexpecting percentage\n")
 --
--- @since 0.1.0.0
+-- @since 0.1
 parseBattery :: Text -> Either AcpiException Battery
 parseBattery txt = first mkErr parseResult
   where

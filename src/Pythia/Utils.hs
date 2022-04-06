@@ -1,6 +1,6 @@
 -- | This module provides common utilities.
 --
--- @since 0.1.0.0
+-- @since 0.1
 module Pythia.Utils
   ( -- * Folding
     foldAlt,
@@ -39,7 +39,7 @@ import Text.Megaparsec.Char qualified as MPC
 -- >>> foldAlt (\c -> if even c then Just c else Nothing) [1,3]
 -- Nothing
 --
--- @since 0.1.0.0
+-- @since 0.1
 foldAlt :: (Foldable t, Alternative f) => (a -> f b) -> t a -> f b
 foldAlt f = foldr ((<|>) . f) empty
 
@@ -54,7 +54,7 @@ foldAlt f = foldr ((<|>) . f) empty
 -- >>> mAlt @[] (Just [1,2,3])
 -- [1,2,3]
 --
--- @since 0.1.0.0
+-- @since 0.1
 mAlt :: Alternative f => Maybe (f a) -> f a
 mAlt = fromMaybe empty
 
@@ -73,7 +73,7 @@ mAlt = fromMaybe empty
 -- unexpected end of input
 -- expecting end of line
 --
--- @since 0.1.0.0
+-- @since 0.1
 takeLine :: (Ord e, Stream s, Token s ~ Char) => Parsec e s (Tokens s)
 takeLine = takeLineLabel Nothing
 
@@ -89,7 +89,7 @@ takeLine = takeLineLabel Nothing
 -- unexpected end of input
 -- expecting a label or end of line
 --
--- @since 0.1.0.0
+-- @since 0.1
 takeLineLabel :: (Ord e, Stream s, Token s ~ Char) => Maybe String -> Parsec e s (Tokens s)
 takeLineLabel desc = MP.takeWhileP desc (/= '\n') <* MPC.eol
 
@@ -100,7 +100,7 @@ takeLineLabel desc = MP.takeWhileP desc (/= '\n') <* MPC.eol
 -- >>> parseTest @Void takeLine_ "some text 123\n"
 -- ()
 --
--- @since 0.1.0.0
+-- @since 0.1
 takeLine_ :: (Ord e, Stream s, Token s ~ Char) => Parsec e s ()
 takeLine_ = MP.takeWhileP Nothing (/= '\n') *> void MPC.eol
 
@@ -114,13 +114,13 @@ takeLine_ = MP.takeWhileP Nothing (/= '\n') *> void MPC.eol
 -- >>> eitherToBool (Right ())
 -- True
 --
--- @since 0.1.0.0
+-- @since 0.1
 eitherToBool :: Either a b -> Bool
 eitherToBool = either (const False) (const True)
 
 -- | Determines if the executable represented by the string parameter is
 -- supported on this system.
 --
--- @since 0.1.0.0
+-- @since 0.1
 exeSupported :: MonadIO m => String -> m Bool
 exeSupported exeName = liftIO $ May.isJust <$> Dir.findExecutable exeName

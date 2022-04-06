@@ -1,7 +1,7 @@
 -- | This modules exports everything needed for retrieving global
 -- IP addresses.
 --
--- @since 0.1.0.0
+-- @since 0.1
 module Pythia.Services.GlobalIP
   ( -- * Queries
     queryGlobalIp,
@@ -50,7 +50,7 @@ import Refined qualified as R
 -- Throws 'Pythia.Control.Exception.PythiaException' if an error is
 -- encountered (e.g. running a command or parse error).
 --
--- @since 0.1.0.0
+-- @since 0.1
 queryGlobalIp ::
   (MonadCatch m, MonadIO m) => m GlobalIpAddresses
 queryGlobalIp = queryGlobalIpConfig mempty
@@ -66,7 +66,7 @@ queryGlobalIp = queryGlobalIpConfig mempty
 -- Throws 'Pythia.Control.Exception.PythiaException' if an error is
 -- encountered (e.g. running a command or parse error).
 --
--- @since 0.1.0.0
+-- @since 0.1
 queryGlobalIpConfig ::
   (MonadCatch m, MonadIO m) =>
   GlobalIpConfig ->

@@ -3,7 +3,7 @@
 
 -- | This module provides the 'RunApp' type.
 --
--- @since 0.1.0.0
+-- @since 0.1
 module Pythia.Data.RunApp
   ( RunApp (..),
   )
@@ -25,33 +25,33 @@ import Pythia.Prelude
 -- >>> mempty @(RunApp String)
 -- Many
 --
--- @since 0.1.0.0
+-- @since 0.1
 data RunApp a
   = -- | Do not specify an application. Attempt to run all, returning
     -- the first success.
     --
-    -- @since 0.1.0.0
+    -- @since 0.1
     Many
   | -- | Runs a single query based on the parameter app.
     --
-    -- @since 0.1.0.0
+    -- @since 0.1
     Single a
   deriving
-    ( -- | @since 0.1.0.0
+    ( -- | @since 0.1
       Eq,
-      -- | @since 0.1.0.0
+      -- | @since 0.1
       Show
     )
 
--- | @since 0.1.0.0
+-- | @since 0.1
 makePrismLabels ''RunApp
 
--- | @since 0.1.0.0
+-- | @since 0.1
 instance Semigroup a => Semigroup (RunApp a) where
   Many <> r = r
   l <> Many = l
   Single l <> Single r = Single (l <> r)
 
--- | @since 0.1.0.0
+-- | @since 0.1
 instance Semigroup a => Monoid (RunApp a) where
   mempty = Many

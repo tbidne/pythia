@@ -4,7 +4,7 @@
 -- | This module provides functionality for retrieving network connection
 -- information using nmcli.
 --
--- @since 0.1.0.0
+-- @since 0.1
 module Pythia.Services.NetInterface.NmCli
   ( -- * Query
     netInterfaceShellApp,
@@ -40,29 +40,29 @@ import Text.Megaparsec.Char qualified as MPC
 
 -- | Errors that can occur with nmcli.
 --
--- @since 0.1.0.0
+-- @since 0.1
 data NmCliException
   = -- | General exceptions.
     --
-    -- @since 0.1.0.0
+    -- @since 0.1
     forall e. Exception e => NmCliGeneralException e
   | -- | Parse exceptions.
     --
-    -- @since 0.1.0.0
+    -- @since 0.1
     NmCliParseException String
 
--- | @since 0.1.0.0
+-- | @since 0.1
 makePrismLabels ''NmCliException
 
--- | @since 0.1.0.0
+-- | @since 0.1
 deriving stock instance Show NmCliException
 
--- | @since 0.1.0.0
+-- | @since 0.1
 instance PrettyPrinter NmCliException where
   pretty (NmCliGeneralException e) = "Nmcli exception: <" <> displayException e <> ">"
   pretty (NmCliParseException s) = "Nmcli parse exception: <" <> show s <> ">"
 
--- | @since 0.1.0.0
+-- | @since 0.1
 instance Exception NmCliException where
   displayException = pretty
   toException = toExceptionViaPythia
@@ -71,7 +71,7 @@ instance Exception NmCliException where
 -- | NmCli query for 'NetInterfaces'. Throws exceptions if the command fails
 -- or we have a parse error.
 --
--- @since 0.1.0.0
+-- @since 0.1
 netInterfaceShellApp :: (MonadCatch m, MonadIO m) => m NetInterfaces
 netInterfaceShellApp = ShellApp.runSimple shell
   where
@@ -85,7 +85,7 @@ netInterfaceShellApp = ShellApp.runSimple shell
 -- | Returns a boolean determining if this program is supported on the
 -- current system.
 --
--- @since 0.1.0.0
+-- @since 0.1
 supported :: MonadIO m => m Bool
 supported = U.exeSupported "nmcli"
 
@@ -93,7 +93,7 @@ type MParser = Parsec Void Text
 
 -- | Attemps to parse the output of nmcli.
 --
--- @since 0.1.0.0
+-- @since 0.1
 parseInterfaces :: Text -> Either NmCliException NetInterfaces
 parseInterfaces txt = case MP.parse mparseInterfaces "Pythia.Services.NetInterface.NmCli" txt of
   Left ex ->

@@ -4,7 +4,7 @@
 -- | This module provides functionality for retrieving network connection
 -- information using ip utility.
 --
--- @since 0.1.0.0
+-- @since 0.1
 module Pythia.Services.NetInterface.Ip
   ( -- * Query
     netInterfaceShellApp,
@@ -39,29 +39,29 @@ import Text.Megaparsec.Char qualified as MPC
 
 -- | Errors that can occur with ip.
 --
--- @since 0.1.0.0
+-- @since 0.1
 data IpException
   = -- | General exceptions.
     --
-    -- @since 0.1.0.0
+    -- @since 0.1
     forall e. Exception e => IpGeneralException e
   | -- | Parse exception.
     --
-    -- @since 0.1.0.0
+    -- @since 0.1
     IpParseException String
 
--- | @since 0.1.0.0
+-- | @since 0.1
 makePrismLabels ''IpException
 
--- | @since 0.1.0.0
+-- | @since 0.1
 deriving stock instance Show IpException
 
--- | @since 0.1.0.0
+-- | @since 0.1
 instance PrettyPrinter IpException where
   pretty (IpGeneralException e) = "Ip exception: <" <> displayException e <> ">"
   pretty (IpParseException s) = "Ip parse exception: <" <> show s <> ">"
 
--- | @since 0.1.0.0
+-- | @since 0.1
 instance Exception IpException where
   displayException = pretty
   toException = toExceptionViaPythia
@@ -70,7 +70,7 @@ instance Exception IpException where
 -- | Ip query for 'NetInterface'. Throws exceptions if the command fails or
 -- we have a parse error.
 --
--- @since 0.1.0.0
+-- @since 0.1
 netInterfaceShellApp :: (MonadCatch m, MonadIO m) => m NetInterfaces
 netInterfaceShellApp = ShellApp.runSimple shell
   where
@@ -84,7 +84,7 @@ netInterfaceShellApp = ShellApp.runSimple shell
 -- | Returns a boolean determining if this program is supported on the
 -- current system.
 --
--- @since 0.1.0.0
+-- @since 0.1
 supported :: MonadIO m => m Bool
 supported = U.exeSupported "ip"
 
@@ -92,7 +92,7 @@ type MParser = Parsec Void Text
 
 -- | Attempts to parse the output of IP.
 --
--- @since 0.1.0.0
+-- @since 0.1
 parseInterfaces :: Text -> Either IpException NetInterfaces
 parseInterfaces txt = case MP.parse mparseInterfaces "" txt of
   Left ex ->

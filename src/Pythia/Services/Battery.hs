@@ -1,6 +1,6 @@
 -- | This module exports battery related services.
 --
--- @since 0.1.0.0
+-- @since 0.1
 module Pythia.Services.Battery
   ( -- * Queries
     queryBattery,
@@ -46,7 +46,7 @@ import Pythia.ShellApp qualified as ShellApp
 -- Throws 'Pythia.Control.Exception.PythiaException' if an error is
 -- encountered (e.g. running a command or parse error).
 --
--- @since 0.1.0.0
+-- @since 0.1
 queryBattery :: (MonadCatch m, MonadIO m) => m Battery
 queryBattery = queryBatteryConfig mempty
 
@@ -60,7 +60,7 @@ queryBattery = queryBatteryConfig mempty
 -- Throws 'Pythia.Control.Exception.PythiaException' if an error is
 -- encountered (e.g. running a command or parse error).
 --
--- @since 0.1.0.0
+-- @since 0.1
 queryBatteryConfig :: (MonadCatch m, MonadIO m) => BatteryConfig -> m Battery
 queryBatteryConfig config =
   case config ^. #batteryApp of

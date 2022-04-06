@@ -4,7 +4,7 @@
 -- | This module provides functionality for retrieving battery information
 -- using SysFS.
 --
--- @since 0.1.0.0
+-- @since 0.1
 module Pythia.Services.Battery.SysFs
   ( -- * Query
     batteryQuery,
@@ -31,37 +31,37 @@ import Text.Read qualified as TR
 
 -- | Errors that can occur with sysfs.
 --
--- @since 0.1.0.0
+-- @since 0.1
 data SysFsException
   = -- | Error searching for /sys/class/power_supply or
     -- /sysfs/class/power_supply.
     --
-    -- @since 0.1.0.0
+    -- @since 0.1
     SysFsDirNotFound
   | -- | Error searching for <sysfs>/BAT{0-5}?.
     --
-    -- @since 0.1.0.0
+    -- @since 0.1
     SysFsBatteryDirNotFound
   | -- | Errors searching for files.
     --
-    -- @since 0.1.0.0
+    -- @since 0.1
     SysFsFileNotFound FilePath
   | -- | Errors with the battery percentage format.
     --
-    -- @since 0.1.0.0
+    -- @since 0.1
     SysFsBatteryParseException String
   | -- | Error reading a file.
     --
-    -- @since 0.1.0.0
+    -- @since 0.1
     forall e. Exception e => SysFsReadFileException FilePath e
 
--- | @since 0.1.0.0
+-- | @since 0.1
 makePrismLabels ''SysFsException
 
--- | @since 0.1.0.0
+-- | @since 0.1
 deriving stock instance Show SysFsException
 
--- | @since 0.1.0.0
+-- | @since 0.1
 instance PrettyPrinter SysFsException where
   pretty SysFsDirNotFound =
     "SysFs exception: Could not find either dir: " <> sysDir
@@ -77,7 +77,7 @@ instance PrettyPrinter SysFsException where
   pretty (SysFsReadFileException fp e) =
     "SysFs read file <" <> fp <> "> exception: " <> displayException e
 
--- | @since 0.1.0.0
+-- | @since 0.1
 instance Exception SysFsException where
   displayException = pretty
   toException = toExceptionViaPythia
@@ -86,7 +86,7 @@ instance Exception SysFsException where
 -- | @/sys/class@ query for 'Battery'. Throws exceptions if the command fails
 -- or we have a parse error.
 --
--- @since 0.1.0.0
+-- @since 0.1
 batteryQuery :: MonadIO m => m Battery
 batteryQuery = liftIO queryBattery
 
@@ -101,7 +101,7 @@ batteryQuery = liftIO queryBattery
 -- * @\/sysfs\/class\/power_supply\/BAT3@
 -- * @\/sys\/class\/power_supply\/BAT@
 --
--- @since 0.1.0.0
+-- @since 0.1
 supported :: MonadIO m => m Bool
 supported = liftIO $ do
   efp <- try @_ @SysFsException findSysBatDir

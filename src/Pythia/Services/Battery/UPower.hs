@@ -4,7 +4,7 @@
 -- | This module provides functionality for retrieving battery information
 -- using UPower.
 --
--- @since 0.1.0.0
+-- @since 0.1
 module Pythia.Services.Battery.UPower
   ( -- * Query
     batteryShellApp,
@@ -37,32 +37,32 @@ import Text.Read qualified as TR
 
 -- | Errors that can occur with upower.
 --
--- @since 0.1.0.0
+-- @since 0.1
 data UPowerException
   = -- | General exceptions.
     --
-    -- @since 0.1.0.0
+    -- @since 0.1
     forall e. Exception e => UPowerGeneralException e
   | -- | Did not find percentage.
     --
-    -- @since 0.1.0.0
+    -- @since 0.1
     UPowerNoPercentage String
   | -- | Did not find status.
     --
-    -- @since 0.1.0.0
+    -- @since 0.1
     UPowerNoStatus String
   | -- | Found neither percentage nor status.
     --
-    -- @since 0.1.0.0
+    -- @since 0.1
     UPowerNoPercentageNorStatus String
 
--- | @since 0.1.0.0
+-- | @since 0.1
 makePrismLabels ''UPowerException
 
--- | @since 0.1.0.0
+-- | @since 0.1
 deriving stock instance Show UPowerException
 
--- | @since 0.1.0.0
+-- | @since 0.1
 instance PrettyPrinter UPowerException where
   pretty (UPowerGeneralException e) = "UPower exception: <" <> displayException e <> ">"
   pretty (UPowerNoPercentage s) =
@@ -72,8 +72,8 @@ instance PrettyPrinter UPowerException where
   pretty (UPowerNoPercentageNorStatus s) =
     "UPower parse error. No percentage nor status found in output: <" <> s <> ">"
 
--- | @since 0.1.0.0
--- | @since 0.1.0.0
+-- | @since 0.1
+-- | @since 0.1
 instance Exception UPowerException where
   displayException = pretty
   toException = toExceptionViaPythia
@@ -82,7 +82,7 @@ instance Exception UPowerException where
 -- | UPower query for 'Battery'. Throws exceptions if the command fails or
 -- or we have a parse error.
 --
--- @since 0.1.0.0
+-- @since 0.1
 batteryShellApp :: (MonadCatch m, MonadIO m) => m Battery
 batteryShellApp = ShellApp.runSimple shell
   where
@@ -96,7 +96,7 @@ batteryShellApp = ShellApp.runSimple shell
 -- | Returns a boolean determining if this program is supported on the
 -- current system.
 --
--- @since 0.1.0.0
+-- @since 0.1
 supported :: MonadIO m => m Bool
 supported = U.exeSupported "upower"
 
@@ -128,7 +128,7 @@ supported = U.exeSupported "upower"
 -- >>> parseBattery "nothing"
 -- Left (UPowerNoPercentageNorStatus "nothing")
 --
--- @since 0.1.0.0
+-- @since 0.1
 parseBattery :: Text -> Either UPowerException Battery
 parseBattery txt = case foldMap parseLine ts of
   None -> Left $ UPowerNoPercentageNorStatus $ T.unpack txt

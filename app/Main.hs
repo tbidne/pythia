@@ -1,6 +1,6 @@
 -- | This modules provides an executable for querying system information.
 --
--- @since 0.1.0.0
+-- @since 0.1
 module Main (main) where
 
 import Args
@@ -24,7 +24,7 @@ import Pythia.Prelude
 
 -- | Runs the executable.
 --
--- @since 0.1.0.0
+-- @since 0.1
 main :: IO ()
 main = do
   cmd <- OApp.execParser parserInfo

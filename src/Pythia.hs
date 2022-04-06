@@ -1,7 +1,7 @@
 -- | This is the entry point to the library. All services are exported
 -- here. See the modules themselves for more documentation.
 --
--- @since 0.1.0.0
+-- @since 0.1
 module Pythia
   ( -- * Services
     -- $services

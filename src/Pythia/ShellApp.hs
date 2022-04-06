@@ -5,7 +5,7 @@
 -- | This module provides the functionality for running shell
 -- commands and parsing the result.
 --
--- @since 0.1.0.0
+-- @since 0.1
 module Pythia.ShellApp
   ( -- * SimpleShell
     SimpleShell (..),
@@ -38,27 +38,27 @@ import System.Process.Typed qualified as TP
 -- | Type for running a "simple" shell command given by 'Command'.
 -- The 'parser' is used to parse the result.
 --
--- @since 0.1.0.0
+-- @since 0.1
 data SimpleShell err result = MkSimpleShell
   { -- | The shell command to run.
     --
-    -- @since 0.1.0.0
+    -- @since 0.1
     command :: Command,
     -- | The parser for the result of running the command.
     --
-    -- @since 0.1.0.0
+    -- @since 0.1
     parser :: Text -> Either err result,
     -- | Lifts an exception into @err@. Used so that a 'SimpleShell' will
     -- throw exceptions of the same type.
     --
-    -- @since 0.1.0.0
+    -- @since 0.1
     liftShellEx :: forall e. Exception e => e -> err
   }
 
--- | @since 0.1.0.0
+-- | @since 0.1
 makeFieldLabelsNoPrefix ''SimpleShell
 
--- | @since 0.1.0.0
+-- | @since 0.1
 instance Bifunctor SimpleShell where
   bimap f g (MkSimpleShell c p le) = MkSimpleShell c p' (f . le)
     where
@@ -70,7 +70,7 @@ instance Bifunctor SimpleShell where
 --
 -- If parsing fails, then this will also be thrown.
 --
--- @since 0.1.0.0
+-- @since 0.1
 runSimple ::
   forall m err result.
   (Exception err, MonadCatch m, MonadIO m) =>
@@ -86,7 +86,7 @@ runSimple simple =
 -- This is used by 'SimpleShell' to run its command before the result is
 -- parsed. This function is exported for convenience.
 --
--- @since 0.1.0.0
+-- @since 0.1
 runCommand :: MonadIO m => Command -> m Text
 runCommand command = liftIO $ do
   (exitCode, out, err) <- TP.readProcess $ TP.shell $ T.unpack cmdStr
@@ -102,17 +102,17 @@ runCommand command = liftIO $ do
 -- current system. Intended for when we want to try multiple actions
 -- i.e. 'tryAppActions'.
 --
--- @since 0.1.0.0
+-- @since 0.1
 data AppAction m r = MkAppAction
-  { -- | @since 0.1.0.0
+  { -- | @since 0.1
     action :: m r,
-    -- | @since 0.1.0.0
+    -- | @since 0.1
     supported :: m Bool,
-    -- | @since 0.1.0.0
+    -- | @since 0.1
     name :: String
   }
 
--- | @since 0.1.0.0
+-- | @since 0.1
 makeFieldLabelsNoPrefix ''AppAction
 
 -- Three possible results when running actions:
@@ -142,7 +142,7 @@ instance Monoid (ActionsResult r) where
 -- If any errors are encountered or no actions are run (either because the
 -- list is empty or none are supported), and exception is thrown.
 --
--- @since 0.1.0.0
+-- @since 0.1
 tryAppActions :: MonadCatch m => [AppAction m result] -> m result
 tryAppActions apps = do
   eResult <- foldr tryAppAction (pure mempty) apps
@@ -168,7 +168,7 @@ tryAppAction appAction acc = do
 -- (i.e. returns the first success or throws an exception if none
 -- succeeds) without checking for "support".
 --
--- @since 0.1.0.0
+-- @since 0.1
 tryIOs :: MonadCatch m => [m result] -> m result
 tryIOs actions = do
   eResult <- foldr tryIO (pure mempty) actions

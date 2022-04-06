@@ -1,6 +1,6 @@
 -- | Entrypoint for unit tests.
 --
--- @since 0.1.0.0
+-- @since 0.1
 module Main (main) where
 
 import Test.Tasty qualified as Tasty
@@ -12,7 +12,7 @@ import Unit.Pythia.Services.NetInterface.NmCli qualified as NetInterface.NmCli
 
 -- | Runs unit tests.
 --
--- @since 0.1.0.0
+-- @since 0.1
 main :: IO ()
 main = do
   Tasty.defaultMain $

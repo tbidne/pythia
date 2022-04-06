@@ -1,6 +1,6 @@
 -- | Custom prelude.
 --
--- @since 0.1.0.0
+-- @since 0.1
 module Pythia.Prelude
   ( -- * File
     readFileUtf8Lenient,
@@ -66,13 +66,13 @@ import System.IO as X (FilePath, IO, print, putStrLn)
 
 -- | Strictly reads a file and leniently converts the contents to UTF8.
 --
--- @since 0.1.0.0
+-- @since 0.1
 readFileUtf8Lenient :: MonadIO m => FilePath -> m Text
 readFileUtf8Lenient = fmap decodeUtf8Lenient . liftIO . BS.readFile
 
 -- | Lenient UTF8 decode.
 --
--- @since 0.1.0.0
+-- @since 0.1
 decodeUtf8Lenient :: ByteString -> Text
 decodeUtf8Lenient = TextEnc.decodeUtf8With TextEncErr.lenientDecode
 
@@ -86,7 +86,7 @@ decodeUtf8Lenient = TextEnc.decodeUtf8With TextEncErr.lenientDecode
 -- >>> headMaybe [3, 4]
 -- Just 3
 --
--- @since 0.1.0.0
+-- @since 0.1
 headMaybe :: [a] -> Maybe a
 headMaybe [] = Nothing
 headMaybe (x : _) = Just x
@@ -101,6 +101,6 @@ headMaybe (x : _) = Just x
 -- >>> throwLeft @Maybe (Right @AnException @() ())
 -- Just ()
 --
--- @since 0.1.0.0
+-- @since 0.1
 throwLeft :: forall m e a. (Exception e, MonadThrow m) => Either e a -> m a
 throwLeft = either throw pure
