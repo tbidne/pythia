@@ -12,8 +12,8 @@ import Args
 import Options.Applicative qualified as OApp
 import Pythia (BatteryConfig, NetInterfaceConfig, NetInterfaces (..), PythiaException)
 import Pythia qualified
+import Pythia.Class.Printer (PrettyPrinter (..))
 import Pythia.Prelude
-import Pythia.Printer (PrettyPrinter (..))
 
 -- | Runs the executable.
 --

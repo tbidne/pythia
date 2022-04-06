@@ -72,7 +72,7 @@ library
     Pythia.Data.Command
     Pythia.Data.RunApp
     Pythia.Prelude
-    Pythia.Printer
+    Pythia.Class.Printer
     Pythia.Services.Battery
     Pythia.Services.Battery.Acpi
     Pythia.Services.Battery.SysFs

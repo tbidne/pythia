@@ -18,10 +18,10 @@ module Pythia.Services.NetInterface.Types
   )
 where
 
+import Pythia.Class.Printer (PrettyPrinter (..))
+import Pythia.Class.Printer qualified as Printer
 import Pythia.Data.RunApp (RunApp)
 import Pythia.Prelude
-import Pythia.Printer (PrettyPrinter (..))
-import Pythia.Printer qualified as Printer
 import Pythia.Services.Types (Device, Ipv4Address, Ipv6Address)
 import Pythia.Supremum (Supremum (..))
 

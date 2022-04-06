@@ -17,9 +17,9 @@ where
 
 import Data.Text qualified as T
 import Numeric.Data.Interval qualified as Interval
+import Pythia.Class.Printer (PrettyPrinter (..))
 import Pythia.Control.Exception (fromExceptionViaPythia, toExceptionViaPythia)
 import Pythia.Prelude
-import Pythia.Printer (PrettyPrinter (..))
 import Pythia.Services.Battery.Types
   ( Battery (..),
     BatteryPercentage (..),

@@ -23,11 +23,11 @@ where
 
 import Optics.Core (Iso)
 import Optics.Core qualified as O
+import Pythia.Class.Printer (PrettyPrinter (..))
+import Pythia.Class.Printer qualified as Pretty
 import Pythia.Data.Command (Command (..))
 import Pythia.Data.RunApp (RunApp (..))
 import Pythia.Prelude
-import Pythia.Printer (PrettyPrinter (..))
-import Pythia.Printer qualified as Pretty
 import Pythia.Services.Types (IpType (..), Ipv4Address (..), Ipv6Address (..))
 import Pythia.Supremum (Supremum (..))
 

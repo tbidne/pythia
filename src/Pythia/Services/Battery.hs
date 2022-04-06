@@ -43,7 +43,7 @@ import Pythia.ShellApp qualified as ShellApp
 
 -- | Queries for battery information with default configuration.
 --
--- Throws 'PythiaException'.
+-- Throws 'Pythia.Control.Exception.PythiaException'.
 --
 -- @since 0.1.0.0
 queryBattery :: (MonadCatch m, MonadIO m) => m Battery
@@ -53,7 +53,7 @@ queryBattery = queryBatteryConfig mempty
 -- 'Many' then we try supported apps in the following order:
 -- ['BatterySysFs', 'BatteryAcpi', 'BatteryUPower'].
 --
--- Throws 'PythiaException'.
+-- Throws 'Pythia.Control.Exception.PythiaException'.
 --
 -- @since 0.1.0.0
 queryBatteryConfig :: (MonadCatch m, MonadIO m) => BatteryConfig -> m Battery

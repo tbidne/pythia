@@ -46,7 +46,7 @@ import Pythia.ShellApp qualified as ShellApp
 
 -- | Queries for network interface information with default configuration.
 --
--- Throws 'PythiaException'.
+-- Throws 'Pythia.Control.Exception.PythiaException'.
 --
 -- @since 0.1.0.0
 queryNetInterfaces :: (MonadCatch m, MonadIO m) => m NetInterfaces
@@ -56,7 +56,7 @@ queryNetInterfaces = queryNetInterfacesConfig mempty
 -- If 'interfaceApp' is 'Many' then we try supported apps in the following
 -- order: ['NetInterfaceNmCli', 'NetInterfaceIp'].
 --
--- Throws 'PythiaException'.
+-- Throws 'Pythia.Control.Exception.PythiaException'.
 --
 -- @since 0.1.0.0
 queryNetInterfacesConfig ::

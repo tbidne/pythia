@@ -3,7 +3,7 @@
 -- | This modules provides functionality for pretty printing query results.
 --
 -- @since 0.1.0.0
-module Pythia.Printer
+module Pythia.Class.Printer
   ( PrettyPrinter (..),
     joinCommas,
     joinNewlines,

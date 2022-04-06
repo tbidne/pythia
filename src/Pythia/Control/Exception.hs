@@ -23,10 +23,10 @@ import Data.List.NonEmpty (NonEmpty (..))
 import Data.List.NonEmpty qualified as NE
 import Data.Text qualified as T
 import Data.Typeable (cast)
+import Pythia.Class.Printer (PrettyPrinter (..))
+import Pythia.Class.Printer qualified as Printer
 import Pythia.Data.Command (Command (..))
 import Pythia.Prelude
-import Pythia.Printer (PrettyPrinter (..))
-import Pythia.Printer qualified as Printer
 
 -- | All specific exceptions thrown by pythia are subtypes of
 -- 'PythiaException'.

@@ -15,12 +15,12 @@ module Pythia
 
     -- * Printing
     -- $printing
-    module Pythia.Printer,
+    module Pythia.Class.Printer,
   )
 where
 
+import Pythia.Class.Printer
 import Pythia.Control.Exception
-import Pythia.Printer
 import Pythia.Services.Battery
 import Pythia.Services.GlobalIP
 import Pythia.Services.NetInterface

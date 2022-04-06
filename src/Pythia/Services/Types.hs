@@ -15,8 +15,8 @@ module Pythia.Services.Types
 where
 
 import Data.Text qualified as T
+import Pythia.Class.Printer (PrettyPrinter (..))
 import Pythia.Prelude
-import Pythia.Printer (PrettyPrinter (..))
 import Refined (NonEmpty, Refined, SizeLessThan, type (&&), type (||))
 import Refined qualified as R
 import Refined.Extras.Predicates.Foldable (All)

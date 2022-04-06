@@ -19,9 +19,9 @@ where
 import Data.Char qualified as Char
 import Data.Set qualified as Set
 import Data.Text qualified as T
+import Pythia.Class.Printer (PrettyPrinter (..))
 import Pythia.Control.Exception (fromExceptionViaPythia, toExceptionViaPythia)
 import Pythia.Prelude
-import Pythia.Printer (PrettyPrinter (..))
 import Pythia.Services.NetInterface.Types
   ( NetInterface (..),
     NetInterfaceState (..),
