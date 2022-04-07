@@ -81,8 +81,8 @@ queryNetInterfacesConfig config = do
     Single app -> singleRun app
   where
     allApps =
-      [ MkAppAction (singleRun NetInterfaceNmCli) NmCli.supported (show NetInterfaceNmCli),
-        MkAppAction (singleRun NetInterfaceIp) Ip.supported (show NetInterfaceIp)
+      [ MkAppAction (singleRun NetInterfaceNmCli) NmCli.supported (showt NetInterfaceNmCli),
+        MkAppAction (singleRun NetInterfaceIp) Ip.supported (showt NetInterfaceIp)
       ]
     singleRun a =
       queryNetInterfacesDeviceApp device a

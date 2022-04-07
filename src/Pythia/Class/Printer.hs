@@ -11,7 +11,6 @@ module Pythia.Class.Printer
   )
 where
 
-import Data.List qualified as L
 import Data.Text qualified as T
 import Pythia.Prelude
 
@@ -20,17 +19,17 @@ import Pythia.Prelude
 -- @since 0.1
 class PrettyPrinter a where
   -- | @since 0.1
-  pretty :: a -> String
-  default pretty :: Show a => a -> String
-  pretty = show
+  pretty :: a -> Text
+  default pretty :: Show a => a -> Text
+  pretty = T.pack . show
 
 -- | @since 0.1
 instance PrettyPrinter String where
-  pretty = id
+  pretty = T.pack
 
 -- | @since 0.1
 instance PrettyPrinter Text where
-  pretty = T.unpack
+  pretty = id
 
 -- | @since 0.1
 instance PrettyPrinter a => PrettyPrinter (Maybe a) where
@@ -45,7 +44,7 @@ instance PrettyPrinter a => PrettyPrinter (Maybe a) where
 -- "foo, bar"
 --
 -- @since 0.1
-joinCommas :: PrettyPrinter a => [a] -> String
+joinCommas :: PrettyPrinter a => [a] -> Text
 joinCommas = joinX ", "
 
 -- | Join with newlines.
@@ -56,7 +55,7 @@ joinCommas = joinX ", "
 -- "foo\nbar"
 --
 -- @since 0.1
-joinNewlines :: PrettyPrinter a => [a] -> String
+joinNewlines :: PrettyPrinter a => [a] -> Text
 joinNewlines = joinX "\n"
 
 -- | General list join.
@@ -67,5 +66,5 @@ joinNewlines = joinX "\n"
 -- "foo--bar"
 --
 -- @since 0.1
-joinX :: PrettyPrinter a => String -> [a] -> String
-joinX s = L.intercalate s . fmap pretty
+joinX :: PrettyPrinter a => Text -> [a] -> Text
+joinX s = T.intercalate s . fmap pretty

@@ -9,6 +9,7 @@ module Pythia.Prelude
     -- * Misc
     headMaybe,
     throwLeft,
+    showt,
 
     -- * Base
     module X,
@@ -47,6 +48,7 @@ import Data.Proxy as X (Proxy (..))
 import Data.Semigroup as X (Semigroup (..))
 import Data.String as X (IsString (..), String)
 import Data.Text as X (Text)
+import Data.Text qualified as T
 import Data.Text.Encoding qualified as TextEnc
 import Data.Text.Encoding.Error qualified as TextEncErr
 import Data.Traversable as X (Traversable (..), for)
@@ -104,3 +106,6 @@ headMaybe (x : _) = Just x
 -- @since 0.1
 throwLeft :: forall m e a. (Exception e, MonadThrow m) => Either e a -> m a
 throwLeft = either throw pure
+
+showt :: Show a => a -> Text
+showt = T.pack . show

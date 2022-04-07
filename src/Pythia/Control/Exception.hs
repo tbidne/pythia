@@ -72,7 +72,7 @@ data CommandException = MkCommandException
     -- | The error message received.
     --
     -- @since 0.1
-    errMsg :: String
+    errMsg :: Text
   }
   deriving stock
     ( -- | @since 0.1
@@ -84,14 +84,14 @@ makeFieldLabelsNoPrefix ''CommandException
 
 -- | @since 0.1
 instance Exception CommandException where
-  displayException = pretty
+  displayException = T.unpack . pretty
   toException = toExceptionViaPythia
   fromException = fromExceptionViaPythia
 
 -- | @since 0.1
 instance PrettyPrinter CommandException where
   pretty (MkCommandException (MkCommand c) s) =
-    "Command exception. Command: <" <> T.unpack c <> ">"
+    "Command exception. Command: <" <> c <> ">"
       <> ". Error: <"
       <> s
       <> ">"
@@ -113,7 +113,7 @@ makeFieldLabelsNoPrefix ''MultiExceptions
 
 -- | @since 0.1
 instance Exception MultiExceptions where
-  displayException = pretty
+  displayException = T.unpack . pretty
   toException = toExceptionViaPythia
   fromException = fromExceptionViaPythia
 
@@ -134,7 +134,7 @@ instance Semigroup MultiExceptions where
 -- @since 0.1
 newtype NotSupportedException = MkNotSupportedException
   { -- | @since 0.1
-    unNotSupportedException :: String
+    unNotSupportedException :: Text
   }
   deriving stock
     ( -- | @since 0.1
@@ -146,7 +146,7 @@ makeFieldLabelsNoPrefix ''NotSupportedException
 
 -- | @since 0.1
 instance Exception NotSupportedException where
-  displayException = pretty
+  displayException = T.unpack . pretty
   toException = toExceptionViaPythia
   fromException = fromExceptionViaPythia
 
@@ -169,6 +169,6 @@ instance PrettyPrinter NoActionsRunException where
 
 -- | @since 0.1
 instance Exception NoActionsRunException where
-  displayException = pretty
+  displayException = T.unpack . pretty
   toException = toExceptionViaPythia
   fromException = fromExceptionViaPythia

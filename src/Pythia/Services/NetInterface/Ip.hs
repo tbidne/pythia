@@ -48,7 +48,7 @@ data IpException
   | -- | Parse exception.
     --
     -- @since 0.1
-    IpParseException String
+    IpParseException Text
 
 -- | @since 0.1
 makePrismLabels ''IpException
@@ -58,12 +58,12 @@ deriving stock instance Show IpException
 
 -- | @since 0.1
 instance PrettyPrinter IpException where
-  pretty (IpGeneralException e) = "Ip exception: <" <> displayException e <> ">"
-  pretty (IpParseException s) = "Ip parse exception: <" <> show s <> ">"
+  pretty (IpGeneralException e) = "Ip exception: <" <> T.pack (displayException e) <> ">"
+  pretty (IpParseException s) = "Ip parse exception: <" <> showt s <> ">"
 
 -- | @since 0.1
 instance Exception IpException where
-  displayException = pretty
+  displayException = T.unpack . pretty
   toException = toExceptionViaPythia
   fromException = fromExceptionViaPythia
 
@@ -97,7 +97,7 @@ parseInterfaces :: Text -> Either IpException NetInterfaces
 parseInterfaces txt = case MP.parse mparseInterfaces "" txt of
   Left ex ->
     let prettyErr = MP.errorBundlePretty ex
-     in Left $ IpParseException prettyErr
+     in Left $ IpParseException $ T.pack prettyErr
   Right ifs -> Right ifs
 
 mparseInterfaces :: MParser NetInterfaces
@@ -144,12 +144,13 @@ parseIps p cons = do
     Left ex ->
       let errMsg :: String
           errMsg =
-            "Malformed ipv"
-              <> T.unpack p
-              <> " address found: "
-              <> show (T.unpack <$> addrs)
-              <> ". Error: "
-              <> show ex
+            T.unpack $
+              "Malformed ipv"
+                <> p
+                <> " address found: "
+                <> showt addrs
+                <> ". Error: "
+                <> showt ex
        in MP.fancyFailure $ Set.fromList [ErrorFail errMsg]
     Right xss -> pure (cons <$> xss)
 

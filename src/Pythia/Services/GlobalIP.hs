@@ -77,8 +77,8 @@ queryGlobalIpConfig config =
     Single app -> singleRun app
   where
     allApps =
-      [ MkAppAction (singleRun GlobalIpDig) digSupported (show GlobalIpDig),
-        MkAppAction (singleRun GlobalIpCurl) curlSupported (show GlobalIpCurl)
+      [ MkAppAction (singleRun GlobalIpDig) digSupported (showt GlobalIpDig),
+        MkAppAction (singleRun GlobalIpCurl) curlSupported (showt GlobalIpCurl)
       ]
     singleRun =
       toSingleShellApp

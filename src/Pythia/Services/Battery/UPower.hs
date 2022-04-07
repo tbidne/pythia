@@ -46,15 +46,15 @@ data UPowerException
   | -- | Did not find percentage.
     --
     -- @since 0.1
-    UPowerNoPercentage String
+    UPowerNoPercentage Text
   | -- | Did not find status.
     --
     -- @since 0.1
-    UPowerNoStatus String
+    UPowerNoStatus Text
   | -- | Found neither percentage nor status.
     --
     -- @since 0.1
-    UPowerNoPercentageNorStatus String
+    UPowerNoPercentageNorStatus Text
 
 -- | @since 0.1
 makePrismLabels ''UPowerException
@@ -64,7 +64,7 @@ deriving stock instance Show UPowerException
 
 -- | @since 0.1
 instance PrettyPrinter UPowerException where
-  pretty (UPowerGeneralException e) = "UPower exception: <" <> displayException e <> ">"
+  pretty (UPowerGeneralException e) = "UPower exception: <" <> T.pack (displayException e) <> ">"
   pretty (UPowerNoPercentage s) =
     "UPower parse error. No percentage found in output: <" <> s <> ">"
   pretty (UPowerNoStatus s) =
@@ -75,7 +75,7 @@ instance PrettyPrinter UPowerException where
 -- | @since 0.1
 -- | @since 0.1
 instance Exception UPowerException where
-  displayException = pretty
+  displayException = T.unpack . pretty
   toException = toExceptionViaPythia
   fromException = fromExceptionViaPythia
 
@@ -131,9 +131,9 @@ supported = U.exeSupported "upower"
 -- @since 0.1
 parseBattery :: Text -> Either UPowerException Battery
 parseBattery txt = case foldMap parseLine ts of
-  None -> Left $ UPowerNoPercentageNorStatus $ T.unpack txt
-  Percent _ -> Left $ UPowerNoStatus $ T.unpack txt
-  Status _ -> Left $ UPowerNoPercentage $ T.unpack txt
+  None -> Left $ UPowerNoPercentageNorStatus txt
+  Percent _ -> Left $ UPowerNoStatus txt
+  Status _ -> Left $ UPowerNoPercentage txt
   Both bs -> Right bs
   where
     ts = T.lines txt

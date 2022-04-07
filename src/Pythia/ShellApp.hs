@@ -93,7 +93,7 @@ runCommand command = liftIO $ do
   case exitCode of
     ExitSuccess -> pure $ decodeUtf8Lenient (LBS.toStrict out)
     ExitFailure _ ->
-      throw $ MkCommandException command $ show $ LBS.toStrict err
+      throw $ MkCommandException command $ T.pack $ show $ LBS.toStrict err
   where
     cmdStr = command ^. #unCommand
 
@@ -109,7 +109,7 @@ data AppAction m r = MkAppAction
     -- | @since 0.1
     supported :: m Bool,
     -- | @since 0.1
-    name :: String
+    name :: Text
   }
 
 -- | @since 0.1

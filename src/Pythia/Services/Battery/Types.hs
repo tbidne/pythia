@@ -135,7 +135,7 @@ makeFieldLabelsNoPrefix ''BatteryPercentage
 
 -- | @since 0.1
 instance PrettyPrinter BatteryPercentage where
-  pretty (MkBatteryPercentage p) = show (Interval.unLRInterval p) <> "%"
+  pretty (MkBatteryPercentage p) = showt (Interval.unLRInterval p) <> "%"
 
 -- | Full battery state, including percentage and status data.
 --

@@ -68,9 +68,9 @@ queryBatteryConfig config =
     Single app -> toShellApp app
   where
     allApps =
-      [ MkAppAction (toShellApp BatterySysFs) SysFs.supported (show BatterySysFs),
-        MkAppAction (toShellApp BatteryAcpi) Acpi.supported (show BatteryAcpi),
-        MkAppAction (toShellApp BatteryUPower) UPower.supported (show BatteryUPower)
+      [ MkAppAction (toShellApp BatterySysFs) SysFs.supported (showt BatterySysFs),
+        MkAppAction (toShellApp BatteryAcpi) Acpi.supported (showt BatteryAcpi),
+        MkAppAction (toShellApp BatteryUPower) UPower.supported (showt BatteryUPower)
       ]
 
 toShellApp :: (MonadCatch m, MonadIO m) => BatteryApp -> m Battery

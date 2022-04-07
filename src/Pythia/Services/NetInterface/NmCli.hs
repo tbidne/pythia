@@ -49,7 +49,7 @@ data NmCliException
   | -- | Parse exceptions.
     --
     -- @since 0.1
-    NmCliParseException String
+    NmCliParseException Text
 
 -- | @since 0.1
 makePrismLabels ''NmCliException
@@ -59,12 +59,12 @@ deriving stock instance Show NmCliException
 
 -- | @since 0.1
 instance PrettyPrinter NmCliException where
-  pretty (NmCliGeneralException e) = "Nmcli exception: <" <> displayException e <> ">"
-  pretty (NmCliParseException s) = "Nmcli parse exception: <" <> show s <> ">"
+  pretty (NmCliGeneralException e) = "Nmcli exception: <" <> T.pack (displayException e) <> ">"
+  pretty (NmCliParseException s) = "Nmcli parse exception: <" <> showt s <> ">"
 
 -- | @since 0.1
 instance Exception NmCliException where
-  displayException = pretty
+  displayException = T.unpack . pretty
   toException = toExceptionViaPythia
   fromException = fromExceptionViaPythia
 
@@ -98,7 +98,7 @@ parseInterfaces :: Text -> Either NmCliException NetInterfaces
 parseInterfaces txt = case MP.parse mparseInterfaces "Pythia.Services.NetInterface.NmCli" txt of
   Left ex ->
     let prettyErr = MP.errorBundlePretty ex
-     in Left $ NmCliParseException prettyErr
+     in Left $ NmCliParseException $ T.pack prettyErr
   Right ifs -> Right ifs
 
 mparseInterfaces :: MParser NetInterfaces
@@ -216,12 +216,13 @@ parseIps p cons = do
     Left ex ->
       let errMsg :: String
           errMsg =
-            "Malformed ipv"
-              <> T.unpack p
-              <> " address found: "
-              <> show (T.unpack <$> addrs)
-              <> ". Error: "
-              <> show ex
+            T.unpack $
+              "Malformed ipv"
+                <> p
+                <> " address found: "
+                <> showt addrs
+                <> ". Error: "
+                <> showt ex
        in MP.fancyFailure $ Set.fromList [ErrorFail errMsg]
     Right xss -> pure (cons <$> xss)
 

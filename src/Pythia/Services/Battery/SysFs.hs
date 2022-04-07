@@ -45,15 +45,15 @@ data SysFsException
   | -- | Errors searching for files.
     --
     -- @since 0.1
-    SysFsFileNotFound FilePath
+    SysFsFileNotFound Text
   | -- | Errors with the battery percentage format.
     --
     -- @since 0.1
-    SysFsBatteryParseException String
+    SysFsBatteryParseException Text
   | -- | Error reading a file.
     --
     -- @since 0.1
-    forall e. Exception e => SysFsReadFileException FilePath e
+    forall e. Exception e => SysFsReadFileException Text e
 
 -- | @since 0.1
 makePrismLabels ''SysFsException
@@ -64,22 +64,22 @@ deriving stock instance Show SysFsException
 -- | @since 0.1
 instance PrettyPrinter SysFsException where
   pretty SysFsDirNotFound =
-    "SysFs exception: Could not find either dir: " <> sysDir
+    "SysFs exception: Could not find either dir: " <> T.pack sysDir
       <> ", "
-      <> sysfsDir
+      <> T.pack sysfsDir
   pretty SysFsBatteryDirNotFound =
     "SysFs exception: Could not find BAT[0-5]? subdirectory under"
       <> " /sys(fs)/class/power_supply"
   pretty (SysFsFileNotFound f) =
-    "SysFs exception: Could not find file: <" <> show f <> ">"
+    "SysFs exception: Could not find file: <" <> showt f <> ">"
   pretty (SysFsBatteryParseException e) =
     "SysFs parse error: <" <> e <> ">"
   pretty (SysFsReadFileException fp e) =
-    "SysFs read file <" <> fp <> "> exception: " <> displayException e
+    "SysFs read file <" <> fp <> "> exception: " <> T.pack (displayException e)
 
 -- | @since 0.1
 instance Exception SysFsException where
-  displayException = pretty
+  displayException = T.unpack . pretty
   toException = toExceptionViaPythia
   fromException = fromExceptionViaPythia
 
@@ -172,13 +172,13 @@ fileExists fp = do
   b <- Dir.doesFileExist fp
   if b
     then pure fp
-    else throw $ SysFsFileNotFound fp
+    else throw $ SysFsFileNotFound $ T.pack fp
 
 parseStatus :: FilePath -> IO BatteryStatus
 parseStatus fp = do
   statusTxt <-
     T.toLower . T.strip <$> readFileUtf8Lenient fp
-      `catch` \(e :: SomeException) -> throw $ SysFsReadFileException fp e
+      `catch` \(e :: SomeException) -> throw $ SysFsReadFileException (T.pack fp) e
   case statusTxt of
     "charging" -> pure Charging
     "discharging" -> pure Discharging
@@ -190,9 +190,9 @@ parsePercentage :: FilePath -> IO BatteryPercentage
 parsePercentage fp = do
   percentTxt <-
     readFileUtf8Lenient fp
-      `catch` \(e :: SomeException) -> throw $ SysFsReadFileException fp e
+      `catch` \(e :: SomeException) -> throw $ SysFsReadFileException (T.pack fp) e
   case readInterval percentTxt of
-    Nothing -> throw $ SysFsBatteryParseException $ T.unpack percentTxt
+    Nothing -> throw $ SysFsBatteryParseException percentTxt
     Just bs -> pure $ MkBatteryPercentage bs
   where
     readInterval = Interval.mkLRInterval <=< TR.readMaybe . T.unpack

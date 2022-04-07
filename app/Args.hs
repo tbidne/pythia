@@ -125,12 +125,13 @@ version :: Parser (a -> a)
 version = OApp.infoOption txt (OApp.long "version" <> OApp.short 'v')
   where
     txt =
-      Pythia.joinNewlines
-        [ "Pythia",
-          "Version: " <> $$(PV.packageVersionStringTH "pythia.cabal"),
-          "Revision: " <> $(GitRev.gitHash),
-          "Date: " <> $(GitRev.gitCommitDate)
-        ]
+      T.unpack $
+        Pythia.joinNewlines
+          [ "Pythia",
+            "Version: " <> $$(PV.packageVersionStringTH "pythia.cabal"),
+            "Revision: " <> $(GitRev.gitHash),
+            "Date: " <> $(GitRev.gitCommitDate)
+          ]
 
 parseBattery :: Parser PythiaCommand
 parseBattery = do

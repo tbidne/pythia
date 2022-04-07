@@ -47,7 +47,7 @@ data AcpiException
   | -- | Parse errors.
     --
     -- @since 0.1
-    AcpiParseException String
+    AcpiParseException Text
 
 -- | @since 0.1
 makePrismLabels ''AcpiException
@@ -57,12 +57,12 @@ deriving stock instance Show AcpiException
 
 -- | @since 0.1
 instance PrettyPrinter AcpiException where
-  pretty (AcpiGeneralException e) = "Acpi exception: <" <> displayException e <> ">"
+  pretty (AcpiGeneralException e) = "Acpi exception: <" <> T.pack (displayException e) <> ">"
   pretty (AcpiParseException s) = "Acpi parse error: <" <> s <> ">"
 
 -- | @since 0.1
 instance Exception AcpiException where
-  displayException = pretty
+  displayException = T.unpack . pretty
   toException = toExceptionViaPythia
   fromException = fromExceptionViaPythia
 
@@ -111,7 +111,7 @@ parseBattery :: Text -> Either AcpiException Battery
 parseBattery txt = first mkErr parseResult
   where
     parseResult = MP.parse mparseBattery "Acpi.hs" txt
-    mkErr err = AcpiParseException $ MPE.errorBundlePretty err
+    mkErr err = AcpiParseException $ T.pack $ MPE.errorBundlePretty err
 
 type MParser = Parsec Void Text
 

@@ -14,7 +14,6 @@ module Pythia.Services.Types.Network
   )
 where
 
-import Data.Text qualified as T
 import Pythia.Class.Printer (PrettyPrinter (..))
 import Pythia.Prelude
 import Refined (NonEmpty, Refined, SizeLessThan, type (&&), type (||))
@@ -69,7 +68,7 @@ newtype Ipv4Address = MkIpv4Address
 
 -- | @since 0.1
 instance PrettyPrinter Ipv4Address where
-  pretty = T.unpack . R.unrefine . unIpv4
+  pretty = R.unrefine . unIpv4
 
 -- | @since 0.1
 makeFieldLabelsNoPrefix ''Ipv4Address
@@ -96,7 +95,7 @@ newtype Ipv6Address = MkIpv6Address
 
 -- | @since 0.1
 instance PrettyPrinter Ipv6Address where
-  pretty = T.unpack . R.unrefine . unIpv6
+  pretty = R.unrefine . unIpv6
 
 -- | @since 0.1
 makeFieldLabelsNoPrefix ''Ipv6Address

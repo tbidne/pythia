@@ -10,6 +10,7 @@ import Args
     PythiaCommand (..),
     parserInfo,
   )
+import Data.Text qualified as T
 import Options.Applicative qualified as OApp
 import Pythia
   ( BatteryConfig,
@@ -40,7 +41,7 @@ handleBattery cfg mfield = do
   result <- Pythia.queryBatteryConfig cfg
   case mfield of
     Nothing -> prettyPrint result
-    Just field -> putStrLn (toField field result)
+    Just field -> putStrLn $ T.unpack (toField field result)
   where
     toField BatteryFieldPercentage = Pythia.pretty . view #percentage
     toField BatteryFieldStatus = Pythia.pretty . view #status
@@ -54,6 +55,7 @@ handleNetInterface cfg val = do
   where
     printField s =
       putStrLn
+        . T.unpack
         . Pythia.joinNewlines
         . fmap (toField s)
         . unNetInterfaces
@@ -70,9 +72,9 @@ handleNetConn cfg field = do
   case field of
     Nothing -> prettyPrint conn
     Just sel ->
-      putStrLn $ pretty $ fmap (toField sel) conn
+      putStrLn $ T.unpack $ pretty $ fmap (toField sel) conn
   where
-    toField :: NetConnField -> NetInterface -> String
+    toField :: NetConnField -> NetInterface -> Text
     toField NetConnFieldDevice = Pythia.pretty . view #idevice
     toField NetConnFieldType = Pythia.pretty . view #itype
     toField NetConnFieldName = Pythia.pretty . view #iname
@@ -80,4 +82,4 @@ handleNetConn cfg field = do
     toField NetConnFieldIpv6 = Pythia.joinCommas . view #ipv6s
 
 prettyPrint :: PrettyPrinter a => a -> IO ()
-prettyPrint = putStrLn . Pythia.pretty
+prettyPrint = putStrLn . T.unpack . Pythia.pretty
