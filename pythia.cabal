@@ -148,6 +148,25 @@ test-suite unit
   hs-source-dirs:   test/unit
   default-language: Haskell2010
 
+test-suite functional
+  import:           common-exts
+  type:             exitcode-stdio-1.0
+  main-is:          Main.hs
+  other-modules:
+    Functional.Prelude
+    Functional.Pythia.Services.Battery
+    Functional.Pythia.Services.GlobalIp
+    Functional.Pythia.Services.NetInterface
+
+  build-depends:
+    , base
+    , pythia
+    , tasty
+    , tasty-hunit
+
+  hs-source-dirs:   test/functional
+  default-language: Haskell2010
+
 test-suite doctest
   import:           common-exts
   type:             exitcode-stdio-1.0
