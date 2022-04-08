@@ -17,6 +17,7 @@ module Pythia.Services.Battery.Acpi
 where
 
 import Data.Char qualified as Char
+import Data.Set qualified as Set
 import Data.Text qualified as T
 import Numeric.Data.Interval qualified as Interval
 import Pythia.Class.Printer (PrettyPrinter (..))
@@ -30,7 +31,7 @@ import Pythia.Services.Battery.Types
 import Pythia.ShellApp (SimpleShell (..))
 import Pythia.ShellApp qualified as ShellApp
 import Pythia.Utils qualified as U
-import Text.Megaparsec (Parsec, (<?>))
+import Text.Megaparsec (ErrorFancy (..), Parsec, (<?>))
 import Text.Megaparsec qualified as MP
 import Text.Megaparsec.Char qualified as MPC
 import Text.Megaparsec.Error qualified as MPE
@@ -116,7 +117,7 @@ supported = U.exeSupported "acpi"
 -- Right (MkBattery {percentage = MkBatteryPercentage {unBatteryPercentage = UnsafeLRInterval 40}, status = Charging})
 --
 -- >>> parseBattery "Battery 0: bad status, 80%"
--- Right (MkBattery {percentage = MkBatteryPercentage {unBatteryPercentage = UnsafeLRInterval 80}, status = Unknown "bad status"})
+-- Left (AcpiParseException "Acpi.hs:1:12:\n  |\n1 | Battery 0: bad status, 80%\n  |            ^\nUnknown status\n")
 --
 -- >>> parseBattery "Battery 0: Discharging, 150%"
 -- Left (AcpiParseException "Acpi.hs:1:28:\n  |\n1 | Battery 0: Discharging, 150%\n  |                            ^\nexpecting percentage\n")
@@ -149,16 +150,13 @@ mparseState =
     <|> MP.try charging
     <|> MP.try pending
     <|> MP.try full
-    <|> unknown
+    <|> MP.fancyFailure (Set.fromList [ErrorFail "Unknown status"])
     <?> "<Discharging|Charging|Not charging>"
   where
     discharging = MPC.string' "Discharging" $> Discharging
     charging = MPC.string' "Charging" $> Charging
     full = MPC.string' "Full" $> Full
     pending = MPC.string' "Not charging" $> Pending
-    unknown = do
-      s <- MP.takeWhile1P Nothing (/= ',')
-      pure $ Unknown s
 
 mparsePercent :: MParser BatteryPercentage
 mparsePercent = do

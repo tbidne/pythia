@@ -17,7 +17,7 @@ tests =
       parseDischarging,
       parseFull,
       parsePending,
-      parseUnknown
+      unknownStatusFails
     ]
 
 parseCharging :: TestTree
@@ -32,10 +32,12 @@ parseFull = parseX 100 ("fully-charged", Full)
 parsePending :: TestTree
 parsePending = parseX 100 ("pending-charge", Pending)
 
-parseUnknown :: TestTree
-parseUnknown = parseX 100 ("some bad status-20", Unknown "some bad status-20")
+unknownStatusFails :: TestTree
+unknownStatusFails = testCase "Unknown status fails" $ do
+  let result = UPower.parseBattery (state 80 "bad status")
+  assertBool "UPower unknown status should be Left" (isLeft result)
 
-parseX :: Int -> (Text, BatteryStatus) -> TestTree
+parseX :: Word8 -> (Text, BatteryStatus) -> TestTree
 parseX lvl (csTxt, cs) = testCase desc $ do
   let result = UPower.parseBattery (state lvl csTxt)
   Just cs @=? result ^? _Right % #status
@@ -43,7 +45,7 @@ parseX lvl (csTxt, cs) = testCase desc $ do
   where
     desc = "Parses percentage " <> show lvl <> ", status " <> T.unpack csTxt
 
-state :: Int -> Text -> Text
+state :: Word8 -> Text -> Text
 state percentage status =
   T.unlines
     [ "native-path:          BAT0",

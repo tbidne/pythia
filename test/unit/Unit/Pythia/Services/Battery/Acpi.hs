@@ -17,7 +17,7 @@ tests =
       parseDischarging,
       parseFull,
       parsePending,
-      parseUnknown
+      unknownStatusFails
     ]
 
 parseCharging :: TestTree
@@ -32,10 +32,12 @@ parseFull = parseX 100 ("Full", Full)
 parsePending :: TestTree
 parsePending = parseX 50 ("Not charging", Pending)
 
-parseUnknown :: TestTree
-parseUnknown = parseX 20 ("some bad status-20", Unknown "some bad status-20")
+unknownStatusFails :: TestTree
+unknownStatusFails = testCase "Unknown status fails" $ do
+  let result = Acpi.parseBattery (battery 80 "bad status")
+  assertBool "Acpi unknown status should be Left" (isLeft result)
 
-parseX :: Int -> (Text, BatteryStatus) -> TestTree
+parseX :: Word8 -> (Text, BatteryStatus) -> TestTree
 parseX lvl (csTxt, cs) = testCase desc $ do
   let result = Acpi.parseBattery (battery lvl csTxt)
   Just cs @=? result ^? _Right % #status
@@ -43,7 +45,7 @@ parseX lvl (csTxt, cs) = testCase desc $ do
   where
     desc = "Parses percentage " <> show lvl <> ", state " <> T.unpack csTxt
 
-battery :: Int -> Text -> Text
+battery :: Word8 -> Text -> Text
 battery percentage state =
   "Battery 0: "
     <> state

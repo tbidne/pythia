@@ -55,6 +55,7 @@ import Data.Text.Encoding qualified as TextEnc
 import Data.Text.Encoding.Error qualified as TextEncErr
 import Data.Traversable as X (Traversable (..), for)
 import Data.Void as X (Void)
+import Data.Word as X (Word8)
 import GHC.Enum as X (Bounded (..), Enum (..))
 import GHC.Err as X (error, undefined)
 import GHC.Generics as X (Generic)

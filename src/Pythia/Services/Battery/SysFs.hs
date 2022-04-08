@@ -210,7 +210,7 @@ parseStatus fp = do
     "discharging" -> pure Discharging
     "not charging" -> pure Pending
     "full" -> pure Full
-    bad -> pure $ Unknown bad
+    bad -> throw $ SysFsBatteryParseException $ "Unknown status: <" <> bad <> ">"
 
 parsePercentage :: FilePath -> IO BatteryPercentage
 parsePercentage fp = do

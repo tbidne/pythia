@@ -17,6 +17,7 @@ module Pythia.Services.Battery.UPower
 where
 
 import Data.Char qualified as Char
+import Data.Set qualified as Set
 import Data.Text qualified as T
 import Numeric.Data.Interval qualified as Interval
 import Pythia.Class.Printer (PrettyPrinter (..))
@@ -30,7 +31,7 @@ import Pythia.Services.Battery.Types
 import Pythia.ShellApp (SimpleShell (..))
 import Pythia.ShellApp qualified as ShellApp
 import Pythia.Utils qualified as U
-import Text.Megaparsec (Parsec)
+import Text.Megaparsec (ErrorFancy (..), Parsec)
 import Text.Megaparsec qualified as MP
 import Text.Megaparsec.Char qualified as MPC
 import Text.Read qualified as TR
@@ -134,7 +135,7 @@ supported = U.exeSupported "upower"
 -- Right (MkBattery {percentage = MkBatteryPercentage {unBatteryPercentage = UnsafeLRInterval 40}, status = Charging})
 --
 -- >>> parseBattery "state: bad\npercentage: 40%"
--- Right (MkBattery {percentage = MkBatteryPercentage {unBatteryPercentage = UnsafeLRInterval 40}, status = Unknown "bad"})
+-- Left (UPowerNoStatus "state: bad\npercentage: 40%")
 --
 -- >>> parseBattery "state: pending-charge\npercentage: 40%"
 -- Right (MkBattery {percentage = MkBatteryPercentage {unBatteryPercentage = UnsafeLRInterval 40}, status = Pending})
@@ -211,14 +212,10 @@ parseStatus = do
     <|> MP.try charging
     <|> MP.try full
     <|> MP.try pending
-    <|> unknown
+    <|> MP.fancyFailure (Set.fromList [ErrorFail "Unknown status"])
   where
-    discharging = MPC.string "discharging" $> Discharging
-    charging = MPC.string "charging" $> Charging <* rest
-    full = MPC.string "fully-charged" $> Full <* rest
-    pending = MPC.string "pending-charge" $> Pending <* rest
-    unknown = do
-      s <- MP.takeWhile1P Nothing (/= '\n')
-      MP.eof
-      pure $ Unknown s
+    discharging = MPC.string' "discharging" $> Discharging
+    charging = MPC.string' "charging" $> Charging <* rest
+    full = MPC.string' "fully-charged" $> Full <* rest
+    pending = MPC.string' "pending-charge" $> Pending <* rest
     rest = MPC.space *> MP.eof

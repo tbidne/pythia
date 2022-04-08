@@ -4,12 +4,13 @@ module Unit.Prelude
   )
 where
 
+import Data.Either as X (isLeft)
 import Pythia.Prelude as X
 import Pythia.Services.Types.Network (IpAddress (..), IpRefinement)
 import Refined (Predicate)
 import Refined.Unsafe qualified as R
 import Test.Tasty as X (TestTree, testGroup)
-import Test.Tasty.HUnit as X (assertFailure, testCase, (@=?))
+import Test.Tasty.HUnit as X (assertBool, assertFailure, testCase, (@=?))
 
 -- | Constructs an 'IpAddress', calls error if the refinement fails.
 --

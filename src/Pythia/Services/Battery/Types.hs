@@ -114,8 +114,6 @@ data BatteryStatus
     Full
   | -- | @since 0.1
     Pending
-  | -- | @since 0.1
-    Unknown Text
   deriving stock
     ( -- | @since 0.1
       Eq,
@@ -139,7 +137,7 @@ makePrismLabels ''BatteryStatus
 -- @since 0.1
 newtype BatteryPercentage = MkBatteryPercentage
   { -- | @since 0.1
-    unBatteryPercentage :: LRInterval 0 100 Int
+    unBatteryPercentage :: LRInterval 0 100 Word8
   }
   deriving stock
     ( -- | @since 0.1
