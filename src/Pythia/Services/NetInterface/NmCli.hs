@@ -157,7 +157,7 @@ parseNetInterfaceType = do
       <|> MP.try ethernet
       <|> MP.try loopback
       <|> MP.try tun
-      <|> unknown
+      <|> MP.fancyFailure (Set.fromList [ErrorFail "Unknown type"])
       <?> "type"
   MPC.eol
   pure type'
@@ -167,7 +167,6 @@ parseNetInterfaceType = do
     ethernet = MPC.string "ethernet" $> Ethernet
     loopback = MPC.string "loopback" $> Loopback
     tun = MPC.string "tun" $> Tun
-    unknown = UnknownType <$> MP.takeWhile1P Nothing (/= '\n')
 
 parseHwaddr :: MParser ()
 parseHwaddr = MPC.string "GENERAL.HWADDR:" *> U.takeLine_

@@ -151,7 +151,7 @@ mparseState =
     <|> MP.try pending
     <|> MP.try full
     <|> MP.fancyFailure (Set.fromList [ErrorFail "Unknown status"])
-    <?> "<Discharging|Charging|Not charging>"
+    <?> "<Discharging|Charging|Not charging|Full>"
   where
     discharging = MPC.string' "Discharging" $> Discharging
     charging = MPC.string' "Charging" $> Charging

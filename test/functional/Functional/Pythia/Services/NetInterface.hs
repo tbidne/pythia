@@ -43,7 +43,7 @@ queryInterfacesNmcli = queryInterfaces (Single NetInterfaceNmCli) desc
 queryInterfacesIp :: TestTree
 queryInterfacesIp = queryInterfaces (Single NetInterfaceIp) desc
   where
-    desc = "Retrieves net interfaces via curl"
+    desc = "Retrieves net interfaces via ip"
 
 queryInterfacesMany :: TestTree
 queryInterfacesMany = queryInterfaces Many desc
@@ -75,7 +75,7 @@ queryInterfaceNmcli = queryInterface (Single NetInterfaceNmCli) "wlp0s20f3" desc
 queryInterfaceIp :: TestTree
 queryInterfaceIp = queryInterface (Single NetInterfaceIp) "wlp0s20f3" desc
   where
-    desc = "Retrieves net interface via curl"
+    desc = "Retrieves net interface via ip"
 
 queryInterfaceMany :: TestTree
 queryInterfaceMany = queryInterface Many "wlp0s20f3" desc

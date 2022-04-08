@@ -114,8 +114,6 @@ data NetInterfaceType
     Loopback
   | -- | @since 0.1
     Tun
-  | -- | @since 0.1
-    UnknownType Text
   deriving stock
     ( -- | @since 0.1
       Eq,
