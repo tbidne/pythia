@@ -9,6 +9,7 @@ module Pythia.Prelude
     -- * Misc
     headMaybe,
     throwLeft,
+    throwMaybe,
     showt,
 
     -- * Base
@@ -58,7 +59,19 @@ import GHC.Err as X (error, undefined)
 import GHC.Read as X (Read (..))
 import GHC.Real as X (even)
 import GHC.Show as X (Show (..))
-import Optics.Core as X (over, view, (%), (%~), (.~), (^.), (^?), _Left, _Right)
+import Optics.Core as X
+  ( over,
+    view,
+    (%),
+    (%~),
+    (.~),
+    (^.),
+    (^?),
+    _1,
+    _2,
+    _Left,
+    _Right,
+  )
 import Optics.TH as X (makeFieldLabelsNoPrefix, makePrismLabels)
 import System.IO as X (FilePath, IO, print, putStrLn)
 
@@ -106,6 +119,20 @@ headMaybe (x : _) = Just x
 -- @since 0.1
 throwLeft :: forall m e a. (Exception e, MonadThrow m) => Either e a -> m a
 throwLeft = either throw pure
+
+-- | @throwMaybe e x@ throws @e@ if @x@ is 'Nothing'.
+--
+-- ==== __Examples__
+--
+-- >>> throwMaybe @Maybe AnException Nothing
+-- Nothing
+--
+-- >>> throwMaybe @Maybe AnException (Just ())
+-- Just ()
+--
+-- @since 0.1
+throwMaybe :: forall m e a. (Exception e, MonadThrow m) => e -> Maybe a -> m a
+throwMaybe e = maybe (throw e) pure
 
 showt :: Show a => a -> Text
 showt = T.pack . show

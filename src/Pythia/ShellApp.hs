@@ -27,9 +27,9 @@ import Data.Text qualified as T
 import GHC.IO.Exception (ExitCode (..))
 import Pythia.Control.Exception
   ( CommandException (..),
-    MultiExceptions (..),
     NoActionsRunException (..),
     NotSupportedException (..),
+    SomeExceptions (..),
   )
 import Pythia.Data.Command (Command (..))
 import Pythia.Prelude
@@ -140,7 +140,7 @@ instance Monoid (ActionsResult r) where
 
 -- | Queries for information via multiple apps. Returns the first success.
 -- If any errors are encountered or no actions are run (either because the
--- list is empty or none are supported), and exception is thrown.
+-- list is empty or none are supported), an exception is thrown.
 --
 -- @since 0.1
 tryAppActions :: MonadCatch m => [AppAction m result] -> m result
@@ -148,7 +148,7 @@ tryAppActions apps = do
   eResult <- foldr tryAppAction (pure mempty) apps
   case eResult of
     Success result -> pure result
-    Errs errs -> throw $ MkMultiExceptions errs
+    Errs errs -> throw $ MkSomeExceptions errs
     NoRuns -> throw MkNoActionsRunException
 
 tryAppAction ::
@@ -174,7 +174,7 @@ tryIOs actions = do
   eResult <- foldr tryIO (pure mempty) actions
   case eResult of
     Success result -> pure result
-    Errs errs -> throw $ MkMultiExceptions errs
+    Errs errs -> throw $ MkSomeExceptions errs
     NoRuns -> throw MkNoActionsRunException
 
 tryIO ::

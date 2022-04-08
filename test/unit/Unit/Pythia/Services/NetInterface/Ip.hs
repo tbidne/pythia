@@ -12,7 +12,6 @@ import Pythia.Services.NetInterface.Types
     NetInterfaceState (..),
     NetInterfaces (..),
   )
-import Pythia.Services.Types.Network (unsafeIpv4Address, unsafeIpv6Address)
 import Test.Tasty.HUnit qualified as THU
 import Unit.Prelude
 
@@ -70,8 +69,8 @@ wifi =
     Nothing
     Up
     Nothing
-    [unsafeIpv4Address "192.168.1.2"]
-    [unsafeIpv6Address "fe80::a328:482:5263:10b8", unsafeIpv6Address "fe80::fe44:82ff:fede:f814"]
+    [unsafeIpAddress "192.168.1.2"]
+    [unsafeIpAddress "fe80::a328:482:5263:10b8", unsafeIpAddress "fe80::fe44:82ff:fede:f814"]
 
 ethernet :: NetInterface
 ethernet =
@@ -90,8 +89,8 @@ loopback =
     Nothing
     (UnknownState "UNKNOWN")
     Nothing
-    [unsafeIpv4Address "127.0.0.1"]
-    [unsafeIpv6Address "::1"]
+    [unsafeIpAddress "127.0.0.1"]
+    [unsafeIpAddress "::1"]
 
 vpn :: NetInterface
 vpn =
@@ -101,7 +100,7 @@ vpn =
     (UnknownState "UNKNOWN")
     Nothing
     []
-    [unsafeIpv6Address "fe80::a63f:791a:3eaa:9d86"]
+    [unsafeIpAddress "fe80::a63f:791a:3eaa:9d86"]
 
 netinfo :: Text
 netinfo =

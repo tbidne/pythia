@@ -3,13 +3,11 @@
   inputs.algebra-simple-src.url = "github:tbidne/algebra-simple";
   inputs.flake-utils.url = "github:numtide/flake-utils";
   inputs.nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
-  inputs.refined-extras-src.url = "github:tbidne/refined-extras";
   inputs.smart-math-src.url = "github:tbidne/smart-math";
   outputs =
     { algebra-simple-src
     , flake-utils
     , nixpkgs
-    , refined-extras-src
     , self
     , smart-math-src
     }:
@@ -37,8 +35,6 @@
               final.callCabal2nix "algebra-simple" algebra-simple-src { };
             optics-core = final.optics-core_0_4;
             optics-th = final.optics-th_0_4;
-            refined-extras =
-              final.callCabal2nix "refined-extras" refined-extras-src { };
             smart-math =
               final.callCabal2nix "smart-math" smart-math-src { };
           };

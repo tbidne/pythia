@@ -8,16 +8,20 @@ import Args
     NetConnField (..),
     NetInterfaceField (..),
     PythiaCommand (..),
+    These (..),
     parserInfo,
   )
 import Data.Text qualified as T
 import Options.Applicative qualified as OApp
 import Pythia
   ( BatteryConfig,
+    Device,
+    GlobalIpConfig (..),
+    IpType (..),
     NetInterface (..),
     NetInterfaceConfig,
     NetInterfaces (..),
-    PythiaException,
+    UrlSource (..),
   )
 import Pythia qualified
 import Pythia.Class.Printer (PrettyPrinter (..))
@@ -31,14 +35,14 @@ main = do
   cmd <- OApp.execParser parserInfo
   case cmd of
     BatteryCmd cfg field -> handleBattery cfg field
-    NetInterfaceCmd cfg val -> handleNetInterface cfg val
+    NetInterfaceCmd cfg device field -> handleNetInterface cfg device field
     NetConnCmd cfg field -> handleNetConn cfg field
-    NetIpGlobalCmd cfg -> Pythia.queryGlobalIpConfig cfg >>= prettyPrint
-    `catch` \(ex :: PythiaException) -> putStrLn (displayException ex)
+    NetIpGlobalCmd cfg -> handleGlobalIp cfg
+    `catch` \(ex :: SomeException) -> putStrLn (displayException ex)
 
 handleBattery :: BatteryConfig -> Maybe BatteryField -> IO ()
 handleBattery cfg mfield = do
-  result <- Pythia.queryBatteryConfig cfg
+  result <- Pythia.queryBattery cfg
   case mfield of
     Nothing -> prettyPrint result
     Just field -> putStrLn $ T.unpack (toField field result)
@@ -46,27 +50,33 @@ handleBattery cfg mfield = do
     toField BatteryFieldPercentage = Pythia.pretty . view #percentage
     toField BatteryFieldStatus = Pythia.pretty . view #status
 
-handleNetInterface :: NetInterfaceConfig -> Maybe NetInterfaceField -> IO ()
-handleNetInterface cfg val = do
-  result <- Pythia.queryNetInterfacesConfig cfg
-  case val of
-    Nothing -> prettyPrint result
-    Just sel -> printField sel result
+handleNetInterface :: NetInterfaceConfig -> Maybe Device -> Maybe NetInterfaceField -> IO ()
+handleNetInterface cfg mdevice field = do
+  case mdevice of
+    Nothing -> Pythia.queryNetInterfaces cfg >>= printInterfaces
+    Just device -> Pythia.queryNetInterface device cfg >>= printInterface
   where
-    printField s =
+    printFn :: ((NetInterface -> Text) -> a -> b) -> (b -> Text) -> a -> IO ()
+    printFn liftField toText =
       putStrLn
         . T.unpack
-        . Pythia.joinNewlines
-        . fmap (toField s)
-        . unNetInterfaces
+        . toText
+        . liftField (maybe pretty toField field)
 
+    printInterfaces :: NetInterfaces -> IO ()
+    printInterfaces = printFn fmap (Pythia.joinX "\n\n") . unNetInterfaces
+
+    printInterface :: NetInterface -> IO ()
+    printInterface = printFn id id
+
+    toField :: NetInterfaceField -> NetInterface -> Text
     toField NetInterfaceFieldName = Pythia.pretty . view #iname
     toField NetInterfaceFieldIpv4 = Pythia.joinCommas . view #ipv4s
     toField NetInterfaceFieldIpv6 = Pythia.joinCommas . view #ipv6s
 
 handleNetConn :: NetInterfaceConfig -> Maybe NetConnField -> IO ()
 handleNetConn cfg field = do
-  result <- Pythia.queryNetInterfacesConfig cfg
+  result <- Pythia.queryNetInterfaces cfg
   let conn :: Maybe NetInterface
       conn = Pythia.findUp result
   case field of
@@ -80,6 +90,25 @@ handleNetConn cfg field = do
     toField NetConnFieldName = Pythia.pretty . view #iname
     toField NetConnFieldIpv4 = Pythia.joinCommas . view #ipv4s
     toField NetConnFieldIpv6 = Pythia.joinCommas . view #ipv6s
+
+handleGlobalIp :: GlobalIpConfig (These [UrlSource 'Ipv4] [UrlSource 'Ipv6]) -> IO ()
+handleGlobalIp cfg = do
+  case cfg ^. #globalIpSources of
+    This ipv4Sources ->
+      Pythia.queryGlobalIpv4 (MkGlobalIpConfig (cfg ^. #globalIpApp) ipv4Sources)
+        >>= prettyPrint
+    That ipv6Sources ->
+      Pythia.queryGlobalIpv6 (MkGlobalIpConfig (cfg ^. #globalIpApp) ipv6Sources)
+        >>= prettyPrint
+    These ipv4Sources ipv6Sources -> do
+      (ipv4Address, ipv6Address) <-
+        Pythia.queryGlobalIp $
+          MkGlobalIpConfig
+            (cfg ^. #globalIpApp)
+            (ipv4Sources, ipv6Sources)
+
+      prettyPrint ipv4Address
+      prettyPrint ipv6Address
 
 prettyPrint :: PrettyPrinter a => a -> IO ()
 prettyPrint = putStrLn . T.unpack . Pythia.pretty

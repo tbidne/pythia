@@ -198,10 +198,10 @@ Name: MySSID
 IPv4: 192.168.1.2
 IPv6: fe80::a328:482:5263:10b8
 
-pythia net-conn --field name
+$ pythia net-conn --field name
 MySSID
 
-pythia net-conn --field ipv4
+$ pythia net-conn --field ipv4
 192.168.1.2
 ```
 
@@ -222,10 +222,13 @@ Available options:
                            [ipv4 | ipv6 | both]. Defaults to ipv4.
   --ipv4-src URL           Custom server URL for retrieving the IPv4 address
                            e.g. http://whatismyip.akamai.com/. Can be specified
-                           multiple times. Overrides the defaults.
+                           multiple times and overrides the defaults. These
+                           sources are only used if we query for IPv4 per
+                           --ip-type.
   --ipv6-src URL           Custom server URL for retrieving the IPv6 address.
-                           Can be specified multiple times. Overrides the
-                           defaults.
+                           Can be specified multiple times and overrides the
+                           defaults. These sources are only used if we query for
+                           IPv6 per --ip-type.
   -h,--help                Show this help text
 ```
 

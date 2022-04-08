@@ -23,7 +23,7 @@ import Pythia.Class.Printer qualified as Printer
 import Pythia.Data.RunApp (RunApp)
 import Pythia.Data.Supremum (Supremum (..))
 import Pythia.Prelude
-import Pythia.Services.Types.Network (Device, Ipv4Address, Ipv6Address)
+import Pythia.Services.Types.Network (Device, IpAddress (..), IpType (..))
 
 -- | Determines how we should query the system for interface state information.
 --
@@ -63,14 +63,12 @@ makePrismLabels ''NetInterfaceApp
 -- | Complete configuration for querying network interfaces.
 --
 -- >>> mempty @NetInterfaceConfig
--- MkNetInterfaceConfig {interfaceApp = Many, interfaceDevice = Nothing}
+-- MkNetInterfaceConfig {interfaceApp = Many}
 --
 -- @since 0.1
-data NetInterfaceConfig = MkNetInterfaceConfig
+newtype NetInterfaceConfig = MkNetInterfaceConfig
   { -- | @since 0.1
-    interfaceApp :: RunApp NetInterfaceApp,
-    -- | @since 0.1
-    interfaceDevice :: Maybe Device
+    interfaceApp :: RunApp NetInterfaceApp
   }
   deriving
     ( -- | @since 0.1
@@ -84,12 +82,12 @@ makeFieldLabelsNoPrefix ''NetInterfaceConfig
 
 -- | @since 0.1
 instance Semigroup NetInterfaceConfig where
-  MkNetInterfaceConfig a d <> MkNetInterfaceConfig a' d' =
-    MkNetInterfaceConfig (a <> a') (d <|> d')
+  MkNetInterfaceConfig a <> MkNetInterfaceConfig a' =
+    MkNetInterfaceConfig (a <> a')
 
 -- | @since 0.1
 instance Monoid NetInterfaceConfig where
-  mempty = MkNetInterfaceConfig mempty empty
+  mempty = MkNetInterfaceConfig mempty
 
 -- | Various connection types.
 --
@@ -164,9 +162,9 @@ data NetInterface = MkNetInterface
     -- @since 0.1
     iname :: Maybe Text,
     -- | @since 0.1
-    ipv4s :: [Ipv4Address],
+    ipv4s :: [IpAddress 'Ipv4],
     -- | @since 0.1
-    ipv6s :: [Ipv6Address]
+    ipv6s :: [IpAddress 'Ipv6]
   }
   deriving
     ( -- | @since 0.1

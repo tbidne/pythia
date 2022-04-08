@@ -6,8 +6,6 @@ extra-deps:
 - package-version-0.1.0.0@sha256:bb9fc93e905540aa8e1b32f80c2dc82756a4481c63779bd92e3796ed8085ab98,2854
 - git: https://github.com/tbidne/algebra-simple.git
   commit: 7189c69af86bc2d75758a13ae375841fc5084242
-- git: https://github.com/tbidne/refined-extras.git
-  commit: bcee9c3c3d838243134166937c74d64c707fa236
 - git: https://github.com/tbidne/smart-math.git
   commit: c76b316979c2f704bb3959d073c1ed0b24034103
 

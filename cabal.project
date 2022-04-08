@@ -17,10 +17,5 @@ source-repository-package
 
 source-repository-package
     type: git
-    location: https://github.com/tbidne/refined-extras.git
-    tag: bcee9c3c3d838243134166937c74d64c707fa236
-
-source-repository-package
-    type: git
     location: https://github.com/tbidne/smart-math.git
     tag: c76b316979c2f704bb3959d073c1ed0b24034103

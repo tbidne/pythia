@@ -5,74 +5,101 @@
 module Pythia.Services.GlobalIP
   ( -- * Queries
     queryGlobalIp,
-    queryGlobalIpConfig,
+    queryGlobalIpv4,
+    queryGlobalIpv6,
 
     -- * Types
-    GlobalIpAddresses (..),
-    Ipv4Address (..),
-    Ipv6Address (..),
+    IpType (..),
+    IpAddress (..),
 
     -- ** Configuration
     GlobalIpConfig (..),
     GlobalIpApp (..),
-    GlobalIpRequest (..),
-    GlobalIpSources (..),
     UrlSource (..),
-    IpType (..),
     RunApp (..),
   )
 where
 
 import Data.Char qualified as Char
 import Data.Text qualified as T
-import Optics.Core (Iso')
+import Optics.Core (Iso', Lens')
 import Pythia.Data.Command (Command)
 import Pythia.Data.RunApp (RunApp (..))
 import Pythia.Prelude
 import Pythia.Services.GlobalIP.Types
-  ( GlobalIpAddresses (..),
-    GlobalIpApp (..),
+  ( GlobalIpApp (..),
     GlobalIpConfig (..),
-    GlobalIpRequest (..),
-    GlobalIpSources (..),
     UrlSource (..),
   )
 import Pythia.Services.GlobalIP.Types qualified as GIpTypes
-import Pythia.Services.Types.Network (IpType (..), Ipv4Address (..), Ipv6Address (..))
+import Pythia.Services.Types.Network
+  ( IpAddress (..),
+    IpRefinement,
+    IpType (..),
+  )
 import Pythia.ShellApp (AppAction (..))
 import Pythia.ShellApp qualified as ShellApp
 import Pythia.Utils qualified as U
 import Refined (Predicate, Refined)
 import Refined qualified as R
 
--- | Queries for global IP addresses with default configuration.
---
--- Throws 'Pythia.Control.Exception.PythiaException' if an error is
--- encountered (e.g. running a command or parse error).
---
--- @since 0.1
-queryGlobalIp ::
-  (MonadCatch m, MonadIO m) => m GlobalIpAddresses
-queryGlobalIp = queryGlobalIpConfig mempty
-
--- | Queries for global IP addresses based on the configuration.
--- If 'ipApp' is 'Many' then we try supported apps in the following
+-- | Queries for IPv4 and IPv6 global IP address based on the configuration.
+-- If 'globalIpApp' is 'Many' then we try supported apps in the following
 -- order:
 --
 -- @
 -- ['GlobalIpDig', 'GlobalIpCurl']
 -- @
 --
--- Throws 'Pythia.Control.Exception.PythiaException' if an error is
+-- __Throws:__
+--
+-- * 'Pythia.Control.Exception.PythiaException': if an error is
 -- encountered (e.g. running a command or parse error).
 --
 -- @since 0.1
-queryGlobalIpConfig ::
+queryGlobalIp ::
   (MonadCatch m, MonadIO m) =>
-  GlobalIpConfig ->
-  m GlobalIpAddresses
-queryGlobalIpConfig config =
-  case config ^. #ipApp of
+  GlobalIpConfig ([UrlSource 'Ipv4], [UrlSource 'Ipv6]) ->
+  m ((IpAddress 'Ipv4), (IpAddress 'Ipv6))
+queryGlobalIp = queryGlobalIp' #globalIpApp #globalIpSources getBothIps
+
+-- | 'queryGlobalIp' restricted to IPv4 address only.
+--
+-- __Throws:__
+--
+-- * 'Pythia.Control.Exception.PythiaException': if an error is
+-- encountered (e.g. running a command or parse error).
+--
+-- @since 0.1
+queryGlobalIpv4 ::
+  (MonadCatch m, MonadIO m) =>
+  GlobalIpConfig [UrlSource 'Ipv4] ->
+  m (IpAddress 'Ipv4)
+queryGlobalIpv4 = queryGlobalIp' #globalIpApp #globalIpSources getIpv4s
+
+-- | 'queryGlobalIp' restricted to IPv6 address only.
+--
+-- __Throws:__
+--
+-- * 'Pythia.Control.Exception.PythiaException': if an error is
+-- encountered (e.g. running a command or parse error).
+--
+-- @since 0.1
+queryGlobalIpv6 ::
+  (MonadCatch m, MonadIO m) =>
+  GlobalIpConfig [UrlSource 'Ipv6] ->
+  m (IpAddress 'Ipv6)
+queryGlobalIpv6 = queryGlobalIp' #globalIpApp #globalIpSources getIpv6s
+
+queryGlobalIp' ::
+  (MonadCatch m, MonadIO m) =>
+  (Lens' config (RunApp GlobalIpApp)) ->
+  (Lens' config sources) ->
+  (GlobalIpApp -> sources -> IO result) ->
+  config ->
+  m result
+queryGlobalIp' appLens sourceLens getIpFn config =
+  case config ^. appLens of
     Many -> ShellApp.tryAppActions allApps
     Single app -> singleRun app
   where
@@ -80,22 +107,7 @@ queryGlobalIpConfig config =
       [ MkAppAction (singleRun GlobalIpDig) digSupported (showt GlobalIpDig),
         MkAppAction (singleRun GlobalIpCurl) curlSupported (showt GlobalIpCurl)
       ]
-    singleRun =
-      toSingleShellApp
-        (config ^. #ipRequestType)
-        (config ^. #ipSources)
-
-toSingleShellApp ::
-  MonadIO m =>
-  GlobalIpRequest ->
-  GlobalIpSources ->
-  GlobalIpApp ->
-  m GlobalIpAddresses
-toSingleShellApp ipType (MkGlobalIpSources ipv4Srcs ipv6Srcs) app = liftIO $ do
-  case ipType of
-    GlobalIpRequestIpv4 -> getIpv4s app ipv4Srcs
-    GlobalIpRequestIpv6 -> getIpv6s app ipv6Srcs
-    GlobalIpRequestBoth -> getBoth app ipv4Srcs ipv6Srcs
+    singleRun a = liftIO $ getIpFn a (config ^. sourceLens)
 
 curlSupported :: MonadIO m => m Bool
 curlSupported = U.exeSupported "curl"
@@ -103,60 +115,49 @@ curlSupported = U.exeSupported "curl"
 digSupported :: MonadIO m => m Bool
 digSupported = U.exeSupported "dig"
 
-getBoth ::
+getBothIps ::
   GlobalIpApp ->
-  [UrlSource 'Ipv4] ->
-  [UrlSource 'Ipv6] ->
-  IO GlobalIpAddresses
-getBoth app ipv4Srcs ipv6Srcs = GIpBoth <$> getIpv4s' app ipv4Srcs <*> getIpv6s' app ipv6Srcs
+  ([UrlSource 'Ipv4], [UrlSource 'Ipv6]) ->
+  IO ((IpAddress 'Ipv4), (IpAddress 'Ipv6))
+getBothIps app (ipv4Srcs, ipv6Srcs) =
+  (,)
+    <$> getIpv4s app ipv4Srcs
+    <*> getIpv6s app ipv6Srcs
 
 getIpv4s ::
   GlobalIpApp ->
   [UrlSource 'Ipv4] ->
-  IO GlobalIpAddresses
-getIpv4s app srcs = do
-  GIpv4 <$> getIpv4s' app srcs
-
-getIpv4s' ::
-  GlobalIpApp ->
-  [UrlSource 'Ipv4] ->
-  IO Ipv4Address
-getIpv4s' app extraSrcs = do
+  IO (IpAddress 'Ipv4)
+getIpv4s app extraSrcs = do
   let sources = case extraSrcs of
         [] -> ipv4Defaults app
         _ -> prependApp app extraSrcs
-  getIpv4 sources
+  getIpFromSources sources
 
 getIpv6s ::
   GlobalIpApp ->
   [UrlSource 'Ipv6] ->
-  IO GlobalIpAddresses
-getIpv6s app srcs = GIpv6 <$> getIpv6s' app srcs
-
-getIpv6s' ::
-  GlobalIpApp ->
-  [UrlSource 'Ipv6] ->
-  IO Ipv6Address
-getIpv6s' app extraSrcs = do
+  IO (IpAddress 'Ipv6)
+getIpv6s app extraSrcs = do
   let sources = case extraSrcs of
         [] -> ipv6Defaults app
         _ -> prependApp app extraSrcs
-  getIpv6 sources
+  getIpFromSources sources
 
 prependApp :: GlobalIpApp -> [UrlSource a] -> [UrlSource a]
 prependApp GlobalIpCurl srcs = fmap (#unUrlSource %~ ("curl " <>)) srcs
 prependApp GlobalIpDig srcs = fmap (#unUrlSource %~ (\s -> "dig " <> s <> " +short")) srcs
 
 ipv4Defaults :: GlobalIpApp -> [UrlSource 'Ipv4]
-ipv4Defaults GlobalIpCurl = curlDefaults ^. #ipv4Sources
-ipv4Defaults GlobalIpDig = digDefaults ^. #ipv4Sources
+ipv4Defaults GlobalIpCurl = curlDefaults ^. _1
+ipv4Defaults GlobalIpDig = digDefaults ^. _1
 
 ipv6Defaults :: GlobalIpApp -> [UrlSource 'Ipv6]
-ipv6Defaults GlobalIpCurl = curlDefaults ^. #ipv6Sources
-ipv6Defaults GlobalIpDig = digDefaults ^. #ipv6Sources
+ipv6Defaults GlobalIpCurl = curlDefaults ^. _2
+ipv6Defaults GlobalIpDig = digDefaults ^. _2
 
-curlDefaults :: GlobalIpSources
-curlDefaults = MkGlobalIpSources ipv4s ipv6s
+curlDefaults :: ([UrlSource 'Ipv4], [UrlSource 'Ipv6])
+curlDefaults = (ipv4s, ipv6s)
   where
     ipv4s =
       [ "curl http://whatismyip.akamai.com/",
@@ -166,8 +167,8 @@ curlDefaults = MkGlobalIpSources ipv4s ipv6s
       ]
     ipv6s = []
 
-digDefaults :: GlobalIpSources
-digDefaults = MkGlobalIpSources ipv4s ipv6s
+digDefaults :: ([UrlSource 'Ipv4], [UrlSource 'Ipv6])
+digDefaults = (ipv4s, ipv6s)
   where
     ipv4s =
       [ "dig @resolver1.opendns.com myip.opendns.com +short",
@@ -179,11 +180,8 @@ digDefaults = MkGlobalIpSources ipv4s ipv6s
       ]
     ipv6s = []
 
-getIpv4 :: [UrlSource 'Ipv4] -> IO Ipv4Address
-getIpv4 = fmap MkIpv4Address . getIp GIpTypes.urlSourceCmdIso
-
-getIpv6 :: [UrlSource 'Ipv6] -> IO Ipv6Address
-getIpv6 = fmap MkIpv6Address . getIp GIpTypes.urlSourceCmdIso
+getIpFromSources :: Predicate (IpRefinement a) Text => [UrlSource a] -> IO (IpAddress a)
+getIpFromSources = fmap MkIpAddress . getIp GIpTypes.urlSourceCmdIso
 
 getIp ::
   forall p a.

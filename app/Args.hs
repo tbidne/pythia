@@ -2,13 +2,21 @@
 
 -- | This modules provides the arg parsing functionality.
 --
--- @since 0.1.0.0
+-- @since 0.1
 module Args
-  ( PythiaCommand (..),
+  ( -- * Primary Function
+    parserInfo,
+
+    -- * Types
+
+    -- ** Main
+    PythiaCommand (..),
     BatteryField (..),
     NetInterfaceField (..),
     NetConnField (..),
-    parserInfo,
+
+    -- ** Misc
+    These (..),
   )
 where
 
@@ -34,26 +42,33 @@ import Pythia.Services.Battery (BatteryApp (..), BatteryConfig (..))
 import Pythia.Services.GlobalIP.Types
   ( GlobalIpApp (..),
     GlobalIpConfig (..),
-    GlobalIpRequest (..),
-    GlobalIpSources (..),
     UrlSource (..),
   )
 import Pythia.Services.NetInterface (NetInterfaceApp (..), NetInterfaceConfig (..))
 import Pythia.Services.Types.Network (Device (..), IpType (..))
 
+-- | So we don't have to add @these@.
+--
+-- @since 0.1
+data These a b
+  = This a
+  | That b
+  | These a b
+  deriving (Eq, Show)
+
 -- | Possible commands
 --
--- @since 0.1.0.0
+-- @since 0.1
 data PythiaCommand
   = BatteryCmd BatteryConfig (Maybe BatteryField)
-  | NetInterfaceCmd NetInterfaceConfig (Maybe NetInterfaceField)
+  | NetInterfaceCmd NetInterfaceConfig (Maybe Device) (Maybe NetInterfaceField)
   | NetConnCmd NetInterfaceConfig (Maybe NetConnField)
-  | NetIpGlobalCmd GlobalIpConfig
-  deriving stock (Eq, Show)
+  | NetIpGlobalCmd (GlobalIpConfig (These [UrlSource 'Ipv4] [UrlSource 'Ipv6]))
+  deriving (Eq, Show)
 
 -- | Extra option for BatteryCmd.
 --
--- @since 0.1.0.0
+-- @since 0.1
 data BatteryField
   = BatteryFieldPercentage
   | BatteryFieldStatus
@@ -61,7 +76,7 @@ data BatteryField
 
 -- | Extra option for NetInterfaceCmd.
 --
--- @since 0.1.0.0
+-- @since 0.1
 data NetInterfaceField
   = NetInterfaceFieldName
   | NetInterfaceFieldIpv4
@@ -70,13 +85,22 @@ data NetInterfaceField
 
 -- | Extra option for NetConnCmd.
 --
--- @since 0.1.0.0
+-- @since 0.1
 data NetConnField
   = NetConnFieldDevice
   | NetConnFieldType
   | NetConnFieldName
   | NetConnFieldIpv4
   | NetConnFieldIpv6
+  deriving stock (Eq, Show)
+
+-- | Extra option for GlobalIpCmd.
+--
+-- @since 0.1
+data GlobalIpField
+  = GlobalIpFieldIpv4
+  | GlobalIpFieldIpv6
+  | GlobalIpFieldBoth
   deriving stock (Eq, Show)
 
 -- | Optparse-Applicative info.
@@ -181,7 +205,7 @@ parseNetInterface = do
   app <- netInterfaceAppOption
   device <- netInterfaceDeviceOption
   val <- parseNetInterfaceField
-  pure $ NetInterfaceCmd (MkNetInterfaceConfig app device) val
+  pure $ NetInterfaceCmd (MkNetInterfaceConfig app) device val
 
 parseNetInterfaceField :: Parser (Maybe NetInterfaceField)
 parseNetInterfaceField =
@@ -240,7 +264,7 @@ netInterfaceDeviceOption =
 parseNetConn :: Parser PythiaCommand
 parseNetConn = NetConnCmd <$> parseApp <*> parseNetConnField
   where
-    parseApp = (`MkNetInterfaceConfig` Nothing) <$> netInterfaceAppOption
+    parseApp = MkNetInterfaceConfig <$> netInterfaceAppOption
 
 parseNetConnField :: Parser (Maybe NetConnField)
 parseNetConnField =
@@ -276,7 +300,12 @@ parseIpGlobal = do
   ipType <- ipTypeOption
   ipv4Urls <- ipv4SrcOption
   ipv6Urls <- ipv6SrcOption
-  pure $ NetIpGlobalCmd $ MkGlobalIpConfig app ipType (MkGlobalIpSources ipv4Urls ipv6Urls)
+
+  pure $
+    NetIpGlobalCmd $ case ipType of
+      GlobalIpFieldIpv4 -> MkGlobalIpConfig app (This ipv4Urls)
+      GlobalIpFieldIpv6 -> MkGlobalIpConfig app (That ipv6Urls)
+      GlobalIpFieldBoth -> MkGlobalIpConfig app (These ipv4Urls ipv6Urls)
 
 ipAppOption :: Parser (RunApp GlobalIpApp)
 ipAppOption =
@@ -301,11 +330,11 @@ ipAppOption =
             ErrorMsg $
               "Unrecognized network interface app: " <> T.unpack a
 
-ipTypeOption :: Parser GlobalIpRequest
+ipTypeOption :: Parser GlobalIpField
 ipTypeOption =
   OApp.option
     readIpType
-    ( OApp.value GlobalIpRequestIpv4
+    ( OApp.value GlobalIpFieldIpv4
         <> OApp.long "ip-type"
         <> OApp.short 't'
         <> OApp.metavar "TYPE"
@@ -318,9 +347,9 @@ ipTypeOption =
     readIpType = do
       a <- OApp.str
       case a of
-        "ipv4" -> pure GlobalIpRequestIpv4
-        "ipv6" -> pure GlobalIpRequestIpv6
-        "both" -> pure GlobalIpRequestBoth
+        "ipv4" -> pure GlobalIpFieldIpv4
+        "ipv6" -> pure GlobalIpFieldIpv6
+        "both" -> pure GlobalIpFieldBoth
         _ -> OApp.readerAbort $ ErrorMsg $ "Unrecognized ip type: " <> T.unpack a
 
 ipv4SrcOption :: Parser [UrlSource 'Ipv4]
@@ -334,9 +363,10 @@ ipv4SrcOption =
       )
   where
     helpTxt =
-      "Custom server URL for retrieving the IPv4 address e.g. "
-        <> "http://whatismyip.akamai.com/. Can be specified multiple times. "
-        <> "Overrides the defaults."
+      "Custom server URL for retrieving the IPv4 address e.g."
+        <> " http://whatismyip.akamai.com/. Can be specified multiple times"
+        <> " and overrides the defaults. These sources are only used if we"
+        <> " query for IPv4 per --ip-type."
 
 ipv6SrcOption :: Parser [UrlSource 'Ipv6]
 ipv6SrcOption =
@@ -349,8 +379,9 @@ ipv6SrcOption =
       )
   where
     helpTxt =
-      "Custom server URL for retrieving the IPv6 address. Can be specified "
-        <> "multiple times. Overrides the defaults."
+      "Custom server URL for retrieving the IPv6 address. Can be specified"
+        <> " multiple times and overrides the defaults. These sources are"
+        <> " only used if we query for IPv6 per --ip-type."
 
 mkCommand :: String -> Parser a -> OApp.InfoMod a -> Mod CommandFields a
 mkCommand cmdTxt parser helpTxt = OApp.command cmdTxt (OApp.info parser helpTxt)

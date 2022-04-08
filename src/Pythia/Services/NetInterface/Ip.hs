@@ -27,7 +27,7 @@ import Pythia.Services.NetInterface.Types
     NetInterfaceState (..),
     NetInterfaces (..),
   )
-import Pythia.Services.Types.Network (Device (..), Ipv4Address (..), Ipv6Address (..))
+import Pythia.Services.Types.Network (Device (..), IpAddress (..), IpType (..))
 import Pythia.ShellApp (SimpleShell (..))
 import Pythia.ShellApp qualified as ShellApp
 import Pythia.Utils qualified as U
@@ -130,11 +130,11 @@ parseInterface = do
 parseLink :: MParser ()
 parseLink = MPC.space *> MPC.string "link" *> U.takeLine_
 
-parseIpv4s :: MParser [Ipv4Address]
-parseIpv4s = parseIps "inet " MkIpv4Address
+parseIpv4s :: MParser [IpAddress 'Ipv4]
+parseIpv4s = parseIps "inet " MkIpAddress
 
-parseIpv6s :: MParser [Ipv6Address]
-parseIpv6s = parseIps "inet6 " MkIpv6Address
+parseIpv6s :: MParser [IpAddress 'Ipv6]
+parseIpv6s = parseIps "inet6 " MkIpAddress
 
 parseIps :: Predicate p Text => Text -> (Refined p Text -> a) -> MParser [a]
 parseIps p cons = do

@@ -100,7 +100,6 @@ library
     , optics-core      ^>=0.4
     , optics-th        ^>=0.4
     , refined          ^>=0.6
-    , refined-extras   ^>=0.1.0.0
     , safe-exceptions  ^>=0.1.7.0
     , smart-math       ^>=0.1.0.0
     , text             ^>=1.2.3.2

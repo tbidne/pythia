@@ -33,12 +33,12 @@ import Text.Read qualified as TR
 --
 -- @since 0.1
 data SysFsException
-  = -- | Error searching for /sys/class/power_supply or
-    -- /sysfs/class/power_supply.
+  = -- | Error searching for \/sys\/class\/power_supply or
+    -- \/sysfs\/class\/power_supply.
     --
     -- @since 0.1
     SysFsDirNotFound
-  | -- | Error searching for <sysfs>/BAT{0-5}?.
+  | -- | Error searching for \<sysfs\>/BAT{0-5}?.
     --
     -- @since 0.1
     SysFsBatteryDirNotFound

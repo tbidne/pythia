@@ -13,7 +13,7 @@ module Pythia.Control.Exception
 
     -- * Miscellaneous Exceptions
     CommandException (..),
-    MultiExceptions (..),
+    SomeExceptions (..),
     NotSupportedException (..),
     NoActionsRunException (..),
   )
@@ -63,6 +63,10 @@ fromExceptionViaPythia x = do
 
 -- | Exceptions encountered while running a shell command.
 --
+-- ==== __Examples__
+-- >>> putStrLn $ displayException $ MkCommandException "some command" "an error message"
+-- Command exception. Command: <some command>. Error: <an error message>
+--
 -- @since 0.1
 data CommandException = MkCommandException
   { -- | The command that was run.
@@ -96,10 +100,18 @@ instance PrettyPrinter CommandException where
       <> s
       <> ">"
 
--- | Collects multiple exceptions.
+-- | Collects 1 or more exceptions.
+--
+-- ==== __Examples__
+-- >>> let ex1 = toException $ MkCommandException "some command" "an error message"
+-- >>> let ex2 = toException $ MkNotSupportedException "app1"
+-- >>> putStrLn $ displayException $ MkSomeExceptions $ ex1 :| [ex2]
+-- Found 2 exception(s):
+--   - Command exception. Command: <some command>. Error: <an error message>
+--   - App not supported: <app1>
 --
 -- @since 0.1
-newtype MultiExceptions = MkMultiExceptions
+newtype SomeExceptions = MkSomeExceptions
   { -- | @since 0.1
     unExceptions :: NonEmpty SomeException
   }
@@ -109,27 +121,33 @@ newtype MultiExceptions = MkMultiExceptions
     )
 
 -- | @since 0.1
-makeFieldLabelsNoPrefix ''MultiExceptions
+makeFieldLabelsNoPrefix ''SomeExceptions
 
 -- | @since 0.1
-instance Exception MultiExceptions where
+instance Exception SomeExceptions where
   displayException = T.unpack . pretty
   toException = toExceptionViaPythia
   fromException = fromExceptionViaPythia
 
 -- | @since 0.1
-instance PrettyPrinter MultiExceptions where
-  pretty (MkMultiExceptions xs) =
-    "Multiple exceptions: " <> delim
+instance PrettyPrinter SomeExceptions where
+  pretty (MkSomeExceptions xs) =
+    header <> delim
       <> Printer.joinX delim (NE.toList $ fmap displayException xs)
     where
       delim = "\n  - "
+      header = "Found " <> showt len <> " exception(s): "
+      len = length xs
 
 -- | @since 0.1
-instance Semigroup MultiExceptions where
-  MkMultiExceptions l <> MkMultiExceptions r = MkMultiExceptions $ l <> r
+instance Semigroup SomeExceptions where
+  MkSomeExceptions l <> MkSomeExceptions r = MkSomeExceptions $ l <> r
 
 -- | Error for when the current app is not supported.
+--
+-- ==== __Examples__
+-- >>> putStrLn $ displayException $ MkNotSupportedException "app1"
+-- App not supported: <app1>
 --
 -- @since 0.1
 newtype NotSupportedException = MkNotSupportedException
@@ -154,7 +172,11 @@ instance Exception NotSupportedException where
 instance PrettyPrinter NotSupportedException where
   pretty (MkNotSupportedException s) = "App not supported: <" <> s <> ">"
 
--- | Error for when the current app is not supported.
+-- | Error for when no actions are run.
+--
+-- ==== __Examples__
+-- >>> putStrLn $ displayException MkNoActionsRunException
+-- No actions run
 --
 -- @since 0.1
 data NoActionsRunException = MkNoActionsRunException

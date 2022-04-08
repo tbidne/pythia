@@ -1,10 +1,13 @@
+{-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE UndecidableInstances #-}
+
 -- | This module exports interface related services.
 --
 -- @since 0.1
 module Pythia.Services.NetInterface
   ( -- * Queries
     queryNetInterfaces,
-    queryNetInterfacesConfig,
+    queryNetInterface,
 
     -- * Functions
     findUp,
@@ -15,8 +18,8 @@ module Pythia.Services.NetInterface
     NetInterfaceState (..),
     NetInterfaceType (..),
     Device (..),
-    Ipv4Address (..),
-    Ipv6Address (..),
+    IpType (..),
+    IpAddress (..),
 
     -- ** Configuration
     NetInterfaceConfig (..),
@@ -24,12 +27,16 @@ module Pythia.Services.NetInterface
     RunApp (..),
 
     -- ** Errors
+    DeviceNotFoundException (..),
     IpException (..),
     NmCliException (..),
   )
 where
 
+import Data.Text qualified as T
 import GHC.OldList qualified as OL
+import Pythia.Class.Printer (PrettyPrinter (..))
+import Pythia.Control.Exception (fromExceptionViaPythia, toExceptionViaPythia)
 import Pythia.Data.RunApp (RunApp (..))
 import Pythia.Prelude
 import Pythia.Services.NetInterface.Ip (IpException)
@@ -44,74 +51,74 @@ import Pythia.Services.NetInterface.Types
     NetInterfaceType (..),
     NetInterfaces (..),
   )
-import Pythia.Services.Types.Network (Device (..), Ipv4Address (..), Ipv6Address (..))
+import Pythia.Services.Types.Network (Device (..), IpAddress (..), IpType (..))
 import Pythia.ShellApp (AppAction (..))
 import Pythia.ShellApp qualified as ShellApp
 
--- | Queries for network interface information with default configuration.
---
--- Throws 'Pythia.Control.Exception.PythiaException' if an error is
--- encountered (e.g. running a command or parse error).
+-- | Exception for when we cannot find a desired device.
 --
 -- @since 0.1
-queryNetInterfaces :: (MonadCatch m, MonadIO m) => m NetInterfaces
-queryNetInterfaces = queryNetInterfacesConfig mempty
+newtype DeviceNotFoundException = MkDeviceNotFoundException
+  { -- | @since 0.1
+    unDeviceNotFoundException :: Device
+  }
+  deriving stock
+    ( -- | @since 0.1
+      Show
+    )
 
--- | Queries for network interface information based on the configuration.
--- If 'interfaceApp' is 'Many' then we try supported apps in the following
--- order:
+-- | @since 0.1
+makeFieldLabelsNoPrefix ''DeviceNotFoundException
+
+-- | @since 0.1
+instance PrettyPrinter DeviceNotFoundException where
+  pretty (MkDeviceNotFoundException d) = "Device not found: <" <> pretty d <> ">"
+
+-- | @since 0.1
+instance Exception DeviceNotFoundException where
+  displayException = T.unpack . pretty
+  toException = toExceptionViaPythia
+  fromException = fromExceptionViaPythia
+
+-- | Queries for all network interface data. If the 'NetInterfaceConfig'\'s app
+-- is 'Many' then we try all 'NetInterfaceApp's supported by this system, in
+-- the following order:
 --
 -- @
 -- ['NetInterfaceNmCli', 'NetInterfaceIp']
 -- @
 --
--- Throws 'Pythia.Control.Exception.PythiaException' if an error is
+-- __Throws:__
+--
+-- * 'Pythia.Control.Exception.PythiaException': if an error is
 -- encountered (e.g. running a command or parse error).
 --
 -- @since 0.1
-queryNetInterfacesConfig ::
-  ( MonadCatch m,
-    MonadIO m
-  ) =>
+queryNetInterfaces :: (MonadCatch m, MonadIO m) => NetInterfaceConfig -> m NetInterfaces
+queryNetInterfaces cfg = case cfg ^. #interfaceApp of
+  Many -> runMultipleQueries
+  Single app -> toSingleShellApp app
+
+-- | Like 'queryNetInterfaces' but returns data for a single device.
+--
+-- __Throws:__
+--
+-- * 'DeviceNotFoundException': if the device is not found.
+-- * 'Pythia.Control.Exception.PythiaException': if an error is
+-- encountered (e.g. running a command or parse error).
+--
+-- @since 0.1
+queryNetInterface ::
+  (MonadCatch m, MonadIO m) =>
+  Device ->
   NetInterfaceConfig ->
-  m NetInterfaces
-queryNetInterfacesConfig config = do
-  case config ^. #interfaceApp of
-    Many -> ShellApp.tryAppActions allApps
-    Single app -> singleRun app
+  m NetInterface
+queryNetInterface d = queryNetInterfaces >=> findDevice d
+
+findDevice :: MonadThrow m => Device -> NetInterfaces -> m NetInterface
+findDevice device = throwMaybe e . headMaybe . unNetInterfaces . filterDevice device
   where
-    allApps =
-      [ MkAppAction (singleRun NetInterfaceNmCli) NmCli.supported (showt NetInterfaceNmCli),
-        MkAppAction (singleRun NetInterfaceIp) Ip.supported (showt NetInterfaceIp)
-      ]
-    singleRun a =
-      queryNetInterfacesDeviceApp device a
-    device = config ^. #interfaceDevice
-
-queryNetInterfacesDeviceApp ::
-  ( MonadCatch m,
-    MonadIO m
-  ) =>
-  Maybe Device ->
-  NetInterfaceApp ->
-  m NetInterfaces
-queryNetInterfacesDeviceApp Nothing app = toSingleShellApp app
-queryNetInterfacesDeviceApp (Just device) app =
-  filterDevice device <$> toSingleShellApp app
-
-filterDevice :: Device -> NetInterfaces -> NetInterfaces
-filterDevice device (MkNetInterfaces ifs) =
-  MkNetInterfaces $
-    filter ((== device) . view #idevice) ifs
-
-toSingleShellApp ::
-  ( MonadCatch m,
-    MonadIO m
-  ) =>
-  NetInterfaceApp ->
-  m NetInterfaces
-toSingleShellApp NetInterfaceNmCli = NmCli.netInterfaceShellApp
-toSingleShellApp NetInterfaceIp = Ip.netInterfaceShellApp
+    e = MkDeviceNotFoundException device
 
 -- | Takes the first 'NetInterface' that has state 'Up', according to
 -- 'NetInterfaceState'\'s 'Ord':
@@ -139,3 +146,29 @@ findUp = headMaybe . (sortType . filterUp) . unNetInterfaces
   where
     sortType = OL.sortOn (view #itype)
     filterUp = filter ((== Up) . view #istate)
+
+runMultipleQueries ::
+  ( MonadCatch m,
+    MonadIO m
+  ) =>
+  m NetInterfaces
+runMultipleQueries = ShellApp.tryAppActions allApps
+  where
+    allApps =
+      [ MkAppAction (toSingleShellApp NetInterfaceNmCli) NmCli.supported (showt NetInterfaceNmCli),
+        MkAppAction (toSingleShellApp NetInterfaceIp) Ip.supported (showt NetInterfaceIp)
+      ]
+
+filterDevice :: Device -> NetInterfaces -> NetInterfaces
+filterDevice device (MkNetInterfaces ifs) =
+  MkNetInterfaces $
+    filter ((== device) . view #idevice) ifs
+
+toSingleShellApp ::
+  ( MonadCatch m,
+    MonadIO m
+  ) =>
+  NetInterfaceApp ->
+  m NetInterfaces
+toSingleShellApp NetInterfaceNmCli = NmCli.netInterfaceShellApp
+toSingleShellApp NetInterfaceIp = Ip.netInterfaceShellApp
