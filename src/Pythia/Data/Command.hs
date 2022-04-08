@@ -18,9 +18,11 @@ newtype Command = MkCommand
   { -- | @since 0.1
     unCommand :: Text
   }
-  deriving
+  deriving stock
     ( -- | @since 0.1
       Eq,
+      -- | @since 0.1
+      Generic,
       -- | @since 0.1
       Ord,
       -- | @since 0.1
@@ -31,6 +33,10 @@ newtype Command = MkCommand
       IsString
     )
     via Text
+  deriving anyclass
+    ( -- | @since 0.1
+      NFData
+    )
 
 -- | @since 0.1
 makeFieldLabelsNoPrefix ''Command

@@ -1,4 +1,3 @@
-{-# LANGUAGE DeriveAnyClass #-}
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE UndecidableInstances #-}
 
@@ -48,6 +47,8 @@ data GlobalIpApp
       -- | @since 0.1
       Eq,
       -- | @since 0.1
+      Generic,
+      -- | @since 0.1
       Ord,
       -- | @since 0.1
       Show
@@ -59,6 +60,10 @@ data GlobalIpApp
       Semigroup
     )
     via (Supremum GlobalIpApp)
+  deriving anyclass
+    ( -- | @since 0.1
+      NFData
+    )
 
 -- | @since 0.1
 makePrismLabels ''GlobalIpApp
@@ -86,6 +91,8 @@ newtype UrlSource a = MkIpvSource
     ( -- | @since 0.1
       Eq,
       -- | @since 0.1
+      Generic,
+      -- | @since 0.1
       Ord,
       -- | @since 0.1
       Show
@@ -93,6 +100,10 @@ newtype UrlSource a = MkIpvSource
   deriving newtype
     ( -- | @since 0.1
       IsString
+    )
+  deriving anyclass
+    ( -- | @since 0.1
+      NFData
     )
 
 -- | @since 0.1
@@ -128,7 +139,13 @@ data GlobalIpConfig a = MkGlobalIpConfig
     ( -- | @since 0.1
       Eq,
       -- | @since 0.1
+      Generic,
+      -- | @since 0.1
       Show
+    )
+  deriving anyclass
+    ( -- | @since 0.1
+      NFData
     )
 
 -- | @since 0.1

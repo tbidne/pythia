@@ -64,7 +64,13 @@ newtype DeviceNotFoundException = MkDeviceNotFoundException
   }
   deriving stock
     ( -- | @since 0.1
+      Generic,
+      -- | @since 0.1
       Show
+    )
+  deriving anyclass
+    ( -- | @since 0.1
+      NFData
     )
 
 -- | @since 0.1

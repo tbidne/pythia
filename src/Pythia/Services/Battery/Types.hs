@@ -1,4 +1,3 @@
-{-# LANGUAGE DeriveAnyClass #-}
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE UndecidableInstances #-}
 
@@ -48,6 +47,8 @@ data BatteryApp
       -- | @since 0.1
       Eq,
       -- | @since 0.1
+      Generic,
+      -- | @since 0.1
       Ord,
       -- | @since 0.1
       Show
@@ -59,6 +60,10 @@ data BatteryApp
       Semigroup
     )
     via (Supremum BatteryApp)
+  deriving anyclass
+    ( -- | @since 0.1.0.0
+      NFData
+    )
 
 -- | @since 0.1
 makePrismLabels ''BatteryApp
@@ -73,7 +78,18 @@ newtype BatteryConfig = MkBatteryConfig
   { -- | @since 0.1
     batteryApp :: RunApp BatteryApp
   }
-  deriving (Eq, Show)
+  deriving stock
+    ( -- | @since 0.1
+      Eq,
+      -- | @since 0.1
+      Generic,
+      -- | @since 0.1
+      Show
+    )
+  deriving anyclass
+    ( -- | @since 0.1
+      NFData
+    )
 
 -- | @since 0.1
 makeFieldLabelsNoPrefix ''BatteryConfig
@@ -104,10 +120,14 @@ data BatteryStatus
     ( -- | @since 0.1
       Eq,
       -- | @since 0.1
+      Generic,
+      -- | @since 0.1
       Show
     )
   deriving anyclass
     ( -- | @since 0.1
+      NFData,
+      -- | @since 0.1
       PrettyPrinter
     )
 
@@ -125,9 +145,15 @@ newtype BatteryPercentage = MkBatteryPercentage
     ( -- | @since 0.1
       Eq,
       -- | @since 0.1
+      Generic,
+      -- | @since 0.1
       Ord,
       -- | @since 0.1
       Show
+    )
+  deriving anyclass
+    ( -- | @since 0.1
+      NFData
     )
 
 -- | @since 0.1
@@ -150,7 +176,13 @@ data Battery = MkBattery
     ( -- | @since 0.1
       Eq,
       -- | @since 0.1
+      Generic,
+      -- | @since 0.1
       Show
+    )
+  deriving anyclass
+    ( -- | @since 0.1
+      NFData
     )
 
 -- | @since 0.1

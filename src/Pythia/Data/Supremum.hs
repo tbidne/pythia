@@ -18,7 +18,13 @@ newtype Supremum a = MkSupremum a
       -- | @since 0.1
       Eq,
       -- | @since 0.1
+      Generic,
+      -- | @since 0.1
       Ord
+    )
+  deriving anyclass
+    ( -- | @since 0.1
+      NFData
     )
 
 -- | @since 0.1

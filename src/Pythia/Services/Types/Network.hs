@@ -44,6 +44,8 @@ newtype Device = MkDevice
     ( -- | @since 0.1
       Eq,
       -- | @since 0.1
+      Generic,
+      -- | @since 0.1
       Ord,
       -- | @since 0.1
       Read,
@@ -57,6 +59,10 @@ newtype Device = MkDevice
       PrettyPrinter
     )
     via Text
+  deriving anyclass
+    ( -- | @since 0.1
+      NFData
+    )
 
 -- | @since 0.1
 makeFieldLabelsNoPrefix ''Device
@@ -69,7 +75,18 @@ data IpType
     Ipv4
   | -- | @since 0.1
     Ipv6
-  deriving (Eq, Show)
+  deriving stock
+    ( -- | @since 0.1
+      Eq,
+      -- | @since 0.1
+      Generic,
+      -- | @since 0.1
+      Show
+    )
+  deriving anyclass
+    ( -- | @since 0.1
+      NFData
+    )
 
 -- | Maps 'IpType' to its 'Text' refinement.
 --
@@ -184,9 +201,15 @@ newtype IpAddress a = MkIpAddress
     ( -- | @since 0.1
       Eq,
       -- | @since 0.1
+      Generic,
+      -- | @since 0.1
       Ord,
       -- | @since 0.1
       Show
+    )
+  deriving anyclass
+    ( -- | @since 0.1
+      NFData
     )
 
 -- | @since 0.1

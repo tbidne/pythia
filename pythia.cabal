@@ -38,6 +38,7 @@ common common-exts
     ApplicativeDo
     ConstraintKinds
     DataKinds
+    DeriveAnyClass
     DeriveFunctor
     DeriveGeneric
     DerivingVia
@@ -94,6 +95,7 @@ library
     , base             >=4.14.1.0  && <4.17
     , bytestring       >=0.10.10.0 && <0.12
     , containers       ^>=0.6.2.1
+    , deepseq          ^>=1.4.4.0
     , directory        ^>=1.3.5.0
     , filepath         ^>=1.4.2.1
     , megaparsec       >=7.0.5     && <9.3

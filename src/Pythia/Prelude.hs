@@ -18,6 +18,7 @@ module Pythia.Prelude
 where
 
 import Control.Applicative as X (Alternative (..), Applicative (..))
+import Control.DeepSeq as X (NFData)
 import Control.Exception as X (Exception (..), SomeException (..))
 import Control.Exception.Safe as X
   ( MonadCatch,
@@ -56,6 +57,7 @@ import Data.Traversable as X (Traversable (..), for)
 import Data.Void as X (Void)
 import GHC.Enum as X (Bounded (..), Enum (..))
 import GHC.Err as X (error, undefined)
+import GHC.Generics as X (Generic)
 import GHC.Read as X (Read (..))
 import GHC.Real as X (even)
 import GHC.Show as X (Show (..))

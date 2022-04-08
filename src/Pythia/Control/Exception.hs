@@ -1,4 +1,3 @@
-{-# LANGUAGE DeriveAnyClass #-}
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE UndecidableInstances #-}
 
@@ -80,7 +79,13 @@ data CommandException = MkCommandException
   }
   deriving stock
     ( -- | @since 0.1
+      Generic,
+      -- | @since 0.1
       Show
+    )
+  deriving anyclass
+    ( -- | @since 0.1
+      NFData
     )
 
 -- | @since 0.1
@@ -117,6 +122,8 @@ newtype SomeExceptions = MkSomeExceptions
   }
   deriving stock
     ( -- | @since 0.1
+      Generic,
+      -- | @since 0.1
       Show
     )
 
@@ -156,7 +163,13 @@ newtype NotSupportedException = MkNotSupportedException
   }
   deriving stock
     ( -- | @since 0.1
+      Generic,
+      -- | @since 0.1
       Show
+    )
+  deriving anyclass
+    ( -- | @since 0.1
+      NFData
     )
 
 -- | @since 0.1
@@ -182,7 +195,13 @@ instance PrettyPrinter NotSupportedException where
 data NoActionsRunException = MkNoActionsRunException
   deriving stock
     ( -- | @since 0.1
+      Generic,
+      -- | @since 0.1
       Show
+    )
+  deriving anyclass
+    ( -- | @since 0.1
+      NFData
     )
 
 -- | @since 0.1

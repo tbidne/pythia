@@ -1,4 +1,3 @@
-{-# LANGUAGE DeriveAnyClass #-}
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE UndecidableInstances #-}
 
@@ -45,6 +44,8 @@ data NetInterfaceApp
       -- | @since 0.1
       Eq,
       -- | @since 0.1
+      Generic,
+      -- | @since 0.1
       Ord,
       -- | @since 0.1
       Show
@@ -56,6 +57,10 @@ data NetInterfaceApp
       Semigroup
     )
     via (Supremum NetInterfaceApp)
+  deriving anyclass
+    ( -- | @since 0.1
+      NFData
+    )
 
 -- | @since 0.1
 makePrismLabels ''NetInterfaceApp
@@ -70,11 +75,17 @@ newtype NetInterfaceConfig = MkNetInterfaceConfig
   { -- | @since 0.1
     interfaceApp :: RunApp NetInterfaceApp
   }
-  deriving
+  deriving stock
     ( -- | @since 0.1
       Eq,
       -- | @since 0.1
+      Generic,
+      -- | @since 0.1
       Show
+    )
+  deriving anyclass
+    ( -- | @since 0.1
+      NFData
     )
 
 -- | @since 0.1
@@ -105,9 +116,11 @@ data NetInterfaceType
     Tun
   | -- | @since 0.1
     UnknownType Text
-  deriving
+  deriving stock
     ( -- | @since 0.1
       Eq,
+      -- | @since 0.1
+      Generic,
       -- | @since 0.1
       Ord,
       -- | @since 0.1
@@ -115,6 +128,8 @@ data NetInterfaceType
     )
   deriving anyclass
     ( -- | @since 0.1
+      NFData,
+      -- | @since 0.1
       PrettyPrinter
     )
 
@@ -135,12 +150,16 @@ data NetInterfaceState
     ( -- | @since 0.1
       Eq,
       -- | @since 0.1
+      Generic,
+      -- | @since 0.1
       Ord,
       -- | @since 0.1
       Show
     )
   deriving anyclass
     ( -- | @since 0.1
+      NFData,
+      -- | @since 0.1
       PrettyPrinter
     )
 
@@ -166,13 +185,19 @@ data NetInterface = MkNetInterface
     -- | @since 0.1
     ipv6s :: [IpAddress 'Ipv6]
   }
-  deriving
+  deriving stock
     ( -- | @since 0.1
       Eq,
+      -- | @since 0.1
+      Generic,
       -- | @since 0.1
       Ord,
       -- | @since 0.1
       Show
+    )
+  deriving anyclass
+    ( -- | @since 0.1
+      NFData
     )
 
 -- | @since 0.1
@@ -198,14 +223,23 @@ instance PrettyPrinter NetInterface where
       ipv6s = "IPv6: " <> Printer.joinCommas (netif ^. #ipv6s)
 
 -- | @since 0.1
-newtype NetInterfaces = MkNetInterfaces {unNetInterfaces :: [NetInterface]}
-  deriving
+newtype NetInterfaces = MkNetInterfaces
+  { -- | @since 0.1
+    unNetInterfaces :: [NetInterface]
+  }
+  deriving stock
     ( -- | @since 0.1
       Eq,
+      -- | @since 0.1
+      Generic,
       -- | @since 0.1
       Ord,
       -- | @since 0.1
       Show
+    )
+  deriving anyclass
+    ( -- | @since 0.1
+      NFData
     )
 
 -- | @since 0.1

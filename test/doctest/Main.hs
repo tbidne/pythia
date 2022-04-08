@@ -41,6 +41,7 @@ exts =
     "-XApplicativeDo",
     "-XConstraintKinds",
     "-XDataKinds",
+    "-XDeriveAnyClass",
     "-XDeriveFunctor",
     "-XDeriveGeneric",
     "-XDerivingVia",

@@ -40,7 +40,13 @@ data RunApp a
     ( -- | @since 0.1
       Eq,
       -- | @since 0.1
+      Generic,
+      -- | @since 0.1
       Show
+    )
+  deriving anyclass
+    ( -- | @since 0.1.0.0
+      NFData
     )
 
 -- | @since 0.1
