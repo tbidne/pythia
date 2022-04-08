@@ -35,7 +35,24 @@ import Text.Megaparsec qualified as MP
 import Text.Megaparsec.Char qualified as MPC
 import Text.Read qualified as TR
 
+-- $setup
+-- >>> import GHC.Exception (errorCallException)
+
 -- | Errors that can occur with upower.
+--
+-- ==== __Examples__
+--
+-- >>> putStrLn $ displayException $ UPowerGeneralException $ errorCallException "oh no"
+-- UPower exception: <oh no>
+--
+-- >>> putStrLn $ displayException $ UPowerNoPercentage "output"
+-- UPower parse error. No percentage found in output: <output>
+--
+-- >>> putStrLn $ displayException $ UPowerNoStatus "output"
+-- UPower parse error. No status found in output: <output>
+--
+-- >>> putStrLn $ displayException $ UPowerNoPercentageNorStatus "output"
+-- UPower parse error. No percentage nor status found in output: <output>
 --
 -- @since 0.1
 data UPowerException
@@ -73,14 +90,17 @@ instance PrettyPrinter UPowerException where
     "UPower parse error. No percentage nor status found in output: <" <> s <> ">"
 
 -- | @since 0.1
--- | @since 0.1
 instance Exception UPowerException where
   displayException = T.unpack . pretty
   toException = toExceptionViaPythia
   fromException = fromExceptionViaPythia
 
--- | UPower query for 'Battery'. Throws exceptions if the command fails or
--- or we have a parse error.
+-- | UPower query for 'Battery'.
+--
+-- __Throws:__
+--
+-- * 'UPowerException': if something goes wrong (i.e. exception while running
+--       the command, or we have a parse error).
 --
 -- @since 0.1
 batteryShellApp :: (MonadCatch m, MonadIO m) => m Battery

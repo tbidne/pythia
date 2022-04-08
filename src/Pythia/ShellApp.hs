@@ -64,11 +64,12 @@ instance Bifunctor SimpleShell where
     where
       p' = bimap f g . p
 
--- | Runs a simple shell. If running the command throws 'SomeException', it
--- will be rethrown as an @err@. Thus if command can throw exceptions of type
--- @err@, there is a possibility of redundant wrapping.
+-- | Runs a simple shell.
 --
--- If parsing fails, then this will also be thrown.
+-- __Throws:__
+--
+-- * @err@: if running the command throws 'SomeException' or a parse
+-- error is encountered.
 --
 -- @since 0.1
 runSimple ::
@@ -85,6 +86,11 @@ runSimple simple =
 -- | Runs a 'Command' and returns either the text result or error encountered.
 -- This is used by 'SimpleShell' to run its command before the result is
 -- parsed. This function is exported for convenience.
+--
+-- __Throws:__
+--
+-- * 'CommandException': if running the command returns 'ExitFailure' exit
+-- code.
 --
 -- @since 0.1
 runCommand :: MonadIO m => Command -> m Text
@@ -142,6 +148,14 @@ instance Monoid (ActionsResult r) where
 -- If any errors are encountered or no actions are run (either because the
 -- list is empty or none are supported), an exception is thrown.
 --
+-- __Throws:__
+--
+-- * 'NoActionsRunException': if no actions are run (i.e. the list is empty
+--       or none are supported).
+--
+-- * 'SomeExceptions': if at least one command is run yet there were no
+--       successes.
+--
 -- @since 0.1
 tryAppActions :: MonadCatch m => [AppAction m result] -> m result
 tryAppActions apps = do
@@ -167,6 +181,13 @@ tryAppAction appAction acc = do
 -- | Generalized 'tryAppActions' to any 'IO'. Has the same semantics
 -- (i.e. returns the first success or throws an exception if none
 -- succeeds) without checking for "support".
+--
+-- __Throws:__
+--
+-- * 'NoActionsRunException': if no actions are run (i.e. the list is empty).
+--
+-- * 'SomeExceptions': if at least one command is run yet there were no
+--       successes.
 --
 -- @since 0.1
 tryIOs :: MonadCatch m => [m result] -> m result

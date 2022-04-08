@@ -37,7 +37,18 @@ import Text.Megaparsec (ErrorFancy (..), Parsec, (<?>))
 import Text.Megaparsec qualified as MP
 import Text.Megaparsec.Char qualified as MPC
 
+-- $setup
+-- >>> import GHC.Exception (errorCallException)
+
 -- | Errors that can occur with ip.
+--
+-- ==== __Examples__
+--
+-- >>> putStrLn $ displayException $ IpGeneralException $ errorCallException "oh no"
+-- Ip exception: <oh no>
+--
+-- >>> putStrLn $ displayException $ IpParseException "parse error"
+-- Ip parse exception: <parse error>
 --
 -- @since 0.1
 data IpException
@@ -59,7 +70,7 @@ deriving stock instance Show IpException
 -- | @since 0.1
 instance PrettyPrinter IpException where
   pretty (IpGeneralException e) = "Ip exception: <" <> T.pack (displayException e) <> ">"
-  pretty (IpParseException s) = "Ip parse exception: <" <> showt s <> ">"
+  pretty (IpParseException s) = "Ip parse exception: <" <> s <> ">"
 
 -- | @since 0.1
 instance Exception IpException where
@@ -67,8 +78,12 @@ instance Exception IpException where
   toException = toExceptionViaPythia
   fromException = fromExceptionViaPythia
 
--- | Ip query for 'NetInterface'. Throws exceptions if the command fails or
--- we have a parse error.
+-- | Ip query for 'NetInterface'.
+--
+-- __Throws:__
+--
+-- * 'IpException': if something goes wrong (i.e. exception while running
+--       the command, or we have a parse error).
 --
 -- @since 0.1
 netInterfaceShellApp :: (MonadCatch m, MonadIO m) => m NetInterfaces

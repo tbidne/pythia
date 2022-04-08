@@ -29,7 +29,27 @@ import System.Directory qualified as Dir
 import System.FilePath ((</>))
 import Text.Read qualified as TR
 
+-- $setup
+-- >>> import GHC.Exception (errorCallException)
+
 -- | Errors that can occur with sysfs.
+--
+-- ==== __Examples__
+--
+-- >>> putStrLn $ displayException SysFsDirNotFound
+-- SysFs exception: Could not find either dir: /sys/class/power_supply, /sysfs/class/power_supply
+--
+-- >>> putStrLn $ displayException SysFsBatteryDirNotFound
+-- SysFs exception: Could not find BAT[0-5]? subdirectory under /sys(fs)/class/power_supply
+--
+-- >>> putStrLn $ displayException $ SysFsFileNotFound "foo"
+-- SysFs exception: Could not find file: <foo>
+--
+-- >>> putStrLn $ displayException $ SysFsBatteryParseException "parse error"
+-- SysFs parse error: <parse error>
+--
+-- >>> putStrLn $ displayException $ SysFsReadFileException "foo" (errorCallException "oh no")
+-- SysFs read file <foo> exception: <oh no>
 --
 -- @since 0.1
 data SysFsException
@@ -71,11 +91,13 @@ instance PrettyPrinter SysFsException where
     "SysFs exception: Could not find BAT[0-5]? subdirectory under"
       <> " /sys(fs)/class/power_supply"
   pretty (SysFsFileNotFound f) =
-    "SysFs exception: Could not find file: <" <> showt f <> ">"
+    "SysFs exception: Could not find file: <" <> f <> ">"
   pretty (SysFsBatteryParseException e) =
     "SysFs parse error: <" <> e <> ">"
   pretty (SysFsReadFileException fp e) =
-    "SysFs read file <" <> fp <> "> exception: " <> T.pack (displayException e)
+    "SysFs read file <" <> fp <> "> exception: <"
+      <> T.pack (displayException e)
+      <> ">"
 
 -- | @since 0.1
 instance Exception SysFsException where
@@ -83,8 +105,12 @@ instance Exception SysFsException where
   toException = toExceptionViaPythia
   fromException = fromExceptionViaPythia
 
--- | @/sys/class@ query for 'Battery'. Throws exceptions if the command fails
--- or we have a parse error.
+-- | @\/sys\/class@ query for 'Battery'.
+--
+-- __Throws:__
+--
+-- * 'SysFsException': if something goes wrong (e.g. cannot find a directory,
+--       file, or we have a parse error).
 --
 -- @since 0.1
 batteryQuery :: MonadIO m => m Battery

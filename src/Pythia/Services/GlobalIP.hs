@@ -60,7 +60,7 @@ import Refined qualified as R
 queryGlobalIp ::
   (MonadCatch m, MonadIO m) =>
   GlobalIpConfig ([UrlSource 'Ipv4], [UrlSource 'Ipv6]) ->
-  m ((IpAddress 'Ipv4), (IpAddress 'Ipv6))
+  m (IpAddress 'Ipv4, IpAddress 'Ipv6)
 queryGlobalIp = queryGlobalIp' #globalIpApp #globalIpSources getBothIps
 
 -- | 'queryGlobalIp' restricted to IPv4 address only.
@@ -93,8 +93,8 @@ queryGlobalIpv6 = queryGlobalIp' #globalIpApp #globalIpSources getIpv6s
 
 queryGlobalIp' ::
   (MonadCatch m, MonadIO m) =>
-  (Lens' config (RunApp GlobalIpApp)) ->
-  (Lens' config sources) ->
+  Lens' config (RunApp GlobalIpApp) ->
+  Lens' config sources ->
   (GlobalIpApp -> sources -> IO result) ->
   config ->
   m result
@@ -118,7 +118,7 @@ digSupported = U.exeSupported "dig"
 getBothIps ::
   GlobalIpApp ->
   ([UrlSource 'Ipv4], [UrlSource 'Ipv6]) ->
-  IO ((IpAddress 'Ipv4), (IpAddress 'Ipv6))
+  IO (IpAddress 'Ipv4, IpAddress 'Ipv6)
 getBothIps app (ipv4Srcs, ipv6Srcs) =
   (,)
     <$> getIpv4s app ipv4Srcs

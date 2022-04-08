@@ -36,7 +36,18 @@ import Text.Megaparsec.Char qualified as MPC
 import Text.Megaparsec.Error qualified as MPE
 import Text.Read qualified as TR
 
+-- $setup
+-- >>> import GHC.Exception (errorCallException)
+
 -- | Errors that can occur with acpi.
+--
+-- ==== __Examples__
+--
+-- >>> putStrLn $ displayException $ AcpiGeneralException $ errorCallException "oh no"
+-- Acpi exception: <oh no>
+--
+-- >>> putStrLn $ displayException $ AcpiParseException "parse error"
+-- Acpi parse exception: <parse error>
 --
 -- @since 0.1
 data AcpiException
@@ -58,7 +69,7 @@ deriving stock instance Show AcpiException
 -- | @since 0.1
 instance PrettyPrinter AcpiException where
   pretty (AcpiGeneralException e) = "Acpi exception: <" <> T.pack (displayException e) <> ">"
-  pretty (AcpiParseException s) = "Acpi parse error: <" <> s <> ">"
+  pretty (AcpiParseException s) = "Acpi parse exception: <" <> s <> ">"
 
 -- | @since 0.1
 instance Exception AcpiException where
@@ -66,8 +77,12 @@ instance Exception AcpiException where
   toException = toExceptionViaPythia
   fromException = fromExceptionViaPythia
 
--- | ACPI query for 'Battery'. Throws exceptions if the command fails or
--- or we have a parse error.
+-- | ACPI query for 'Battery'.
+--
+-- __Throws:__
+--
+-- * 'AcpiException': if something goes wrong (i.e. exception while running
+--       the command, or we have a parse error).
 --
 -- @since 0.1
 batteryShellApp :: (MonadCatch m, MonadIO m) => m Battery

@@ -38,7 +38,18 @@ import Text.Megaparsec (ErrorFancy (..), Parsec, (<?>))
 import Text.Megaparsec qualified as MP
 import Text.Megaparsec.Char qualified as MPC
 
+-- $setup
+-- >>> import GHC.Exception (errorCallException)
+
 -- | Errors that can occur with nmcli.
+--
+-- ==== __Examples__
+--
+-- >>> putStrLn $ displayException $ NmCliGeneralException $ errorCallException "oh no"
+-- NmCli exception: <oh no>
+--
+-- >>> putStrLn $ displayException $ NmCliParseException "parse error"
+-- NmCli parse exception: <parse error>
 --
 -- @since 0.1
 data NmCliException
@@ -59,8 +70,8 @@ deriving stock instance Show NmCliException
 
 -- | @since 0.1
 instance PrettyPrinter NmCliException where
-  pretty (NmCliGeneralException e) = "Nmcli exception: <" <> T.pack (displayException e) <> ">"
-  pretty (NmCliParseException s) = "Nmcli parse exception: <" <> showt s <> ">"
+  pretty (NmCliGeneralException e) = "NmCli exception: <" <> T.pack (displayException e) <> ">"
+  pretty (NmCliParseException s) = "NmCli parse exception: <" <> s <> ">"
 
 -- | @since 0.1
 instance Exception NmCliException where
@@ -68,8 +79,12 @@ instance Exception NmCliException where
   toException = toExceptionViaPythia
   fromException = fromExceptionViaPythia
 
--- | NmCli query for 'NetInterfaces'. Throws exceptions if the command fails
--- or we have a parse error.
+-- | NmCli query for 'NetInterfaces'.
+--
+-- __Throws:__
+--
+-- * 'NmCliException': if something goes wrong (i.e. exception while running
+--       the command, or we have a parse error).
 --
 -- @since 0.1
 netInterfaceShellApp :: (MonadCatch m, MonadIO m) => m NetInterfaces
