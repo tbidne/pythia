@@ -13,6 +13,9 @@ module Pythia.Services.GlobalIP
     IpAddress (..),
 
     -- ** Configuration
+    GlobalIpv4Config,
+    GlobalIpv6Config,
+    GlobalIpBothConfig,
     GlobalIpConfig (..),
     GlobalIpApp (..),
     UrlSource (..),
@@ -28,7 +31,10 @@ import Pythia.Data.RunApp (RunApp (..))
 import Pythia.Prelude
 import Pythia.Services.GlobalIP.Types
   ( GlobalIpApp (..),
+    GlobalIpBothConfig,
     GlobalIpConfig (..),
+    GlobalIpv4Config,
+    GlobalIpv6Config,
     UrlSource (..),
   )
 import Pythia.Services.GlobalIP.Types qualified as GIpTypes
@@ -59,7 +65,7 @@ import Refined qualified as R
 -- @since 0.1
 queryGlobalIp ::
   (MonadCatch m, MonadIO m) =>
-  GlobalIpConfig ([UrlSource 'Ipv4], [UrlSource 'Ipv6]) ->
+  GlobalIpBothConfig ->
   m (IpAddress 'Ipv4, IpAddress 'Ipv6)
 queryGlobalIp = queryGlobalIp' #globalIpApp #globalIpSources getBothIps
 
@@ -73,7 +79,7 @@ queryGlobalIp = queryGlobalIp' #globalIpApp #globalIpSources getBothIps
 -- @since 0.1
 queryGlobalIpv4 ::
   (MonadCatch m, MonadIO m) =>
-  GlobalIpConfig [UrlSource 'Ipv4] ->
+  GlobalIpv4Config ->
   m (IpAddress 'Ipv4)
 queryGlobalIpv4 = queryGlobalIp' #globalIpApp #globalIpSources getIpv4s
 
@@ -87,7 +93,7 @@ queryGlobalIpv4 = queryGlobalIp' #globalIpApp #globalIpSources getIpv4s
 -- @since 0.1
 queryGlobalIpv6 ::
   (MonadCatch m, MonadIO m) =>
-  GlobalIpConfig [UrlSource 'Ipv6] ->
+  GlobalIpv6Config ->
   m (IpAddress 'Ipv6)
 queryGlobalIpv6 = queryGlobalIp' #globalIpApp #globalIpSources getIpv6s
 

@@ -7,6 +7,9 @@
 -- @since 0.1
 module Pythia.Services.GlobalIP.Types
   ( -- * Configuration
+    GlobalIpv4Config,
+    GlobalIpv6Config,
+    GlobalIpBothConfig,
     GlobalIpConfig (..),
     GlobalIpApp (..),
 
@@ -139,3 +142,18 @@ instance Semigroup a => Semigroup (GlobalIpConfig a) where
 -- | @since 0.1
 instance Monoid a => Monoid (GlobalIpConfig a) where
   mempty = MkGlobalIpConfig mempty mempty
+
+-- | Type alias for 'Ipv4' 'GlobalIpConfig'.
+--
+-- @since 0.1.0.0
+type GlobalIpv4Config = GlobalIpConfig [UrlSource 'Ipv4]
+
+-- | Type alias for 'Ipv6' 'GlobalIpConfig'.
+--
+-- @since 0.1.0.0
+type GlobalIpv6Config = GlobalIpConfig [UrlSource 'Ipv6]
+
+-- | Type alias for 'Ipv4' and 'Ipv6' 'GlobalIpConfig'.
+--
+-- @since 0.1.0.0
+type GlobalIpBothConfig = GlobalIpConfig ([UrlSource 'Ipv4], [UrlSource 'Ipv6])
