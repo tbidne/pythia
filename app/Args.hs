@@ -39,7 +39,7 @@ import Pythia qualified
 import Pythia.Data.RunApp (RunApp (..))
 import Pythia.Prelude
 import Pythia.Services.Battery (BatteryApp (..), BatteryConfig (..))
-import Pythia.Services.GlobalIP.Types
+import Pythia.Services.GlobalIp.Types
   ( GlobalIpApp (..),
     GlobalIpConfig (..),
     UrlSource (..),

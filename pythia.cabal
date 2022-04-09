@@ -80,8 +80,8 @@ library
     Pythia.Services.Battery.SysFs
     Pythia.Services.Battery.Types
     Pythia.Services.Battery.UPower
-    Pythia.Services.GlobalIP
-    Pythia.Services.GlobalIP.Types
+    Pythia.Services.GlobalIp
+    Pythia.Services.GlobalIp.Types
     Pythia.Services.NetInterface
     Pythia.Services.NetInterface.Ip
     Pythia.Services.NetInterface.NmCli

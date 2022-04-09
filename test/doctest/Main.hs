@@ -21,7 +21,7 @@ files =
     "src/Pythia/Services/Battery/Acpi.hs",
     "src/Pythia/Services/Battery/Types.hs",
     "src/Pythia/Services/Battery/UPower.hs",
-    "src/Pythia/Services/GlobalIP/Types.hs",
+    "src/Pythia/Services/GlobalIp/Types.hs",
     "src/Pythia/Services/NetInterface/Ip.hs",
     "src/Pythia/Services/NetInterface/NmCli.hs",
     "src/Pythia/Services/NetInterface/Types.hs",

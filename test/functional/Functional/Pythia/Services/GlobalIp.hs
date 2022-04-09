@@ -7,14 +7,14 @@ module Functional.Pythia.Services.GlobalIp
 where
 
 import Functional.Prelude
-import Pythia.Services.GlobalIP
+import Pythia.Services.GlobalIp
   ( GlobalIpApp (..),
     GlobalIpConfig (..),
     IpType (..),
     RunApp (..),
     UrlSource (..),
   )
-import Pythia.Services.GlobalIP qualified as GlobalIp
+import Pythia.Services.GlobalIp qualified as GlobalIp
 
 -- | @since 0.1
 tests :: TestTree

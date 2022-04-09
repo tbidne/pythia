@@ -4,7 +4,7 @@
 -- | Provides types to be used for querying the global IP addresses.
 --
 -- @since 0.1
-module Pythia.Services.GlobalIP.Types
+module Pythia.Services.GlobalIp.Types
   ( -- * Configuration
     GlobalIpv4Config,
     GlobalIpv6Config,
