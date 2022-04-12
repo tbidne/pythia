@@ -6,11 +6,11 @@
         "nixpkgs": "nixpkgs"
       },
       "locked": {
-        "lastModified": 1648351940,
-        "narHash": "sha256-NTSczefhICJHebPU9h47U7O+Qk+WVXNVC4UmMC1AGMg=",
+        "lastModified": 1649725480,
+        "narHash": "sha256-Ddn1cdCnpyyDz8+4315Iyy7FsTwyiRKb1I5LuJMorHE=",
         "owner": "tbidne",
         "repo": "algebra-simple",
-        "rev": "7189c69af86bc2d75758a13ae375841fc5084242",
+        "rev": "acc79c140fc3cf3530337a2d4ddc0f2cc6c2ef08",
         "type": "github"
       },
       "original": {
@@ -25,16 +25,16 @@
         "nixpkgs": "nixpkgs_3"
       },
       "locked": {
-        "lastModified": 1648282778,
-        "narHash": "sha256-l/hJ/EnxXovIJ3DkyH0vByMBevCs3v5DirSYsShSpBA=",
+        "lastModified": 1649725480,
+        "narHash": "sha256-Ddn1cdCnpyyDz8+4315Iyy7FsTwyiRKb1I5LuJMorHE=",
         "owner": "tbidne",
         "repo": "algebra-simple",
-        "rev": "b077a59c704b2eebd6ee4d3fe5037bc790450915",
+        "rev": "acc79c140fc3cf3530337a2d4ddc0f2cc6c2ef08",
         "type": "github"
       },
       "original": {
         "owner": "tbidne",
-        "ref": "main",
+        "ref": "no-tfs",
         "repo": "algebra-simple",
         "type": "github"
       }
@@ -178,11 +178,11 @@
         "nixpkgs": "nixpkgs_4"
       },
       "locked": {
-        "lastModified": 1648290511,
-        "narHash": "sha256-QYgWHxqbCixD4TFEfwi+qI8foM0qQoi+sONKBZRe8/0=",
+        "lastModified": 1649738061,
+        "narHash": "sha256-LAFGnh6R26G/pCG71R+9oZJUs3/tm+my0hHAFiJT7iU=",
         "owner": "tbidne",
         "repo": "smart-math",
-        "rev": "c76b316979c2f704bb3959d073c1ed0b24034103",
+        "rev": "9dc47335b9483d7fbfcc2e4e110d42c297ec105a",
         "type": "github"
       },
       "original": {

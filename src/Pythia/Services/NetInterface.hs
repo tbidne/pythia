@@ -130,7 +130,7 @@ findDevice device = throwMaybe e . headMaybe . unNetInterfaces . filterDevice de
 -- 'NetInterfaceState'\'s 'Ord':
 --
 -- @
--- 'Ethernet' < 'Wifi' < 'Wifi_P2P' < 'Loopback' < 'Tun' < 'UnknownType'
+-- 'Ethernet' < 'Wifi' < 'Wifi_P2P' < 'Loopback' < 'Tun'
 -- @
 --
 -- __Examples__

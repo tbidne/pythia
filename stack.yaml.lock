@@ -13,26 +13,26 @@ packages:
     hackage: package-version-0.1.0.0@sha256:bb9fc93e905540aa8e1b32f80c2dc82756a4481c63779bd92e3796ed8085ab98,2854
 - completed:
     name: algebra-simple
-    version: 0.1.0.0
+    version: '0.1'
     git: https://github.com/tbidne/algebra-simple.git
     pantry-tree:
-      size: 3564
-      sha256: 2bb4be60733811a7dbe020e2512baf0763b6f2324f743d50ab6c5b3dfb7973f4
-    commit: 7189c69af86bc2d75758a13ae375841fc5084242
+      size: 3703
+      sha256: 34817ba1dab73ed31e9f3241108adcf9b94a4c41add3df3d1e41487cbb700e42
+    commit: acc79c140fc3cf3530337a2d4ddc0f2cc6c2ef08
   original:
     git: https://github.com/tbidne/algebra-simple.git
-    commit: 7189c69af86bc2d75758a13ae375841fc5084242
+    commit: acc79c140fc3cf3530337a2d4ddc0f2cc6c2ef08
 - completed:
     name: smart-math
-    version: 0.1.0.0
+    version: '0.1'
     git: https://github.com/tbidne/smart-math.git
     pantry-tree:
-      size: 3428
-      sha256: 4100a7493c5a3cd880472c7e50a0bb2328382e30f20c9f7f11e3d8b66e342174
-    commit: c76b316979c2f704bb3959d073c1ed0b24034103
+      size: 3287
+      sha256: eab5716d2410ea9d5f3e07dc8cbcd6b48f9514a3313d7661f9e83f0fad61aa32
+    commit: 9dc47335b9483d7fbfcc2e4e110d42c297ec105a
   original:
     git: https://github.com/tbidne/smart-math.git
-    commit: c76b316979c2f704bb3959d073c1ed0b24034103
+    commit: 9dc47335b9483d7fbfcc2e4e110d42c297ec105a
 snapshots:
 - completed:
     size: 517915
