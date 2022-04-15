@@ -125,6 +125,7 @@ netinfo =
       "IP4.ROUTE[1]:dst = 192.168.1.0/24, nh = 0.0.0.0, mt = 3002",
       "IP4.ROUTE[2]:dst = 0.0.0.0/0, nh = 192.168.1.1, mt = 3002",
       "IP4.DNS[1]:192.168.1.1",
+      "IP4.DOMAIN[1]:home",
       "IP6.ADDRESS[1]:fe80::fe44:82ff:fede:f814/64",
       "IP6.ADDRESS[2]:fe80::a328:482:5263:10b8/64",
       "IP6.GATEWAY:",

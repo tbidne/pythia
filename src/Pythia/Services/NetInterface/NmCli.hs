@@ -220,6 +220,7 @@ parseAllIpInfo p cons = do
   parseGateway p
   parseRoutes p
   parseDns p
+  parseDomain p
   pure ipvs
 
 parseIps :: Predicate p Text => Text -> (Refined p Text -> a) -> MParser [a]
@@ -265,3 +266,8 @@ parseDns :: Text -> MParser ()
 parseDns = void . MP.many . dns
   where
     dns p = MPC.string ("IP" <> p <> ".DNS[") *> U.takeLine_
+
+parseDomain :: Text -> MParser ()
+parseDomain = void . MP.many . dns
+  where
+    dns p = MPC.string ("IP" <> p <> ".DOMAIN[") *> U.takeLine_
