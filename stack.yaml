@@ -1,16 +1,18 @@
-resolver: nightly-2022-03-23
+resolver: lts-19.4
 packages:
 - .
 
 extra-deps:
 - package-version-0.1.0.0@sha256:bb9fc93e905540aa8e1b32f80c2dc82756a4481c63779bd92e3796ed8085ab98,2854
 - git: https://github.com/tbidne/algebra-simple.git
-  commit: acc79c140fc3cf3530337a2d4ddc0f2cc6c2ef08
+  commit: 1b2bd9fd21ecf5ed6635cc5c14d06ab533950df3
 - git: https://github.com/tbidne/smart-math.git
-  commit: 9dc47335b9483d7fbfcc2e4e110d42c297ec105a
+  commit: 35e508b0e4272e32ba2841dccbcbb8294d4d546c
 
 flags:
   refined:
     aeson: false
     quickcheck: false
 
+nix:
+  shell-file: nix/stack.nix

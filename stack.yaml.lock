@@ -5,37 +5,37 @@
 
 packages:
 - completed:
-    hackage: package-version-0.1.0.0@sha256:bb9fc93e905540aa8e1b32f80c2dc82756a4481c63779bd92e3796ed8085ab98,2854
     pantry-tree:
-      size: 981
       sha256: 8e33ac2f8d2db754cf11d1439fa970dbf14c6756746426ba89f54a7183a9d2d7
+      size: 981
+    hackage: package-version-0.1.0.0@sha256:bb9fc93e905540aa8e1b32f80c2dc82756a4481c63779bd92e3796ed8085ab98,2854
   original:
     hackage: package-version-0.1.0.0@sha256:bb9fc93e905540aa8e1b32f80c2dc82756a4481c63779bd92e3796ed8085ab98,2854
 - completed:
     name: algebra-simple
-    version: '0.1'
-    git: https://github.com/tbidne/algebra-simple.git
     pantry-tree:
-      size: 3703
-      sha256: 34817ba1dab73ed31e9f3241108adcf9b94a4c41add3df3d1e41487cbb700e42
-    commit: acc79c140fc3cf3530337a2d4ddc0f2cc6c2ef08
-  original:
+      sha256: 7f0f0d9cb0901ea1cceb599ee0862f11a246228e8557d0ca318f650aa7dd8741
+      size: 3764
+    commit: 1b2bd9fd21ecf5ed6635cc5c14d06ab533950df3
     git: https://github.com/tbidne/algebra-simple.git
-    commit: acc79c140fc3cf3530337a2d4ddc0f2cc6c2ef08
+    version: '0.1'
+  original:
+    commit: 1b2bd9fd21ecf5ed6635cc5c14d06ab533950df3
+    git: https://github.com/tbidne/algebra-simple.git
 - completed:
     name: smart-math
-    version: '0.1'
-    git: https://github.com/tbidne/smart-math.git
     pantry-tree:
-      size: 3287
-      sha256: eab5716d2410ea9d5f3e07dc8cbcd6b48f9514a3313d7661f9e83f0fad61aa32
-    commit: 9dc47335b9483d7fbfcc2e4e110d42c297ec105a
-  original:
+      sha256: c203da2d37f671ca71342df601789463073527576643c5f6092d91da861ea664
+      size: 3275
+    commit: 35e508b0e4272e32ba2841dccbcbb8294d4d546c
     git: https://github.com/tbidne/smart-math.git
-    commit: 9dc47335b9483d7fbfcc2e4e110d42c297ec105a
+    version: '0.1'
+  original:
+    commit: 35e508b0e4272e32ba2841dccbcbb8294d4d546c
+    git: https://github.com/tbidne/smart-math.git
 snapshots:
 - completed:
-    size: 517915
-    url: https://raw.githubusercontent.com/commercialhaskell/stackage-snapshots/master/nightly/2022/3/23.yaml
-    sha256: cb8f5a11e08dfb56a756ae96455346488efb1dadef3d8670d8c566ce6625e6ce
-  original: nightly-2022-03-23
+    sha256: d4ee004c46ba878d2f304f5d748d493057be579192a8d148527f3ba55c9df57f
+    size: 618683
+    url: https://raw.githubusercontent.com/commercialhaskell/stackage-snapshots/master/lts/19/4.yaml
+  original: lts-19.4

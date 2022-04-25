@@ -1,9 +1,9 @@
 {
   description = "A Haskell package for retrieving system information.";
-  inputs.algebra-simple-src.url = "github:tbidne/algebra-simple";
+  inputs.algebra-simple-src.url = "github:tbidne/algebra-simple?rev=1b2bd9fd21ecf5ed6635cc5c14d06ab533950df3";
   inputs.flake-utils.url = "github:numtide/flake-utils";
-  inputs.nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
-  inputs.smart-math-src.url = "github:tbidne/smart-math";
+  inputs.nixpkgs.url = "github:nixos/nixpkgs?rev=1ffba9f2f683063c2b14c9f4d12c55ad5f4ed887";
+  inputs.smart-math-src.url = "github:tbidne/smart-math?rev=35e508b0e4272e32ba2841dccbcbb8294d4d546c";
   outputs =
     { algebra-simple-src
     , flake-utils
@@ -11,10 +11,10 @@
     , self
     , smart-math-src
     }:
-    flake-utils.lib.eachSystem [ "x86_64-linux" "x86_64-darwin" ] (system:
+    flake-utils.lib.eachDefaultSystem (system:
     let
       pkgs = import nixpkgs { inherit system; };
-      compilerVersion = "ghc921";
+      compilerVersion = "ghc922";
       compiler = pkgs.haskell.packages."${compilerVersion}";
       mkPkg = returnShellEnv:
         compiler.developPackage {
@@ -33,8 +33,6 @@
           overrides = final: prev: with compiler; {
             algebra-simple =
               final.callCabal2nix "algebra-simple" algebra-simple-src { };
-            optics-core = final.optics-core_0_4;
-            optics-th = final.optics-th_0_4;
             smart-math =
               final.callCabal2nix "smart-math" smart-math-src { };
           };
