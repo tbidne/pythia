@@ -154,7 +154,7 @@ findSysBatDir = do
         sysFsExists <- Dir.doesDirectoryExist sysfsDir
         if sysFsExists
           then pure sysfsDir
-          else throw SysFsDirNotFound
+          else throwIO SysFsDirNotFound
   findBatteryDir sysBase
 
 sysDir :: FilePath
@@ -167,7 +167,7 @@ findBatteryDir :: FilePath -> IO FilePath
 findBatteryDir sysBase = do
   mResult <- foldr firstExists (pure Nothing) batDirs
   case mResult of
-    Nothing -> throw SysFsBatteryDirNotFound
+    Nothing -> throwIO SysFsBatteryDirNotFound
     Just result -> pure result
   where
     firstExists bd acc = do
@@ -198,27 +198,27 @@ fileExists fp = do
   b <- Dir.doesFileExist fp
   if b
     then pure fp
-    else throw $ SysFsFileNotFound $ T.pack fp
+    else throwIO $ SysFsFileNotFound $ T.pack fp
 
 parseStatus :: FilePath -> IO BatteryStatus
 parseStatus fp = do
   statusTxt <-
     T.toLower . T.strip <$> readFileUtf8Lenient fp
-      `catch` \(e :: SomeException) -> throw $ SysFsReadFileException (T.pack fp) e
+      `catch` \(e :: SomeException) -> throwIO $ SysFsReadFileException (T.pack fp) e
   case statusTxt of
     "charging" -> pure Charging
     "discharging" -> pure Discharging
     "not charging" -> pure Pending
     "full" -> pure Full
-    bad -> throw $ SysFsBatteryParseException $ "Unknown status: <" <> bad <> ">"
+    bad -> throwIO $ SysFsBatteryParseException $ "Unknown status: <" <> bad <> ">"
 
 parsePercentage :: FilePath -> IO BatteryPercentage
 parsePercentage fp = do
   percentTxt <-
     readFileUtf8Lenient fp
-      `catch` \(e :: SomeException) -> throw $ SysFsReadFileException (T.pack fp) e
+      `catch` \(e :: SomeException) -> throwIO $ SysFsReadFileException (T.pack fp) e
   case readInterval percentTxt of
-    Nothing -> throw $ SysFsBatteryParseException percentTxt
+    Nothing -> throwIO $ SysFsBatteryParseException percentTxt
     Just bs -> pure $ MkBatteryPercentage bs
   where
     readInterval = Interval.mkLRInterval <=< TR.readMaybe . T.unpack

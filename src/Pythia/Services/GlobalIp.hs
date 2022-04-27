@@ -63,10 +63,7 @@ import Refined qualified as R
 -- encountered (e.g. running a command or parse error).
 --
 -- @since 0.1
-queryGlobalIp ::
-  (MonadCatch m, MonadIO m) =>
-  GlobalIpBothConfig ->
-  m (IpAddress 'Ipv4, IpAddress 'Ipv6)
+queryGlobalIp :: MonadUnliftIO m => GlobalIpBothConfig -> m (IpAddress 'Ipv4, IpAddress 'Ipv6)
 queryGlobalIp = queryGlobalIp' #globalIpApp #globalIpSources getBothIps
 
 -- | 'queryGlobalIp' restricted to IPv4 address only.
@@ -77,10 +74,7 @@ queryGlobalIp = queryGlobalIp' #globalIpApp #globalIpSources getBothIps
 -- encountered (e.g. running a command or parse error).
 --
 -- @since 0.1
-queryGlobalIpv4 ::
-  (MonadCatch m, MonadIO m) =>
-  GlobalIpv4Config ->
-  m (IpAddress 'Ipv4)
+queryGlobalIpv4 :: MonadUnliftIO m => GlobalIpv4Config -> m (IpAddress 'Ipv4)
 queryGlobalIpv4 = queryGlobalIp' #globalIpApp #globalIpSources getIpv4s
 
 -- | 'queryGlobalIp' restricted to IPv6 address only.
@@ -91,14 +85,11 @@ queryGlobalIpv4 = queryGlobalIp' #globalIpApp #globalIpSources getIpv4s
 -- encountered (e.g. running a command or parse error).
 --
 -- @since 0.1
-queryGlobalIpv6 ::
-  (MonadCatch m, MonadIO m) =>
-  GlobalIpv6Config ->
-  m (IpAddress 'Ipv6)
+queryGlobalIpv6 :: MonadUnliftIO m => GlobalIpv6Config -> m (IpAddress 'Ipv6)
 queryGlobalIpv6 = queryGlobalIp' #globalIpApp #globalIpSources getIpv6s
 
 queryGlobalIp' ::
-  (MonadCatch m, MonadIO m) =>
+  MonadUnliftIO m =>
   Lens' config (RunApp GlobalIpApp) ->
   Lens' config sources ->
   (GlobalIpApp -> sources -> IO result) ->

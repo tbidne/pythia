@@ -87,7 +87,7 @@ instance Exception NmCliException where
 --       the command, or we have a parse error).
 --
 -- @since 0.1
-netInterfaceShellApp :: (MonadCatch m, MonadIO m) => m NetInterfaces
+netInterfaceShellApp :: MonadUnliftIO m => m NetInterfaces
 netInterfaceShellApp = ShellApp.runSimple shell
   where
     shell =
