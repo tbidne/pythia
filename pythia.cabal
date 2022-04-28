@@ -82,6 +82,9 @@ library
     Pythia.Services.Battery.UPower
     Pythia.Services.GlobalIp
     Pythia.Services.GlobalIp.Types
+    Pythia.Services.Memory
+    Pythia.Services.Memory.Free
+    Pythia.Services.Memory.Types
     Pythia.Services.NetInterface
     Pythia.Services.NetInterface.Ip
     Pythia.Services.NetInterface.NmCli
@@ -92,20 +95,21 @@ library
 
   ghc-options:      -Wunused-packages
   build-depends:
-    , base             >=4.14.1.0  && <4.17
-    , bytestring       >=0.10.10.0 && <0.12
-    , containers       ^>=0.6.2.1
-    , deepseq          ^>=1.4.4.0
-    , directory        ^>=1.3.5.0
-    , filepath         ^>=1.4.2.1
-    , megaparsec       >=7.0.5     && <9.3
-    , optics-core      ^>=0.4
-    , optics-th        ^>=0.4
-    , refined          ^>=0.6
-    , smart-math       ^>=0.1
-    , text             ^>=1.2.3.2
-    , typed-process    >=0.1.0.0   && <0.3
-    , unliftio         ^>=0.2.0.0
+    , base           >=4.14.1.0  && <4.17
+    , byte-types     ^>=0.1
+    , bytestring     >=0.10.10.0 && <0.12
+    , containers     ^>=0.6.2.1
+    , deepseq        ^>=1.4.4.0
+    , directory      ^>=1.3.5.0
+    , filepath       ^>=1.4.2.1
+    , megaparsec     >=7.0.5     && <9.3
+    , optics-core    ^>=0.4
+    , optics-th      ^>=0.4
+    , refined        ^>=0.6
+    , smart-math     ^>=0.1
+    , text           ^>=1.2.3.2
+    , typed-process  >=0.1.0.0   && <0.3
+    , unliftio       ^>=0.2.0.0
 
   hs-source-dirs:   src
   default-language: Haskell2010
@@ -115,7 +119,9 @@ executable pythia
   main-is:          Main.hs
   other-modules:    Args
   build-depends:
+    , algebra-simple
     , base
+    , byte-types
     , gitrev                >=1.2.0    && <1.4
     , optparse-applicative  >=0.16.1.0 && <0.18
     , package-version       ^>=0.1.0.0
@@ -134,11 +140,13 @@ test-suite unit
     Unit.Prelude
     Unit.Pythia.Services.Battery.Acpi
     Unit.Pythia.Services.Battery.UPower
+    Unit.Pythia.Services.Memory.Free
     Unit.Pythia.Services.NetInterface.Ip
     Unit.Pythia.Services.NetInterface.NmCli
 
   build-depends:
     , base
+    , byte-types
     , containers
     , pythia
     , refined
@@ -158,6 +166,7 @@ test-suite functional
     Functional.Prelude
     Functional.Pythia.Services.Battery
     Functional.Pythia.Services.GlobalIp
+    Functional.Pythia.Services.Memory
     Functional.Pythia.Services.NetInterface
 
   build-depends:

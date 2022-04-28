@@ -22,6 +22,7 @@
 * [Introduction](#introduction)
 * [Services](#services)
   * [Battery](#battery)
+  * [Memory](#memory)
   * [Network Interfaces](#network-interfaces)
   * [Network Connection](#network-connection)
   * [Global IP](#global-ip)
@@ -79,6 +80,46 @@ $ pythia battery --field percentage
 75%
 ```
 
+## Memory
+
+This service is for reading memory usage.
+
+### Usage
+
+```
+Usage: pythia memory [-a|--app APP] [-f|--field FIELD]
+  Queries memory usage.
+
+Available options:
+  -a,--app APP             App must be one of [free].
+  -f,--field FIELD         If specified, prints only the given field. Must be
+                           one of [total | used | free].
+  -h,--help                Show this help text
+```
+
+### Supported Apps
+
+The following applications are supported:
+
+* `free`
+
+By default, we return the total and used memory. This can be refined with `--field`.
+
+### Examples
+
+```
+$ pythia memory
+6.75 G / 16.57 G
+
+$ pythia memory --field total
+16.57 G
+
+$ pythia memory --field used
+6.71 G
+
+$ pythia memory --field free
+9.87 G
+```
 ## Network Interfaces
 
 This service is for reading information about the network interfaces found on this system.

@@ -12,6 +12,7 @@ module Args
     -- ** Main
     PythiaCommand (..),
     BatteryField (..),
+    MemoryField (..),
     NetInterfaceField (..),
     NetConnField (..),
 
@@ -44,6 +45,7 @@ import Pythia.Services.GlobalIp.Types
     GlobalIpConfig (..),
     UrlSource (..),
   )
+import Pythia.Services.Memory (MemoryApp (..), MemoryConfig (..))
 import Pythia.Services.NetInterface (NetInterfaceApp (..), NetInterfaceConfig (..))
 import Pythia.Services.Types.Network (Device (..), IpType (..))
 
@@ -61,6 +63,7 @@ data These a b
 -- @since 0.1
 data PythiaCommand
   = BatteryCmd BatteryConfig (Maybe BatteryField)
+  | MemoryCmd MemoryConfig (Maybe MemoryField)
   | NetInterfaceCmd NetInterfaceConfig (Maybe Device) (Maybe NetInterfaceField)
   | NetConnCmd NetInterfaceConfig (Maybe NetConnField)
   | NetIpGlobalCmd (GlobalIpConfig (These [UrlSource 'Ipv4] [UrlSource 'Ipv6]))
@@ -72,6 +75,15 @@ data PythiaCommand
 data BatteryField
   = BatteryFieldPercentage
   | BatteryFieldStatus
+  deriving stock (Eq, Show)
+
+-- | Extra option for MemoryCmd.
+--
+-- @since 0.1
+data MemoryField
+  = MemoryFieldTotal
+  | MemoryFieldUsed
+  | MemoryFieldFree
   deriving stock (Eq, Show)
 
 -- | Extra option for NetInterfaceCmd.
@@ -132,6 +144,7 @@ cmdParser :: Parser PythiaCommand
 cmdParser =
   OApp.hsubparser
     ( mkCommand "battery" parseBattery batStateTxt
+        <> mkCommand "memory" parseMemory memoryTxt
         <> mkCommand "net-if" parseNetInterface netInterfaceTxt
         <> mkCommand "net-conn" parseNetConn netConnTxt
         <> mkCommand "global-ip" parseIpGlobal ipGlobalTxt
@@ -141,6 +154,7 @@ cmdParser =
   where
     batStateTxt =
       OApp.progDesc "Queries the battery state."
+    memoryTxt = OApp.progDesc "Queries memory usage."
     netInterfaceTxt = OApp.progDesc "Queries network interfaces."
     netConnTxt = OApp.progDesc "Queries network interfaces for a live connection."
     ipGlobalTxt = OApp.progDesc "Queries the global IP addresses."
@@ -199,6 +213,53 @@ parseBatteryField =
         "percentage" -> pure BatteryFieldPercentage
         "status" -> pure BatteryFieldStatus
         _ -> OApp.readerAbort $ ErrorMsg $ "Unrecognized battery field: " <> T.unpack a
+
+parseMemory :: Parser PythiaCommand
+parseMemory = do
+  app <- parseMemoryAppOption
+  field <- parseMemoryField
+  pure $ MemoryCmd (MkMemoryConfig app) field
+
+parseMemoryField :: Parser (Maybe MemoryField)
+parseMemoryField =
+  A.optional $
+    OApp.option
+      readApp
+      ( OApp.long "field"
+          <> OApp.short 'f'
+          <> OApp.metavar "FIELD"
+          <> OApp.help helpTxt
+      )
+  where
+    helpTxt =
+      "If specified, prints only the given field. Must be one of [total | "
+        <> "used | free]."
+    readApp = do
+      a <- OApp.str
+      case a of
+        "total" -> pure MemoryFieldTotal
+        "used" -> pure MemoryFieldUsed
+        "free" -> pure MemoryFieldFree
+        _ -> OApp.readerAbort $ ErrorMsg $ "Unrecognized memory field: " <> T.unpack a
+
+parseMemoryAppOption :: Parser (RunApp MemoryApp)
+parseMemoryAppOption =
+  OApp.option
+    readApp
+    ( OApp.value Many
+        <> OApp.long "app"
+        <> OApp.short 'a'
+        <> OApp.metavar "APP"
+        <> OApp.help helpTxt
+    )
+  where
+    helpTxt =
+      "App must be one of [free]."
+    readApp = do
+      a <- OApp.str
+      case a of
+        "free" -> pure $ Single MemoryFree
+        _ -> OApp.readerAbort $ ErrorMsg $ "Unrecognized memory app: " <> T.unpack a
 
 parseNetInterface :: Parser PythiaCommand
 parseNetInterface = do

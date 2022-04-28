@@ -7,6 +7,7 @@ module Pythia
     -- $services
     module Pythia.Services.Battery,
     module Pythia.Services.GlobalIp,
+    module Pythia.Services.Memory,
     module Pythia.Services.NetInterface,
 
     -- * Exceptions
@@ -23,6 +24,7 @@ import Pythia.Class.Printer
 import Pythia.Control.Exception
 import Pythia.Services.Battery
 import Pythia.Services.GlobalIp
+import Pythia.Services.Memory
 import Pythia.Services.NetInterface
 
 -- $services

@@ -5,19 +5,24 @@ module Main (main) where
 
 import Args
   ( BatteryField (..),
+    MemoryField (..),
     NetConnField (..),
     NetInterfaceField (..),
     PythiaCommand (..),
     These (..),
     parserInfo,
   )
+import ByteTypes.Bytes qualified as Bytes
 import Data.Text qualified as T
+import Numeric.Algebra (AGroup ((.-.)))
 import Options.Applicative qualified as OApp
 import Pythia
   ( BatteryConfig,
     Device,
     GlobalIpConfig (..),
     IpType (..),
+    Memory (..),
+    MemoryConfig (..),
     NetInterface (..),
     NetInterfaceConfig,
     NetInterfaces (..),
@@ -35,6 +40,7 @@ main = do
   cmd <- OApp.execParser parserInfo
   case cmd of
     BatteryCmd cfg field -> handleBattery cfg field
+    MemoryCmd cfg field -> handleMemory cfg field
     NetInterfaceCmd cfg device field -> handleNetInterface cfg device field
     NetConnCmd cfg field -> handleNetConn cfg field
     NetIpGlobalCmd cfg -> handleGlobalIp cfg
@@ -49,6 +55,21 @@ handleBattery cfg mfield = do
   where
     toField BatteryFieldPercentage = Pythia.pretty . view #percentage
     toField BatteryFieldStatus = Pythia.pretty . view #status
+
+handleMemory :: MemoryConfig -> Maybe MemoryField -> IO ()
+handleMemory cfg mfield = do
+  result <- Pythia.queryMemory cfg
+  putStrLn $ T.unpack $ prettyMem result
+  where
+    prettyMem :: Memory -> Text
+    prettyMem = maybe pretty toField mfield
+
+    toField :: MemoryField -> Memory -> Text
+    toField MemoryFieldTotal m = toTxt #total m
+    toField MemoryFieldUsed m = toTxt #used m
+    toField MemoryFieldFree m = T.pack $ Bytes.pretty $ Bytes.normalize $ (m ^. #total) .-. (m ^. #used)
+
+    toTxt getter = T.pack . Bytes.pretty . Bytes.normalize . view getter
 
 handleNetInterface :: NetInterfaceConfig -> Maybe Device -> Maybe NetInterfaceField -> IO ()
 handleNetInterface cfg mdevice field = do
