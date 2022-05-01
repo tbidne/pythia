@@ -22,7 +22,7 @@ import Numeric.Algebra (ASemigroup (..))
 import Numeric.Data.NonNegative qualified as NN
 import Pythia.Control.Exception (fromExceptionViaPythia, toExceptionViaPythia)
 import Pythia.Prelude
-import Pythia.Services.Memory.Types (Memory (..))
+import Pythia.Services.Memory.Types (Memory (..), SystemMemory (..))
 import Pythia.ShellApp (SimpleShell (..))
 import Pythia.ShellApp qualified as ShellApp
 import Pythia.Utils (Pretty (..))
@@ -87,7 +87,7 @@ instance Exception FreeException where
 --       the command, or we have a parse error).
 --
 -- @since 0.1
-memoryShellApp :: MonadUnliftIO m => m Memory
+memoryShellApp :: MonadUnliftIO m => m SystemMemory
 memoryShellApp = ShellApp.runSimple shell
   where
     shell =
@@ -107,28 +107,28 @@ supported = U.exeSupported "free"
 -- | Attempts to parse the output of free.
 --
 -- @since 0.1
-parseMemory :: Text -> Either FreeException Memory
+parseMemory :: Text -> Either FreeException SystemMemory
 parseMemory txt = case U.foldAlt parseLine ts of
   Nothing -> Left $ FreeParseException $ "Could not parse memory input: " <> txt
   Just mem -> Right mem
   where
     ts = T.lines txt
 
-parseLine :: Text -> Maybe Memory
+parseLine :: Text -> Maybe SystemMemory
 parseLine ln = case MP.parse mparseMemory "Memory.hs" ln of
   Right mem -> Just mem
   Left _ -> Nothing
 
 type MParser = Parsec Void Text
 
-mparseMemory :: MParser Memory
+mparseMemory :: MParser SystemMemory
 mparseMemory = do
   MPC.string' "Mem:"
   total <- parseBytes
   used <- parseBytes
   parseBytes
   shared <- parseBytes
-  pure $ MkMemory (MkBytes total) (MkBytes (used .+. shared))
+  pure $ MkSystemMemory (MkMemory (MkBytes total)) (MkMemory (MkBytes (used .+. shared)))
   where
     parseBytes = do
       MPC.space1

@@ -7,6 +7,7 @@ module Pythia.Services.Memory
 
     -- * Types
     Memory (..),
+    SystemMemory (..),
 
     -- ** Configuration
     MemoryConfig (..),
@@ -26,6 +27,7 @@ import Pythia.Services.Memory.Types
   ( Memory (..),
     MemoryApp (..),
     MemoryConfig (..),
+    SystemMemory (..),
   )
 import Pythia.ShellApp (AppAction (..))
 import Pythia.ShellApp qualified as ShellApp
@@ -43,7 +45,7 @@ import Pythia.ShellApp qualified as ShellApp
 -- encountered (e.g. running a command or parse error).
 --
 -- @since 0.1
-queryMemory :: MonadUnliftIO m => MemoryConfig -> m Memory
+queryMemory :: MonadUnliftIO m => MemoryConfig -> m SystemMemory
 queryMemory config =
   case config ^. #memoryApp of
     Many -> ShellApp.tryAppActions allApps
@@ -53,5 +55,5 @@ queryMemory config =
       [ MkAppAction (toShellApp MemoryFree) Free.supported (showt MemoryFree)
       ]
 
-toShellApp :: MonadUnliftIO m => MemoryApp -> m Memory
+toShellApp :: MonadUnliftIO m => MemoryApp -> m SystemMemory
 toShellApp MemoryFree = Free.memoryShellApp

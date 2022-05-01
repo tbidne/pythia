@@ -7,7 +7,7 @@ import Data.Bytes (Bytes (..))
 import Data.Text qualified as T
 import Numeric.Data.NonNegative qualified as NN
 import Pythia.Services.Memory.Free qualified as Free
-import Pythia.Services.Memory.Types (Memory (..))
+import Pythia.Services.Memory.Types (Memory (..), SystemMemory (..))
 import Unit.Prelude
 
 tests :: TestTree
@@ -21,9 +21,9 @@ parseFree = testCase "Parses free output" $ do
   let result = Free.parseMemory freeTxt
   Just expected @=? result ^? _Right
   where
-    total = MkBytes $ NN.unsafeNonNegative 16176768
-    used = MkBytes $ NN.unsafeNonNegative $ 3549664 + 2276344
-    expected = MkMemory total used
+    total = MkMemory $ MkBytes $ NN.unsafeNonNegative 16176768
+    used = MkMemory $ MkBytes $ NN.unsafeNonNegative $ 3549664 + 2276344
+    expected = MkSystemMemory total used
     freeTxt =
       T.unlines
         [ "              total        used        free      shared  buff/cache   available",

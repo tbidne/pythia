@@ -121,12 +121,10 @@ executable pythia
   other-modules:    Args
   build-depends:
     , base
-    , byte-types
     , gitrev                >=1.2.0    && <1.4
     , optparse-applicative  >=0.16.1.0 && <0.18
     , package-version       ^>=0.1.0.0
     , pythia
-    , smart-math
     , text
 
   hs-source-dirs:   app

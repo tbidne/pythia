@@ -12,26 +12,25 @@ import Args
     These (..),
     parserInfo,
   )
-import Data.Bytes qualified as Bytes
 import Data.Text qualified as T
-import Numeric.Data.NonNegative qualified as NN
 import Options.Applicative qualified as OApp
 import Pythia
   ( BatteryConfig,
     Device,
     GlobalIpConfig (..),
     IpType (..),
-    Memory (..),
     MemoryConfig (..),
     NetInterface (..),
     NetInterfaceConfig,
     NetInterfaces (..),
+    SystemMemory (..),
     UrlSource (..),
   )
 import Pythia qualified
 import Pythia.Prelude
 import Pythia.Utils (Doc, Pretty (..))
 import Pythia.Utils qualified as U
+import Pythia.Services.Memory.Types (diffMemory)
 
 -- | Runs the executable.
 --
@@ -62,16 +61,16 @@ handleMemory cfg mfield = do
   result <- Pythia.queryMemory cfg
   putStrLn $ T.unpack $ prettyMem result
   where
-    prettyMem :: Memory -> Text
+    prettyMem :: SystemMemory -> Text
     prettyMem = maybe U.prettyToText toField mfield
 
-    toField :: MemoryField -> Memory -> Text
+    toField :: MemoryField -> SystemMemory -> Text
     toField MemoryFieldTotal m = toTxt #total m
     toField MemoryFieldUsed m = toTxt #used m
-    toField MemoryFieldFree m = U.prettyToText $ t - u
+    toField MemoryFieldFree m = U.prettyToText $ diffMemory t u
       where
-        t = NN.unNonNegative $ Bytes.unBytes $ m ^. #total
-        u = NN.unNonNegative $ Bytes.unBytes $ m ^. #used
+        t = m ^. #total
+        u = m ^. #used
 
     toTxt getter = U.prettyToText . view getter
 
