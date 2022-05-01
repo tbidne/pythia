@@ -112,9 +112,9 @@ instance Pretty CommandException where
 -- >>> let ex1 = toException $ MkCommandException "some command" "an error message"
 -- >>> let ex2 = toException $ MkNotSupportedException "app1"
 -- >>> putStrLn $ displayException $ MkSomeExceptions $ ex1 :| [ex2]
--- Found 2 exception(s):
---   - Command exception. Command: <some command>. Error: <an error message>
---   - App not supported: <app1>
+-- Found 2 exception(s)
+-- - Command exception. Command: <some command>. Error: <an error message>
+-- - App not supported: <app1>
 --
 -- @since 0.1
 newtype SomeExceptions = MkSomeExceptions

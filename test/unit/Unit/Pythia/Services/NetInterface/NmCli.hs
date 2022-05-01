@@ -78,8 +78,8 @@ wifiP2p =
     (Just Wifi_P2P)
     Down
     Nothing
-    (MkIpAddresses [])
-    (MkIpAddresses [])
+    mempty
+    mempty
 
 ethernet :: NetInterface
 ethernet =
@@ -88,8 +88,8 @@ ethernet =
     (Just Ethernet)
     Down
     Nothing
-    (MkIpAddresses [])
-    (MkIpAddresses [])
+    mempty
+    mempty
 
 loopback :: NetInterface
 loopback =
@@ -108,7 +108,7 @@ vpn =
     (Just Tun)
     (UnknownState "(unmanaged)")
     Nothing
-    (MkIpAddresses [])
+    mempty
     (MkIpAddresses [unsafeIpAddress "fe80::a63f:791a:3eaa:9d86"])
 
 netinfo :: Text

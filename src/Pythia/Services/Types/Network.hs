@@ -245,5 +245,13 @@ newtype IpAddresses a = MkIpAddresses
 makeFieldLabelsNoPrefix ''IpAddresses
 
 -- | @since 0.1
+instance Semigroup (IpAddresses a) where
+  MkIpAddresses xs <> MkIpAddresses ys = MkIpAddresses (xs <> ys)
+
+-- | @since 0.1
+instance Monoid (IpAddresses a) where
+  mempty = MkIpAddresses []
+
+-- | @since 0.1
 instance Pretty (IpAddresses a) where
   pretty = U.hsep . U.punctuate U.comma . fmap pretty . view #unIpAddresses

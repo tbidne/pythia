@@ -139,12 +139,12 @@ findDevice device = throwMaybe e . headMaybe . unNetInterfaces . filterDevice de
 -- Nothing
 --
 -- >>> :{
---   let wifiUp = MkNetInterface "" (Just Wifi) Up (Just "WifiUp") [] []
---       wifiDown = MkNetInterface "" (Just Wifi) Down (Just "WifiDown") [] []
---       loopUp = MkNetInterface "" (Just Loopback) Up (Just "LoopUp") [] []
+--   let wifiUp = MkNetInterface "" (Just Wifi) Up (Just "WifiUp") mempty mempty
+--       wifiDown = MkNetInterface "" (Just Wifi) Down (Just "WifiDown") mempty mempty
+--       loopUp = MkNetInterface "" (Just Loopback) Up (Just "LoopUp") mempty mempty
 --    in findUp $ MkNetInterfaces [loopUp, wifiDown, wifiUp]
 -- :}
--- Just (MkNetInterface {idevice = MkDevice {unDevice = ""}, itype = Just Wifi, istate = Up, iname = Just "WifiUp", ipv4s = [], ipv6s = []})
+-- Just (MkNetInterface {idevice = MkDevice {unDevice = ""}, itype = Just Wifi, istate = Up, iname = Just "WifiUp", ipv4s = MkIpAddresses {unIpAddresses = []}, ipv6s = MkIpAddresses {unIpAddresses = []}})
 --
 -- @since 0.1
 findUp :: NetInterfaces -> Maybe NetInterface

@@ -27,7 +27,6 @@ files =
     "src/Pythia/Services/NetInterface/Types.hs",
     "src/Pythia/Services/Types/Network.hs",
     "src/Pythia/Data/RunApp.hs",
-    "src/Pythia/Class/Printer.hs",
     "src/Pythia/Utils.hs"
   ]
 
