@@ -36,7 +36,6 @@ import Options.Applicative
 import Options.Applicative qualified as OApp
 import Options.Applicative.Help (Chunk (..))
 import Options.Applicative.Types (ArgPolicy (..))
-import Pythia qualified
 import Pythia.Data.RunApp (RunApp (..))
 import Pythia.Prelude
 import Pythia.Services.Battery (BatteryApp (..), BatteryConfig (..))
@@ -48,6 +47,8 @@ import Pythia.Services.GlobalIp.Types
 import Pythia.Services.Memory (MemoryApp (..), MemoryConfig (..))
 import Pythia.Services.NetInterface (NetInterfaceApp (..), NetInterfaceConfig (..))
 import Pythia.Services.Types.Network (Device (..), IpType (..))
+import Pythia.Utils (Pretty (..), (<+>))
+import Pythia.Utils qualified as U
 
 -- | So we don't have to add @these@.
 --
@@ -164,12 +165,14 @@ version = OApp.infoOption txt (OApp.long "version" <> OApp.short 'v')
   where
     txt =
       T.unpack $
-        Pythia.joinNewlines
-          [ "Pythia",
-            "Version: " <> $$(PV.packageVersionStringTH "pythia.cabal"),
-            "Revision: " <> $(GitRev.gitHash),
-            "Date: " <> $(GitRev.gitCommitDate)
-          ]
+        toText $
+          U.vsep
+            [ pretty @Text "Pythia",
+              pretty @Text "Version:" <+> pretty $$(PV.packageVersionTextTH "pythia.cabal"),
+              pretty @Text "Revision:" <+> pretty @Text $(GitRev.gitHash),
+              pretty @Text "Date:" <+> pretty @Text $(GitRev.gitCommitDate)
+            ]
+    toText = U.renderStrict . U.layoutCompact
 
 parseBattery :: Parser PythiaCommand
 parseBattery = do

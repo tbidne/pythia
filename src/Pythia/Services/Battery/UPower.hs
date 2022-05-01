@@ -20,7 +20,6 @@ import Data.Char qualified as Char
 import Data.Set qualified as Set
 import Data.Text qualified as T
 import Numeric.Data.Interval qualified as Interval
-import Pythia.Class.Printer (PrettyPrinter (..))
 import Pythia.Control.Exception (fromExceptionViaPythia, toExceptionViaPythia)
 import Pythia.Prelude
 import Pythia.Services.Battery.Types
@@ -30,6 +29,7 @@ import Pythia.Services.Battery.Types
   )
 import Pythia.ShellApp (SimpleShell (..))
 import Pythia.ShellApp qualified as ShellApp
+import Pythia.Utils (Pretty (..))
 import Pythia.Utils qualified as U
 import Text.Megaparsec (ErrorFancy (..), Parsec)
 import Text.Megaparsec qualified as MP
@@ -81,18 +81,27 @@ makePrismLabels ''UPowerException
 deriving stock instance Show UPowerException
 
 -- | @since 0.1
-instance PrettyPrinter UPowerException where
-  pretty (UPowerGeneralException e) = "UPower exception: <" <> T.pack (displayException e) <> ">"
+instance Pretty UPowerException where
+  pretty (UPowerGeneralException e) =
+    pretty @Text "UPower exception: <"
+      <> pretty (displayException e)
+      <> pretty @Text ">"
   pretty (UPowerNoPercentage s) =
-    "UPower parse error. No percentage found in output: <" <> s <> ">"
+    pretty @Text "UPower parse error. No percentage found in output: <"
+      <> pretty s
+      <> pretty @Text ">"
   pretty (UPowerNoStatus s) =
-    "UPower parse error. No status found in output: <" <> s <> ">"
+    pretty @Text "UPower parse error. No status found in output: <"
+      <> pretty s
+      <> pretty @Text ">"
   pretty (UPowerNoPercentageNorStatus s) =
-    "UPower parse error. No percentage nor status found in output: <" <> s <> ">"
+    pretty @Text "UPower parse error. No percentage nor status found in output: <"
+      <> pretty s
+      <> pretty @Text ">"
 
 -- | @since 0.1
 instance Exception UPowerException where
-  displayException = T.unpack . pretty
+  displayException = T.unpack . U.prettyToText
   toException = toExceptionViaPythia
   fromException = fromExceptionViaPythia
 

@@ -8,6 +8,7 @@ module Pythia.Services.Types.Network
   ( -- * IP Types
     IpType (..),
     IpAddress (..),
+    IpAddresses (..),
 
     -- ** Refinements
     IpRefinement,
@@ -22,8 +23,9 @@ where
 import Data.Char qualified as Char
 import Data.Text qualified as T
 import Data.Typeable (typeRep)
-import Pythia.Class.Printer (PrettyPrinter (..))
 import Pythia.Prelude
+import Pythia.Utils (Pretty (..))
+import Pythia.Utils qualified as U
 import Refined (Predicate, Refined)
 import Refined qualified as R
 
@@ -56,7 +58,7 @@ newtype Device = MkDevice
     ( -- | @since 0.1
       IsString,
       -- | @since 0.1
-      PrettyPrinter
+      Pretty
     )
     via Text
   deriving anyclass
@@ -213,8 +215,35 @@ newtype IpAddress a = MkIpAddress
     )
 
 -- | @since 0.1
-instance PrettyPrinter (IpAddress a) where
-  pretty = R.unrefine . unIpAddress
+instance Pretty (IpAddress a) where
+  pretty = pretty . R.unrefine . unIpAddress
 
 -- | @since 0.1
 makeFieldLabelsNoPrefix ''IpAddress
+
+-- | @since 0.1
+type IpAddresses :: IpType -> Type
+newtype IpAddresses a = MkIpAddresses
+  { unIpAddresses :: [IpAddress a]
+  }
+  deriving stock
+    ( -- | @since 0.1
+      Eq,
+      -- | @since 0.1
+      Generic,
+      -- | @since 0.1
+      Ord,
+      -- | @since 0.1
+      Show
+    )
+  deriving anyclass
+    ( -- | @since 0.1
+      NFData
+    )
+
+-- | @since 0.1
+makeFieldLabelsNoPrefix ''IpAddresses
+
+-- | @since 0.1
+instance Pretty (IpAddresses a) where
+  pretty = U.hsep . U.punctuate U.comma . fmap pretty . view #unIpAddresses

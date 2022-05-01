@@ -17,7 +17,6 @@ where
 
 import Data.Text qualified as T
 import Numeric.Data.Interval qualified as Interval
-import Pythia.Class.Printer (PrettyPrinter (..))
 import Pythia.Control.Exception (fromExceptionViaPythia, toExceptionViaPythia)
 import Pythia.Prelude
 import Pythia.Services.Battery.Types
@@ -25,6 +24,8 @@ import Pythia.Services.Battery.Types
     BatteryPercentage (..),
     BatteryStatus (..),
   )
+import Pythia.Utils (Pretty (..))
+import Pythia.Utils qualified as U
 import System.Directory qualified as Dir
 import System.FilePath ((</>))
 import Text.Read qualified as TR
@@ -82,26 +83,34 @@ makePrismLabels ''SysFsException
 deriving stock instance Show SysFsException
 
 -- | @since 0.1
-instance PrettyPrinter SysFsException where
+instance Pretty SysFsException where
   pretty SysFsDirNotFound =
-    "SysFs exception: Could not find either dir: " <> T.pack sysDir
-      <> ", "
-      <> T.pack sysfsDir
+    pretty @Text "SysFs exception: Could not find either dir: "
+      <> pretty sysDir
+      <> pretty @Text ", "
+      <> pretty sysfsDir
   pretty SysFsBatteryDirNotFound =
-    "SysFs exception: Could not find BAT[0-5]? subdirectory under"
-      <> " /sys(fs)/class/power_supply"
+    pretty @Text $
+      "SysFs exception: Could not find BAT[0-5]? subdirectory under"
+        <> " /sys(fs)/class/power_supply"
   pretty (SysFsFileNotFound f) =
-    "SysFs exception: Could not find file: <" <> f <> ">"
+    pretty @Text "SysFs exception: Could not find file: <"
+      <> pretty f
+      <> pretty @Text ">"
   pretty (SysFsBatteryParseException e) =
-    "SysFs parse error: <" <> e <> ">"
+    pretty @Text "SysFs parse error: <"
+      <> pretty e
+      <> pretty @Text ">"
   pretty (SysFsReadFileException fp e) =
-    "SysFs read file <" <> fp <> "> exception: <"
-      <> T.pack (displayException e)
-      <> ">"
+    pretty @Text "SysFs read file <"
+      <> pretty fp
+      <> pretty @Text "> exception: <"
+      <> pretty (displayException e)
+      <> pretty @Text ">"
 
 -- | @since 0.1
 instance Exception SysFsException where
-  displayException = T.unpack . pretty
+  displayException = T.unpack . U.prettyToText
   toException = toExceptionViaPythia
   fromException = fromExceptionViaPythia
 

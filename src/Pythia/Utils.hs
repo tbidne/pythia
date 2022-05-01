@@ -1,3 +1,5 @@
+{-# LANGUAGE CPP #-}
+
 -- | This module provides common utilities.
 --
 -- @since 0.1
@@ -12,6 +14,18 @@ module Pythia.Utils
     takeLine_,
     exeSupported,
 
+    -- * Pretty Printing
+    Pretty (..),
+    Pretty.Doc,
+    (<+>),
+    Pretty.comma,
+    Pretty.punctuate,
+    Pretty.hsep,
+    Pretty.vsep,
+    Pretty.layoutCompact,
+    PrettyText.renderStrict,
+    prettyToText,
+
     -- * Miscellaneous
     headMaybe,
     eitherToBool,
@@ -19,6 +33,15 @@ module Pythia.Utils
 where
 
 import Data.Maybe qualified as May
+#if !MIN_VERSION_prettyprinter(1, 7, 1)
+import Data.Text.Prettyprint.Doc (Pretty (..), (<+>))
+import Data.Text.Prettyprint.Doc qualified as Pretty
+import Data.Text.Prettyprint.Doc.Render.Text qualified as PrettyText
+#else
+import Prettyprinter (Pretty (..), (<+>))
+import Prettyprinter qualified as Pretty
+import Prettyprinter.Render.Text qualified as PrettyText
+#endif
 import Pythia.Prelude
 import System.Directory qualified as Dir
 import Text.Megaparsec (Parsec, Stream, Token, Tokens)
@@ -124,3 +147,9 @@ eitherToBool = either (const False) (const True)
 -- @since 0.1
 exeSupported :: MonadIO m => String -> m Bool
 exeSupported exeName = liftIO $ May.isJust <$> Dir.findExecutable exeName
+
+-- | Converts a type with a 'Pretty' instance to 'Text'.
+--
+-- @since 0.1
+prettyToText :: Pretty a => a -> Text
+prettyToText = PrettyText.renderStrict . Pretty.layoutCompact . pretty

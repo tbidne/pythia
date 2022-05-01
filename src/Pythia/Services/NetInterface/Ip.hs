@@ -19,7 +19,6 @@ where
 import Data.Char qualified as Char
 import Data.Set qualified as Set
 import Data.Text qualified as T
-import Pythia.Class.Printer (PrettyPrinter (..))
 import Pythia.Control.Exception (fromExceptionViaPythia, toExceptionViaPythia)
 import Pythia.Prelude
 import Pythia.Services.NetInterface.Types
@@ -27,9 +26,15 @@ import Pythia.Services.NetInterface.Types
     NetInterfaceState (..),
     NetInterfaces (..),
   )
-import Pythia.Services.Types.Network (Device (..), IpAddress (..), IpType (..))
+import Pythia.Services.Types.Network
+  ( Device (..),
+    IpAddress (..),
+    IpAddresses (..),
+    IpType (..),
+  )
 import Pythia.ShellApp (SimpleShell (..))
 import Pythia.ShellApp qualified as ShellApp
+import Pythia.Utils (Pretty (..))
 import Pythia.Utils qualified as U
 import Refined (Predicate, Refined)
 import Refined qualified as R
@@ -68,13 +73,19 @@ makePrismLabels ''IpException
 deriving stock instance Show IpException
 
 -- | @since 0.1
-instance PrettyPrinter IpException where
-  pretty (IpGeneralException e) = "Ip exception: <" <> T.pack (displayException e) <> ">"
-  pretty (IpParseException s) = "Ip parse exception: <" <> s <> ">"
+instance Pretty IpException where
+  pretty (IpGeneralException e) =
+    pretty @Text "Ip exception: <"
+      <> pretty (displayException e)
+      <> pretty @Text ">"
+  pretty (IpParseException s) =
+    pretty @Text "Ip parse exception: <"
+      <> pretty s
+      <> pretty @Text ">"
 
 -- | @since 0.1
 instance Exception IpException where
-  displayException = T.unpack . pretty
+  displayException = T.unpack . U.prettyToText
   toException = toExceptionViaPythia
   fromException = fromExceptionViaPythia
 
@@ -138,8 +149,8 @@ parseInterface = do
         itype = Nothing,
         istate = state',
         iname = Nothing,
-        ipv4s = ipv4s',
-        ipv6s = ipv6s'
+        ipv4s = MkIpAddresses ipv4s',
+        ipv6s = MkIpAddresses ipv6s'
       }
 
 parseLink :: MParser ()

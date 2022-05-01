@@ -15,15 +15,17 @@ module Pythia.Services.Memory.Free
   )
 where
 
-import ByteTypes.Bytes (Bytes (..))
+import Data.Bytes (Bytes (..))
 import Data.Char qualified as Char
 import Data.Text qualified as T
-import Pythia.Class.Printer (PrettyPrinter (..))
+import Numeric.Algebra (ASemigroup (..))
+import Numeric.Data.NonNegative qualified as NN
 import Pythia.Control.Exception (fromExceptionViaPythia, toExceptionViaPythia)
 import Pythia.Prelude
 import Pythia.Services.Memory.Types (Memory (..))
 import Pythia.ShellApp (SimpleShell (..))
 import Pythia.ShellApp qualified as ShellApp
+import Pythia.Utils (Pretty (..))
 import Pythia.Utils qualified as U
 import Text.Megaparsec (Parsec)
 import Text.Megaparsec qualified as MP
@@ -61,13 +63,19 @@ makePrismLabels ''FreeException
 deriving stock instance Show FreeException
 
 -- | @since 0.1
-instance PrettyPrinter FreeException where
-  pretty (FreeGeneralException e) = "Free exception: <" <> T.pack (displayException e) <> ">"
-  pretty (FreeParseException s) = "Free parse exception: <" <> s <> ">"
+instance Pretty FreeException where
+  pretty (FreeGeneralException e) =
+    pretty @Text "Free exception: <"
+      <> pretty (displayException e)
+      <> ">"
+  pretty (FreeParseException s) =
+    pretty @Text "Free parse exception: <"
+      <> pretty s
+      <> pretty @Text ">"
 
 -- | @since 0.1
 instance Exception FreeException where
-  displayException = T.unpack . pretty
+  displayException = T.unpack . U.prettyToText
   toException = toExceptionViaPythia
   fromException = fromExceptionViaPythia
 
@@ -120,10 +128,10 @@ mparseMemory = do
   used <- parseBytes
   parseBytes
   shared <- parseBytes
-  pure $ MkMemory (MkBytes total) (MkBytes (used + shared))
+  pure $ MkMemory (MkBytes total) (MkBytes (used .+. shared))
   where
     parseBytes = do
       MPC.space1
       num <- MP.takeWhile1P Nothing Char.isDigit
       maybe empty pure (readNat num)
-    readNat = TR.readMaybe . T.unpack
+    readNat = (NN.mkNonNegative <=< TR.readMaybe) . T.unpack

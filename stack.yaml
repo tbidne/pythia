@@ -5,11 +5,11 @@ packages:
 extra-deps:
 - package-version-0.1.0.0@sha256:bb9fc93e905540aa8e1b32f80c2dc82756a4481c63779bd92e3796ed8085ab98,2854
 - git: https://github.com/tbidne/algebra-simple.git
-  commit: 1b2bd9fd21ecf5ed6635cc5c14d06ab533950df3
+  commit: 2659ded1579b90fee73a56ff81beb42a90cdba5b
 - git: https://github.com/tbidne/byte-types.git
-  commit: 9f2894613a4ac8f4f704029e6b34073b1f2c88a8
+  commit: d3fe41a025f554e1fdd2fbd07b83567608fccec5
 - git: https://github.com/tbidne/smart-math.git
-  commit: 35e508b0e4272e32ba2841dccbcbb8294d4d546c
+  commit: 449a4560ce204e8bd3c8747f3af7ad2b514036fc
 
 flags:
   refined:

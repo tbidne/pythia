@@ -17,12 +17,16 @@ module Pythia.Services.NetInterface.Types
   )
 where
 
-import Pythia.Class.Printer (PrettyPrinter (..))
-import Pythia.Class.Printer qualified as Printer
 import Pythia.Data.RunApp (RunApp)
 import Pythia.Data.Supremum (Supremum (..))
 import Pythia.Prelude
-import Pythia.Services.Types.Network (Device, IpAddress (..), IpType (..))
+import Pythia.Services.Types.Network
+  ( Device,
+    IpAddresses (..),
+    IpType (..),
+  )
+import Pythia.Utils (Pretty (..), (<+>))
+import Pythia.Utils qualified as U
 
 -- | Determines how we should query the system for interface state information.
 --
@@ -126,13 +130,14 @@ data NetInterfaceType
     )
   deriving anyclass
     ( -- | @since 0.1
-      NFData,
-      -- | @since 0.1
-      PrettyPrinter
+      NFData
     )
 
 -- | @since 0.1
 makePrismLabels ''NetInterfaceType
+
+instance Pretty NetInterfaceType where
+  pretty = pretty . show
 
 -- | Various connection states.
 --
@@ -156,13 +161,14 @@ data NetInterfaceState
     )
   deriving anyclass
     ( -- | @since 0.1
-      NFData,
-      -- | @since 0.1
-      PrettyPrinter
+      NFData
     )
 
 -- | @since 0.1
 makePrismLabels ''NetInterfaceState
+
+instance Pretty NetInterfaceState where
+  pretty = pretty . show
 
 -- | Full connection data.
 --
@@ -179,9 +185,9 @@ data NetInterface = MkNetInterface
     -- @since 0.1
     iname :: Maybe Text,
     -- | @since 0.1
-    ipv4s :: [IpAddress 'Ipv4],
+    ipv4s :: IpAddresses 'Ipv4,
     -- | @since 0.1
-    ipv6s :: [IpAddress 'Ipv6]
+    ipv6s :: IpAddresses 'Ipv6
   }
   deriving stock
     ( -- | @since 0.1
@@ -202,9 +208,9 @@ data NetInterface = MkNetInterface
 makeFieldLabelsNoPrefix ''NetInterface
 
 -- | @since 0.1
-instance PrettyPrinter NetInterface where
+instance Pretty NetInterface where
   pretty netif =
-    Printer.joinNewlines
+    U.vsep
       [ device,
         ctype,
         state,
@@ -213,12 +219,12 @@ instance PrettyPrinter NetInterface where
         ipv6s
       ]
     where
-      device = "Device: " <> pretty (netif ^. #idevice)
-      ctype = "Type: " <> pretty (netif ^. #itype)
-      state = "State: " <> pretty (netif ^. #istate)
-      name = "Name: " <> pretty (netif ^. #iname)
-      ipv4s = "IPv4: " <> Printer.joinCommas (netif ^. #ipv4s)
-      ipv6s = "IPv6: " <> Printer.joinCommas (netif ^. #ipv6s)
+      device = "Device:" <+> pretty (netif ^. #idevice)
+      ctype = "Type:" <+> pretty (netif ^. #itype)
+      state = "State:" <+> pretty (netif ^. #istate)
+      name = "Name:" <+> pretty (netif ^. #iname)
+      ipv4s = "IPv4:" <+> pretty (netif ^. #ipv4s)
+      ipv6s = "IPv6:" <+> pretty (netif ^. #ipv6s)
 
 -- | @since 0.1
 newtype NetInterfaces = MkNetInterfaces
@@ -241,8 +247,8 @@ newtype NetInterfaces = MkNetInterfaces
     )
 
 -- | @since 0.1
-instance PrettyPrinter NetInterfaces where
-  pretty = Printer.joinX "\n\n" . unNetInterfaces
+instance Pretty NetInterfaces where
+  pretty = U.vsep . U.punctuate (U.pretty @Text "\n") . fmap pretty . unNetInterfaces
 
 -- | @since 0.1
 makeFieldLabelsNoPrefix ''NetInterfaces

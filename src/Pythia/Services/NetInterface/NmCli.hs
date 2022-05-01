@@ -19,7 +19,6 @@ where
 import Data.Char qualified as Char
 import Data.Set qualified as Set
 import Data.Text qualified as T
-import Pythia.Class.Printer (PrettyPrinter (..))
 import Pythia.Control.Exception (fromExceptionViaPythia, toExceptionViaPythia)
 import Pythia.Prelude
 import Pythia.Services.NetInterface.Types
@@ -28,9 +27,15 @@ import Pythia.Services.NetInterface.Types
     NetInterfaceType (..),
     NetInterfaces (..),
   )
-import Pythia.Services.Types.Network (Device (..), IpAddress (..), IpType (..))
+import Pythia.Services.Types.Network
+  ( Device (..),
+    IpAddress (..),
+    IpAddresses (..),
+    IpType (..),
+  )
 import Pythia.ShellApp (SimpleShell (..))
 import Pythia.ShellApp qualified as ShellApp
+import Pythia.Utils (Pretty (..))
 import Pythia.Utils qualified as U
 import Refined (Predicate, Refined)
 import Refined qualified as R
@@ -69,13 +74,19 @@ makePrismLabels ''NmCliException
 deriving stock instance Show NmCliException
 
 -- | @since 0.1
-instance PrettyPrinter NmCliException where
-  pretty (NmCliGeneralException e) = "NmCli exception: <" <> T.pack (displayException e) <> ">"
-  pretty (NmCliParseException s) = "NmCli parse exception: <" <> s <> ">"
+instance Pretty NmCliException where
+  pretty (NmCliGeneralException e) =
+    pretty @Text "NmCli exception: <"
+      <> pretty (displayException e)
+      <> pretty @Text ">"
+  pretty (NmCliParseException s) =
+    pretty @Text "NmCli parse exception: <"
+      <> pretty s
+      <> pretty @Text ">"
 
 -- | @since 0.1
 instance Exception NmCliException where
-  displayException = T.unpack . pretty
+  displayException = T.unpack . U.prettyToText
   toException = toExceptionViaPythia
   fromException = fromExceptionViaPythia
 
@@ -138,8 +149,8 @@ parseInterface = do
         itype = Just type',
         istate = state',
         iname = name',
-        ipv4s = ipv4s',
-        ipv6s = ipv6s'
+        ipv4s = MkIpAddresses ipv4s',
+        ipv6s = MkIpAddresses ipv6s'
       }
 
 parseDevice :: MParser Device

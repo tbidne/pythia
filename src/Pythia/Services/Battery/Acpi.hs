@@ -20,7 +20,6 @@ import Data.Char qualified as Char
 import Data.Set qualified as Set
 import Data.Text qualified as T
 import Numeric.Data.Interval qualified as Interval
-import Pythia.Class.Printer (PrettyPrinter (..))
 import Pythia.Control.Exception (fromExceptionViaPythia, toExceptionViaPythia)
 import Pythia.Prelude
 import Pythia.Services.Battery.Types
@@ -30,6 +29,7 @@ import Pythia.Services.Battery.Types
   )
 import Pythia.ShellApp (SimpleShell (..))
 import Pythia.ShellApp qualified as ShellApp
+import Pythia.Utils (Pretty (..))
 import Pythia.Utils qualified as U
 import Text.Megaparsec (ErrorFancy (..), Parsec, (<?>))
 import Text.Megaparsec qualified as MP
@@ -68,13 +68,19 @@ makePrismLabels ''AcpiException
 deriving stock instance Show AcpiException
 
 -- | @since 0.1
-instance PrettyPrinter AcpiException where
-  pretty (AcpiGeneralException e) = "Acpi exception: <" <> T.pack (displayException e) <> ">"
-  pretty (AcpiParseException s) = "Acpi parse exception: <" <> s <> ">"
+instance Pretty AcpiException where
+  pretty (AcpiGeneralException e) =
+    pretty @Text "Acpi exception: <"
+      <> pretty (displayException e)
+      <> pretty @Text ">"
+  pretty (AcpiParseException s) =
+    pretty @Text "Acpi parse exception: <"
+      <> pretty s
+      <> pretty @Text ">"
 
 -- | @since 0.1
 instance Exception AcpiException where
-  displayException = T.unpack . pretty
+  displayException = T.unpack . U.prettyToText
   toException = toExceptionViaPythia
   fromException = fromExceptionViaPythia
 

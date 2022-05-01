@@ -69,7 +69,6 @@ library
   import:           common-exts
   exposed-modules:
     Pythia
-    Pythia.Class.Printer
     Pythia.Control.Exception
     Pythia.Data.Command
     Pythia.Data.RunApp
@@ -95,21 +94,23 @@ library
 
   ghc-options:      -Wunused-packages
   build-depends:
-    , base           >=4.14.1.0  && <4.17
-    , byte-types     ^>=0.1
-    , bytestring     >=0.10.10.0 && <0.12
-    , containers     ^>=0.6.2.1
-    , deepseq        ^>=1.4.4.0
-    , directory      ^>=1.3.5.0
-    , filepath       ^>=1.4.2.1
-    , megaparsec     >=7.0.5     && <9.3
-    , optics-core    ^>=0.4
-    , optics-th      ^>=0.4
-    , refined        ^>=0.6
-    , smart-math     ^>=0.1
-    , text           ^>=1.2.3.2
-    , typed-process  >=0.1.0.0   && <0.3
-    , unliftio       ^>=0.2.0.0
+    , algebra-simple  ^>=0.1
+    , base            >=4.14.1.0  && <4.17
+    , byte-types      ^>=0.1
+    , bytestring      >=0.10.10.0 && <0.12
+    , containers      ^>=0.6.2.1
+    , deepseq         ^>=1.4.4.0
+    , directory       ^>=1.3.5.0
+    , filepath        ^>=1.4.2.1
+    , megaparsec      >=7.0.5     && <9.3
+    , optics-core     ^>=0.4
+    , optics-th       ^>=0.4
+    , prettyprinter   >=1.4.0     && <1.8
+    , refined         ^>=0.6
+    , smart-math      ^>=0.1
+    , text            ^>=1.2.3.2
+    , typed-process   >=0.1.0.0   && <0.3
+    , unliftio        ^>=0.2.0.0
 
   hs-source-dirs:   src
   default-language: Haskell2010
@@ -119,13 +120,13 @@ executable pythia
   main-is:          Main.hs
   other-modules:    Args
   build-depends:
-    , algebra-simple
     , base
     , byte-types
     , gitrev                >=1.2.0    && <1.4
     , optparse-applicative  >=0.16.1.0 && <0.18
     , package-version       ^>=0.1.0.0
     , pythia
+    , smart-math
     , text
 
   hs-source-dirs:   app

@@ -17,11 +17,10 @@ module Pythia.Services.Battery.Types
 where
 
 import Numeric.Data.Interval (LRInterval)
-import Numeric.Data.Interval qualified as Interval
-import Pythia.Class.Printer (PrettyPrinter (..))
 import Pythia.Data.RunApp (RunApp)
 import Pythia.Data.Supremum (Supremum (..))
 import Pythia.Prelude
+import Pythia.Utils (Pretty (..), (<+>))
 
 -- | Determines how we should query the system for battery state information.
 --
@@ -124,13 +123,15 @@ data BatteryStatus
     )
   deriving anyclass
     ( -- | @since 0.1
-      NFData,
-      -- | @since 0.1
-      PrettyPrinter
+      NFData
     )
 
 -- | @since 0.1
 makePrismLabels ''BatteryStatus
+
+-- | @since 0.1
+instance Pretty BatteryStatus where
+  pretty = pretty . show
 
 -- | Represents battery percentages.
 --
@@ -158,8 +159,8 @@ newtype BatteryPercentage = MkBatteryPercentage
 makeFieldLabelsNoPrefix ''BatteryPercentage
 
 -- | @since 0.1
-instance PrettyPrinter BatteryPercentage where
-  pretty (MkBatteryPercentage p) = showt (Interval.unLRInterval p) <> "%"
+instance Pretty BatteryPercentage where
+  pretty (MkBatteryPercentage p) = pretty p <> pretty @Text "%"
 
 -- | Full battery state, including percentage and status data.
 --
@@ -187,8 +188,11 @@ data Battery = MkBattery
 makeFieldLabelsNoPrefix ''Battery
 
 -- | @since 0.1
-instance PrettyPrinter Battery where
-  pretty bs = status <> ": " <> percentage
+instance Pretty Battery where
+  pretty bs =
+    status
+      <> pretty @Text ":"
+      <+> percentage
     where
       status = pretty $ bs ^. #status
       percentage = pretty $ bs ^. #percentage

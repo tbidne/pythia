@@ -35,7 +35,6 @@ where
 
 import Data.Text qualified as T
 import GHC.OldList qualified as OL
-import Pythia.Class.Printer (PrettyPrinter (..))
 import Pythia.Control.Exception (fromExceptionViaPythia, toExceptionViaPythia)
 import Pythia.Data.RunApp (RunApp (..))
 import Pythia.Prelude
@@ -54,6 +53,8 @@ import Pythia.Services.NetInterface.Types
 import Pythia.Services.Types.Network (Device (..), IpAddress (..), IpType (..))
 import Pythia.ShellApp (AppAction (..))
 import Pythia.ShellApp qualified as ShellApp
+import Pythia.Utils (Pretty (..))
+import Pythia.Utils qualified as U
 
 -- | Exception for when we cannot find a desired device.
 --
@@ -77,12 +78,15 @@ newtype DeviceNotFoundException = MkDeviceNotFoundException
 makeFieldLabelsNoPrefix ''DeviceNotFoundException
 
 -- | @since 0.1
-instance PrettyPrinter DeviceNotFoundException where
-  pretty (MkDeviceNotFoundException d) = "Device not found: <" <> pretty d <> ">"
+instance Pretty DeviceNotFoundException where
+  pretty (MkDeviceNotFoundException d) =
+    pretty @Text "Device not found: <"
+      <> pretty d
+      <> pretty @Text ">"
 
 -- | @since 0.1
 instance Exception DeviceNotFoundException where
-  displayException = T.unpack . pretty
+  displayException = T.unpack . U.prettyToText
   toException = toExceptionViaPythia
   fromException = fromExceptionViaPythia
 

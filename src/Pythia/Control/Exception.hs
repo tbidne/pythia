@@ -22,20 +22,16 @@ import Data.List.NonEmpty (NonEmpty (..))
 import Data.List.NonEmpty qualified as NE
 import Data.Text qualified as T
 import Data.Typeable (cast)
-import Pythia.Class.Printer (PrettyPrinter (..))
-import Pythia.Class.Printer qualified as Printer
 import Pythia.Data.Command (Command (..))
 import Pythia.Prelude
+import Pythia.Utils (Pretty (..), (<+>))
+import Pythia.Utils qualified as U
 
 -- | All specific exceptions thrown by pythia are subtypes of
 -- 'PythiaException'.
 --
 -- @since 0.1
 data PythiaException = forall e. Exception e => MkPythiaException e
-  deriving anyclass
-    ( -- | @since 0.1
-      PrettyPrinter
-    )
 
 -- | @since 0.1
 deriving stock instance Show PythiaException
@@ -43,6 +39,10 @@ deriving stock instance Show PythiaException
 -- | @since 0.1
 instance Exception PythiaException where
   displayException (MkPythiaException e) = displayException e
+
+-- | @since 0.1
+instance Pretty PythiaException where
+  pretty = pretty . displayException
 
 -- | 'toException' via 'PythiaException'. Used for defining an exception
 -- as a subtype of 'PythiaException'.
@@ -93,17 +93,18 @@ makeFieldLabelsNoPrefix ''CommandException
 
 -- | @since 0.1
 instance Exception CommandException where
-  displayException = T.unpack . pretty
+  displayException = T.unpack . U.prettyToText
   toException = toExceptionViaPythia
   fromException = fromExceptionViaPythia
 
 -- | @since 0.1
-instance PrettyPrinter CommandException where
+instance Pretty CommandException where
   pretty (MkCommandException (MkCommand c) s) =
-    "Command exception. Command: <" <> c <> ">"
-      <> ". Error: <"
-      <> s
-      <> ">"
+    pretty @String "Command exception. Command: <"
+      <> pretty c
+      <> pretty @String ">. Error: <"
+      <> pretty s
+      <> pretty @String ">"
 
 -- | Collects 1 or more exceptions.
 --
@@ -132,19 +133,16 @@ makeFieldLabelsNoPrefix ''SomeExceptions
 
 -- | @since 0.1
 instance Exception SomeExceptions where
-  displayException = T.unpack . pretty
+  displayException = T.unpack . U.prettyToText
   toException = toExceptionViaPythia
   fromException = fromExceptionViaPythia
 
 -- | @since 0.1
-instance PrettyPrinter SomeExceptions where
-  pretty (MkSomeExceptions xs) =
-    header <> delim
-      <> Printer.joinX delim (NE.toList $ fmap displayException xs)
+instance Pretty SomeExceptions where
+  pretty (MkSomeExceptions xs) = U.vsep (header : exes)
     where
-      delim = "\n  - "
-      header = "Found " <> showt len <> " exception(s): "
-      len = length xs
+      header = pretty @Text "Found" <+> pretty (showt $ length xs) <+> pretty @Text "exception(s)"
+      exes = NE.toList $ fmap ((pretty @Text "-" <+>) . pretty . displayException) xs
 
 -- | @since 0.1
 instance Semigroup SomeExceptions where
@@ -177,13 +175,16 @@ makeFieldLabelsNoPrefix ''NotSupportedException
 
 -- | @since 0.1
 instance Exception NotSupportedException where
-  displayException = T.unpack . pretty
+  displayException = T.unpack . U.prettyToText
   toException = toExceptionViaPythia
   fromException = fromExceptionViaPythia
 
 -- | @since 0.1
-instance PrettyPrinter NotSupportedException where
-  pretty (MkNotSupportedException s) = "App not supported: <" <> s <> ">"
+instance Pretty NotSupportedException where
+  pretty (MkNotSupportedException s) =
+    pretty @Text "App not supported: <"
+      <> pretty @Text s
+      <> pretty @Text ">"
 
 -- | Error for when no actions are run.
 --
@@ -205,11 +206,11 @@ data NoActionsRunException = MkNoActionsRunException
     )
 
 -- | @since 0.1
-instance PrettyPrinter NoActionsRunException where
+instance Pretty NoActionsRunException where
   pretty MkNoActionsRunException = "No actions run"
 
 -- | @since 0.1
 instance Exception NoActionsRunException where
-  displayException = T.unpack . pretty
+  displayException = T.unpack . U.prettyToText
   toException = toExceptionViaPythia
   fromException = fromExceptionViaPythia

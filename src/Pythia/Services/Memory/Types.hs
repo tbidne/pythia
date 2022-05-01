@@ -11,13 +11,14 @@ module Pythia.Services.Memory.Types
   )
 where
 
-import ByteTypes.Bytes (Bytes (..), Size (..))
-import ByteTypes.Bytes qualified as Bytes
-import Data.Text qualified as T
-import Pythia.Class.Printer (PrettyPrinter (..))
+import Data.Bytes (Bytes (..), Size (..))
+import Data.Bytes qualified as Bytes
+import Numeric.Data.NonNegative (NonNegative (..))
 import Pythia.Data.RunApp (RunApp)
 import Pythia.Data.Supremum (Supremum (..))
 import Pythia.Prelude
+import Pythia.Utils (Doc, Pretty (..), (<+>))
+import Text.Printf qualified as Pf
 
 -- | Determines how we should query the system for memory usage.
 --
@@ -97,12 +98,12 @@ data Memory = MkMemory
   { -- | The total memory on this system.
     --
     -- @since 0.1
-    total :: Bytes 'B Double,
+    total :: Bytes 'B (NonNegative Double),
     -- | The memory currently in use. This does not include the
     -- cache.
     --
     -- @since 0.1
-    used :: Bytes 'B Double
+    used :: Bytes 'B (NonNegative Double)
   }
   deriving stock
     ( -- | @since 0.1
@@ -118,12 +119,19 @@ data Memory = MkMemory
     )
 
 -- | @since 0.1
-instance PrettyPrinter Memory where
-  pretty mem = u <> " / " <> t
+instance Pretty Memory where
+  pretty :: forall ann. Memory -> Doc ann
+  pretty mem = u <+> "/" <+> t
     where
       t = f $ mem ^. #total
       u = f $ mem ^. #used
-      f = T.pack . Bytes.pretty . Bytes.normalize
+      f :: Bytes 'B (NonNegative Double) -> Doc ann
+      f bytes = rounded <+> pretty (show sz)
+        where
+          bytes' = Bytes.normalize bytes
+          sz = Bytes.someSizeToSize bytes'
+          (MkNonNegative x) = Bytes.unSomeSize bytes'
+          rounded = pretty $ Pf.printf @(Double -> String) "%.2f" x
 
 -- | @since 0.1
 makeFieldLabelsNoPrefix ''Memory

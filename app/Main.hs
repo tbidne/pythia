@@ -12,9 +12,9 @@ import Args
     These (..),
     parserInfo,
   )
-import ByteTypes.Bytes qualified as Bytes
+import Data.Bytes qualified as Bytes
 import Data.Text qualified as T
-import Numeric.Algebra (AGroup ((.-.)))
+import Numeric.Data.NonNegative qualified as NN
 import Options.Applicative qualified as OApp
 import Pythia
   ( BatteryConfig,
@@ -29,8 +29,9 @@ import Pythia
     UrlSource (..),
   )
 import Pythia qualified
-import Pythia.Class.Printer (PrettyPrinter (..))
 import Pythia.Prelude
+import Pythia.Utils (Doc, Pretty (..))
+import Pythia.Utils qualified as U
 
 -- | Runs the executable.
 --
@@ -53,8 +54,8 @@ handleBattery cfg mfield = do
     Nothing -> prettyPrint result
     Just field -> putStrLn $ T.unpack (toField field result)
   where
-    toField BatteryFieldPercentage = Pythia.pretty . view #percentage
-    toField BatteryFieldStatus = Pythia.pretty . view #status
+    toField BatteryFieldPercentage = U.prettyToText . view #percentage
+    toField BatteryFieldStatus = U.prettyToText . view #status
 
 handleMemory :: MemoryConfig -> Maybe MemoryField -> IO ()
 handleMemory cfg mfield = do
@@ -62,38 +63,38 @@ handleMemory cfg mfield = do
   putStrLn $ T.unpack $ prettyMem result
   where
     prettyMem :: Memory -> Text
-    prettyMem = maybe pretty toField mfield
+    prettyMem = maybe U.prettyToText toField mfield
 
     toField :: MemoryField -> Memory -> Text
     toField MemoryFieldTotal m = toTxt #total m
     toField MemoryFieldUsed m = toTxt #used m
-    toField MemoryFieldFree m = T.pack $ Bytes.pretty $ Bytes.normalize $ (m ^. #total) .-. (m ^. #used)
+    toField MemoryFieldFree m = U.prettyToText $ t - u
+      where
+        t = NN.unNonNegative $ Bytes.unBytes $ m ^. #total
+        u = NN.unNonNegative $ Bytes.unBytes $ m ^. #used
 
-    toTxt getter = T.pack . Bytes.pretty . Bytes.normalize . view getter
+    toTxt getter = U.prettyToText . view getter
 
 handleNetInterface :: NetInterfaceConfig -> Maybe Device -> Maybe NetInterfaceField -> IO ()
-handleNetInterface cfg mdevice field = do
+-- handleNetInterface cfg mdevice field = do
+handleNetInterface cfg mdevice mfield = do
   case mdevice of
     Nothing -> Pythia.queryNetInterfaces cfg >>= printInterfaces
     Just device -> Pythia.queryNetInterface device cfg >>= printInterface
   where
-    printFn :: ((NetInterface -> Text) -> a -> b) -> (b -> Text) -> a -> IO ()
-    printFn liftField toText =
-      putStrLn
-        . T.unpack
-        . toText
-        . liftField (maybe pretty toField field)
-
     printInterfaces :: NetInterfaces -> IO ()
-    printInterfaces = printFn fmap (Pythia.joinX "\n\n") . unNetInterfaces
+    printInterfaces netifs@(MkNetInterfaces ifs) = case mfield of
+      Nothing -> putStrLn $ T.unpack $ U.prettyToText netifs
+      Just field -> putStrLn $ T.unpack $ docToText $ U.vsep $ fmap (toField field) ifs
 
     printInterface :: NetInterface -> IO ()
-    printInterface = printFn id id
+    printInterface inf = case mfield of
+      Nothing -> putStrLn $ T.unpack $ U.prettyToText inf
+      Just field -> putStrLn $ T.unpack $ docToText $ toField field inf
 
-    toField :: NetInterfaceField -> NetInterface -> Text
-    toField NetInterfaceFieldName = Pythia.pretty . view #iname
-    toField NetInterfaceFieldIpv4 = Pythia.joinCommas . view #ipv4s
-    toField NetInterfaceFieldIpv6 = Pythia.joinCommas . view #ipv6s
+    toField NetInterfaceFieldName = U.pretty . view #iname
+    toField NetInterfaceFieldIpv4 = U.pretty . view #ipv4s
+    toField NetInterfaceFieldIpv6 = U.pretty . view #ipv6s
 
 handleNetConn :: NetInterfaceConfig -> Maybe NetConnField -> IO ()
 handleNetConn cfg field = do
@@ -103,14 +104,14 @@ handleNetConn cfg field = do
   case field of
     Nothing -> prettyPrint conn
     Just sel ->
-      putStrLn $ T.unpack $ pretty $ fmap (toField sel) conn
+      putStrLn $ T.unpack $ U.prettyToText $ fmap (toField sel) conn
   where
     toField :: NetConnField -> NetInterface -> Text
-    toField NetConnFieldDevice = Pythia.pretty . view #idevice
-    toField NetConnFieldType = Pythia.pretty . view #itype
-    toField NetConnFieldName = Pythia.pretty . view #iname
-    toField NetConnFieldIpv4 = Pythia.joinCommas . view #ipv4s
-    toField NetConnFieldIpv6 = Pythia.joinCommas . view #ipv6s
+    toField NetConnFieldDevice = U.prettyToText . view #idevice
+    toField NetConnFieldType = U.prettyToText . view #itype
+    toField NetConnFieldName = U.prettyToText . view #iname
+    toField NetConnFieldIpv4 = docToText . U.pretty . view #ipv4s
+    toField NetConnFieldIpv6 = docToText . U.pretty . view #ipv6s
 
 handleGlobalIp :: GlobalIpConfig (These [UrlSource 'Ipv4] [UrlSource 'Ipv6]) -> IO ()
 handleGlobalIp cfg = do
@@ -131,5 +132,8 @@ handleGlobalIp cfg = do
       prettyPrint ipv4Address
       prettyPrint ipv6Address
 
-prettyPrint :: PrettyPrinter a => a -> IO ()
-prettyPrint = putStrLn . T.unpack . Pythia.pretty
+prettyPrint :: Pretty a => a -> IO ()
+prettyPrint = putStrLn . T.unpack . U.prettyToText
+
+docToText :: Doc ann -> Text
+docToText = U.renderStrict . U.layoutCompact
