@@ -6,15 +6,7 @@ module Functional.Pythia.Services.NetInterface
   )
 where
 
-import Data.Maybe (isJust)
 import Functional.Prelude
-import Pythia.Services.NetInterface
-  ( Device (..),
-    NetInterfaceApp (..),
-    NetInterfaceConfig (..),
-    RunApp (..),
-  )
-import Pythia.Services.NetInterface qualified as NetInterface
 
 -- | @since 0.1
 tests :: TestTree
@@ -22,8 +14,7 @@ tests =
   testGroup
     "Pythia.Services.NetInterface"
     [ queryInterfacesTests,
-      queryInterfaceTests,
-      findUpInterface
+      queryInterfaceTests
     ]
 
 queryInterfacesTests :: TestTree
@@ -36,27 +27,18 @@ queryInterfacesTests =
     ]
 
 queryInterfacesNmcli :: TestTree
-queryInterfacesNmcli = queryInterfaces (Single NetInterfaceNmCli) desc
-  where
-    desc = "Retrieves net interfaces via nmcli"
+queryInterfacesNmcli = queryInterfaces (Just "nmcli") "nmcli"
 
 queryInterfacesIp :: TestTree
-queryInterfacesIp = queryInterfaces (Single NetInterfaceIp) desc
-  where
-    desc = "Retrieves net interfaces via ip"
+queryInterfacesIp = queryInterfaces (Just "ip") "ip"
 
 queryInterfacesMany :: TestTree
-queryInterfacesMany = queryInterfaces Many desc
-  where
-    desc = "Retrieves net interfaces via many"
+queryInterfacesMany = queryInterfaces Nothing "many"
 
-queryInterfaces :: RunApp NetInterfaceApp -> String -> TestTree
-queryInterfaces app desc = testCase desc $ do
-  let config = MkNetInterfaceConfig app
-  result <- NetInterface.queryNetInterfaces config
-  assertBool "Expected results to be non-empty" (len result > 0)
-  where
-    len = length . view #unNetInterfaces
+queryInterfaces :: Maybe String -> String -> TestTree
+queryInterfaces appCmd desc = testCase desc $ do
+  let argList = ["net-if"] <> (maybe [] (\s -> ["--app", s]) appCmd)
+  capturePythia argList >>= assertNonEmpty
 
 queryInterfaceTests :: TestTree
 queryInterfaceTests =
@@ -68,28 +50,18 @@ queryInterfaceTests =
     ]
 
 queryInterfaceNmcli :: TestTree
-queryInterfaceNmcli = queryInterface (Single NetInterfaceNmCli) "wlp0s20f3" desc
-  where
-    desc = "Retrieves net interface via nmcli"
+queryInterfaceNmcli = queryInterface (Just "nmcli") "wlp0s20f3" "nmcli"
 
 queryInterfaceIp :: TestTree
-queryInterfaceIp = queryInterface (Single NetInterfaceIp) "wlp0s20f3" desc
-  where
-    desc = "Retrieves net interface via ip"
+queryInterfaceIp = queryInterface (Just "ip") "wlp0s20f3" "ip"
 
 queryInterfaceMany :: TestTree
-queryInterfaceMany = queryInterface Many "wlp0s20f3" desc
-  where
-    desc = "Retrieves net interface via many"
+queryInterfaceMany = queryInterface Nothing "wlp0s20f3" "many"
 
-queryInterface :: RunApp NetInterfaceApp -> Device -> String -> TestTree
-queryInterface app device desc = testCase desc $ do
-  let config = MkNetInterfaceConfig app
-  result <- NetInterface.queryNetInterface device config
-  result @=? result
-
-findUpInterface :: TestTree
-findUpInterface = testCase "Finds live interface" $ do
-  result <- NetInterface.queryNetInterfaces mempty
-  result @=? result
-  assertBool "Should have found live interface" (isJust (NetInterface.findUp result))
+queryInterface :: Maybe String -> String -> String -> TestTree
+queryInterface appCmd device desc = testCase desc $ do
+  let argList =
+        ["net-if"]
+          <> (maybe [] (\s -> ["--app", s]) appCmd)
+          <> ["--device", device]
+  capturePythia argList >>= assertNonEmpty

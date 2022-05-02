@@ -7,44 +7,36 @@ module Functional.Pythia.Services.GlobalIp
 where
 
 import Functional.Prelude
-import Pythia.Services.GlobalIp
-  ( GlobalIpApp (..),
-    GlobalIpConfig (..),
-    IpType (..),
-    RunApp (..),
-    UrlSource (..),
-  )
-import Pythia.Services.GlobalIp qualified as GlobalIp
 
 -- | @since 0.1
 tests :: TestTree
 tests =
   testGroup
     "Pythia.Services.GlobalIp"
-    [ defaultSources,
-      customSources
+    [ testApps,
+      testCustomSources
     ]
 
-defaultSources :: TestTree
-defaultSources =
+testApps :: TestTree
+testApps =
   testGroup
-    "Uses default sources"
-    [ runsCurlIpv4DefSrcs,
-      runsDigIpv4DefSrcs,
-      runsManyIpv4DefSrcs
+    "Tests apps with defaults"
+    [ runsCurlDefault,
+      runsDigDefault,
+      runsManyDefault
     ]
 
-runsCurlIpv4DefSrcs :: TestTree
-runsCurlIpv4DefSrcs = runsIpv4 (Single GlobalIpCurl) [] "Retrieves global ip via curl"
+runsCurlDefault :: TestTree
+runsCurlDefault = runsApp (Just "curl") [] "curl"
 
-runsDigIpv4DefSrcs :: TestTree
-runsDigIpv4DefSrcs = runsIpv4 (Single GlobalIpDig) [] "Retrieves global ip via dig"
+runsDigDefault :: TestTree
+runsDigDefault = runsApp (Just "dig") [] "dig"
 
-runsManyIpv4DefSrcs :: TestTree
-runsManyIpv4DefSrcs = runsIpv4 Many [] "Retrieves global ip many"
+runsManyDefault :: TestTree
+runsManyDefault = runsApp Nothing [] "many"
 
-customSources :: TestTree
-customSources =
+testCustomSources :: TestTree
+testCustomSources =
   testGroup
     "Uses custom sources"
     [ runsCurlIpv4CustomSrcs,
@@ -53,25 +45,29 @@ customSources =
     ]
 
 runsCurlIpv4CustomSrcs :: TestTree
-runsCurlIpv4CustomSrcs = runsIpv4 (Single GlobalIpCurl) srcs "Retrieves global ip via curl"
+runsCurlIpv4CustomSrcs = runsApp (Just "curl") srcs "curl"
   where
-    srcs = ["http://whatismyip.akamai.com/"]
+    srcs = ["--ipv4-src", "http://whatismyip.akamai.com/"]
 
 runsDigIpv4CustomSrcs :: TestTree
-runsDigIpv4CustomSrcs = runsIpv4 (Single GlobalIpDig) srcs "Retrieves global ip via dig"
+runsDigIpv4CustomSrcs = runsApp (Just "dig") srcs "dig"
   where
-    srcs = ["@resolver1.opendns.com myip.opendns.com"]
+    srcs = ["--ipv4-src", "@resolver1.opendns.com myip.opendns.com"]
 
 runsManyIpv4CustomSrcs :: TestTree
-runsManyIpv4CustomSrcs = runsIpv4 Many srcs "Retrieves global ip many"
+runsManyIpv4CustomSrcs = runsApp Nothing srcs "many"
   where
     srcs =
-      [ "http://whatismyip.akamai.com/",
+      [ "--ipv4-src",
+        "http://whatismyip.akamai.com/",
+        "--ipv4-src",
         "@resolver1.opendns.com myip.opendns.com"
       ]
 
-runsIpv4 :: RunApp GlobalIpApp -> [UrlSource 'Ipv4] -> String -> TestTree
-runsIpv4 app sources desc = testCase desc $ do
-  let config = MkGlobalIpConfig app sources
-  result <- GlobalIp.queryGlobalIpv4 config
-  result @=? result
+runsApp :: Maybe String -> [String] -> String -> TestTree
+runsApp appCmd customSrcs desc = testCase desc $ do
+  let argList =
+        ["global-ip"]
+          <> (maybe [] (\s -> ["--app", s]) appCmd)
+          <> customSrcs
+  capturePythia argList >>= assertNonEmpty

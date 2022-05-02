@@ -64,6 +64,7 @@ common common-exts
     TypeApplications
     TypeFamilyDependencies
     TypeOperators
+    ViewPatterns
 
 library
   import:           common-exts
@@ -115,10 +116,13 @@ library
   hs-source-dirs:   src
   default-language: Haskell2010
 
-executable pythia
+library pythia-exe-internal
   import:           common-exts
-  main-is:          Main.hs
-  other-modules:    Args
+  exposed-modules:
+    Pythia.Args
+    Pythia.Runner
+
+  ghc-options:      -Wunused-packages
   build-depends:
     , base
     , gitrev                >=1.2.0    && <1.4
@@ -127,9 +131,20 @@ executable pythia
     , pythia
     , text
 
-  hs-source-dirs:   app
-  ghc-options:      -threaded -with-rtsopts=-N -Wunused-packages
+  hs-source-dirs:   exe-internal
   default-language: Haskell2010
+
+executable pythia
+  import:             common-exts
+  default-extensions: ImplicitPrelude
+  main-is:            Main.hs
+  build-depends:
+    , base
+    , pythia-exe-internal
+
+  hs-source-dirs:     app
+  ghc-options:        -threaded -with-rtsopts=-N -Wunused-packages
+  default-language:   Haskell2010
 
 test-suite unit
   import:           common-exts
@@ -166,13 +181,17 @@ test-suite functional
     Functional.Pythia.Services.Battery
     Functional.Pythia.Services.GlobalIp
     Functional.Pythia.Services.Memory
+    Functional.Pythia.Services.NetConnection
     Functional.Pythia.Services.NetInterface
 
   build-depends:
     , base
     , pythia
+    , pythia-exe-internal
+    , silently             ^>=1.2
     , tasty
     , tasty-hunit
+    , text
 
   hs-source-dirs:   test/functional
   default-language: Haskell2010

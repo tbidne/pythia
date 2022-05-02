@@ -3,7 +3,7 @@
 -- | This modules provides the arg parsing functionality.
 --
 -- @since 0.1
-module Args
+module Pythia.Args
   ( -- * Primary Function
     parserInfo,
 
