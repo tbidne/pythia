@@ -7,7 +7,7 @@ module Pythia.Services.Battery
 
     -- * Types
     Battery (..),
-    BatteryPercentage (..),
+    Percentage (..),
     BatteryStatus (..),
 
     -- ** Configuration
@@ -22,6 +22,7 @@ module Pythia.Services.Battery
   )
 where
 
+import Pythia.Data.Percentage (Percentage (..))
 import Pythia.Data.RunApp (RunApp (..))
 import Pythia.Prelude
 import Pythia.Services.Battery.Acpi (AcpiException (..))
@@ -32,7 +33,6 @@ import Pythia.Services.Battery.Types
   ( Battery (..),
     BatteryApp (..),
     BatteryConfig (..),
-    BatteryPercentage (..),
     BatteryStatus (..),
   )
 import Pythia.Services.Battery.UPower (UPowerException (..))

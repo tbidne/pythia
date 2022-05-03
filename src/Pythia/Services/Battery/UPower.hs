@@ -21,12 +21,9 @@ import Data.Set qualified as Set
 import Data.Text qualified as T
 import Numeric.Data.Interval qualified as Interval
 import Pythia.Control.Exception (fromExceptionViaPythia, toExceptionViaPythia)
+import Pythia.Data.Percentage (Percentage (..))
 import Pythia.Prelude
-import Pythia.Services.Battery.Types
-  ( Battery (..),
-    BatteryPercentage (..),
-    BatteryStatus (..),
-  )
+import Pythia.Services.Battery.Types (Battery (..), BatteryStatus (..))
 import Pythia.ShellApp (SimpleShell (..))
 import Pythia.ShellApp qualified as ShellApp
 import Pythia.Utils (Pretty (..))
@@ -135,19 +132,19 @@ supported = U.exeSupported "upower"
 -- ==== __Examples__
 --
 -- >>> parseBattery "state: fully-charged\npercentage: 100%"
--- Right (MkBattery {percentage = MkBatteryPercentage {unBatteryPercentage = UnsafeLRInterval 100}, status = Full})
+-- Right (MkBattery {percentage = MkPercentage {unPercentage = UnsafeLRInterval 100}, status = Full})
 --
 -- >>> parseBattery "state: discharging\npercentage: 70%"
--- Right (MkBattery {percentage = MkBatteryPercentage {unBatteryPercentage = UnsafeLRInterval 70}, status = Discharging})
+-- Right (MkBattery {percentage = MkPercentage {unPercentage = UnsafeLRInterval 70}, status = Discharging})
 --
 -- >>> parseBattery "state: charging\npercentage: 40%"
--- Right (MkBattery {percentage = MkBatteryPercentage {unBatteryPercentage = UnsafeLRInterval 40}, status = Charging})
+-- Right (MkBattery {percentage = MkPercentage {unPercentage = UnsafeLRInterval 40}, status = Charging})
 --
 -- >>> parseBattery "state: bad\npercentage: 40%"
 -- Left (UPowerNoStatus "state: bad\npercentage: 40%")
 --
 -- >>> parseBattery "state: pending-charge\npercentage: 40%"
--- Right (MkBattery {percentage = MkBatteryPercentage {unBatteryPercentage = UnsafeLRInterval 40}, status = Pending})
+-- Right (MkBattery {percentage = MkPercentage {unPercentage = UnsafeLRInterval 40}, status = Pending})
 --
 -- >>> parseBattery "state: fully-charged"
 -- Left (UPowerNoPercentage "state: fully-charged")
@@ -170,7 +167,7 @@ parseBattery txt = case foldMap parseLine ts of
 
 data BatteryResult
   = None
-  | Percent BatteryPercentage
+  | Percent Percentage
   | Status BatteryStatus
   | Both Battery
   deriving (Show)
@@ -196,7 +193,7 @@ parseLine ln = case MP.parse parseStatus "Pythia.Services.battery.UPower" ln of
 
 type MParser = Parsec Void Text
 
-parsePercent :: MParser BatteryPercentage
+parsePercent :: MParser Percentage
 parsePercent = do
   MPC.space
   MPC.string "percentage:"
@@ -204,7 +201,7 @@ parsePercent = do
   nn <- parseNN
   MPC.char '%'
   MPC.space
-  pure $ MkBatteryPercentage nn
+  pure $ MkPercentage nn
   where
     parseNN = do
       num <- MP.takeWhile1P Nothing Char.isDigit

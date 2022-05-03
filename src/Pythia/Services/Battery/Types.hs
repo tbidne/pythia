@@ -11,12 +11,11 @@ module Pythia.Services.Battery.Types
 
     -- * Battery Fields
     BatteryStatus (..),
-    BatteryPercentage (..),
     Battery (..),
   )
 where
 
-import Numeric.Data.Interval (LRInterval)
+import Pythia.Data.Percentage (Percentage)
 import Pythia.Data.RunApp (RunApp)
 import Pythia.Data.Supremum (Supremum (..))
 import Pythia.Prelude
@@ -133,41 +132,12 @@ makePrismLabels ''BatteryStatus
 instance Pretty BatteryStatus where
   pretty = pretty . show
 
--- | Represents battery percentages.
---
--- @since 0.1
-newtype BatteryPercentage = MkBatteryPercentage
-  { -- | @since 0.1
-    unBatteryPercentage :: LRInterval 0 100 Word8
-  }
-  deriving stock
-    ( -- | @since 0.1
-      Eq,
-      -- | @since 0.1
-      Generic,
-      -- | @since 0.1
-      Ord,
-      -- | @since 0.1
-      Show
-    )
-  deriving anyclass
-    ( -- | @since 0.1
-      NFData
-    )
-
--- | @since 0.1
-makeFieldLabelsNoPrefix ''BatteryPercentage
-
--- | @since 0.1
-instance Pretty BatteryPercentage where
-  pretty (MkBatteryPercentage p) = pretty p <> pretty @Text "%"
-
 -- | Full battery state, including percentage and status data.
 --
 -- @since 0.1
 data Battery = MkBattery
   { -- | @since 0.1
-    percentage :: BatteryPercentage,
+    percentage :: Percentage,
     -- | @since 0.1
     status :: BatteryStatus
   }

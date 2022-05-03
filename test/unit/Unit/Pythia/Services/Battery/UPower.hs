@@ -41,7 +41,7 @@ parseX :: Word8 -> (Text, BatteryStatus) -> TestTree
 parseX lvl (csTxt, cs) = testCase desc $ do
   let result = UPower.parseBattery (state lvl csTxt)
   Just cs @=? result ^? _Right % #status
-  Just (MkLRInterval lvl) @=? result ^? _Right % #percentage % #unBatteryPercentage
+  Just (MkLRInterval lvl) @=? result ^? _Right % #percentage % #unPercentage
   where
     desc = "Parses percentage " <> show lvl <> ", status " <> T.unpack csTxt
 

@@ -21,12 +21,9 @@ import Data.Set qualified as Set
 import Data.Text qualified as T
 import Numeric.Data.Interval qualified as Interval
 import Pythia.Control.Exception (fromExceptionViaPythia, toExceptionViaPythia)
+import Pythia.Data.Percentage (Percentage (..))
 import Pythia.Prelude
-import Pythia.Services.Battery.Types
-  ( Battery (..),
-    BatteryPercentage (..),
-    BatteryStatus (..),
-  )
+import Pythia.Services.Battery.Types (Battery (..), BatteryStatus (..))
 import Pythia.ShellApp (SimpleShell (..))
 import Pythia.ShellApp qualified as ShellApp
 import Pythia.Utils (Pretty (..))
@@ -114,13 +111,13 @@ supported = U.exeSupported "acpi"
 -- ==== __Examples__
 --
 -- >>> parseBattery "Battery 0: Full, 100%"
--- Right (MkBattery {percentage = MkBatteryPercentage {unBatteryPercentage = UnsafeLRInterval 100}, status = Full})
+-- Right (MkBattery {percentage = MkPercentage {unPercentage = UnsafeLRInterval 100}, status = Full})
 --
 -- >>> parseBattery "Battery 0: Discharging, 80%"
--- Right (MkBattery {percentage = MkBatteryPercentage {unBatteryPercentage = UnsafeLRInterval 80}, status = Discharging})
+-- Right (MkBattery {percentage = MkPercentage {unPercentage = UnsafeLRInterval 80}, status = Discharging})
 --
 -- >>> parseBattery "Battery 0: Charging, 40%"
--- Right (MkBattery {percentage = MkBatteryPercentage {unBatteryPercentage = UnsafeLRInterval 40}, status = Charging})
+-- Right (MkBattery {percentage = MkPercentage {unPercentage = UnsafeLRInterval 40}, status = Charging})
 --
 -- >>> parseBattery "Battery 0: bad status, 80%"
 -- Left (AcpiParseException "Acpi.hs:1:12:\n  |\n1 | Battery 0: bad status, 80%\n  |            ^\nUnknown status\n")
@@ -164,11 +161,11 @@ mparseState =
     full = MPC.string' "Full" $> Full
     pending = MPC.string' "Not charging" $> Pending
 
-mparsePercent :: MParser BatteryPercentage
+mparsePercent :: MParser Percentage
 mparsePercent = do
   percent <- MP.takeWhile1P (Just "percentage") Char.isDigit
   percentage <- maybe empty pure (readInterval percent)
   MPC.char '%'
-  pure $ MkBatteryPercentage percentage
+  pure $ MkPercentage percentage
   where
     readInterval = Interval.mkLRInterval <=< TR.readMaybe . T.unpack

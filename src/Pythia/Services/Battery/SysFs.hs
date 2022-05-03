@@ -18,12 +18,9 @@ where
 import Data.Text qualified as T
 import Numeric.Data.Interval qualified as Interval
 import Pythia.Control.Exception (fromExceptionViaPythia, toExceptionViaPythia)
+import Pythia.Data.Percentage (Percentage (..))
 import Pythia.Prelude
-import Pythia.Services.Battery.Types
-  ( Battery (..),
-    BatteryPercentage (..),
-    BatteryStatus (..),
-  )
+import Pythia.Services.Battery.Types (Battery (..), BatteryStatus (..))
 import Pythia.Utils (Pretty (..))
 import Pythia.Utils qualified as U
 import System.Directory qualified as Dir
@@ -221,13 +218,13 @@ parseStatus fp = do
     "full" -> pure Full
     bad -> throwIO $ SysFsBatteryParseException $ "Unknown status: <" <> bad <> ">"
 
-parsePercentage :: FilePath -> IO BatteryPercentage
+parsePercentage :: FilePath -> IO Percentage
 parsePercentage fp = do
   percentTxt <-
     readFileUtf8Lenient fp
       `catch` \(e :: SomeException) -> throwIO $ SysFsReadFileException (T.pack fp) e
   case readInterval percentTxt of
     Nothing -> throwIO $ SysFsBatteryParseException percentTxt
-    Just bs -> pure $ MkBatteryPercentage bs
+    Just bs -> pure $ MkPercentage bs
   where
     readInterval = Interval.mkLRInterval <=< TR.readMaybe . T.unpack
