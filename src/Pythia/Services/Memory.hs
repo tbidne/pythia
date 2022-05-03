@@ -5,6 +5,11 @@ module Pythia.Services.Memory
   ( -- * Queries
     queryMemory,
 
+    -- * Functions
+    freeMemory,
+    percentageUsed,
+    percentageFree,
+
     -- * Types
     Memory (..),
     SystemMemory (..),
@@ -19,6 +24,13 @@ module Pythia.Services.Memory
   )
 where
 
+import Data.Bytes (Bytes (..))
+import Numeric.Data.Interval (LRInterval (..))
+import Numeric.Data.Interval qualified as Interval
+import Numeric.Data.NonNegative (NonNegative (..))
+import Numeric.Data.NonNegative qualified as NN
+import Numeric.Data.Positive qualified as Pos
+import Pythia.Data.Percentage (Percentage (..))
 import Pythia.Data.RunApp (RunApp (..))
 import Pythia.Prelude
 import Pythia.Services.Memory.Free (FreeException)
@@ -57,3 +69,34 @@ queryMemory config =
 
 toShellApp :: MonadUnliftIO m => MemoryApp -> m SystemMemory
 toShellApp MemoryFree = Free.memoryShellApp
+
+-- | Returns the amount of free memory.
+--
+-- @since 0.1
+freeMemory :: SystemMemory -> Memory NonNegative
+freeMemory sysMem = free
+  where
+    t = Pos.unPositive . unBytes . unMemory $ sysMem ^. #total
+    u = NN.unNonNegative . unBytes . unMemory $ sysMem ^. #used
+    free = MkMemory $ MkBytes $ NN.unsafeNonNegative $ t - u
+
+-- | Returns the used memory as a percentage.
+--
+-- @since 0.1
+percentageUsed :: SystemMemory -> Percentage
+percentageUsed sysMem = MkPercentage p
+  where
+    t = Pos.unPositive . unBytes $ sysMem ^. #total % #unMemory
+    u = NN.unNonNegative . unBytes $ sysMem ^. #used % #unMemory
+    p = Interval.unsafeLRInterval $ doubleToWord8 $ u / t
+
+    doubleToWord8 :: Double -> Word8
+    doubleToWord8 = floor . (* 100)
+
+-- | Returns the free memory as a percentage.
+--
+-- @since 0.1
+percentageFree :: SystemMemory -> Percentage
+percentageFree sysMem = MkPercentage $ Interval.unsafeLRInterval (100 - usedPercent)
+  where
+    (MkPercentage (MkLRInterval usedPercent)) = percentageUsed sysMem

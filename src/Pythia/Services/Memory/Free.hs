@@ -20,6 +20,7 @@ import Data.Char qualified as Char
 import Data.Text qualified as T
 import Numeric.Algebra (ASemigroup (..))
 import Numeric.Data.NonNegative qualified as NN
+import Numeric.Data.Positive qualified as Pos
 import Pythia.Control.Exception (fromExceptionViaPythia, toExceptionViaPythia)
 import Pythia.Prelude
 import Pythia.Services.Memory.Types (Memory (..), SystemMemory (..))
@@ -124,14 +125,17 @@ type MParser = Parsec Void Text
 mparseMemory :: MParser SystemMemory
 mparseMemory = do
   MPC.string' "Mem:"
-  total <- parseBytes
-  used <- parseBytes
-  parseBytes
-  shared <- parseBytes
+  total <- parsePos
+  used <- parseNat
+  parseNat
+  shared <- parseNat
   pure $ MkSystemMemory (MkMemory (MkBytes total)) (MkMemory (MkBytes (used .+. shared)))
   where
-    parseBytes = do
+    parseNat = parseBytes readNat
+    parsePos = parseBytes readPos
+    parseBytes parseFn = do
       MPC.space1
       num <- MP.takeWhile1P Nothing Char.isDigit
-      maybe empty pure (readNat num)
+      maybe empty pure (parseFn num)
     readNat = (NN.mkNonNegative <=< TR.readMaybe) . T.unpack
+    readPos = (Pos.mkPositive <=< TR.readMaybe) . T.unpack

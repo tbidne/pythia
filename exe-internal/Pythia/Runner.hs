@@ -21,14 +21,16 @@ import Pythia qualified
 import Pythia.Args
   ( BatteryField (..),
     MemoryField (..),
+    MemoryFormat (..),
     NetConnField (..),
     NetInterfaceField (..),
     PythiaCommand (..),
     These (..),
     parserInfo,
   )
+import Pythia.Data.Percentage (rawPercentage)
 import Pythia.Prelude
-import Pythia.Services.Memory.Types (diffMemory)
+import Pythia.Services.Memory qualified as Mem
 import Pythia.Utils (Doc, Pretty (..))
 import Pythia.Utils qualified as U
 
@@ -40,7 +42,7 @@ runPythia = do
   cmd <- OApp.execParser parserInfo
   case cmd of
     BatteryCmd cfg field -> handleBattery cfg field
-    MemoryCmd cfg field -> handleMemory cfg field
+    MemoryCmd cfg field format -> handleMemory cfg field format
     NetInterfaceCmd cfg device field -> handleNetInterface cfg device field
     NetConnCmd cfg field -> handleNetConn cfg field
     NetIpGlobalCmd cfg -> handleGlobalIp cfg
@@ -56,26 +58,28 @@ handleBattery cfg mfield = do
     toField BatteryFieldPercentage = U.prettyToText . view #percentage
     toField BatteryFieldStatus = U.prettyToText . view #status
 
-handleMemory :: MemoryConfig -> Maybe MemoryField -> IO ()
-handleMemory cfg mfield = do
-  result <- Pythia.queryMemory cfg
-  putStrLn $ T.unpack $ prettyMem result
+handleMemory :: MemoryConfig -> MemoryField -> MemoryFormat -> IO ()
+handleMemory cfg field format =
+  Pythia.queryMemory cfg
+    >>= putStrLn . T.unpack . toField format field
   where
-    prettyMem :: SystemMemory -> Text
-    prettyMem = maybe U.prettyToText toField mfield
-
-    toField :: MemoryField -> SystemMemory -> Text
-    toField MemoryFieldTotal m = toTxt #total m
-    toField MemoryFieldUsed m = toTxt #used m
-    toField MemoryFieldFree m = U.prettyToText $ diffMemory t u
-      where
-        t = m ^. #total
-        u = m ^. #used
-
-    toTxt getter = U.prettyToText . view getter
+    toField :: MemoryFormat -> MemoryField -> SystemMemory -> Text
+    toField MemoryBytes MemoryFieldDefault = U.prettyToText
+    toField MemoryBytes MemoryFieldTotal = U.prettyToText . view #total
+    toField MemoryBytes MemoryFieldUsed = U.prettyToText . view #used
+    toField MemoryBytes MemoryFieldFree = U.prettyToText . Mem.freeMemory
+    -- so we don't have an extra %
+    toField MemoryPercentage MemoryFieldDefault =
+      (<> " / 100%")
+        . T.pack
+        . show
+        . rawPercentage
+        . Mem.percentageUsed
+    toField MemoryPercentage MemoryFieldTotal = const "100%"
+    toField MemoryPercentage MemoryFieldUsed = U.prettyToText . Mem.percentageUsed
+    toField MemoryPercentage MemoryFieldFree = U.prettyToText . Mem.percentageFree
 
 handleNetInterface :: NetInterfaceConfig -> Maybe Device -> Maybe NetInterfaceField -> IO ()
--- handleNetInterface cfg mdevice field = do
 handleNetInterface cfg mdevice mfield = do
   case mdevice of
     Nothing -> Pythia.queryNetInterfaces cfg >>= printInterfaces

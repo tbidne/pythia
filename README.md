@@ -87,13 +87,15 @@ This service is for reading memory usage.
 ### Usage
 
 ```
-Usage: pythia memory [-a|--app APP] [-f|--field FIELD]
+Usage: pythia memory [-a|--app APP] [-f|--field FIELD] [-p|--percentage]
   Queries memory usage.
 
 Available options:
   -a,--app APP             App must be one of [free].
   -f,--field FIELD         If specified, prints only the given field. Must be
                            one of [total | used | free].
+  -p,--percentage          If specified, values are written as a percentage
+                           rather than bytes.
   -h,--help                Show this help text
 ```
 
@@ -111,14 +113,23 @@ By default, we return the total and used memory. This can be refined with `--fie
 $ pythia memory
 6.75 G / 16.57 G
 
+$ pythia memory --percentage
+39 / 100%
+
 $ pythia memory --field total
 16.57 G
 
 $ pythia memory --field used
 6.71 G
 
+$ pythia memory --field used --percentage
+40%
+
 $ pythia memory --field free
 9.87 G
+
+$ pythia memory --field free --percentage
+60%
 ```
 ## Network Interfaces
 

@@ -6,6 +6,7 @@ where
 import Data.Bytes (Bytes (..))
 import Data.Text qualified as T
 import Numeric.Data.NonNegative qualified as NN
+import Numeric.Data.Positive qualified as Pos
 import Pythia.Services.Memory.Free qualified as Free
 import Pythia.Services.Memory.Types (Memory (..), SystemMemory (..))
 import Unit.Prelude
@@ -21,7 +22,7 @@ parseFree = testCase "Parses free output" $ do
   let result = Free.parseMemory freeTxt
   Just expected @=? result ^? _Right
   where
-    total = MkMemory $ MkBytes $ NN.unsafeNonNegative 16176768
+    total = MkMemory $ MkBytes $ Pos.unsafePositive 16176768
     used = MkMemory $ MkBytes $ NN.unsafeNonNegative $ 3549664 + 2276344
     expected = MkSystemMemory total used
     freeTxt =

@@ -13,6 +13,7 @@ module Pythia.Args
     PythiaCommand (..),
     BatteryField (..),
     MemoryField (..),
+    MemoryFormat (..),
     NetInterfaceField (..),
     NetConnField (..),
 
@@ -59,12 +60,17 @@ data These a b
   | These a b
   deriving (Eq, Show)
 
+data MemoryFormat
+  = MemoryBytes
+  | MemoryPercentage
+  deriving (Eq, Show)
+
 -- | Possible commands
 --
 -- @since 0.1
 data PythiaCommand
   = BatteryCmd BatteryConfig (Maybe BatteryField)
-  | MemoryCmd MemoryConfig (Maybe MemoryField)
+  | MemoryCmd MemoryConfig MemoryField MemoryFormat
   | NetInterfaceCmd NetInterfaceConfig (Maybe Device) (Maybe NetInterfaceField)
   | NetConnCmd NetInterfaceConfig (Maybe NetConnField)
   | NetIpGlobalCmd (GlobalIpConfig (These [UrlSource 'Ipv4] [UrlSource 'Ipv6]))
@@ -82,7 +88,8 @@ data BatteryField
 --
 -- @since 0.1
 data MemoryField
-  = MemoryFieldTotal
+  = MemoryFieldDefault
+  | MemoryFieldTotal
   | MemoryFieldUsed
   | MemoryFieldFree
   deriving stock (Eq, Show)
@@ -221,18 +228,19 @@ parseMemory :: Parser PythiaCommand
 parseMemory = do
   app <- parseMemoryAppOption
   field <- parseMemoryField
-  pure $ MemoryCmd (MkMemoryConfig app) field
+  percentage <- parseMemoryFormat
+  pure $ MemoryCmd (MkMemoryConfig app) field percentage
 
-parseMemoryField :: Parser (Maybe MemoryField)
+parseMemoryField :: Parser MemoryField
 parseMemoryField =
-  A.optional $
-    OApp.option
-      readApp
-      ( OApp.long "field"
-          <> OApp.short 'f'
-          <> OApp.metavar "FIELD"
-          <> OApp.help helpTxt
-      )
+  OApp.option
+    readApp
+    ( OApp.value MemoryFieldDefault
+        <> OApp.long "field"
+        <> OApp.short 'f'
+        <> OApp.metavar "FIELD"
+        <> OApp.help helpTxt
+    )
   where
     helpTxt =
       "If specified, prints only the given field. Must be one of [total | "
@@ -263,6 +271,19 @@ parseMemoryAppOption =
       case a of
         "free" -> pure $ Single MemoryFree
         _ -> OApp.readerAbort $ ErrorMsg $ "Unrecognized memory app: " <> T.unpack a
+
+parseMemoryFormat :: Parser MemoryFormat
+parseMemoryFormat =
+  OApp.flag
+    MemoryBytes
+    MemoryPercentage
+    ( OApp.long "percentage"
+        <> OApp.short 'p'
+        <> OApp.help helpTxt
+    )
+  where
+    helpTxt =
+      "If specified, values are written as a percentage rather than bytes."
 
 parseNetInterface :: Parser PythiaCommand
 parseNetInterface = do

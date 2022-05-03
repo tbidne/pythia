@@ -9,14 +9,13 @@ module Pythia.Services.Memory.Types
     MemoryConfig (..),
     Memory (..),
     SystemMemory (..),
-    diffMemory,
   )
 where
 
 import Data.Bytes (Bytes (..), Size (..))
 import Data.Bytes qualified as Bytes
 import Numeric.Data.NonNegative (NonNegative (..))
-import Numeric.Data.NonNegative qualified as NN
+import Numeric.Data.Positive (Positive (..))
 import Pythia.Data.RunApp (RunApp)
 import Pythia.Data.Supremum (Supremum (..))
 import Pythia.Prelude
@@ -94,28 +93,31 @@ instance Semigroup MemoryConfig where
 instance Monoid MemoryConfig where
   mempty = MkMemoryConfig mempty
 
--- | Represents the current memory usage.
+-- | Represents the current memory usage. The type parameter is some wrapper
+-- around the memory intended to enforce an invariant e.g. non-negative.
 --
 -- @since 0.1
-newtype Memory = MkMemory
+type Memory :: (Type -> Type) -> Type
+newtype Memory (f :: Type -> Type) = MkMemory
   { -- | @since 0.1
-    unMemory :: Bytes 'B (NonNegative Double)
+    unMemory :: Bytes 'B (f Double)
   }
   deriving stock
     ( -- | @since 0.1
-      Eq,
-      -- | @since 0.1
-      Generic,
-      -- | @since 0.1
-      Show
-    )
-  deriving anyclass
-    ( -- | @since 0.1
-      NFData
+      Generic
     )
 
 -- | @since 0.1
-instance Pretty Memory where
+deriving stock instance Eq (f Double) => Eq (Memory f)
+
+-- | @since 0.1
+deriving stock instance Show (f Double) => Show (Memory f)
+
+-- | @since 0.1
+deriving anyclass instance NFData (f Double) => NFData (Memory f)
+
+-- | @since 0.1
+instance Pretty (Memory NonNegative) where
   pretty (MkMemory bytes) = rounded <+> pretty (show sz)
     where
       bytes' = Bytes.normalize bytes
@@ -124,19 +126,16 @@ instance Pretty Memory where
       rounded = pretty $ Pf.printf @(Double -> String) "%.2f" x
 
 -- | @since 0.1
-makeFieldLabelsNoPrefix ''Memory
+instance Pretty (Memory Positive) where
+  pretty (MkMemory bytes) = rounded <+> pretty (show sz)
+    where
+      bytes' = Bytes.normalize bytes
+      sz = Bytes.someSizeToSize bytes'
+      (MkPositive x) = Bytes.unSomeSize bytes'
+      rounded = pretty $ Pf.printf @(Double -> String) "%.2f" x
 
--- | Returns the absolute difference.
---
--- @since 0.1
-diffMemory :: Memory -> Memory -> Memory
-diffMemory m1 m2
-  | x1 > x2 = MkMemory $ MkBytes @'B (NN.unsafeNonNegative (x1 - x2))
-  | otherwise = MkMemory $ MkBytes @'B (NN.unsafeNonNegative (x2 - x1))
-  where
-    x1 = unMem m1
-    x2 = unMem m2
-    unMem = NN.unNonNegative . unBytes . unMemory
+-- | @since 0.1
+makeFieldLabelsNoPrefix ''Memory
 
 -- | Represents the current memory usage.
 --
@@ -145,12 +144,12 @@ data SystemMemory = MkSystemMemory
   { -- | The total memory on this system.
     --
     -- @since 0.1
-    total :: Memory,
+    total :: Memory Positive,
     -- | The memory currently in use. This does not include the
     -- cache.
     --
     -- @since 0.1
-    used :: Memory
+    used :: Memory NonNegative
   }
   deriving stock
     ( -- | @since 0.1
@@ -167,7 +166,7 @@ data SystemMemory = MkSystemMemory
 
 -- | @since 0.1
 instance Pretty SystemMemory where
-  pretty mem = pretty t <+> "/" <+> pretty u
+  pretty mem = pretty u <+> "/" <+> pretty t
     where
       t = mem ^. #total
       u = mem ^. #used
