@@ -14,12 +14,14 @@ where
 
 import Data.Bytes (Bytes (..), Size (..))
 import Data.Bytes qualified as Bytes
-import Numeric.Data.NonNegative (NonNegative (..))
-import Numeric.Data.Positive (Positive (..))
+import Numeric.Algebra (MGroup, Normed)
+import Numeric.Class.Literal (NumLiteral (..))
+import Numeric.Data.NonNegative (NonNegative (..), unNonNegative)
+import Numeric.Data.Positive (Positive (..), unPositive)
 import Pythia.Data.RunApp (RunApp)
 import Pythia.Data.Supremum (Supremum (..))
 import Pythia.Prelude
-import Pythia.Utils (Pretty (..), (<+>))
+import Pythia.Utils (Doc, Pretty (..), (<+>))
 import Text.Printf qualified as Pf
 
 -- | Determines how we should query the system for memory usage.
@@ -118,21 +120,27 @@ deriving anyclass instance NFData (f Double) => NFData (Memory f)
 
 -- | @since 0.1
 instance Pretty (Memory NonNegative) where
-  pretty (MkMemory bytes) = rounded <+> pretty (show sz)
-    where
-      bytes' = Bytes.normalize bytes
-      sz = Bytes.someSizeToSize bytes'
-      (MkNonNegative x) = Bytes.unSomeSize bytes'
-      rounded = pretty $ Pf.printf @(Double -> String) "%.2f" x
+  pretty = prettyMemory unNonNegative
 
 -- | @since 0.1
 instance Pretty (Memory Positive) where
-  pretty (MkMemory bytes) = rounded <+> pretty (show sz)
-    where
-      bytes' = Bytes.normalize bytes
-      sz = Bytes.someSizeToSize bytes'
-      (MkPositive x) = Bytes.unSomeSize bytes'
-      rounded = pretty $ Pf.printf @(Double -> String) "%.2f" x
+  pretty = prettyMemory unPositive
+
+prettyMemory ::
+  ( MGroup (f Double),
+    Ord (f Double),
+    Normed (f Double),
+    NumLiteral (f Double)
+  ) =>
+  (f Double -> Double) ->
+  Memory f ->
+  Doc ann
+prettyMemory unwrap (MkMemory bytes) = rounded <+> pretty (show sz)
+  where
+    bytes' = Bytes.normalize bytes
+    sz = Bytes.someSizeToSize bytes'
+    x = unwrap $ Bytes.unSomeSize bytes'
+    rounded = pretty $ Pf.printf @(Double -> String) "%.2f" x
 
 -- | @since 0.1
 makeFieldLabelsNoPrefix ''Memory
@@ -144,12 +152,12 @@ data SystemMemory = MkSystemMemory
   { -- | The total memory on this system.
     --
     -- @since 0.1
-    total :: Memory Positive,
+    total :: !(Memory Positive),
     -- | The memory currently in use. This does not include the
     -- cache.
     --
     -- @since 0.1
-    used :: Memory NonNegative
+    used :: !(Memory NonNegative)
   }
   deriving stock
     ( -- | @since 0.1
