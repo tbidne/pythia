@@ -42,7 +42,7 @@ runsApp :: Maybe String -> String -> TestTree
 runsApp appCmd desc = testCase desc $ do
   let argList =
         ["memory"]
-          <> (maybe [] (\s -> ["--app", s]) appCmd)
+          <> maybe [] (\s -> ["--app", s]) appCmd
   result <- capturePythia argList
   parseTest result parseMemFull
 

@@ -30,7 +30,7 @@ runApps :: Maybe String -> String -> TestTree
 runApps appCmd desc = testCase ("Finds live interface with " <> desc) $ do
   let argList =
         ["net-conn"]
-          <> (maybe [] (\s -> ["--app", s]) appCmd)
+          <> maybe [] (\s -> ["--app", s]) appCmd
   capturePythia argList >>= assertNonEmpty
 
 testFields :: TestTree

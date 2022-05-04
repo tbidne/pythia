@@ -44,7 +44,7 @@ runsMany = runsApp Nothing "many"
 
 runsApp :: Maybe String -> String -> TestTree
 runsApp appCmd appName = testCase ("Runs " <> appName) $ do
-  let argList = ["battery"] <> (maybe [] (\s -> ["--app", s]) appCmd)
+  let argList = ["battery"] <> maybe [] (\s -> ["--app", s]) appCmd
   capturePythia argList >>= assertNonEmpty
 
 testStatus :: TestTree

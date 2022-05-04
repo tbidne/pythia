@@ -68,6 +68,6 @@ runsApp :: Maybe String -> [String] -> String -> TestTree
 runsApp appCmd customSrcs desc = testCase desc $ do
   let argList =
         ["global-ip"]
-          <> (maybe [] (\s -> ["--app", s]) appCmd)
+          <> maybe [] (\s -> ["--app", s]) appCmd
           <> customSrcs
   capturePythia argList >>= assertNonEmpty

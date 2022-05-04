@@ -38,7 +38,7 @@ queryInterfacesMany = queryInterfaces Nothing "many"
 
 queryInterfaces :: Maybe String -> String -> TestTree
 queryInterfaces appCmd desc = testCase desc $ do
-  let argList = ["net-if"] <> (maybe [] (\s -> ["--app", s]) appCmd)
+  let argList = ["net-if"] <> maybe [] (\s -> ["--app", s]) appCmd
   capturePythia argList >>= assertNonEmpty
 
 queryInterfaceTests :: TestTree
@@ -63,7 +63,7 @@ queryInterface :: Maybe String -> String -> String -> TestTree
 queryInterface appCmd device desc = testCase desc $ do
   let argList =
         ["net-if"]
-          <> (maybe [] (\s -> ["--app", s]) appCmd)
+          <> maybe [] (\s -> ["--app", s]) appCmd
           <> ["--device", device]
   capturePythia argList >>= assertNonEmpty
 
