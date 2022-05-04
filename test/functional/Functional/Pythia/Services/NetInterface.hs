@@ -12,9 +12,10 @@ import Functional.Prelude
 tests :: TestTree
 tests =
   testGroup
-    "Pythia.Services.NetInterface"
+    "net-if"
     [ queryInterfacesTests,
-      queryInterfaceTests
+      queryInterfaceTests,
+      testFields
     ]
 
 queryInterfacesTests :: TestTree
@@ -64,4 +65,18 @@ queryInterface appCmd device desc = testCase desc $ do
         ["net-if"]
           <> (maybe [] (\s -> ["--app", s]) appCmd)
           <> ["--device", device]
+  capturePythia argList >>= assertNonEmpty
+
+testFields :: TestTree
+testFields =
+  testGroup
+    "Test Fields"
+    [ runsField "name",
+      runsField "ipv4",
+      runsField "ipv6"
+    ]
+
+runsField :: String -> TestTree
+runsField field = testCase field $ do
+  let argList = ["net-if", "--field", field]
   capturePythia argList >>= assertNonEmpty

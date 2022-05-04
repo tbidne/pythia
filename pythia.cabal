@@ -159,6 +159,7 @@ test-suite unit
     Unit.Pythia.Services.NetInterface.Ip
     Unit.Pythia.Services.NetInterface.NmCli
 
+  ghc-options:      -Wunused-packages
   build-depends:
     , base
     , byte-types
@@ -185,11 +186,12 @@ test-suite functional
     Functional.Pythia.Services.NetConnection
     Functional.Pythia.Services.NetInterface
 
+  ghc-options:      -Wunused-packages
   build-depends:
     , base
+    , megaparsec
     , pythia
     , pythia-exe-internal
-    , silently             ^>=1.2
     , tasty
     , tasty-hunit
     , text

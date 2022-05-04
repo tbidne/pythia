@@ -7,6 +7,7 @@ import Functional.Prelude
 import Functional.Pythia.Services.Battery qualified as Battery
 import Functional.Pythia.Services.GlobalIp qualified as GlobalIp
 import Functional.Pythia.Services.Memory qualified as Memory
+import Functional.Pythia.Services.NetConnection qualified as NetConn
 import Functional.Pythia.Services.NetInterface qualified as NetInterface
 import System.Environment qualified as Env
 import Test.Tasty qualified as Tasty
@@ -26,6 +27,7 @@ main = do
           [ Battery.tests,
             GlobalIp.tests,
             Memory.tests,
+            NetConn.tests,
             NetInterface.tests
           ]
     _ -> putStrLn "*** Functional Tests Disabled ***"

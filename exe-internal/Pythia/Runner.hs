@@ -1,7 +1,11 @@
 -- | This modules provides an executable for querying system information.
 --
 -- @since 0.1
-module Pythia.Runner (runPythia) where
+module Pythia.Runner
+  ( runPythia,
+    runPythiaHandler,
+  )
+where
 
 import Data.Text qualified as T
 import Options.Applicative qualified as OApp
@@ -34,33 +38,39 @@ import Pythia.Services.Memory qualified as Mem
 import Pythia.Utils (Doc, Pretty (..))
 import Pythia.Utils qualified as U
 
--- | Runs the executable.
+-- | Reads cli args and prints the results to stdout.
 --
 -- @since 0.1
 runPythia :: IO ()
-runPythia = do
+runPythia = runPythiaHandler (putStrLn . T.unpack)
+
+-- | Reads cli args and applies the parameter handler.
+--
+-- @since 0.1
+runPythiaHandler :: (Text -> IO a) -> IO a
+runPythiaHandler handler = do
   cmd <- OApp.execParser parserInfo
   case cmd of
-    BatteryCmd cfg field -> handleBattery cfg field
-    MemoryCmd cfg field format -> handleMemory cfg field format
-    NetInterfaceCmd cfg device field -> handleNetInterface cfg device field
-    NetConnCmd cfg field -> handleNetConn cfg field
-    NetIpGlobalCmd cfg -> handleGlobalIp cfg
-    `catch` \(ex :: SomeException) -> putStrLn (displayException ex)
+    BatteryCmd cfg field -> handleBattery handler cfg field
+    MemoryCmd cfg field format -> handleMemory handler cfg field format
+    NetInterfaceCmd cfg device field -> handleNetInterface handler cfg device field
+    NetConnCmd cfg field -> handleNetConn handler cfg field
+    NetIpGlobalCmd cfg -> handleGlobalIp handler cfg
+    `catch` \(ex :: SomeException) -> handler (T.pack $ displayException ex)
 
-handleBattery :: BatteryConfig -> BatteryField -> IO ()
-handleBattery cfg field =
+handleBattery :: (Text -> IO a) -> BatteryConfig -> BatteryField -> IO a
+handleBattery handler cfg field =
   Pythia.queryBattery cfg
-    >>= putStrLn . T.unpack . toField field
+    >>= handler . toField field
   where
     toField BatteryFieldDefault = U.prettyToText
     toField BatteryFieldPercentage = U.prettyToText . view #percentage
     toField BatteryFieldStatus = U.prettyToText . view #status
 
-handleMemory :: MemoryConfig -> MemoryField -> MemoryFormat -> IO ()
-handleMemory cfg field format =
+handleMemory :: (Text -> IO a) -> MemoryConfig -> MemoryField -> MemoryFormat -> IO a
+handleMemory handler cfg field format =
   Pythia.queryMemory cfg
-    >>= putStrLn . T.unpack . toField format field
+    >>= handler . toField format field
   where
     toField :: MemoryFormat -> MemoryField -> SystemMemory -> Text
     toField MemoryBytes MemoryFieldDefault = U.prettyToText
@@ -78,12 +88,12 @@ handleMemory cfg field format =
     toField MemoryPercentage MemoryFieldUsed = U.prettyToText . Mem.percentageUsed
     toField MemoryPercentage MemoryFieldFree = U.prettyToText . Mem.percentageFree
 
-handleNetInterface :: NetInterfaceConfig -> Maybe Device -> NetInterfaceField -> IO ()
-handleNetInterface cfg mdevice field = do
+handleNetInterface :: (Text -> IO a) -> NetInterfaceConfig -> Maybe Device -> NetInterfaceField -> IO a
+handleNetInterface handler cfg mdevice field = do
   resultTxt <- case mdevice of
     Nothing -> interfacesToText <$> Pythia.queryNetInterfaces cfg
     Just device -> interfaceToText <$> Pythia.queryNetInterface device cfg
-  putStrLn $ T.unpack resultTxt
+  handler resultTxt
   where
     interfacesToText :: NetInterfaces -> Text
     interfacesToText =
@@ -106,12 +116,12 @@ handleNetInterface cfg mdevice field = do
     toField NetInterfaceFieldIpv4 = U.pretty . view #ipv4s
     toField NetInterfaceFieldIpv6 = U.pretty . view #ipv6s
 
-handleNetConn :: NetInterfaceConfig -> NetConnField -> IO ()
-handleNetConn cfg field = do
+handleNetConn :: (Text -> IO a) -> NetInterfaceConfig -> NetConnField -> IO a
+handleNetConn handler cfg field = do
   result <- Pythia.queryNetInterfaces cfg
-  putStrLn $ case Pythia.findUp result of
+  handler $ case Pythia.findUp result of
     Nothing -> "<No live connection found>"
-    Just conn -> T.unpack $ toField field conn
+    Just conn -> toField field conn
   where
     toField :: NetConnField -> NetInterface -> Text
     toField NetConnFieldDefault = U.prettyToText
@@ -121,15 +131,15 @@ handleNetConn cfg field = do
     toField NetConnFieldIpv4 = U.prettyToText . view #ipv4s
     toField NetConnFieldIpv6 = U.prettyToText . view #ipv6s
 
-handleGlobalIp :: GlobalIpConfig (These [UrlSource 'Ipv4] [UrlSource 'Ipv6]) -> IO ()
-handleGlobalIp cfg = do
+handleGlobalIp :: (Text -> IO a) -> GlobalIpConfig (These [UrlSource 'Ipv4] [UrlSource 'Ipv6]) -> IO a
+handleGlobalIp handler cfg = do
   case cfg ^. #globalIpSources of
     This ipv4Sources ->
       Pythia.queryGlobalIpv4 (MkGlobalIpConfig (cfg ^. #globalIpApp) ipv4Sources)
-        >>= prettyPrint
+        >>= prettyPrint handler
     That ipv6Sources ->
       Pythia.queryGlobalIpv6 (MkGlobalIpConfig (cfg ^. #globalIpApp) ipv6Sources)
-        >>= prettyPrint
+        >>= prettyPrint handler
     These ipv4Sources ipv6Sources -> do
       (ipv4Address, ipv6Address) <-
         Pythia.queryGlobalIp $
@@ -137,11 +147,11 @@ handleGlobalIp cfg = do
             (cfg ^. #globalIpApp)
             (ipv4Sources, ipv6Sources)
 
-      prettyPrint ipv4Address
-      prettyPrint ipv6Address
+      _ <- prettyPrint handler ipv4Address
+      prettyPrint handler ipv6Address
 
-prettyPrint :: Pretty a => a -> IO ()
-prettyPrint = putStrLn . T.unpack . U.prettyToText
+prettyPrint :: Pretty a => (Text -> IO b) -> a -> IO b
+prettyPrint handler = handler . U.prettyToText
 
 docToText :: Doc ann -> Text
 docToText = U.renderStrict . U.layoutCompact

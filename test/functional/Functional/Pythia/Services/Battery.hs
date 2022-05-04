@@ -14,7 +14,7 @@ import Text.Read qualified as TR
 tests :: TestTree
 tests =
   testGroup
-    "Pythia.Services.Battery"
+    "battery"
     [ testApps,
       testStatus,
       testPercentage
@@ -60,7 +60,7 @@ testStatus = testCase "Tests status" $ do
         || s == "Pending"
 
 testPercentage :: TestTree
-testPercentage = testCase "Tests status" $ do
+testPercentage = testCase "Tests percentage" $ do
   let argList = ["battery", "--field", "percentage"]
   result <- capturePythia argList
   result' <- case T.unpack result of

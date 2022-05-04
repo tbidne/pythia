@@ -12,7 +12,7 @@ import Functional.Prelude
 tests :: TestTree
 tests =
   testGroup
-    "Pythia.Services.GlobalIp"
+    "global-ip"
     [ testApps,
       testCustomSources
     ]

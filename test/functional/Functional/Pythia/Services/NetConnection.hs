@@ -13,14 +13,36 @@ tests :: TestTree
 tests =
   testGroup
     "net-conn"
-    [ findUpInterface (Just "nmcli") "nmcli",
-      findUpInterface (Just "ip") "ip",
-      findUpInterface Nothing "<unspecified>"
+    [ testApps,
+      testFields
     ]
 
-findUpInterface :: Maybe String -> String -> TestTree
-findUpInterface appCmd desc = testCase ("Finds live interface with " <> desc) $ do
+testApps :: TestTree
+testApps =
+  testGroup
+    "Test Apps"
+    [ runApps (Just "nmcli") "nmcli",
+      runApps (Just "ip") "ip",
+      runApps Nothing "<default>"
+    ]
+
+runApps :: Maybe String -> String -> TestTree
+runApps appCmd desc = testCase ("Finds live interface with " <> desc) $ do
   let argList =
         ["net-conn"]
           <> (maybe [] (\s -> ["--app", s]) appCmd)
+  capturePythia argList >>= assertNonEmpty
+
+testFields :: TestTree
+testFields =
+  testGroup
+    "Test Fields"
+    [ runsField "name",
+      runsField "ipv4",
+      runsField "ipv6"
+    ]
+
+runsField :: String -> TestTree
+runsField field = testCase field $ do
+  let argList = ["net-conn", "--field", field]
   capturePythia argList >>= assertNonEmpty
