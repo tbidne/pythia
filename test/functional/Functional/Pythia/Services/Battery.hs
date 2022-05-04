@@ -65,6 +65,7 @@ testPercentage = testCase "Tests status" $ do
   result <- capturePythia argList
   result' <- case T.unpack result of
     [d1, d2, '%'] -> pure [d1, d2]
+    "100%" -> pure "100"
     _ -> assertFailure $ T.unpack $ "Bad percentage: " <> result
   case TR.readMaybe @Int result' of
     Nothing -> assertFailure $ "Could not read percentage: " <> result'
