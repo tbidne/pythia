@@ -48,13 +48,12 @@ runPythia = do
     NetIpGlobalCmd cfg -> handleGlobalIp cfg
     `catch` \(ex :: SomeException) -> putStrLn (displayException ex)
 
-handleBattery :: BatteryConfig -> Maybe BatteryField -> IO ()
-handleBattery cfg mfield = do
-  result <- Pythia.queryBattery cfg
-  case mfield of
-    Nothing -> prettyPrint result
-    Just field -> putStrLn $ T.unpack (toField field result)
+handleBattery :: BatteryConfig -> BatteryField -> IO ()
+handleBattery cfg field =
+  Pythia.queryBattery cfg
+    >>= putStrLn . T.unpack . toField field
   where
+    toField BatteryFieldDefault = U.prettyToText
     toField BatteryFieldPercentage = U.prettyToText . view #percentage
     toField BatteryFieldStatus = U.prettyToText . view #status
 
@@ -79,42 +78,48 @@ handleMemory cfg field format =
     toField MemoryPercentage MemoryFieldUsed = U.prettyToText . Mem.percentageUsed
     toField MemoryPercentage MemoryFieldFree = U.prettyToText . Mem.percentageFree
 
-handleNetInterface :: NetInterfaceConfig -> Maybe Device -> Maybe NetInterfaceField -> IO ()
-handleNetInterface cfg mdevice mfield = do
-  case mdevice of
-    Nothing -> Pythia.queryNetInterfaces cfg >>= printInterfaces
-    Just device -> Pythia.queryNetInterface device cfg >>= printInterface
+handleNetInterface :: NetInterfaceConfig -> Maybe Device -> NetInterfaceField -> IO ()
+handleNetInterface cfg mdevice field = do
+  resultTxt <- case mdevice of
+    Nothing -> interfacesToText <$> Pythia.queryNetInterfaces cfg
+    Just device -> interfaceToText <$> Pythia.queryNetInterface device cfg
+  putStrLn $ T.unpack resultTxt
   where
-    printInterfaces :: NetInterfaces -> IO ()
-    printInterfaces netifs@(MkNetInterfaces ifs) = case mfield of
-      Nothing -> putStrLn $ T.unpack $ U.prettyToText netifs
-      Just field -> putStrLn $ T.unpack $ docToText $ U.vsep $ fmap (toField field) ifs
+    interfacesToText :: NetInterfaces -> Text
+    interfacesToText =
+      case field of
+        -- special case so we can use NetInterface's Pretty instance directly,
+        -- which will print extra newlines between interfaces.
+        NetInterfaceFieldDefault -> U.prettyToText
+        _ ->
+          docToText
+            . U.vsep
+            . fmap (toField field)
+            . view #unNetInterfaces
 
-    printInterface :: NetInterface -> IO ()
-    printInterface inf = case mfield of
-      Nothing -> putStrLn $ T.unpack $ U.prettyToText inf
-      Just field -> putStrLn $ T.unpack $ docToText $ toField field inf
+    interfaceToText :: NetInterface -> Text
+    interfaceToText = docToText . toField field
 
+    toField :: NetInterfaceField -> NetInterface -> Doc ann
+    toField NetInterfaceFieldDefault = U.pretty
     toField NetInterfaceFieldName = U.pretty . view #iname
     toField NetInterfaceFieldIpv4 = U.pretty . view #ipv4s
     toField NetInterfaceFieldIpv6 = U.pretty . view #ipv6s
 
-handleNetConn :: NetInterfaceConfig -> Maybe NetConnField -> IO ()
+handleNetConn :: NetInterfaceConfig -> NetConnField -> IO ()
 handleNetConn cfg field = do
   result <- Pythia.queryNetInterfaces cfg
-  let conn :: Maybe NetInterface
-      conn = Pythia.findUp result
-  case field of
-    Nothing -> prettyPrint conn
-    Just sel ->
-      putStrLn $ T.unpack $ U.prettyToText $ fmap (toField sel) conn
+  putStrLn $ case Pythia.findUp result of
+    Nothing -> "<No live connection found>"
+    Just conn -> T.unpack $ toField field conn
   where
     toField :: NetConnField -> NetInterface -> Text
+    toField NetConnFieldDefault = U.prettyToText
     toField NetConnFieldDevice = U.prettyToText . view #idevice
     toField NetConnFieldType = U.prettyToText . view #itype
     toField NetConnFieldName = U.prettyToText . view #iname
-    toField NetConnFieldIpv4 = docToText . U.pretty . view #ipv4s
-    toField NetConnFieldIpv6 = docToText . U.pretty . view #ipv6s
+    toField NetConnFieldIpv4 = U.prettyToText . view #ipv4s
+    toField NetConnFieldIpv6 = U.prettyToText . view #ipv6s
 
 handleGlobalIp :: GlobalIpConfig (These [UrlSource 'Ipv4] [UrlSource 'Ipv6]) -> IO ()
 handleGlobalIp cfg = do

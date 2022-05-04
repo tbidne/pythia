@@ -69,10 +69,10 @@ data MemoryFormat
 --
 -- @since 0.1
 data PythiaCommand
-  = BatteryCmd BatteryConfig (Maybe BatteryField)
+  = BatteryCmd BatteryConfig BatteryField
   | MemoryCmd MemoryConfig MemoryField MemoryFormat
-  | NetInterfaceCmd NetInterfaceConfig (Maybe Device) (Maybe NetInterfaceField)
-  | NetConnCmd NetInterfaceConfig (Maybe NetConnField)
+  | NetInterfaceCmd NetInterfaceConfig (Maybe Device) NetInterfaceField
+  | NetConnCmd NetInterfaceConfig NetConnField
   | NetIpGlobalCmd (GlobalIpConfig (These [UrlSource 'Ipv4] [UrlSource 'Ipv6]))
   deriving (Eq, Show)
 
@@ -80,7 +80,8 @@ data PythiaCommand
 --
 -- @since 0.1
 data BatteryField
-  = BatteryFieldPercentage
+  = BatteryFieldDefault
+  | BatteryFieldPercentage
   | BatteryFieldStatus
   deriving stock (Eq, Show)
 
@@ -98,7 +99,8 @@ data MemoryField
 --
 -- @since 0.1
 data NetInterfaceField
-  = NetInterfaceFieldName
+  = NetInterfaceFieldDefault
+  | NetInterfaceFieldName
   | NetInterfaceFieldIpv4
   | NetInterfaceFieldIpv6
   deriving stock (Eq, Show)
@@ -107,7 +109,8 @@ data NetInterfaceField
 --
 -- @since 0.1
 data NetConnField
-  = NetConnFieldDevice
+  = NetConnFieldDefault
+  | NetConnFieldDevice
   | NetConnFieldType
   | NetConnFieldName
   | NetConnFieldIpv4
@@ -204,16 +207,16 @@ parseBattery = do
         "upower" -> pure $ Single BatteryUPower
         _ -> OApp.readerAbort $ ErrorMsg $ "Unrecognized battery app: " <> T.unpack a
 
-parseBatteryField :: Parser (Maybe BatteryField)
+parseBatteryField :: Parser BatteryField
 parseBatteryField =
-  A.optional $
-    OApp.option
-      readApp
-      ( OApp.long "field"
-          <> OApp.short 'f'
-          <> OApp.metavar "FIELD"
-          <> OApp.help helpTxt
-      )
+  OApp.option
+    readApp
+    ( OApp.value BatteryFieldDefault
+        <> OApp.long "field"
+        <> OApp.short 'f'
+        <> OApp.metavar "FIELD"
+        <> OApp.help helpTxt
+    )
   where
     helpTxt =
       "If specified, prints only the given field. Must be one of [percentage | status]."
@@ -292,16 +295,16 @@ parseNetInterface = do
   val <- parseNetInterfaceField
   pure $ NetInterfaceCmd (MkNetInterfaceConfig app) device val
 
-parseNetInterfaceField :: Parser (Maybe NetInterfaceField)
+parseNetInterfaceField :: Parser NetInterfaceField
 parseNetInterfaceField =
-  A.optional $
-    OApp.option
-      readApp
-      ( OApp.long "field"
-          <> OApp.short 'f'
-          <> OApp.metavar "FIELD"
-          <> OApp.help helpTxt
-      )
+  OApp.option
+    readApp
+    ( OApp.value NetInterfaceFieldDefault
+        <> OApp.long "field"
+        <> OApp.short 'f'
+        <> OApp.metavar "FIELD"
+        <> OApp.help helpTxt
+    )
   where
     helpTxt =
       "If specified, prints only the given field. Must be one of [name | ipv4 | ipv6]."
@@ -351,16 +354,16 @@ parseNetConn = NetConnCmd <$> parseApp <*> parseNetConnField
   where
     parseApp = MkNetInterfaceConfig <$> netInterfaceAppOption
 
-parseNetConnField :: Parser (Maybe NetConnField)
+parseNetConnField :: Parser NetConnField
 parseNetConnField =
-  A.optional $
-    OApp.option
-      readApp
-      ( OApp.long "field"
-          <> OApp.short 'f'
-          <> OApp.metavar "FIELD"
-          <> OApp.help helpTxt
-      )
+  OApp.option
+    readApp
+    ( OApp.value NetConnFieldDefault
+        <> OApp.long "field"
+        <> OApp.short 'f'
+        <> OApp.metavar "FIELD"
+        <> OApp.help helpTxt
+    )
   where
     helpTxt =
       "If specified, prints only the given field. Must be one of"
