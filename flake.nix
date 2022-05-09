@@ -3,7 +3,7 @@
   inputs.algebra-simple-src.url = "github:tbidne/algebra-simple";
   inputs.byte-types-src.url = "github:tbidne/byte-types";
   inputs.flake-utils.url = "github:numtide/flake-utils";
-  inputs.nixpkgs.url = "github:nixos/nixpkgs?rev=1ffba9f2f683063c2b14c9f4d12c55ad5f4ed887";
+  inputs.nixpkgs.url = "github:nixos/nixpkgs?rev=98000933d72a97632caf0db0027ea3eb2e5e7f29";
   inputs.smart-math-src.url = "github:tbidne/smart-math";
   outputs =
     { algebra-simple-src
