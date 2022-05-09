@@ -59,6 +59,7 @@ import Pythia.Utils qualified as U
 -- | Exception for when we cannot find a desired device.
 --
 -- @since 0.1
+type DeviceNotFoundException :: Type
 newtype DeviceNotFoundException = MkDeviceNotFoundException
   { -- | @since 0.1
     unDeviceNotFoundException :: Device

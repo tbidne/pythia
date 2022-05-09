@@ -26,6 +26,7 @@ import Pythia.Prelude
 -- Many
 --
 -- @since 0.1
+type RunApp :: Type -> Type
 data RunApp a
   = -- | Do not specify an application. Attempt to run all, returning
     -- the first success.
@@ -36,7 +37,7 @@ data RunApp a
     --
     -- @since 0.1
     Single a
-  deriving
+  deriving stock
     ( -- | @since 0.1
       Eq,
       -- | @since 0.1

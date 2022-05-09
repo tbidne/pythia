@@ -46,6 +46,7 @@ runsApp appCmd desc = testCase desc $ do
   result <- capturePythia argList
   parseTest result parseMemFull
 
+type MParser :: Type -> Type
 type MParser = Parsec Void Text
 
 runsFields :: TestTree

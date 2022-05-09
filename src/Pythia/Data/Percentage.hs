@@ -17,6 +17,7 @@ import Pythia.Utils (Pretty (..))
 -- | Represents a percentage.
 --
 -- @since 0.1
+type Percentage :: Type
 newtype Percentage = MkPercentage {unPercentage :: LRInterval 0 100 Word8}
   deriving stock
     ( -- | @since 0.1

@@ -56,6 +56,7 @@ import Text.Megaparsec.Char qualified as MPC
 -- Ip parse exception: <parse error>
 --
 -- @since 0.1
+type IpException :: Type
 data IpException
   = -- | General exceptions.
     --
@@ -114,6 +115,7 @@ netInterfaceShellApp = ShellApp.runSimple shell
 supported :: MonadIO m => m Bool
 supported = U.exeSupported "ip"
 
+type MParser :: Type -> Type
 type MParser = Parsec Void Text
 
 -- | Attempts to parse the output of IP.

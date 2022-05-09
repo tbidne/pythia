@@ -38,11 +38,12 @@ import Refined qualified as R
 -- | Newtype wrapper over a network device name.
 --
 -- @since 0.1
+type Device :: Type
 newtype Device = MkDevice
   { -- | @since 0.1
     unDevice :: Text
   }
-  deriving
+  deriving stock
     ( -- | @since 0.1
       Eq,
       -- | @since 0.1
@@ -72,6 +73,7 @@ makeFieldLabelsNoPrefix ''Device
 -- | IP types.
 --
 -- @since 0.1
+type IpType :: Type
 data IpType
   = -- | @since 0.1
     Ipv4
@@ -118,6 +120,7 @@ type family IpRefinement a where
 -- "Left   The predicate (Ipv4Refinement) failed with the message: Invalid IPv4 content: <192.168x1.2>. Should only contain decimal digits or dots."
 --
 -- @since 0.1
+type Ipv4Refinement :: Type
 data Ipv4Refinement
 
 -- | @since 0.1
@@ -162,6 +165,7 @@ instance Predicate Ipv4Refinement Text where
 -- "Left   The predicate (Ipv6Refinement) failed with the message: Invalid IPv6 content: <fe80::a328:482:5263:10b8x>. Should only contain hex digits or colons."
 --
 -- @since 0.1
+type Ipv6Refinement :: Type
 data Ipv6Refinement
 
 -- | @since 0.1
@@ -195,6 +199,7 @@ instance Predicate Ipv6Refinement Text where
 --           @0 < l < 40@.
 --
 -- @since 0.1
+type IpAddress :: IpType -> Type
 newtype IpAddress a = MkIpAddress
   { -- | @since 0.1
     unIpAddress :: Refined (IpRefinement a) Text

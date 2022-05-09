@@ -38,6 +38,7 @@ import System.Process.Typed qualified as TP
 -- The 'parser' is used to parse the result.
 --
 -- @since 0.1
+type SimpleShell :: Type -> Type -> Type
 data SimpleShell err result = MkSimpleShell
   { -- | The shell command to run.
     --
@@ -108,6 +109,7 @@ runCommand command = liftIO $ do
 -- i.e. 'tryAppActions'.
 --
 -- @since 0.1
+type AppAction :: (Type -> Type) -> Type -> Type
 data AppAction m r = MkAppAction
   { -- | @since 0.1
     action :: m r,
@@ -128,6 +130,7 @@ makeFieldLabelsNoPrefix ''AppAction
 --
 -- The semigroup takes the first success, as that gives us the semantics we
 -- want.
+type ActionsResult :: Type -> Type
 data ActionsResult r
   = NoRuns
   | Errs (NonEmpty SomeException)

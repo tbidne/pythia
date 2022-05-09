@@ -50,6 +50,7 @@ import Text.Read qualified as TR
 -- SysFs read file <foo> exception: <oh no>
 --
 -- @since 0.1
+type SysFsException :: Type
 data SysFsException
   = -- | Error searching for \/sys\/class\/power_supply or
     -- \/sysfs\/class\/power_supply.

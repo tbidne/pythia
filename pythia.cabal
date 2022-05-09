@@ -94,7 +94,6 @@ library
     Pythia.ShellApp
     Pythia.Utils
 
-  ghc-options:      -Wunused-packages
   build-depends:
     , algebra-simple  ^>=0.1
     , base            >=4.14.1.0  && <4.17
@@ -123,7 +122,6 @@ library pythia-exe-internal
     Pythia.Args
     Pythia.Runner
 
-  ghc-options:      -Wunused-packages
   build-depends:
     , base
     , gitrev                >=1.2.0    && <1.4
@@ -144,7 +142,7 @@ executable pythia
     , pythia-exe-internal
 
   hs-source-dirs:     app
-  ghc-options:        -threaded -with-rtsopts=-N -Wunused-packages
+  ghc-options:        -threaded -with-rtsopts=-N
   default-language:   Haskell2010
 
 test-suite unit
@@ -159,7 +157,6 @@ test-suite unit
     Unit.Pythia.Services.NetInterface.Ip
     Unit.Pythia.Services.NetInterface.NmCli
 
-  ghc-options:      -Wunused-packages
   build-depends:
     , base
     , byte-types
@@ -186,7 +183,6 @@ test-suite functional
     Functional.Pythia.Services.NetConnection
     Functional.Pythia.Services.NetInterface
 
-  ghc-options:      -Wunused-packages
   build-depends:
     , base
     , megaparsec

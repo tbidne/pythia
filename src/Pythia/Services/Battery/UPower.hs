@@ -53,6 +53,7 @@ import Text.Read qualified as TR
 -- UPower parse error. No percentage nor status found in output: <output>
 --
 -- @since 0.1
+type UPowerException :: Type
 data UPowerException
   = -- | General exceptions.
     --
@@ -165,12 +166,13 @@ parseBattery txt = case foldMap parseLine ts of
   where
     ts = T.lines txt
 
+type BatteryResult :: Type
 data BatteryResult
   = None
   | Percent Percentage
   | Status BatteryStatus
   | Both Battery
-  deriving (Show)
+  deriving stock (Show)
 
 instance Semigroup BatteryResult where
   Both s <> _ = Both s
@@ -191,6 +193,7 @@ parseLine ln = case MP.parse parseStatus "Pythia.Services.battery.UPower" ln of
     Right n -> Percent n
     Left _ -> None
 
+type MParser :: Type -> Type
 type MParser = Parsec Void Text
 
 parsePercent :: MParser Percentage

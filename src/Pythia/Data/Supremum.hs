@@ -11,6 +11,7 @@ import Pythia.Prelude
 -- | Newtype wrapper for easily deriving 'Semigroup' and 'Monoid' instances.
 --
 -- @since 0.1
+type Supremum :: Type -> Type
 newtype Supremum a = MkSupremum a
   deriving stock
     ( -- | @since 0.1

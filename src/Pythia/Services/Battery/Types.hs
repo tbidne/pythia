@@ -24,6 +24,7 @@ import Pythia.Utils (Pretty (..), (<+>))
 -- | Determines how we should query the system for battery state information.
 --
 -- @since 0.1
+type BatteryApp :: Type
 data BatteryApp
   = -- | Uses the sysfs interface i.e. /sys.
     --
@@ -72,6 +73,7 @@ makePrismLabels ''BatteryApp
 -- MkBatteryConfig {batteryApp = Many}
 --
 -- @since 0.1
+type BatteryConfig :: Type
 newtype BatteryConfig = MkBatteryConfig
   { -- | @since 0.1
     batteryApp :: RunApp BatteryApp
@@ -103,6 +105,7 @@ instance Monoid BatteryConfig where
 -- | Represents battery charging status.
 --
 -- @since 0.1
+type BatteryStatus :: Type
 data BatteryStatus
   = -- | @since 0.1
     Charging
@@ -135,13 +138,14 @@ instance Pretty BatteryStatus where
 -- | Full battery state, including percentage and status data.
 --
 -- @since 0.1
+type Battery :: Type
 data Battery = MkBattery
   { -- | @since 0.1
     percentage :: Percentage,
     -- | @since 0.1
     status :: BatteryStatus
   }
-  deriving
+  deriving stock
     ( -- | @since 0.1
       Eq,
       -- | @since 0.1

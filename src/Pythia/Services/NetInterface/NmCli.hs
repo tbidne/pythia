@@ -57,6 +57,7 @@ import Text.Megaparsec.Char qualified as MPC
 -- NmCli parse exception: <parse error>
 --
 -- @since 0.1
+type NmCliException :: Type
 data NmCliException
   = -- | General exceptions.
     --
@@ -115,6 +116,7 @@ netInterfaceShellApp = ShellApp.runSimple shell
 supported :: MonadIO m => m Bool
 supported = U.exeSupported "nmcli"
 
+type MParser :: Type -> Type
 type MParser = Parsec Void Text
 
 -- | Attemps to parse the output of nmcli.

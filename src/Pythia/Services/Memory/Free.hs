@@ -47,6 +47,7 @@ import Text.Read qualified as TR
 -- Free parse exception: <parse error>
 --
 -- @since 0.1
+type FreeException :: Type
 data FreeException
   = -- | For general exceptions.
     --
@@ -120,6 +121,7 @@ parseLine ln = case MP.parse mparseMemory "Memory.hs" ln of
   Right mem -> Just mem
   Left _ -> Nothing
 
+type MParser :: Type -> Type
 type MParser = Parsec Void Text
 
 mparseMemory :: MParser SystemMemory

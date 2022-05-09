@@ -29,6 +29,7 @@ import Pythia.Services.Types.Network (IpType (..))
 -- | This type determines what program we use to lookup the ip address.
 --
 -- @since 0.1
+type GlobalIpApp :: Type
 data GlobalIpApp
   = -- | Uses the dig command to perform a DNS lookup. This is generally the
     -- fastest and most reliable.
@@ -123,6 +124,7 @@ urlSourceCmdIso = O.iso (MkCommand . unUrlSource) (MkIpvSource . unCommand)
 -- MkGlobalIpConfig {globalIpApp = Many, globalIpSources = []}
 --
 -- @since 0.1
+type GlobalIpConfig :: Type -> Type
 data GlobalIpConfig a = MkGlobalIpConfig
   { -- | Determines how we want to query.
     --
@@ -135,7 +137,7 @@ data GlobalIpConfig a = MkGlobalIpConfig
     -- @since 0.1
     globalIpSources :: a
   }
-  deriving
+  deriving stock
     ( -- | @since 0.1
       Eq,
       -- | @since 0.1
@@ -163,14 +165,17 @@ instance Monoid a => Monoid (GlobalIpConfig a) where
 -- | Type alias for 'Ipv4' 'GlobalIpConfig'.
 --
 -- @since 0.1.0.0
+type GlobalIpv4Config :: Type
 type GlobalIpv4Config = GlobalIpConfig [UrlSource 'Ipv4]
 
 -- | Type alias for 'Ipv6' 'GlobalIpConfig'.
 --
 -- @since 0.1.0.0
+type GlobalIpv6Config :: Type
 type GlobalIpv6Config = GlobalIpConfig [UrlSource 'Ipv6]
 
 -- | Type alias for 'Ipv4' and 'Ipv6' 'GlobalIpConfig'.
 --
 -- @since 0.1.0.0
+type GlobalIpBothConfig :: Type
 type GlobalIpBothConfig = GlobalIpConfig ([UrlSource 'Ipv4], [UrlSource 'Ipv6])

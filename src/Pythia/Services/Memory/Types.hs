@@ -27,6 +27,7 @@ import Text.Printf qualified as Pf
 -- | Determines how we should query the system for memory usage.
 --
 -- @since 0.1
+type MemoryApp :: Type
 data MemoryApp
   = -- | Uses the free utility.
     --
@@ -67,6 +68,7 @@ makePrismLabels ''MemoryApp
 -- MkMemoryConfig {memoryApp = Many}
 --
 -- @since 0.1
+type MemoryConfig :: Type
 newtype MemoryConfig = MkMemoryConfig
   { -- | @since 0.1
     memoryApp :: RunApp MemoryApp
@@ -148,6 +150,7 @@ makeFieldLabelsNoPrefix ''Memory
 -- | Represents the current memory usage.
 --
 -- @since 0.1
+type SystemMemory :: Type
 data SystemMemory = MkSystemMemory
   { -- | The total memory on this system.
     --

@@ -54,31 +54,35 @@ import Pythia.Utils qualified as U
 -- | So we don't have to add @these@.
 --
 -- @since 0.1
+type These :: Type -> Type -> Type
 data These a b
   = This a
   | That b
   | These a b
-  deriving (Eq, Show)
+  deriving stock (Eq, Show)
 
+type MemoryFormat :: Type
 data MemoryFormat
   = MemoryBytes
   | MemoryPercentage
-  deriving (Eq, Show)
+  deriving stock (Eq, Show)
 
 -- | Possible commands
 --
 -- @since 0.1
+type PythiaCommand :: Type
 data PythiaCommand
   = BatteryCmd BatteryConfig BatteryField
   | MemoryCmd MemoryConfig MemoryField MemoryFormat
   | NetInterfaceCmd NetInterfaceConfig (Maybe Device) NetInterfaceField
   | NetConnCmd NetInterfaceConfig NetConnField
   | NetIpGlobalCmd (GlobalIpConfig (These [UrlSource 'Ipv4] [UrlSource 'Ipv6]))
-  deriving (Eq, Show)
+  deriving stock (Eq, Show)
 
 -- | Extra option for BatteryCmd.
 --
 -- @since 0.1
+type BatteryField :: Type
 data BatteryField
   = BatteryFieldDefault
   | BatteryFieldPercentage
@@ -88,6 +92,7 @@ data BatteryField
 -- | Extra option for MemoryCmd.
 --
 -- @since 0.1
+type MemoryField :: Type
 data MemoryField
   = MemoryFieldDefault
   | MemoryFieldTotal
@@ -98,6 +103,7 @@ data MemoryField
 -- | Extra option for NetInterfaceCmd.
 --
 -- @since 0.1
+type NetInterfaceField :: Type
 data NetInterfaceField
   = NetInterfaceFieldDefault
   | NetInterfaceFieldName
@@ -108,6 +114,7 @@ data NetInterfaceField
 -- | Extra option for NetConnCmd.
 --
 -- @since 0.1
+type NetConnField :: Type
 data NetConnField
   = NetConnFieldDefault
   | NetConnFieldDevice
@@ -120,6 +127,7 @@ data NetConnField
 -- | Extra option for GlobalIpCmd.
 --
 -- @since 0.1
+type GlobalIpField :: Type
 data GlobalIpField
   = GlobalIpFieldIpv4
   | GlobalIpFieldIpv6

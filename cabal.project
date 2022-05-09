@@ -5,7 +5,7 @@ package pythia
     -Wall -Wcompat -Werror -Widentities
     -Wincomplete-record-updates -Wincomplete-uni-patterns
     -Wmissing-home-modules -Wmissing-export-lists -Wpartial-fields
-    -Wredundant-constraints
+    -Wredundant-constraints -Wunused-packages -Wmissing-deriving-strategies
 
 package refined
   flags: -aeson -quickcheck

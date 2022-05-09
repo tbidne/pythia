@@ -14,6 +14,7 @@ import Pythia.Prelude
 -- | Newtype wrapper over a shell command.
 --
 -- @since 0.1
+type Command :: Type
 newtype Command = MkCommand
   { -- | @since 0.1
     unCommand :: Text

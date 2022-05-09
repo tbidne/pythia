@@ -31,6 +31,7 @@ import Pythia.Utils qualified as U
 -- 'PythiaException'.
 --
 -- @since 0.1
+type PythiaException :: Type
 data PythiaException = forall e. Exception e => MkPythiaException e
 
 -- | @since 0.1
@@ -67,6 +68,7 @@ fromExceptionViaPythia x = do
 -- Command exception. Command: <some command>. Error: <an error message>
 --
 -- @since 0.1
+type CommandException :: Type
 data CommandException = MkCommandException
   { -- | The command that was run.
     --
@@ -117,6 +119,7 @@ instance Pretty CommandException where
 -- - App not supported: <app1>
 --
 -- @since 0.1
+type SomeExceptions :: Type
 newtype SomeExceptions = MkSomeExceptions
   { -- | @since 0.1
     unExceptions :: NonEmpty SomeException
@@ -155,6 +158,7 @@ instance Semigroup SomeExceptions where
 -- App not supported: <app1>
 --
 -- @since 0.1
+type NotSupportedException :: Type
 newtype NotSupportedException = MkNotSupportedException
   { -- | @since 0.1
     unNotSupportedException :: Text
@@ -193,6 +197,7 @@ instance Pretty NotSupportedException where
 -- No actions run
 --
 -- @since 0.1
+type NoActionsRunException :: Type
 data NoActionsRunException = MkNoActionsRunException
   deriving stock
     ( -- | @since 0.1

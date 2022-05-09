@@ -48,6 +48,7 @@ import Text.Read qualified as TR
 -- Acpi parse exception: <parse error>
 --
 -- @since 0.1
+type AcpiException :: Type
 data AcpiException
   = -- | For general exceptions.
     --
@@ -132,6 +133,7 @@ parseBattery txt = first mkErr parseResult
     parseResult = MP.parse mparseBattery "Acpi.hs" txt
     mkErr err = AcpiParseException $ T.pack $ MPE.errorBundlePretty err
 
+type MParser :: Type -> Type
 type MParser = Parsec Void Text
 
 mparseBattery :: MParser Battery

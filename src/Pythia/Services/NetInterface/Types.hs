@@ -31,6 +31,7 @@ import Pythia.Utils qualified as U
 -- | Determines how we should query the system for interface state information.
 --
 -- @since 0.1
+type NetInterfaceApp :: Type
 data NetInterfaceApp
   = -- | Uses the Network Manager cli utility.
     --
@@ -75,6 +76,7 @@ makePrismLabels ''NetInterfaceApp
 -- MkNetInterfaceConfig {interfaceApp = Many}
 --
 -- @since 0.1
+type NetInterfaceConfig :: Type
 newtype NetInterfaceConfig = MkNetInterfaceConfig
   { -- | @since 0.1
     interfaceApp :: RunApp NetInterfaceApp
@@ -107,6 +109,7 @@ instance Monoid NetInterfaceConfig where
 -- | Various connection types.
 --
 -- @since 0.1
+type NetInterfaceType :: Type
 data NetInterfaceType
   = -- | @since 0.1
     Ethernet
@@ -142,6 +145,7 @@ instance Pretty NetInterfaceType where
 -- | Various connection states.
 --
 -- @since 0.1
+type NetInterfaceState :: Type
 data NetInterfaceState
   = -- | @since 0.1
     Up
@@ -173,6 +177,7 @@ instance Pretty NetInterfaceState where
 -- | Full connection data.
 --
 -- @since 0.1
+type NetInterface :: Type
 data NetInterface = MkNetInterface
   { -- | @since 0.1
     idevice :: Device,
@@ -227,6 +232,7 @@ instance Pretty NetInterface where
       ipv6s = "IPv6:" <+> pretty (netif ^. #ipv6s)
 
 -- | @since 0.1
+type NetInterfaces :: Type
 newtype NetInterfaces = MkNetInterfaces
   { -- | @since 0.1
     unNetInterfaces :: [NetInterface]
