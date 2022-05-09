@@ -73,13 +73,13 @@ makePrismLabels ''NetInterfaceApp
 -- | Complete configuration for querying network interfaces.
 --
 -- >>> mempty @NetInterfaceConfig
--- MkNetInterfaceConfig {interfaceApp = Many}
+-- MkNetInterfaceConfig {app = Many}
 --
 -- @since 0.1
 type NetInterfaceConfig :: Type
 newtype NetInterfaceConfig = MkNetInterfaceConfig
   { -- | @since 0.1
-    interfaceApp :: RunApp NetInterfaceApp
+    app :: RunApp NetInterfaceApp
   }
   deriving stock
     ( -- | @since 0.1
@@ -180,15 +180,15 @@ instance Pretty NetInterfaceState where
 type NetInterface :: Type
 data NetInterface = MkNetInterface
   { -- | @since 0.1
-    idevice :: Device,
+    device :: Device,
     -- | @since 0.1
-    itype :: Maybe NetInterfaceType,
+    ntype :: Maybe NetInterfaceType,
     -- | @since 0.1
-    istate :: NetInterfaceState,
+    state :: NetInterfaceState,
     -- | The name of the connection (e.g. Wifi SSID).
     --
     -- @since 0.1
-    iname :: Maybe Text,
+    name :: Maybe Text,
     -- | @since 0.1
     ipv4s :: IpAddresses 'Ipv4,
     -- | @since 0.1
@@ -224,10 +224,10 @@ instance Pretty NetInterface where
         ipv6s
       ]
     where
-      device = "Device:" <+> pretty (netif ^. #idevice)
-      ctype = "Type:" <+> pretty (netif ^. #itype)
-      state = "State:" <+> pretty (netif ^. #istate)
-      name = "Name:" <+> pretty (netif ^. #iname)
+      device = "Device:" <+> pretty (netif ^. #device)
+      ctype = "Type:" <+> pretty (netif ^. #ntype)
+      state = "State:" <+> pretty (netif ^. #state)
+      name = "Name:" <+> pretty (netif ^. #name)
       ipv4s = "IPv4:" <+> pretty (netif ^. #ipv4s)
       ipv6s = "IPv6:" <+> pretty (netif ^. #ipv6s)
 

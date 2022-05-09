@@ -40,7 +40,7 @@ import Pythia.Services.Battery.UPower qualified as UPower
 import Pythia.ShellApp (AppAction (..))
 import Pythia.ShellApp qualified as ShellApp
 
--- | Queries the battery based on the configuration. If 'batteryApp' is
+-- | Queries the battery based on the configuration. If 'app' is
 -- 'Many' then we try supported apps in the following order:
 --
 -- @
@@ -55,7 +55,7 @@ import Pythia.ShellApp qualified as ShellApp
 -- @since 0.1
 queryBattery :: MonadUnliftIO m => BatteryConfig -> m Battery
 queryBattery config =
-  case config ^. #batteryApp of
+  case config ^. #app of
     Many -> ShellApp.tryAppActions allApps
     Single app -> toShellApp app
   where

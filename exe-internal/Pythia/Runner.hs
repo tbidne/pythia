@@ -112,7 +112,7 @@ handleNetInterface handler cfg mdevice field = do
 
     toField :: NetInterfaceField -> NetInterface -> Doc ann
     toField NetInterfaceFieldDefault = U.pretty
-    toField NetInterfaceFieldName = U.pretty . view #iname
+    toField NetInterfaceFieldName = U.pretty . view #name
     toField NetInterfaceFieldIpv4 = U.pretty . view #ipv4s
     toField NetInterfaceFieldIpv6 = U.pretty . view #ipv6s
 
@@ -125,26 +125,26 @@ handleNetConn handler cfg field = do
   where
     toField :: NetConnField -> NetInterface -> Text
     toField NetConnFieldDefault = U.prettyToText
-    toField NetConnFieldDevice = U.prettyToText . view #idevice
-    toField NetConnFieldType = U.prettyToText . view #itype
-    toField NetConnFieldName = U.prettyToText . view #iname
+    toField NetConnFieldDevice = U.prettyToText . view #device
+    toField NetConnFieldType = U.prettyToText . view #ntype
+    toField NetConnFieldName = U.prettyToText . view #name
     toField NetConnFieldIpv4 = U.prettyToText . view #ipv4s
     toField NetConnFieldIpv6 = U.prettyToText . view #ipv6s
 
 handleGlobalIp :: (Text -> IO a) -> GlobalIpConfig (These [UrlSource 'Ipv4] [UrlSource 'Ipv6]) -> IO a
 handleGlobalIp handler cfg = do
-  case cfg ^. #globalIpSources of
+  case cfg ^. #sources of
     This ipv4Sources ->
-      Pythia.queryGlobalIpv4 (MkGlobalIpConfig (cfg ^. #globalIpApp) ipv4Sources)
+      Pythia.queryGlobalIpv4 (MkGlobalIpConfig (cfg ^. #app) ipv4Sources)
         >>= prettyPrint handler
     That ipv6Sources ->
-      Pythia.queryGlobalIpv6 (MkGlobalIpConfig (cfg ^. #globalIpApp) ipv6Sources)
+      Pythia.queryGlobalIpv6 (MkGlobalIpConfig (cfg ^. #app) ipv6Sources)
         >>= prettyPrint handler
     These ipv4Sources ipv6Sources -> do
       (ipv4Address, ipv6Address) <-
         Pythia.queryGlobalIp $
           MkGlobalIpConfig
-            (cfg ^. #globalIpApp)
+            (cfg ^. #app)
             (ipv4Sources, ipv6Sources)
 
       _ <- prettyPrint handler ipv4Address

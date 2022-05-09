@@ -70,13 +70,13 @@ makePrismLabels ''BatteryApp
 -- | Battery configuration.
 --
 -- >>> mempty @BatteryConfig
--- MkBatteryConfig {batteryApp = Many}
+-- MkBatteryConfig {app = Many}
 --
 -- @since 0.1
 type BatteryConfig :: Type
 newtype BatteryConfig = MkBatteryConfig
   { -- | @since 0.1
-    batteryApp :: RunApp BatteryApp
+    app :: RunApp BatteryApp
   }
   deriving stock
     ( -- | @since 0.1

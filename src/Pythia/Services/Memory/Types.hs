@@ -65,13 +65,13 @@ makePrismLabels ''MemoryApp
 -- | Memory configuration.
 --
 -- >>> mempty @MemoryConfig
--- MkMemoryConfig {memoryApp = Many}
+-- MkMemoryConfig {app = Many}
 --
 -- @since 0.1
 type MemoryConfig :: Type
 newtype MemoryConfig = MkMemoryConfig
   { -- | @since 0.1
-    memoryApp :: RunApp MemoryApp
+    app :: RunApp MemoryApp
   }
   deriving stock
     ( -- | @since 0.1
@@ -112,6 +112,9 @@ newtype Memory (f :: Type -> Type) = MkMemory
     )
 
 -- | @since 0.1
+makeFieldLabelsNoPrefix ''Memory
+
+-- | @since 0.1
 deriving stock instance Eq (f Double) => Eq (Memory f)
 
 -- | @since 0.1
@@ -143,9 +146,6 @@ prettyMemory unwrap (MkMemory bytes) = rounded <+> pretty (show sz)
     sz = Bytes.someSizeToSize bytes'
     x = unwrap $ Bytes.unSomeSize bytes'
     rounded = pretty $ Pf.printf @(Double -> String) "%.2f" x
-
--- | @since 0.1
-makeFieldLabelsNoPrefix ''Memory
 
 -- | Represents the current memory usage.
 --

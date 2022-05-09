@@ -147,10 +147,10 @@ parseInterface = do
 
   pure $
     MkNetInterface
-      { idevice = MkDevice device',
-        itype = Nothing,
-        istate = state',
-        iname = Nothing,
+      { device = MkDevice device',
+        ntype = Nothing,
+        state = state',
+        name = Nothing,
         ipv4s = MkIpAddresses ipv4s',
         ipv6s = MkIpAddresses ipv6s'
       }

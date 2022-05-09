@@ -147,10 +147,10 @@ parseInterface = do
   MP.many MPC.eol
   pure $
     MkNetInterface
-      { idevice = device',
-        itype = Just type',
-        istate = state',
-        iname = name',
+      { device = device',
+        ntype = Just type',
+        state = state',
+        name = name',
         ipv4s = MkIpAddresses ipv4s',
         ipv6s = MkIpAddresses ipv6s'
       }

@@ -50,7 +50,7 @@ import Refined (Predicate, Refined)
 import Refined qualified as R
 
 -- | Queries for IPv4 and IPv6 global IP address based on the configuration.
--- If 'globalIpApp' is 'Many' then we try supported apps in the following
+-- If 'app' is 'Many' then we try supported apps in the following
 -- order:
 --
 -- @
@@ -64,7 +64,7 @@ import Refined qualified as R
 --
 -- @since 0.1
 queryGlobalIp :: MonadUnliftIO m => GlobalIpBothConfig -> m (IpAddress 'Ipv4, IpAddress 'Ipv6)
-queryGlobalIp = queryGlobalIp' #globalIpApp #globalIpSources getBothIps
+queryGlobalIp = queryGlobalIp' #app #sources getBothIps
 
 -- | 'queryGlobalIp' restricted to IPv4 address only.
 --
@@ -75,7 +75,7 @@ queryGlobalIp = queryGlobalIp' #globalIpApp #globalIpSources getBothIps
 --
 -- @since 0.1
 queryGlobalIpv4 :: MonadUnliftIO m => GlobalIpv4Config -> m (IpAddress 'Ipv4)
-queryGlobalIpv4 = queryGlobalIp' #globalIpApp #globalIpSources getIpv4s
+queryGlobalIpv4 = queryGlobalIp' #app #sources getIpv4s
 
 -- | 'queryGlobalIp' restricted to IPv6 address only.
 --
@@ -86,7 +86,7 @@ queryGlobalIpv4 = queryGlobalIp' #globalIpApp #globalIpSources getIpv4s
 --
 -- @since 0.1
 queryGlobalIpv6 :: MonadUnliftIO m => GlobalIpv6Config -> m (IpAddress 'Ipv6)
-queryGlobalIpv6 = queryGlobalIp' #globalIpApp #globalIpSources getIpv6s
+queryGlobalIpv6 = queryGlobalIp' #app #sources getIpv6s
 
 queryGlobalIp' ::
   MonadUnliftIO m =>

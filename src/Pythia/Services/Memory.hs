@@ -44,7 +44,7 @@ import Pythia.Services.Memory.Types
 import Pythia.ShellApp (AppAction (..))
 import Pythia.ShellApp qualified as ShellApp
 
--- | Queries the memory based on the configuration. If 'memoryApp' is
+-- | Queries the memory based on the configuration. If 'app' is
 -- 'Many' then we try supported apps in the following order:
 --
 -- @
@@ -59,7 +59,7 @@ import Pythia.ShellApp qualified as ShellApp
 -- @since 0.1
 queryMemory :: MonadUnliftIO m => MemoryConfig -> m SystemMemory
 queryMemory config =
-  case config ^. #memoryApp of
+  case config ^. #app of
     Many -> ShellApp.tryAppActions allApps
     Single app -> toShellApp app
   where

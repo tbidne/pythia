@@ -106,7 +106,7 @@ instance Exception DeviceNotFoundException where
 --
 -- @since 0.1
 queryNetInterfaces :: MonadUnliftIO m => NetInterfaceConfig -> m NetInterfaces
-queryNetInterfaces cfg = case cfg ^. #interfaceApp of
+queryNetInterfaces cfg = case cfg ^. #app of
   Many -> runMultipleQueries
   Single app -> toSingleShellApp app
 
@@ -145,14 +145,14 @@ findDevice device = throwMaybe e . headMaybe . unNetInterfaces . filterDevice de
 --       loopUp = MkNetInterface "" (Just Loopback) Up (Just "LoopUp") mempty mempty
 --    in findUp $ MkNetInterfaces [loopUp, wifiDown, wifiUp]
 -- :}
--- Just (MkNetInterface {idevice = MkDevice {unDevice = ""}, itype = Just Wifi, istate = Up, iname = Just "WifiUp", ipv4s = MkIpAddresses {unIpAddresses = []}, ipv6s = MkIpAddresses {unIpAddresses = []}})
+-- Just (MkNetInterface {device = MkDevice {unDevice = ""}, ntype = Just Wifi, state = Up, name = Just "WifiUp", ipv4s = MkIpAddresses {unIpAddresses = []}, ipv6s = MkIpAddresses {unIpAddresses = []}})
 --
 -- @since 0.1
 findUp :: NetInterfaces -> Maybe NetInterface
 findUp = headMaybe . (sortType . filterUp) . unNetInterfaces
   where
-    sortType = OL.sortOn (view #itype)
-    filterUp = filter ((== Up) . view #istate)
+    sortType = OL.sortOn (view #ntype)
+    filterUp = filter ((== Up) . view #state)
 
 runMultipleQueries :: MonadUnliftIO m => m NetInterfaces
 runMultipleQueries = ShellApp.tryAppActions allApps
@@ -165,7 +165,7 @@ runMultipleQueries = ShellApp.tryAppActions allApps
 filterDevice :: Device -> NetInterfaces -> NetInterfaces
 filterDevice device (MkNetInterfaces ifs) =
   MkNetInterfaces $
-    filter ((== device) . view #idevice) ifs
+    filter ((== device) . view #device) ifs
 
 toSingleShellApp :: MonadUnliftIO m => NetInterfaceApp -> m NetInterfaces
 toSingleShellApp NetInterfaceNmCli = NmCli.netInterfaceShellApp

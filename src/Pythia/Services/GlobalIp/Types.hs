@@ -121,7 +121,7 @@ urlSourceCmdIso = O.iso (MkCommand . unUrlSource) (MkIpvSource . unCommand)
 -- sources.
 --
 -- >>> mempty @(GlobalIpConfig [UrlSource Ipv4])
--- MkGlobalIpConfig {globalIpApp = Many, globalIpSources = []}
+-- MkGlobalIpConfig {app = Many, sources = []}
 --
 -- @since 0.1
 type GlobalIpConfig :: Type -> Type
@@ -129,13 +129,13 @@ data GlobalIpConfig a = MkGlobalIpConfig
   { -- | Determines how we want to query.
     --
     -- @since 0.1
-    globalIpApp :: RunApp GlobalIpApp,
+    app :: RunApp GlobalIpApp,
     -- | Extra lookup sources. This will be either a single @['UrlSource' a]@
     -- or a pair @(['UrlSource' 'Ipv4'], ['UrlSource' 'Ipv6'])@, depending on
     -- which address we want to retrieve.
     --
     -- @since 0.1
-    globalIpSources :: a
+    sources :: a
   }
   deriving stock
     ( -- | @since 0.1

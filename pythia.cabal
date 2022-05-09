@@ -42,6 +42,7 @@ common common-exts
     DeriveFunctor
     DeriveGeneric
     DerivingVia
+    DuplicateRecordFields
     FlexibleContexts
     FlexibleInstances
     FunctionalDependencies
