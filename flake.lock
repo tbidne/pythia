@@ -279,11 +279,11 @@
         "nixpkgs": "nixpkgs_6"
       },
       "locked": {
-        "lastModified": 1652014236,
-        "narHash": "sha256-fIpDojU6UnFr6kDgwNhVnjVmUAVRqjURwqKGlKFCtHA=",
+        "lastModified": 1652095431,
+        "narHash": "sha256-k8jdwZiA05pKMqCqhuPjdXClJcyqU+IL9P/uQYD/Z1c=",
         "owner": "tbidne",
         "repo": "smart-math",
-        "rev": "5caef04d86f808aa22cc5560263f10e198e1de1c",
+        "rev": "f33aabe5eb9f6f5ae4d51607d7159086bcb9899d",
         "type": "github"
       },
       "original": {
