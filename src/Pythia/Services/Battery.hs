@@ -53,7 +53,7 @@ import Pythia.ShellApp qualified as ShellApp
 -- encountered (e.g. running a command or parse error).
 --
 -- @since 0.1
-queryBattery :: MonadUnliftIO m => BatteryConfig -> m Battery
+queryBattery :: (MonadCatch m, MonadIO m) => BatteryConfig -> m Battery
 queryBattery config =
   case config ^. #app of
     Many -> ShellApp.tryAppActions allApps
@@ -65,7 +65,7 @@ queryBattery config =
         MkAppAction (toShellApp BatteryUPower) UPower.supported (showt BatteryUPower)
       ]
 
-toShellApp :: MonadUnliftIO m => BatteryApp -> m Battery
+toShellApp :: (MonadCatch m, MonadIO m) => BatteryApp -> m Battery
 toShellApp BatteryAcpi = Acpi.batteryShellApp
 toShellApp BatterySysFs = SysFs.batteryQuery
 toShellApp BatteryUPower = UPower.batteryShellApp

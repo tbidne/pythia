@@ -19,7 +19,9 @@ where
 
 import Control.Applicative as X (Alternative (..), Applicative (..))
 import Control.DeepSeq as X (NFData)
+import Control.Exception as X (Exception (..), SomeException)
 import Control.Monad as X (Monad (..), join, void, (<=<), (=<<), (>=>))
+import Control.Monad.Catch as X (MonadCatch (..), MonadThrow (..), catch, handle, try)
 import Control.Monad.IO.Class as X (MonadIO (..))
 import Data.Bifunctor as X (Bifunctor (..))
 import Data.Bool as X (Bool (..), not, otherwise, (&&), (||))
@@ -70,8 +72,6 @@ import Optics.Core as X
   )
 import Optics.TH as X (makeFieldLabelsNoPrefix, makePrismLabels)
 import System.IO as X (FilePath, IO, print, putStrLn)
-import UnliftIO as X (MonadUnliftIO)
-import UnliftIO.Exception as X (Exception (..), SomeException, catch, handle, throwIO, try)
 
 -- $setup
 -- >>> :set -XDeriveAnyClass
@@ -114,8 +114,8 @@ headMaybe (x : _) = Just x
 -- >>> throwLeft @IO (Right @AnException @() ())
 --
 -- @since 0.1
-throwLeft :: forall m e a. (Exception e, MonadIO m) => Either e a -> m a
-throwLeft = either throwIO pure
+throwLeft :: forall m e a. (Exception e, MonadThrow m) => Either e a -> m a
+throwLeft = either throwM pure
 
 -- | @throwMaybe e x@ throws @e@ if @x@ is 'Nothing'.
 --
@@ -127,8 +127,8 @@ throwLeft = either throwIO pure
 -- >>> throwMaybe @IO AnException (Just ())
 --
 -- @since 0.1
-throwMaybe :: forall m e a. (Exception e, MonadIO m) => e -> Maybe a -> m a
-throwMaybe e = maybe (throwIO e) pure
+throwMaybe :: forall m e a. (Exception e, MonadThrow m) => e -> Maybe a -> m a
+throwMaybe e = maybe (throwM e) pure
 
 showt :: Show a => a -> Text
 showt = T.pack . show

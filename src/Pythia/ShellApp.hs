@@ -74,13 +74,13 @@ instance Bifunctor SimpleShell where
 -- @since 0.1
 runSimple ::
   forall m err result.
-  (Exception err, MonadIO m, MonadUnliftIO m) =>
+  (Exception err, MonadIO m, MonadCatch m) =>
   SimpleShell err result ->
   m result
 runSimple simple =
   rethrowErr `handle` runCommand (simple ^. #command) >>= parseAndThrow
   where
-    rethrowErr = \(e :: SomeException) -> throwIO $ (simple ^. #liftShellEx) e
+    rethrowErr = \(e :: SomeException) -> throwM $ (simple ^. #liftShellEx) e
     parseAndThrow t' = throwLeft $ (simple ^. #parser) t'
 
 -- | Runs a 'Command' and returns either the text result or error encountered.
@@ -99,7 +99,7 @@ runCommand command = liftIO $ do
   case exitCode of
     ExitSuccess -> pure $ decodeUtf8Lenient (LBS.toStrict out)
     ExitFailure _ ->
-      throwIO $ MkCommandException command $ T.pack $ show $ LBS.toStrict err
+      throwM $ MkCommandException command $ T.pack $ show $ LBS.toStrict err
   where
     cmdStr = command ^. #unCommand
 
@@ -159,16 +159,16 @@ instance Monoid (ActionsResult r) where
 --       successes.
 --
 -- @since 0.1
-tryAppActions :: MonadUnliftIO m => [AppAction m result] -> m result
+tryAppActions :: MonadCatch m => [AppAction m result] -> m result
 tryAppActions apps = do
   eResult <- foldr tryAppAction (pure mempty) apps
   case eResult of
     Success result -> pure result
-    Errs errs -> throwIO $ MkSomeExceptions errs
-    NoRuns -> throwIO MkNoActionsRunException
+    Errs errs -> throwM $ MkSomeExceptions errs
+    NoRuns -> throwM MkNoActionsRunException
 
 tryAppAction ::
-  MonadUnliftIO m =>
+  MonadCatch m =>
   AppAction m result ->
   m (ActionsResult result) ->
   m (ActionsResult result)
@@ -192,16 +192,16 @@ tryAppAction appAction acc = do
 --       successes.
 --
 -- @since 0.1
-tryIOs :: MonadUnliftIO m => [m result] -> m result
+tryIOs :: MonadCatch m => [m result] -> m result
 tryIOs actions = do
   eResult <- foldr tryIO (pure mempty) actions
   case eResult of
     Success result -> pure result
-    Errs errs -> throwIO $ MkSomeExceptions errs
-    NoRuns -> throwIO MkNoActionsRunException
+    Errs errs -> throwM $ MkSomeExceptions errs
+    NoRuns -> throwM MkNoActionsRunException
 
 tryIO ::
-  MonadUnliftIO m =>
+  MonadCatch m =>
   m result ->
   m (ActionsResult result) ->
   m (ActionsResult result)

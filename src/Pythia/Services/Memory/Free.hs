@@ -89,7 +89,7 @@ instance Exception FreeException where
 --       the command, or we have a parse error).
 --
 -- @since 0.1
-memoryShellApp :: MonadUnliftIO m => m SystemMemory
+memoryShellApp :: (MonadCatch m, MonadIO m) => m SystemMemory
 memoryShellApp = ShellApp.runSimple shell
   where
     shell =

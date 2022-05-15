@@ -111,7 +111,7 @@ instance Exception UPowerException where
 --       the command, or we have a parse error).
 --
 -- @since 0.1
-batteryShellApp :: MonadUnliftIO m => m Battery
+batteryShellApp :: (MonadCatch m, MonadIO m) => m Battery
 batteryShellApp = ShellApp.runSimple shell
   where
     shell =

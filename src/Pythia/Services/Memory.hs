@@ -57,7 +57,7 @@ import Pythia.ShellApp qualified as ShellApp
 -- encountered (e.g. running a command or parse error).
 --
 -- @since 0.1
-queryMemory :: MonadUnliftIO m => MemoryConfig -> m SystemMemory
+queryMemory :: (MonadCatch m, MonadIO m) => MemoryConfig -> m SystemMemory
 queryMemory config =
   case config ^. #app of
     Many -> ShellApp.tryAppActions allApps
@@ -67,7 +67,7 @@ queryMemory config =
       [ MkAppAction (toShellApp MemoryFree) Free.supported (showt MemoryFree)
       ]
 
-toShellApp :: MonadUnliftIO m => MemoryApp -> m SystemMemory
+toShellApp :: (MonadCatch m, MonadIO m) => MemoryApp -> m SystemMemory
 toShellApp MemoryFree = Free.memoryShellApp
 
 -- | Returns the amount of free memory.
