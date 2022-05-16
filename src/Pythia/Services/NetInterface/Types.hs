@@ -101,10 +101,12 @@ makeFieldLabelsNoPrefix ''NetInterfaceConfig
 instance Semigroup NetInterfaceConfig where
   MkNetInterfaceConfig a <> MkNetInterfaceConfig a' =
     MkNetInterfaceConfig (a <> a')
+  {-# INLINEABLE (<>) #-}
 
 -- | @since 0.1
 instance Monoid NetInterfaceConfig where
   mempty = MkNetInterfaceConfig mempty
+  {-# INLINEABLE mempty #-}
 
 -- | Various connection types.
 --
@@ -141,6 +143,7 @@ makePrismLabels ''NetInterfaceType
 
 instance Pretty NetInterfaceType where
   pretty = pretty . show
+  {-# INLINEABLE pretty #-}
 
 -- | Various connection states.
 --
@@ -173,6 +176,7 @@ makePrismLabels ''NetInterfaceState
 
 instance Pretty NetInterfaceState where
   pretty = pretty . show
+  {-# INLINEABLE pretty #-}
 
 -- | Full connection data.
 --
@@ -230,6 +234,7 @@ instance Pretty NetInterface where
       name = "Name:" <+> pretty (netif ^. #name)
       ipv4s = "IPv4:" <+> pretty (netif ^. #ipv4s)
       ipv6s = "IPv6:" <+> pretty (netif ^. #ipv6s)
+  {-# INLINEABLE pretty #-}
 
 -- | @since 0.1
 type NetInterfaces :: Type
@@ -255,6 +260,7 @@ newtype NetInterfaces = MkNetInterfaces
 -- | @since 0.1
 instance Pretty NetInterfaces where
   pretty = U.vsep . U.punctuate (U.pretty @Text "\n") . fmap pretty . unNetInterfaces
+  {-# INLINEABLE pretty #-}
 
 -- | @since 0.1
 makeFieldLabelsNoPrefix ''NetInterfaces

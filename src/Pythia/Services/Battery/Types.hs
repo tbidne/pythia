@@ -97,10 +97,12 @@ makeFieldLabelsNoPrefix ''BatteryConfig
 -- | @since 0.1
 instance Semigroup BatteryConfig where
   MkBatteryConfig l <> MkBatteryConfig r = MkBatteryConfig (l <> r)
+  {-# INLINEABLE (<>) #-}
 
 -- | @since 0.1
 instance Monoid BatteryConfig where
   mempty = MkBatteryConfig mempty
+  {-# INLINEABLE mempty #-}
 
 -- | Represents battery charging status.
 --
@@ -134,6 +136,7 @@ makePrismLabels ''BatteryStatus
 -- | @since 0.1
 instance Pretty BatteryStatus where
   pretty = pretty . show
+  {-# INLINEABLE pretty #-}
 
 -- | Full battery state, including percentage and status data.
 --
@@ -170,3 +173,4 @@ instance Pretty Battery where
     where
       status = pretty $ bs ^. #status
       percentage = pretty $ bs ^. #percentage
+  {-# INLINEABLE pretty #-}

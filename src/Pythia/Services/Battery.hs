@@ -64,8 +64,10 @@ queryBattery config =
         MkAppAction (toShellApp BatteryAcpi) Acpi.supported (showt BatteryAcpi),
         MkAppAction (toShellApp BatteryUPower) UPower.supported (showt BatteryUPower)
       ]
+{-# INLINEABLE queryBattery #-}
 
 toShellApp :: (MonadCatch m, MonadIO m) => BatteryApp -> m Battery
 toShellApp BatteryAcpi = Acpi.batteryShellApp
 toShellApp BatterySysFs = SysFs.batteryQuery
 toShellApp BatteryUPower = UPower.batteryShellApp
+{-# INLINEABLE toShellApp #-}

@@ -65,6 +65,7 @@ import Text.Megaparsec.Char qualified as MPC
 -- @since 0.1
 foldAlt :: (Foldable t, Alternative f) => (a -> f b) -> t a -> f b
 foldAlt f = foldr ((<|>) . f) empty
+{-# INLINEABLE foldAlt #-}
 
 -- | Convenience function for mapping a 'Maybe' to its underlying
 -- 'Alternative'.
@@ -80,6 +81,7 @@ foldAlt f = foldr ((<|>) . f) empty
 -- @since 0.1
 mAlt :: Alternative f => Maybe (f a) -> f a
 mAlt = fromMaybe empty
+{-# INLINEABLE mAlt #-}
 
 -- | 'takeLineLabel' with no label.
 --
@@ -99,6 +101,7 @@ mAlt = fromMaybe empty
 -- @since 0.1
 takeLine :: (Ord e, Stream s, Token s ~ Char) => Parsec e s (Tokens s)
 takeLine = takeLineLabel Nothing
+{-# INLINEABLE takeLine #-}
 
 -- | Variant of 'takeLine' taking in a label.
 --
@@ -115,6 +118,7 @@ takeLine = takeLineLabel Nothing
 -- @since 0.1
 takeLineLabel :: (Ord e, Stream s, Token s ~ Char) => Maybe String -> Parsec e s (Tokens s)
 takeLineLabel desc = MP.takeWhileP desc (/= '\n') <* MPC.eol
+{-# INLINEABLE takeLineLabel #-}
 
 -- | Takes everything up to the first new line, returns unit.
 --
@@ -126,6 +130,7 @@ takeLineLabel desc = MP.takeWhileP desc (/= '\n') <* MPC.eol
 -- @since 0.1
 takeLine_ :: (Ord e, Stream s, Token s ~ Char) => Parsec e s ()
 takeLine_ = MP.takeWhileP Nothing (/= '\n') *> void MPC.eol
+{-# INLINEABLE takeLine_ #-}
 
 -- | Maps 'Left' to 'False', 'Right' to 'True'.
 --
@@ -140,6 +145,7 @@ takeLine_ = MP.takeWhileP Nothing (/= '\n') *> void MPC.eol
 -- @since 0.1
 eitherToBool :: Either a b -> Bool
 eitherToBool = either (const False) (const True)
+{-# INLINEABLE eitherToBool #-}
 
 -- | Determines if the executable represented by the string parameter is
 -- supported on this system.
@@ -147,9 +153,11 @@ eitherToBool = either (const False) (const True)
 -- @since 0.1
 exeSupported :: MonadIO m => String -> m Bool
 exeSupported exeName = liftIO $ May.isJust <$> Dir.findExecutable exeName
+{-# INLINEABLE exeSupported #-}
 
 -- | Converts a type with a 'Pretty' instance to 'Text'.
 --
 -- @since 0.1
 prettyToText :: Pretty a => a -> Text
 prettyToText = PrettyText.renderStrict . Pretty.layoutCompact . pretty
+{-# INLINEABLE prettyToText #-}

@@ -84,12 +84,16 @@ instance Pretty NmCliException where
     pretty @Text "NmCli parse exception: <"
       <> pretty s
       <> pretty @Text ">"
+  {-# INLINEABLE pretty #-}
 
 -- | @since 0.1
 instance Exception NmCliException where
   displayException = T.unpack . U.prettyToText
+  {-# INLINEABLE displayException #-}
   toException = toExceptionViaPythia
+  {-# INLINEABLE toException #-}
   fromException = fromExceptionViaPythia
+  {-# INLINEABLE fromException #-}
 
 -- | NmCli query for 'NetInterfaces'.
 --
@@ -108,6 +112,7 @@ netInterfaceShellApp = ShellApp.runSimple shell
           parser = parseInterfaces,
           liftShellEx = NmCliGeneralException
         }
+{-# INLINEABLE netInterfaceShellApp #-}
 
 -- | Returns a boolean determining if this program is supported on the
 -- current system.
@@ -115,6 +120,7 @@ netInterfaceShellApp = ShellApp.runSimple shell
 -- @since 0.1
 supported :: MonadIO m => m Bool
 supported = U.exeSupported "nmcli"
+{-# INLINEABLE supported #-}
 
 type MParser :: Type -> Type
 type MParser = Parsec Void Text
@@ -128,9 +134,11 @@ parseInterfaces txt = case MP.parse mparseInterfaces "Pythia.Services.NetInterfa
     let prettyErr = MP.errorBundlePretty ex
      in Left $ NmCliParseException $ T.pack prettyErr
   Right ifs -> Right ifs
+{-# INLINEABLE parseInterfaces #-}
 
 mparseInterfaces :: MParser NetInterfaces
 mparseInterfaces = MkNetInterfaces <$> MP.many parseInterface
+{-# INLINEABLE mparseInterfaces #-}
 
 parseInterface :: MParser NetInterface
 parseInterface = do
@@ -154,12 +162,14 @@ parseInterface = do
         ipv4s = MkIpAddresses ipv4s',
         ipv6s = MkIpAddresses ipv6s'
       }
+{-# INLINEABLE parseInterface #-}
 
 parseDevice :: MParser Device
 parseDevice = do
   MPC.string "GENERAL.DEVICE:"
   device' <- U.takeLineLabel (Just "device")
   pure $ MkDevice device'
+{-# INLINEABLE parseDevice #-}
 
 parseNetInterfaceType :: MParser NetInterfaceType
 parseNetInterfaceType = do
@@ -180,12 +190,15 @@ parseNetInterfaceType = do
     ethernet = MPC.string "ethernet" $> Ethernet
     loopback = MPC.string "loopback" $> Loopback
     tun = MPC.string "tun" $> Tun
+{-# INLINEABLE parseNetInterfaceType #-}
 
 parseHwaddr :: MParser ()
 parseHwaddr = MPC.string "GENERAL.HWADDR:" *> U.takeLine_
+{-# INLINEABLE parseHwaddr #-}
 
 parseMTU :: MParser ()
 parseMTU = MPC.string "GENERAL.MTU:" *> U.takeLine_
+{-# INLINEABLE parseMTU #-}
 
 parseNetInterfaceState :: MParser NetInterfaceState
 parseNetInterfaceState = do
@@ -205,6 +218,7 @@ parseNetInterfaceState = do
     down = MPC.string "(disconnected)" $> Down
     unavail = MPC.string "(unavailable)" $> Down
     unknown = UnknownState <$> MP.takeWhile1P (Just "type") (/= '\n')
+{-# INLINEABLE parseNetInterfaceState #-}
 
 parseName :: MParser (Maybe Text)
 parseName = do
@@ -214,18 +228,23 @@ parseName = do
     if T.null name'
       then Nothing
       else Just name'
+{-# INLINEABLE parseName #-}
 
 parseConPath :: MParser ()
 parseConPath = MPC.string "GENERAL.CON-PATH:" *> U.takeLine_
+{-# INLINEABLE parseConPath #-}
 
 parseWiredProp :: MParser ()
 parseWiredProp = MPC.string "WIRED-PROPERTIES" *> U.takeLine_
+{-# INLINEABLE parseWiredProp #-}
 
 parseIpv4s :: MParser [IpAddress 'Ipv4]
 parseIpv4s = parseAllIpInfo "4" MkIpAddress
+{-# INLINEABLE parseIpv4s #-}
 
 parseIpv6s :: MParser [IpAddress 'Ipv6]
 parseIpv6s = parseAllIpInfo "6" MkIpAddress
+{-# INLINEABLE parseIpv6s #-}
 
 parseAllIpInfo :: Predicate p Text => Text -> (Refined p Text -> a) -> MParser [a]
 parseAllIpInfo p cons = do
@@ -235,6 +254,7 @@ parseAllIpInfo p cons = do
   parseDns p
   parseDomain p
   pure ipvs
+{-# INLINEABLE parseAllIpInfo #-}
 
 parseIps :: Predicate p Text => Text -> (Refined p Text -> a) -> MParser [a]
 parseIps p cons = do
@@ -253,6 +273,7 @@ parseIps p cons = do
                 <> showt ex
        in MP.fancyFailure $ Set.fromList [ErrorFail errMsg]
     Right xss -> pure (cons <$> xss)
+{-# INLINEABLE parseIps #-}
 
 parseAddresses :: Text -> MParser [Text]
 parseAddresses = MP.many . address
@@ -265,22 +286,27 @@ parseAddresses = MP.many . address
       MPC.char '/'
       U.takeLine
       pure addr
+{-# INLINEABLE parseAddresses #-}
 
 parseGateway :: Text -> MParser ()
 parseGateway p = MPC.string ("IP" <> p <> ".GATEWAY:") *> U.takeLine_
+{-# INLINEABLE parseGateway #-}
 
 parseRoutes :: Text -> MParser ()
 parseRoutes = void . MP.many . route
   where
     route p =
       MPC.string ("IP" <> p <> ".ROUTE[") *> U.takeLine_
+{-# INLINEABLE parseRoutes #-}
 
 parseDns :: Text -> MParser ()
 parseDns = void . MP.many . dns
   where
     dns p = MPC.string ("IP" <> p <> ".DNS[") *> U.takeLine_
+{-# INLINEABLE parseDns #-}
 
 parseDomain :: Text -> MParser ()
 parseDomain = void . MP.many . dns
   where
     dns p = MPC.string ("IP" <> p <> ".DOMAIN[") *> U.takeLine_
+{-# INLINEABLE parseDomain #-}

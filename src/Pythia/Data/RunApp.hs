@@ -58,7 +58,9 @@ instance Semigroup a => Semigroup (RunApp a) where
   Many <> r = r
   l <> Many = l
   Single l <> Single r = Single (l <> r)
+  {-# INLINEABLE (<>) #-}
 
 -- | @since 0.1
 instance Semigroup a => Monoid (RunApp a) where
   mempty = Many
+  {-# INLINEABLE mempty #-}

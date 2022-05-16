@@ -75,12 +75,16 @@ instance Pretty AcpiException where
     pretty @Text "Acpi parse exception: <"
       <> pretty s
       <> pretty @Text ">"
+  {-# INLINEABLE pretty #-}
 
 -- | @since 0.1
 instance Exception AcpiException where
   displayException = T.unpack . U.prettyToText
+  {-# INLINEABLE displayException #-}
   toException = toExceptionViaPythia
+  {-# INLINEABLE toException #-}
   fromException = fromExceptionViaPythia
+  {-# INLINEABLE fromException #-}
 
 -- | ACPI query for 'Battery'.
 --
@@ -99,6 +103,7 @@ batteryShellApp = ShellApp.runSimple shell
           parser = parseBattery,
           liftShellEx = AcpiGeneralException
         }
+{-# INLINEABLE batteryShellApp #-}
 
 -- | Returns a boolean determining if this program is supported on the
 -- current system.
@@ -106,6 +111,7 @@ batteryShellApp = ShellApp.runSimple shell
 -- @since 0.1
 supported :: MonadIO m => m Bool
 supported = U.exeSupported "acpi"
+{-# INLINEABLE supported #-}
 
 -- | Attempts to parse the output of acpi.
 --
@@ -132,6 +138,7 @@ parseBattery txt = first mkErr parseResult
   where
     parseResult = MP.parse mparseBattery "Acpi.hs" txt
     mkErr err = AcpiParseException $ T.pack $ MPE.errorBundlePretty err
+{-# INLINEABLE parseBattery #-}
 
 type MParser :: Type -> Type
 type MParser = Parsec Void Text
@@ -148,6 +155,7 @@ mparseBattery = do
   MPC.space
   percentage <- mparsePercent
   pure $ MkBattery percentage state
+{-# INLINEABLE mparseBattery #-}
 
 mparseState :: MParser BatteryStatus
 mparseState =
@@ -162,6 +170,7 @@ mparseState =
     charging = MPC.string' "Charging" $> Charging
     full = MPC.string' "Full" $> Full
     pending = MPC.string' "Not charging" $> Pending
+{-# INLINEABLE mparseState #-}
 
 mparsePercent :: MParser Percentage
 mparsePercent = do
@@ -171,3 +180,4 @@ mparsePercent = do
   pure $ MkPercentage percentage
   where
     readInterval = Interval.mkLRInterval <=< TR.readMaybe . T.unpack
+{-# INLINEABLE mparsePercent #-}

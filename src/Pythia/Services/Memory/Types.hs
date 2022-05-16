@@ -92,10 +92,12 @@ makeFieldLabelsNoPrefix ''MemoryConfig
 -- | @since 0.1
 instance Semigroup MemoryConfig where
   MkMemoryConfig l <> MkMemoryConfig r = MkMemoryConfig (l <> r)
+  {-# INLINEABLE (<>) #-}
 
 -- | @since 0.1
 instance Monoid MemoryConfig where
   mempty = MkMemoryConfig mempty
+  {-# INLINEABLE mempty #-}
 
 -- | Represents the current memory usage. The type parameter is some wrapper
 -- around the memory intended to enforce an invariant e.g. non-negative.
@@ -126,10 +128,12 @@ deriving anyclass instance NFData (f Double) => NFData (Memory f)
 -- | @since 0.1
 instance Pretty (Memory NonNegative) where
   pretty = prettyMemory unNonNegative
+  {-# INLINEABLE pretty #-}
 
 -- | @since 0.1
 instance Pretty (Memory Positive) where
   pretty = prettyMemory unPositive
+  {-# INLINEABLE pretty #-}
 
 prettyMemory ::
   ( MGroup (f Double),
@@ -146,6 +150,7 @@ prettyMemory unwrap (MkMemory bytes) = rounded <+> pretty (show sz)
     sz = Bytes.someSizeToSize bytes'
     x = unwrap $ Bytes.unSomeSize bytes'
     rounded = pretty $ Pf.printf @(Double -> String) "%.2f" x
+{-# INLINEABLE prettyMemory #-}
 
 -- | Represents the current memory usage.
 --
@@ -181,6 +186,7 @@ instance Pretty SystemMemory where
     where
       t = mem ^. #total
       u = mem ^. #used
+  {-# INLINEABLE pretty #-}
 
 -- | @since 0.1
 makeFieldLabelsNoPrefix ''SystemMemory

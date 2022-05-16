@@ -65,6 +65,7 @@ import Refined qualified as R
 -- @since 0.1
 queryGlobalIp :: (MonadCatch m, MonadIO m) => GlobalIpBothConfig -> m (IpAddress 'Ipv4, IpAddress 'Ipv6)
 queryGlobalIp = queryGlobalIp' #app #sources getBothIps
+{-# INLINEABLE queryGlobalIp #-}
 
 -- | 'queryGlobalIp' restricted to IPv4 address only.
 --
@@ -76,6 +77,7 @@ queryGlobalIp = queryGlobalIp' #app #sources getBothIps
 -- @since 0.1
 queryGlobalIpv4 :: (MonadCatch m, MonadIO m) => GlobalIpv4Config -> m (IpAddress 'Ipv4)
 queryGlobalIpv4 = queryGlobalIp' #app #sources getIpv4s
+{-# INLINEABLE queryGlobalIpv4 #-}
 
 -- | 'queryGlobalIp' restricted to IPv6 address only.
 --
@@ -87,6 +89,7 @@ queryGlobalIpv4 = queryGlobalIp' #app #sources getIpv4s
 -- @since 0.1
 queryGlobalIpv6 :: (MonadCatch m, MonadIO m) => GlobalIpv6Config -> m (IpAddress 'Ipv6)
 queryGlobalIpv6 = queryGlobalIp' #app #sources getIpv6s
+{-# INLINEABLE queryGlobalIpv6 #-}
 
 queryGlobalIp' ::
   (MonadCatch m, MonadIO m) =>
@@ -105,12 +108,15 @@ queryGlobalIp' appLens sourceLens getIpFn config =
         MkAppAction (singleRun GlobalIpCurl) curlSupported (showt GlobalIpCurl)
       ]
     singleRun a = liftIO $ getIpFn a (config ^. sourceLens)
+{-# INLINEABLE queryGlobalIp' #-}
 
 curlSupported :: MonadIO m => m Bool
 curlSupported = U.exeSupported "curl"
+{-# INLINEABLE curlSupported #-}
 
 digSupported :: MonadIO m => m Bool
 digSupported = U.exeSupported "dig"
+{-# INLINEABLE digSupported #-}
 
 getBothIps ::
   GlobalIpApp ->
@@ -120,6 +126,7 @@ getBothIps app (ipv4Srcs, ipv6Srcs) =
   (,)
     <$> getIpv4s app ipv4Srcs
     <*> getIpv6s app ipv6Srcs
+{-# INLINEABLE getBothIps #-}
 
 getIpv4s ::
   GlobalIpApp ->
@@ -130,6 +137,7 @@ getIpv4s app extraSrcs = do
         [] -> ipv4Defaults app
         _ -> prependApp app extraSrcs
   getIpFromSources sources
+{-# INLINEABLE getIpv4s #-}
 
 getIpv6s ::
   GlobalIpApp ->
@@ -140,18 +148,22 @@ getIpv6s app extraSrcs = do
         [] -> ipv6Defaults app
         _ -> prependApp app extraSrcs
   getIpFromSources sources
+{-# INLINEABLE getIpv6s #-}
 
 prependApp :: GlobalIpApp -> [UrlSource a] -> [UrlSource a]
 prependApp GlobalIpCurl srcs = fmap (#unUrlSource %~ ("curl " <>)) srcs
 prependApp GlobalIpDig srcs = fmap (#unUrlSource %~ (\s -> "dig " <> s <> " +short")) srcs
+{-# INLINEABLE prependApp #-}
 
 ipv4Defaults :: GlobalIpApp -> [UrlSource 'Ipv4]
 ipv4Defaults GlobalIpCurl = curlDefaults ^. _1
 ipv4Defaults GlobalIpDig = digDefaults ^. _1
+{-# INLINEABLE ipv4Defaults #-}
 
 ipv6Defaults :: GlobalIpApp -> [UrlSource 'Ipv6]
 ipv6Defaults GlobalIpCurl = curlDefaults ^. _2
 ipv6Defaults GlobalIpDig = digDefaults ^. _2
+{-# INLINEABLE ipv6Defaults #-}
 
 curlDefaults :: ([UrlSource 'Ipv4], [UrlSource 'Ipv6])
 curlDefaults = (ipv4s, ipv6s)
@@ -163,6 +175,7 @@ curlDefaults = (ipv4s, ipv6s)
         "curl http://checkip.amazonaws.com/"
       ]
     ipv6s = []
+{-# INLINEABLE curlDefaults #-}
 
 digDefaults :: ([UrlSource 'Ipv4], [UrlSource 'Ipv6])
 digDefaults = (ipv4s, ipv6s)
@@ -176,9 +189,11 @@ digDefaults = (ipv4s, ipv6s)
         "dig -4 TXT o-o.myaddr.l.google.com @ns1.google.com +short"
       ]
     ipv6s = []
+{-# INLINEABLE digDefaults #-}
 
 getIpFromSources :: Predicate (IpRefinement a) Text => [UrlSource a] -> IO (IpAddress a)
 getIpFromSources = fmap MkIpAddress . getIp GIpTypes.urlSourceCmdIso
+{-# INLINEABLE getIpFromSources #-}
 
 getIp ::
   forall p a.
@@ -191,6 +206,8 @@ getIp iso cmds = ShellApp.tryIOs (fmap go cmds)
     go cmd = do
       txt <- ShellApp.runCommand $ cmd ^. iso
       R.refineThrow (trim txt)
+{-# INLINEABLE getIp #-}
 
 trim :: Text -> Text
 trim = T.dropAround Char.isSpace
+{-# INLINEABLE trim #-}

@@ -82,12 +82,14 @@ import System.IO as X (FilePath, IO, print, putStrLn)
 -- @since 0.1
 readFileUtf8Lenient :: MonadIO m => FilePath -> m Text
 readFileUtf8Lenient = fmap decodeUtf8Lenient . liftIO . BS.readFile
+{-# INLINEABLE readFileUtf8Lenient #-}
 
 -- | Lenient UTF8 decode.
 --
 -- @since 0.1
 decodeUtf8Lenient :: ByteString -> Text
 decodeUtf8Lenient = TextEnc.decodeUtf8With TextEncErr.lenientDecode
+{-# INLINEABLE decodeUtf8Lenient #-}
 
 -- | Total version of 'Prelude.head'.
 --
@@ -103,6 +105,7 @@ decodeUtf8Lenient = TextEnc.decodeUtf8With TextEncErr.lenientDecode
 headMaybe :: [a] -> Maybe a
 headMaybe [] = Nothing
 headMaybe (x : _) = Just x
+{-# INLINEABLE headMaybe #-}
 
 -- | Throws 'Left'.
 --
@@ -116,6 +119,7 @@ headMaybe (x : _) = Just x
 -- @since 0.1
 throwLeft :: forall m e a. (Exception e, MonadThrow m) => Either e a -> m a
 throwLeft = either throwM pure
+{-# INLINEABLE throwLeft #-}
 
 -- | @throwMaybe e x@ throws @e@ if @x@ is 'Nothing'.
 --
@@ -129,6 +133,11 @@ throwLeft = either throwM pure
 -- @since 0.1
 throwMaybe :: forall m e a. (Exception e, MonadThrow m) => e -> Maybe a -> m a
 throwMaybe e = maybe (throwM e) pure
+{-# INLINEABLE throwMaybe #-}
 
+-- | 'Text' version of 'show'.
+--
+-- @since 0.1
 showt :: Show a => a -> Text
 showt = T.pack . show
+{-# INLINEABLE showt #-}

@@ -63,6 +63,7 @@ instance Bifunctor SimpleShell where
   bimap f g (MkSimpleShell c p le) = MkSimpleShell c p' (f . le)
     where
       p' = bimap f g . p
+  {-# INLINEABLE bimap #-}
 
 -- | Runs a simple shell.
 --
@@ -82,6 +83,7 @@ runSimple simple =
   where
     rethrowErr = \(e :: SomeException) -> throwM $ (simple ^. #liftShellEx) e
     parseAndThrow t' = throwLeft $ (simple ^. #parser) t'
+{-# INLINEABLE runSimple #-}
 
 -- | Runs a 'Command' and returns either the text result or error encountered.
 -- This is used by 'SimpleShell' to run its command before the result is
@@ -102,6 +104,7 @@ runCommand command = liftIO $ do
       throwM $ MkCommandException command $ T.pack $ show $ LBS.toStrict err
   where
     cmdStr = command ^. #unCommand
+{-# INLINEABLE runCommand #-}
 
 -- | Represents some IO app to retrieve a result @r@. Includes a string
 -- name and support query for determining if this action is supported by the
@@ -142,9 +145,11 @@ instance Semigroup (ActionsResult r) where
   NoRuns <> r = r
   l <> NoRuns = l
   Errs x <> Errs y = Errs $ x <> y
+  {-# INLINEABLE (<>) #-}
 
 instance Monoid (ActionsResult r) where
   mempty = NoRuns
+  {-# INLINEABLE mempty #-}
 
 -- | Queries for information via multiple apps. Returns the first success.
 -- If any errors are encountered or no actions are run (either because the
@@ -166,6 +171,7 @@ tryAppActions apps = do
     Success result -> pure result
     Errs errs -> throwM $ MkSomeExceptions errs
     NoRuns -> throwM MkNoActionsRunException
+{-# INLINEABLE tryAppActions #-}
 
 tryAppAction ::
   MonadCatch m =>
@@ -179,6 +185,7 @@ tryAppAction appAction acc = do
     else appendEx appUnsupportedEx <$> acc
   where
     appUnsupportedEx = toException $ MkNotSupportedException $ appAction ^. #name
+{-# INLINEABLE tryAppAction #-}
 
 -- | Generalized 'tryAppActions' to any 'IO'. Has the same semantics
 -- (i.e. returns the first success or throws an exception if none
@@ -199,6 +206,7 @@ tryIOs actions = do
     Success result -> pure result
     Errs errs -> throwM $ MkSomeExceptions errs
     NoRuns -> throwM MkNoActionsRunException
+{-# INLINEABLE tryIOs #-}
 
 tryIO ::
   MonadCatch m =>
@@ -210,8 +218,10 @@ tryIO action acc = do
   case eResult of
     Right result -> pure $ Success result
     Left ex -> appendEx ex <$> acc
+{-# INLINEABLE tryIO #-}
 
 appendEx :: SomeException -> ActionsResult r -> ActionsResult r
 appendEx e x = errs <> x
   where
     errs = Errs $ e :| []
+{-# INLINEABLE appendEx #-}

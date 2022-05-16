@@ -144,6 +144,7 @@ instance Predicate Ipv4Refinement Text where
       errChars =
         "Invalid IPv4 content: <" <> txt
           <> ">. Should only contain decimal digits or dots."
+  {-# INLINEABLE validate #-}
 
 -- | IPv6 Refinement. We implement a custom type here so we get better error
 -- messages. 'Text' must satisfy:
@@ -189,6 +190,7 @@ instance Predicate Ipv6Refinement Text where
       errChars =
         "Invalid IPv6 content: <" <> txt
           <> ">. Should only contain hex digits or colons."
+  {-# INLINEABLE validate #-}
 
 -- | Type for an IP address. The type family 'IpRefinement' refines the
 -- underlying 'Text' according to the spec.
@@ -222,6 +224,7 @@ newtype IpAddress a = MkIpAddress
 -- | @since 0.1
 instance Pretty (IpAddress a) where
   pretty = pretty . R.unrefine . unIpAddress
+  {-# INLINEABLE pretty #-}
 
 -- | @since 0.1
 makeFieldLabelsNoPrefix ''IpAddress
@@ -252,11 +255,14 @@ makeFieldLabelsNoPrefix ''IpAddresses
 -- | @since 0.1
 instance Semigroup (IpAddresses a) where
   MkIpAddresses xs <> MkIpAddresses ys = MkIpAddresses (xs <> ys)
+  {-# INLINEABLE (<>) #-}
 
 -- | @since 0.1
 instance Monoid (IpAddresses a) where
   mempty = MkIpAddresses []
+  {-# INLINEABLE mempty #-}
 
 -- | @since 0.1
 instance Pretty (IpAddresses a) where
   pretty = U.hsep . U.punctuate U.comma . fmap pretty . view #unIpAddresses
+  {-# INLINEABLE pretty #-}

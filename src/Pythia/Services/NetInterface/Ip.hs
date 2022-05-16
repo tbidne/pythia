@@ -83,12 +83,16 @@ instance Pretty IpException where
     pretty @Text "Ip parse exception: <"
       <> pretty s
       <> pretty @Text ">"
+  {-# INLINEABLE pretty #-}
 
 -- | @since 0.1
 instance Exception IpException where
   displayException = T.unpack . U.prettyToText
+  {-# INLINEABLE displayException #-}
   toException = toExceptionViaPythia
+  {-# INLINEABLE toException #-}
   fromException = fromExceptionViaPythia
+  {-# INLINEABLE fromException #-}
 
 -- | Ip query for 'NetInterface'.
 --
@@ -107,6 +111,7 @@ netInterfaceShellApp = ShellApp.runSimple shell
           parser = parseInterfaces,
           liftShellEx = IpGeneralException
         }
+{-# INLINEABLE netInterfaceShellApp #-}
 
 -- | Returns a boolean determining if this program is supported on the
 -- current system.
@@ -114,6 +119,7 @@ netInterfaceShellApp = ShellApp.runSimple shell
 -- @since 0.1
 supported :: MonadIO m => m Bool
 supported = U.exeSupported "ip"
+{-# INLINEABLE supported #-}
 
 type MParser :: Type -> Type
 type MParser = Parsec Void Text
@@ -127,9 +133,11 @@ parseInterfaces txt = case MP.parse mparseInterfaces "" txt of
     let prettyErr = MP.errorBundlePretty ex
      in Left $ IpParseException $ T.pack prettyErr
   Right ifs -> Right ifs
+{-# INLINEABLE parseInterfaces #-}
 
 mparseInterfaces :: MParser NetInterfaces
 mparseInterfaces = MkNetInterfaces <$> MP.many parseInterface
+{-# INLINEABLE mparseInterfaces #-}
 
 parseInterface :: MParser NetInterface
 parseInterface = do
@@ -154,15 +162,19 @@ parseInterface = do
         ipv4s = MkIpAddresses ipv4s',
         ipv6s = MkIpAddresses ipv6s'
       }
+{-# INLINEABLE parseInterface #-}
 
 parseLink :: MParser ()
 parseLink = MPC.space *> MPC.string "link" *> U.takeLine_
+{-# INLINEABLE parseLink #-}
 
 parseIpv4s :: MParser [IpAddress 'Ipv4]
 parseIpv4s = parseIps "inet " MkIpAddress
+{-# INLINEABLE parseIpv4s #-}
 
 parseIpv6s :: MParser [IpAddress 'Ipv6]
 parseIpv6s = parseIps "inet6 " MkIpAddress
+{-# INLINEABLE parseIpv6s #-}
 
 parseIps :: Predicate p Text => Text -> (Refined p Text -> a) -> MParser [a]
 parseIps p cons = do
@@ -181,6 +193,7 @@ parseIps p cons = do
                 <> showt ex
        in MP.fancyFailure $ Set.fromList [ErrorFail errMsg]
     Right xss -> pure (cons <$> xss)
+{-# INLINEABLE parseIps #-}
 
 parseAddresses :: Text -> MParser [Text]
 parseAddresses = MP.many . address
@@ -197,12 +210,14 @@ parseAddresses = MP.many . address
       U.takeLine_
       lft
       pure addr
+{-# INLINEABLE parseAddresses #-}
 
 lft :: MParser ()
 lft = do
   MPC.space
   MPC.string "valid_lft"
   U.takeLine_
+{-# INLINEABLE lft #-}
 
 parseNetInterfaceState :: MParser NetInterfaceState
 parseNetInterfaceState = do
@@ -214,3 +229,4 @@ parseNetInterfaceState = do
     up = MPC.string "UP" $> Up
     down = MPC.string "DOWN" $> Down
     unknown = UnknownState <$> MP.takeWhile1P (Just "type") (not . Char.isSpace)
+{-# INLINEABLE parseNetInterfaceState #-}

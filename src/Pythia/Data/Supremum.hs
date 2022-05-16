@@ -31,7 +31,9 @@ newtype Supremum a = MkSupremum a
 -- | @since 0.1
 instance Ord a => Semigroup (Supremum a) where
   (<>) = max
+  {-# INLINEABLE (<>) #-}
 
 -- | @since 0.1
 instance (Bounded a, Ord a) => Monoid (Supremum a) where
   mempty = minBound
+  {-# INLINEABLE mempty #-}

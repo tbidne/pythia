@@ -66,9 +66,11 @@ queryMemory config =
     allApps =
       [ MkAppAction (toShellApp MemoryFree) Free.supported (showt MemoryFree)
       ]
+{-# INLINEABLE queryMemory #-}
 
 toShellApp :: (MonadCatch m, MonadIO m) => MemoryApp -> m SystemMemory
 toShellApp MemoryFree = Free.memoryShellApp
+{-# INLINEABLE toShellApp #-}
 
 -- | Returns the amount of free memory.
 --
@@ -79,6 +81,7 @@ freeMemory sysMem = free
     t = Pos.unPositive . unBytes . unMemory $ sysMem ^. #total
     u = NN.unNonNegative . unBytes . unMemory $ sysMem ^. #used
     free = MkMemory $ MkBytes $ NN.unsafeNonNegative $ t - u
+{-# INLINEABLE freeMemory #-}
 
 -- | Returns the used memory as a percentage.
 --
@@ -92,6 +95,7 @@ percentageUsed sysMem = MkPercentage p
 
     doubleToWord8 :: Double -> Word8
     doubleToWord8 = floor . (* 100)
+{-# INLINEABLE percentageUsed #-}
 
 -- | Returns the free memory as a percentage.
 --
@@ -100,3 +104,4 @@ percentageFree :: SystemMemory -> Percentage
 percentageFree sysMem = MkPercentage $ Interval.unsafeLRInterval (100 - usedPercent)
   where
     (MkPercentage (MkLRInterval usedPercent)) = percentageUsed sysMem
+{-# INLINEABLE percentageFree #-}

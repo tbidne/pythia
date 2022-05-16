@@ -115,6 +115,7 @@ makeFieldLabelsNoPrefix ''UrlSource
 -- @since 0.1
 urlSourceCmdIso :: Iso (UrlSource a) (UrlSource a) Command Command
 urlSourceCmdIso = O.iso (MkCommand . unUrlSource) (MkIpvSource . unCommand)
+{-# INLINEABLE urlSourceCmdIso #-}
 
 -- | Complete configuration for querying global IP addresses. The 'Monoid'
 -- instance will construct a config that tries all apps and has no extra
@@ -157,10 +158,12 @@ makeFieldLabelsNoPrefix ''GlobalIpConfig
 instance Semigroup a => Semigroup (GlobalIpConfig a) where
   MkGlobalIpConfig a s <> MkGlobalIpConfig a' s' =
     MkGlobalIpConfig (a <> a') (s <> s')
+  {-# INLINEABLE (<>) #-}
 
 -- | @since 0.1
 instance Monoid a => Monoid (GlobalIpConfig a) where
   mempty = MkGlobalIpConfig mempty mempty
+  {-# INLINEABLE mempty #-}
 
 -- | Type alias for 'Ipv4' 'GlobalIpConfig'.
 --

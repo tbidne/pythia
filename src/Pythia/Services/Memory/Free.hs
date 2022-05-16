@@ -74,12 +74,16 @@ instance Pretty FreeException where
     pretty @Text "Free parse exception: <"
       <> pretty s
       <> pretty @Text ">"
+  {-# INLINEABLE pretty #-}
 
 -- | @since 0.1
 instance Exception FreeException where
   displayException = T.unpack . U.prettyToText
+  {-# INLINEABLE displayException #-}
   toException = toExceptionViaPythia
+  {-# INLINEABLE toException #-}
   fromException = fromExceptionViaPythia
+  {-# INLINEABLE fromException #-}
 
 -- | Free query for 'Memory'.
 --
@@ -98,6 +102,7 @@ memoryShellApp = ShellApp.runSimple shell
           parser = parseMemory,
           liftShellEx = FreeGeneralException
         }
+{-# INLINEABLE memoryShellApp #-}
 
 -- | Returns a boolean determining if this program is supported on the
 -- current system.
@@ -105,6 +110,7 @@ memoryShellApp = ShellApp.runSimple shell
 -- @since 0.1
 supported :: MonadIO m => m Bool
 supported = U.exeSupported "free"
+{-# INLINEABLE supported #-}
 
 -- | Attempts to parse the output of free.
 --
@@ -115,11 +121,13 @@ parseMemory txt = case U.foldAlt parseLine ts of
   Just mem -> Right mem
   where
     ts = T.lines txt
+{-# INLINEABLE parseMemory #-}
 
 parseLine :: Text -> Maybe SystemMemory
 parseLine ln = case MP.parse mparseMemory "Memory.hs" ln of
   Right mem -> Just mem
   Left _ -> Nothing
+{-# INLINEABLE parseLine #-}
 
 type MParser :: Type -> Type
 type MParser = Parsec Void Text
@@ -141,3 +149,4 @@ mparseMemory = do
       maybe empty pure (parseFn num)
     readNat = (NN.mkNonNegative <=< TR.readMaybe) . T.unpack
     readPos = (Pos.mkPositive <=< TR.readMaybe) . T.unpack
+{-# INLINEABLE mparseMemory #-}

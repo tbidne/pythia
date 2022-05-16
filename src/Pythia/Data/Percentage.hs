@@ -40,9 +40,11 @@ makeFieldLabelsNoPrefix ''Percentage
 -- | @since 0.1
 instance Pretty Percentage where
   pretty (MkPercentage p) = pretty p <> pretty @Text "%"
+  {-# INLINEABLE pretty #-}
 
 -- | Retrieve the raw percentage.
 --
 -- @since 0.1
 rawPercentage :: Percentage -> Word8
 rawPercentage (MkPercentage (MkLRInterval x)) = x
+{-# INLINEABLE rawPercentage #-}

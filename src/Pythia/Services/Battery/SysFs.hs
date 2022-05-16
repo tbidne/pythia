@@ -105,12 +105,16 @@ instance Pretty SysFsException where
       <> pretty @Text "> exception: <"
       <> pretty (displayException e)
       <> pretty @Text ">"
+  {-# INLINEABLE pretty #-}
 
 -- | @since 0.1
 instance Exception SysFsException where
   displayException = T.unpack . U.prettyToText
+  {-# INLINEABLE displayException #-}
   toException = toExceptionViaPythia
+  {-# INLINEABLE toException #-}
   fromException = fromExceptionViaPythia
+  {-# INLINEABLE fromException #-}
 
 -- | @\/sys\/class@ query for 'Battery'.
 --
@@ -122,6 +126,7 @@ instance Exception SysFsException where
 -- @since 0.1
 batteryQuery :: MonadIO m => m Battery
 batteryQuery = liftIO queryBattery
+{-# INLINEABLE batteryQuery #-}
 
 -- | Returns a boolean determining if this program is supported on the
 -- current system. In particular, we return 'True' if the directory
@@ -141,6 +146,7 @@ supported = liftIO $ do
   case efp of
     Left _ -> pure False
     Right _ -> pure True
+{-# INLINEABLE supported #-}
 
 queryBattery :: IO Battery
 queryBattery = do
@@ -150,6 +156,7 @@ queryBattery = do
   percentPath <- fileExists (batDir </> "capacity")
   percentage <- parsePercentage percentPath
   pure $ MkBattery percentage status
+{-# INLINEABLE queryBattery #-}
 
 findSysBatDir :: IO FilePath
 findSysBatDir = do
@@ -163,12 +170,15 @@ findSysBatDir = do
           then pure sysfsDir
           else throwM SysFsDirNotFound
   findBatteryDir sysBase
+{-# INLINEABLE findSysBatDir #-}
 
 sysDir :: FilePath
 sysDir = "/sys/class/power_supply"
+{-# INLINEABLE sysDir #-}
 
 sysfsDir :: FilePath
 sysfsDir = "/sysfs/class/power_supply"
+{-# INLINEABLE sysfsDir #-}
 
 findBatteryDir :: FilePath -> IO FilePath
 findBatteryDir sysBase = do
@@ -191,6 +201,7 @@ findBatteryDir sysBase = do
         "BAT5",
         "BAT"
       ]
+{-# INLINEABLE findBatteryDir #-}
 
 maybeDirExists :: FilePath -> IO (Maybe FilePath)
 maybeDirExists fp = do
@@ -199,6 +210,7 @@ maybeDirExists fp = do
     if b
       then Just fp
       else Nothing
+{-# INLINEABLE maybeDirExists #-}
 
 fileExists :: FilePath -> IO FilePath
 fileExists fp = do
@@ -206,6 +218,7 @@ fileExists fp = do
   if b
     then pure fp
     else throwM $ SysFsFileNotFound $ T.pack fp
+{-# INLINEABLE fileExists #-}
 
 parseStatus :: FilePath -> IO BatteryStatus
 parseStatus fp = do
@@ -218,6 +231,7 @@ parseStatus fp = do
     "not charging" -> pure Pending
     "full" -> pure Full
     bad -> throwM $ SysFsBatteryParseException $ "Unknown status: <" <> bad <> ">"
+{-# INLINEABLE parseStatus #-}
 
 parsePercentage :: FilePath -> IO Percentage
 parsePercentage fp = do
@@ -229,3 +243,4 @@ parsePercentage fp = do
     Just bs -> pure $ MkPercentage bs
   where
     readInterval = Interval.mkLRInterval <=< TR.readMaybe . T.unpack
+{-# INLINEABLE parsePercentage #-}

@@ -40,10 +40,12 @@ deriving stock instance Show PythiaException
 -- | @since 0.1
 instance Exception PythiaException where
   displayException (MkPythiaException e) = displayException e
+  {-# INLINEABLE displayException #-}
 
 -- | @since 0.1
 instance Pretty PythiaException where
   pretty = pretty . displayException
+  {-# INLINEABLE pretty #-}
 
 -- | 'toException' via 'PythiaException'. Used for defining an exception
 -- as a subtype of 'PythiaException'.
@@ -51,6 +53,7 @@ instance Pretty PythiaException where
 -- @since 0.1
 toExceptionViaPythia :: Exception e => e -> SomeException
 toExceptionViaPythia = toException . MkPythiaException
+{-# INLINEABLE toExceptionViaPythia #-}
 
 -- | 'fromException' via 'PythiaException'. Used for defining an exception
 -- as a subtype of 'PythiaException'.
@@ -60,6 +63,7 @@ fromExceptionViaPythia :: Exception e => SomeException -> Maybe e
 fromExceptionViaPythia x = do
   MkPythiaException e <- fromException x
   cast e
+{-# INLINEABLE fromExceptionViaPythia #-}
 
 -- | Exceptions encountered while running a shell command.
 --
@@ -96,8 +100,11 @@ makeFieldLabelsNoPrefix ''CommandException
 -- | @since 0.1
 instance Exception CommandException where
   displayException = T.unpack . U.prettyToText
+  {-# INLINEABLE displayException #-}
   toException = toExceptionViaPythia
+  {-# INLINEABLE toException #-}
   fromException = fromExceptionViaPythia
+  {-# INLINEABLE fromException #-}
 
 -- | @since 0.1
 instance Pretty CommandException where
@@ -107,6 +114,7 @@ instance Pretty CommandException where
       <> pretty @String ">. Error: <"
       <> pretty s
       <> pretty @String ">"
+  {-# INLINEABLE pretty #-}
 
 -- | Collects 1 or more exceptions.
 --
@@ -137,8 +145,11 @@ makeFieldLabelsNoPrefix ''SomeExceptions
 -- | @since 0.1
 instance Exception SomeExceptions where
   displayException = T.unpack . U.prettyToText
+  {-# INLINEABLE displayException #-}
   toException = toExceptionViaPythia
+  {-# INLINEABLE toException #-}
   fromException = fromExceptionViaPythia
+  {-# INLINEABLE fromException #-}
 
 -- | @since 0.1
 instance Pretty SomeExceptions where
@@ -146,10 +157,12 @@ instance Pretty SomeExceptions where
     where
       header = pretty @Text "Found" <+> pretty (showt $ length xs) <+> pretty @Text "exception(s)"
       exes = NE.toList $ fmap ((pretty @Text "-" <+>) . pretty . displayException) xs
+  {-# INLINEABLE pretty #-}
 
 -- | @since 0.1
 instance Semigroup SomeExceptions where
   MkSomeExceptions l <> MkSomeExceptions r = MkSomeExceptions $ l <> r
+  {-# INLINEABLE (<>) #-}
 
 -- | Error for when the current app is not supported.
 --
@@ -180,8 +193,11 @@ makeFieldLabelsNoPrefix ''NotSupportedException
 -- | @since 0.1
 instance Exception NotSupportedException where
   displayException = T.unpack . U.prettyToText
+  {-# INLINEABLE displayException #-}
   toException = toExceptionViaPythia
+  {-# INLINEABLE toException #-}
   fromException = fromExceptionViaPythia
+  {-# INLINEABLE fromException #-}
 
 -- | @since 0.1
 instance Pretty NotSupportedException where
@@ -189,6 +205,7 @@ instance Pretty NotSupportedException where
     pretty @Text "App not supported: <"
       <> pretty @Text s
       <> pretty @Text ">"
+  {-# INLINEABLE pretty #-}
 
 -- | Error for when no actions are run.
 --
@@ -213,9 +230,13 @@ data NoActionsRunException = MkNoActionsRunException
 -- | @since 0.1
 instance Pretty NoActionsRunException where
   pretty MkNoActionsRunException = "No actions run"
+  {-# INLINEABLE pretty #-}
 
 -- | @since 0.1
 instance Exception NoActionsRunException where
   displayException = T.unpack . U.prettyToText
+  {-# INLINEABLE displayException #-}
   toException = toExceptionViaPythia
+  {-# INLINEABLE toException #-}
   fromException = fromExceptionViaPythia
+  {-# INLINEABLE fromException #-}

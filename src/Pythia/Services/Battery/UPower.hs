@@ -96,12 +96,16 @@ instance Pretty UPowerException where
     pretty @Text "UPower parse error. No percentage nor status found in output: <"
       <> pretty s
       <> pretty @Text ">"
+  {-# INLINEABLE pretty #-}
 
 -- | @since 0.1
 instance Exception UPowerException where
   displayException = T.unpack . U.prettyToText
+  {-# INLINEABLE displayException #-}
   toException = toExceptionViaPythia
+  {-# INLINEABLE toException #-}
   fromException = fromExceptionViaPythia
+  {-# INLINEABLE fromException #-}
 
 -- | UPower query for 'Battery'.
 --
@@ -120,6 +124,7 @@ batteryShellApp = ShellApp.runSimple shell
           parser = parseBattery,
           liftShellEx = UPowerGeneralException
         }
+{-# INLINEABLE batteryShellApp #-}
 
 -- | Returns a boolean determining if this program is supported on the
 -- current system.
@@ -127,6 +132,7 @@ batteryShellApp = ShellApp.runSimple shell
 -- @since 0.1
 supported :: MonadIO m => m Bool
 supported = U.exeSupported "upower"
+{-# INLINEABLE supported #-}
 
 -- | Attempts to parse the output of UPower.
 --
@@ -165,6 +171,7 @@ parseBattery txt = case foldMap parseLine ts of
   Both bs -> Right bs
   where
     ts = T.lines txt
+{-# INLINEABLE parseBattery #-}
 
 type BatteryResult :: Type
 data BatteryResult
@@ -182,9 +189,11 @@ instance Semigroup BatteryResult where
   Percent n <> Status s = Both $ MkBattery n s
   Status s <> Percent n = Both $ MkBattery n s
   l <> _ = l
+  {-# INLINEABLE (<>) #-}
 
 instance Monoid BatteryResult where
   mempty = None
+  {-# INLINEABLE mempty #-}
 
 parseLine :: Text -> BatteryResult
 parseLine ln = case MP.parse parseStatus "Pythia.Services.battery.UPower" ln of
@@ -192,6 +201,7 @@ parseLine ln = case MP.parse parseStatus "Pythia.Services.battery.UPower" ln of
   Left _ -> case MP.parse parsePercent "Pythia.Services.battery.UPower" ln of
     Right n -> Percent n
     Left _ -> None
+{-# INLINEABLE parseLine #-}
 
 type MParser :: Type -> Type
 type MParser = Parsec Void Text
@@ -211,6 +221,7 @@ parsePercent = do
       maybe empty pure (readInterval num)
 
     readInterval = Interval.mkLRInterval <=< TR.readMaybe . T.unpack
+{-# INLINEABLE parsePercent #-}
 
 parseStatus :: MParser BatteryStatus
 parseStatus = do
@@ -228,3 +239,4 @@ parseStatus = do
     full = MPC.string' "fully-charged" $> Full <* rest
     pending = MPC.string' "pending-charge" $> Pending <* rest
     rest = MPC.space *> MP.eof
+{-# INLINEABLE parseStatus #-}

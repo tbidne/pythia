@@ -84,12 +84,16 @@ instance Pretty DeviceNotFoundException where
     pretty @Text "Device not found: <"
       <> pretty d
       <> pretty @Text ">"
+  {-# INLINEABLE pretty #-}
 
 -- | @since 0.1
 instance Exception DeviceNotFoundException where
   displayException = T.unpack . U.prettyToText
+  {-# INLINEABLE displayException #-}
   toException = toExceptionViaPythia
+  {-# INLINEABLE toException #-}
   fromException = fromExceptionViaPythia
+  {-# INLINEABLE fromException #-}
 
 -- | Queries for all network interface data. If the 'NetInterfaceConfig'\'s app
 -- is 'Many' then we try all 'NetInterfaceApp's supported by this system, in
@@ -109,6 +113,7 @@ queryNetInterfaces :: (MonadCatch m, MonadIO m) => NetInterfaceConfig -> m NetIn
 queryNetInterfaces cfg = case cfg ^. #app of
   Many -> runMultipleQueries
   Single app -> toSingleShellApp app
+{-# INLINEABLE queryNetInterfaces #-}
 
 -- | Like 'queryNetInterfaces' but returns data for a single device.
 --
@@ -121,11 +126,13 @@ queryNetInterfaces cfg = case cfg ^. #app of
 -- @since 0.1
 queryNetInterface :: (MonadCatch m, MonadIO m) => Device -> NetInterfaceConfig -> m NetInterface
 queryNetInterface d = queryNetInterfaces >=> findDevice d
+{-# INLINEABLE queryNetInterface #-}
 
 findDevice :: MonadThrow m => Device -> NetInterfaces -> m NetInterface
 findDevice device = throwMaybe e . headMaybe . unNetInterfaces . filterDevice device
   where
     e = MkDeviceNotFoundException device
+{-# INLINEABLE findDevice #-}
 
 -- | Takes the first 'NetInterface' that has state 'Up', according to
 -- 'NetInterfaceState'\'s 'Ord':
@@ -153,6 +160,7 @@ findUp = headMaybe . (sortType . filterUp) . unNetInterfaces
   where
     sortType = OL.sortOn (view #ntype)
     filterUp = filter ((== Up) . view #state)
+{-# INLINEABLE findUp #-}
 
 runMultipleQueries :: (MonadCatch m, MonadIO m) => m NetInterfaces
 runMultipleQueries = ShellApp.tryAppActions allApps
@@ -161,12 +169,15 @@ runMultipleQueries = ShellApp.tryAppActions allApps
       [ MkAppAction (toSingleShellApp NetInterfaceNmCli) NmCli.supported (showt NetInterfaceNmCli),
         MkAppAction (toSingleShellApp NetInterfaceIp) Ip.supported (showt NetInterfaceIp)
       ]
+{-# INLINEABLE runMultipleQueries #-}
 
 filterDevice :: Device -> NetInterfaces -> NetInterfaces
 filterDevice device (MkNetInterfaces ifs) =
   MkNetInterfaces $
     filter ((== device) . view #device) ifs
+{-# INLINEABLE filterDevice #-}
 
 toSingleShellApp :: (MonadCatch m, MonadIO m) => NetInterfaceApp -> m NetInterfaces
 toSingleShellApp NetInterfaceNmCli = NmCli.netInterfaceShellApp
 toSingleShellApp NetInterfaceIp = Ip.netInterfaceShellApp
+{-# INLINEABLE toSingleShellApp #-}
