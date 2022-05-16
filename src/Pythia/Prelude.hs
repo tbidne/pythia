@@ -21,8 +21,8 @@ import Control.Applicative as X (Alternative (..), Applicative (..))
 import Control.DeepSeq as X (NFData)
 import Control.Exception as X (Exception (..), SomeException)
 import Control.Monad as X (Monad (..), join, void, (<=<), (=<<), (>=>))
+import Control.Monad.Base as X (MonadBase (..))
 import Control.Monad.Catch as X (MonadCatch (..), MonadThrow (..), catch, handle, try)
-import Control.Monad.IO.Class as X (MonadIO (..))
 import Data.Bifunctor as X (Bifunctor (..))
 import Data.Bool as X (Bool (..), not, otherwise, (&&), (||))
 import Data.ByteString as X (ByteString)
@@ -80,8 +80,8 @@ import System.IO as X (FilePath, IO, print, putStrLn)
 -- | Strictly reads a file and leniently converts the contents to UTF8.
 --
 -- @since 0.1
-readFileUtf8Lenient :: MonadIO m => FilePath -> m Text
-readFileUtf8Lenient = fmap decodeUtf8Lenient . liftIO . BS.readFile
+readFileUtf8Lenient :: MonadBase IO m => FilePath -> m Text
+readFileUtf8Lenient = fmap decodeUtf8Lenient . liftBase . BS.readFile
 {-# INLINEABLE readFileUtf8Lenient #-}
 
 -- | Lenient UTF8 decode.

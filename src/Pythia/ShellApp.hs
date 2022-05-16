@@ -75,7 +75,7 @@ instance Bifunctor SimpleShell where
 -- @since 0.1
 runSimple ::
   forall m err result.
-  (Exception err, MonadIO m, MonadCatch m) =>
+  (Exception err, MonadBase IO m, MonadCatch m) =>
   SimpleShell err result ->
   m result
 runSimple simple =
@@ -95,8 +95,8 @@ runSimple simple =
 -- code.
 --
 -- @since 0.1
-runCommand :: MonadIO m => Command -> m Text
-runCommand command = liftIO $ do
+runCommand :: MonadBase IO m => Command -> m Text
+runCommand command = liftBase $ do
   (exitCode, out, err) <- TP.readProcess $ TP.shell $ T.unpack cmdStr
   case exitCode of
     ExitSuccess -> pure $ decodeUtf8Lenient (LBS.toStrict out)

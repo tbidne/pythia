@@ -109,7 +109,7 @@ instance Exception DeviceNotFoundException where
 -- encountered (e.g. running a command or parse error).
 --
 -- @since 0.1
-queryNetInterfaces :: (MonadCatch m, MonadIO m) => NetInterfaceConfig -> m NetInterfaces
+queryNetInterfaces :: (MonadBase IO m, MonadCatch m) => NetInterfaceConfig -> m NetInterfaces
 queryNetInterfaces cfg = case cfg ^. #app of
   Many -> runMultipleQueries
   Single app -> toSingleShellApp app
@@ -124,7 +124,7 @@ queryNetInterfaces cfg = case cfg ^. #app of
 -- encountered (e.g. running a command or parse error).
 --
 -- @since 0.1
-queryNetInterface :: (MonadCatch m, MonadIO m) => Device -> NetInterfaceConfig -> m NetInterface
+queryNetInterface :: (MonadBase IO m, MonadCatch m) => Device -> NetInterfaceConfig -> m NetInterface
 queryNetInterface d = queryNetInterfaces >=> findDevice d
 {-# INLINEABLE queryNetInterface #-}
 
@@ -162,7 +162,7 @@ findUp = headMaybe . (sortType . filterUp) . unNetInterfaces
     filterUp = filter ((== Up) . view #state)
 {-# INLINEABLE findUp #-}
 
-runMultipleQueries :: (MonadCatch m, MonadIO m) => m NetInterfaces
+runMultipleQueries :: (MonadBase IO m, MonadCatch m) => m NetInterfaces
 runMultipleQueries = ShellApp.tryAppActions allApps
   where
     allApps =
@@ -177,7 +177,7 @@ filterDevice device (MkNetInterfaces ifs) =
     filter ((== device) . view #device) ifs
 {-# INLINEABLE filterDevice #-}
 
-toSingleShellApp :: (MonadCatch m, MonadIO m) => NetInterfaceApp -> m NetInterfaces
+toSingleShellApp :: (MonadBase IO m, MonadCatch m) => NetInterfaceApp -> m NetInterfaces
 toSingleShellApp NetInterfaceNmCli = NmCli.netInterfaceShellApp
 toSingleShellApp NetInterfaceIp = Ip.netInterfaceShellApp
 {-# INLINEABLE toSingleShellApp #-}

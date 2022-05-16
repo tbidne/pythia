@@ -124,8 +124,8 @@ instance Exception SysFsException where
 --       file, or we have a parse error).
 --
 -- @since 0.1
-batteryQuery :: MonadIO m => m Battery
-batteryQuery = liftIO queryBattery
+batteryQuery :: MonadBase IO m => m Battery
+batteryQuery = liftBase queryBattery
 {-# INLINEABLE batteryQuery #-}
 
 -- | Returns a boolean determining if this program is supported on the
@@ -140,8 +140,8 @@ batteryQuery = liftIO queryBattery
 -- * @\/sys\/class\/power_supply\/BAT@
 --
 -- @since 0.1
-supported :: MonadIO m => m Bool
-supported = liftIO $ do
+supported :: MonadBase IO m => m Bool
+supported = liftBase $ do
   efp <- try @_ @SysFsException findSysBatDir
   case efp of
     Left _ -> pure False
