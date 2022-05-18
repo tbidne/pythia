@@ -19,10 +19,8 @@ where
 
 import Control.Applicative as X (Alternative (..), Applicative (..))
 import Control.DeepSeq as X (NFData)
-import Control.Exception as X (Exception (..), SomeException)
+import Control.Exception as X (Exception (..), SomeException, catch, handle, throwIO, try)
 import Control.Monad as X (Monad (..), join, void, (<=<), (=<<), (>=>))
-import Control.Monad.Base as X (MonadBase (..))
-import Control.Monad.Catch as X (MonadCatch (..), MonadThrow (..), catch, handle, try)
 import Data.Bifunctor as X (Bifunctor (..))
 import Data.Bool as X (Bool (..), not, otherwise, (&&), (||))
 import Data.ByteString as X (ByteString)
@@ -80,8 +78,8 @@ import System.IO as X (FilePath, IO, print, putStrLn)
 -- | Strictly reads a file and leniently converts the contents to UTF8.
 --
 -- @since 0.1
-readFileUtf8Lenient :: MonadBase IO m => FilePath -> m Text
-readFileUtf8Lenient = fmap decodeUtf8Lenient . liftBase . BS.readFile
+readFileUtf8Lenient :: FilePath -> IO Text
+readFileUtf8Lenient = fmap decodeUtf8Lenient . BS.readFile
 {-# INLINEABLE readFileUtf8Lenient #-}
 
 -- | Lenient UTF8 decode.
@@ -111,28 +109,28 @@ headMaybe (x : _) = Just x
 --
 -- ==== __Examples__
 --
--- >>> throwLeft @IO (Left @AnException @() AnException)
+-- >>> throwLeft (Left @AnException @() AnException)
 -- *** Exception: AnException
 --
--- >>> throwLeft @IO (Right @AnException @() ())
+-- >>> throwLeft (Right @AnException @() ())
 --
 -- @since 0.1
-throwLeft :: forall m e a. (Exception e, MonadThrow m) => Either e a -> m a
-throwLeft = either throwM pure
+throwLeft :: forall e a. Exception e => Either e a -> IO a
+throwLeft = either throwIO pure
 {-# INLINEABLE throwLeft #-}
 
 -- | @throwMaybe e x@ throws @e@ if @x@ is 'Nothing'.
 --
 -- ==== __Examples__
 --
--- >>> throwMaybe @IO AnException Nothing
+-- >>> throwMaybe AnException Nothing
 -- *** Exception: AnException
 --
--- >>> throwMaybe @IO AnException (Just ())
+-- >>> throwMaybe AnException (Just ())
 --
 -- @since 0.1
-throwMaybe :: forall m e a. (Exception e, MonadThrow m) => e -> Maybe a -> m a
-throwMaybe e = maybe (throwM e) pure
+throwMaybe :: forall e a. Exception e => e -> Maybe a -> IO a
+throwMaybe e = maybe (throwIO e) pure
 {-# INLINEABLE throwMaybe #-}
 
 -- | 'Text' version of 'show'.

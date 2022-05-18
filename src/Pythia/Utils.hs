@@ -151,8 +151,8 @@ eitherToBool = either (const False) (const True)
 -- supported on this system.
 --
 -- @since 0.1
-exeSupported :: MonadBase IO m => String -> m Bool
-exeSupported exeName = liftBase $ May.isJust <$> Dir.findExecutable exeName
+exeSupported :: String -> IO Bool
+exeSupported exeName = May.isJust <$> Dir.findExecutable exeName
 {-# INLINEABLE exeSupported #-}
 
 -- | Converts a type with a 'Pretty' instance to 'Text'.

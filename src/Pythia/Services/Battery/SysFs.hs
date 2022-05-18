@@ -124,8 +124,8 @@ instance Exception SysFsException where
 --       file, or we have a parse error).
 --
 -- @since 0.1
-batteryQuery :: MonadBase IO m => m Battery
-batteryQuery = liftBase queryBattery
+batteryQuery :: IO Battery
+batteryQuery = queryBattery
 {-# INLINEABLE batteryQuery #-}
 
 -- | Returns a boolean determining if this program is supported on the
@@ -140,9 +140,9 @@ batteryQuery = liftBase queryBattery
 -- * @\/sys\/class\/power_supply\/BAT@
 --
 -- @since 0.1
-supported :: MonadBase IO m => m Bool
-supported = liftBase $ do
-  efp <- try @_ @SysFsException findSysBatDir
+supported :: IO Bool
+supported = do
+  efp <- try @SysFsException findSysBatDir
   case efp of
     Left _ -> pure False
     Right _ -> pure True
@@ -168,7 +168,7 @@ findSysBatDir = do
         sysFsExists <- Dir.doesDirectoryExist sysfsDir
         if sysFsExists
           then pure sysfsDir
-          else throwM SysFsDirNotFound
+          else throwIO SysFsDirNotFound
   findBatteryDir sysBase
 {-# INLINEABLE findSysBatDir #-}
 
@@ -184,7 +184,7 @@ findBatteryDir :: FilePath -> IO FilePath
 findBatteryDir sysBase = do
   mResult <- foldr firstExists (pure Nothing) batDirs
   case mResult of
-    Nothing -> throwM SysFsBatteryDirNotFound
+    Nothing -> throwIO SysFsBatteryDirNotFound
     Just result -> pure result
   where
     firstExists bd acc = do
@@ -217,29 +217,29 @@ fileExists fp = do
   b <- Dir.doesFileExist fp
   if b
     then pure fp
-    else throwM $ SysFsFileNotFound $ T.pack fp
+    else throwIO $ SysFsFileNotFound $ T.pack fp
 {-# INLINEABLE fileExists #-}
 
 parseStatus :: FilePath -> IO BatteryStatus
 parseStatus fp = do
   statusTxt <-
     T.toLower . T.strip <$> readFileUtf8Lenient fp
-      `catch` \(e :: SomeException) -> throwM $ SysFsReadFileException (T.pack fp) e
+      `catch` \(e :: SomeException) -> throwIO $ SysFsReadFileException (T.pack fp) e
   case statusTxt of
     "charging" -> pure Charging
     "discharging" -> pure Discharging
     "not charging" -> pure Pending
     "full" -> pure Full
-    bad -> throwM $ SysFsBatteryParseException $ "Unknown status: <" <> bad <> ">"
+    bad -> throwIO $ SysFsBatteryParseException $ "Unknown status: <" <> bad <> ">"
 {-# INLINEABLE parseStatus #-}
 
 parsePercentage :: FilePath -> IO Percentage
 parsePercentage fp = do
   percentTxt <-
     readFileUtf8Lenient fp
-      `catch` \(e :: SomeException) -> throwM $ SysFsReadFileException (T.pack fp) e
+      `catch` \(e :: SomeException) -> throwIO $ SysFsReadFileException (T.pack fp) e
   case readInterval percentTxt of
-    Nothing -> throwM $ SysFsBatteryParseException percentTxt
+    Nothing -> throwIO $ SysFsBatteryParseException percentTxt
     Just bs -> pure $ MkPercentage bs
   where
     readInterval = Interval.mkLRInterval <=< TR.readMaybe . T.unpack

@@ -57,7 +57,7 @@ import Pythia.ShellApp qualified as ShellApp
 -- encountered (e.g. running a command or parse error).
 --
 -- @since 0.1
-queryMemory :: (MonadBase IO m, MonadCatch m) => MemoryConfig -> m SystemMemory
+queryMemory :: MemoryConfig -> IO SystemMemory
 queryMemory config =
   case config ^. #app of
     Many -> ShellApp.tryAppActions allApps
@@ -68,7 +68,7 @@ queryMemory config =
       ]
 {-# INLINEABLE queryMemory #-}
 
-toShellApp :: (MonadBase IO m, MonadCatch m) => MemoryApp -> m SystemMemory
+toShellApp :: MemoryApp -> IO SystemMemory
 toShellApp MemoryFree = Free.memoryShellApp
 {-# INLINEABLE toShellApp #-}
 

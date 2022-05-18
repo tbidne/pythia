@@ -103,7 +103,6 @@ library
     , containers         ^>=0.6.2.1
     , deepseq            ^>=1.4.4.0
     , directory          ^>=1.3.5.0
-    , exceptions         ^>=0.10.4
     , filepath           ^>=1.4.2.1
     , megaparsec         >=7.0.5     && <9.3
     , optics-core        ^>=0.4
@@ -112,7 +111,6 @@ library
     , refined            ^>=0.6
     , smart-math         ^>=0.1
     , text               ^>=1.2.3.2
-    , transformers-base  ^>=0.4.4
     , typed-process      >=0.1.0.0   && <0.3
 
   hs-source-dirs:   src

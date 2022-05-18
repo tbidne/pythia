@@ -102,7 +102,7 @@ instance Exception IpException where
 --       the command, or we have a parse error).
 --
 -- @since 0.1
-netInterfaceShellApp :: (MonadBase IO m, MonadCatch m) => m NetInterfaces
+netInterfaceShellApp :: IO NetInterfaces
 netInterfaceShellApp = ShellApp.runSimple shell
   where
     shell =
@@ -117,7 +117,7 @@ netInterfaceShellApp = ShellApp.runSimple shell
 -- current system.
 --
 -- @since 0.1
-supported :: MonadBase IO m => m Bool
+supported :: IO Bool
 supported = U.exeSupported "ip"
 {-# INLINEABLE supported #-}
 

@@ -93,7 +93,7 @@ instance Exception FreeException where
 --       the command, or we have a parse error).
 --
 -- @since 0.1
-memoryShellApp :: (MonadBase IO m, MonadCatch m) => m SystemMemory
+memoryShellApp :: IO SystemMemory
 memoryShellApp = ShellApp.runSimple shell
   where
     shell =
@@ -108,7 +108,7 @@ memoryShellApp = ShellApp.runSimple shell
 -- current system.
 --
 -- @since 0.1
-supported :: MonadBase IO m => m Bool
+supported :: IO Bool
 supported = U.exeSupported "free"
 {-# INLINEABLE supported #-}
 

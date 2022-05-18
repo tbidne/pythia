@@ -74,14 +74,14 @@ instance Bifunctor SimpleShell where
 --
 -- @since 0.1
 runSimple ::
-  forall m err result.
-  (Exception err, MonadBase IO m, MonadCatch m) =>
+  forall err result.
+  Exception err =>
   SimpleShell err result ->
-  m result
+  IO result
 runSimple simple =
   rethrowErr `handle` runCommand (simple ^. #command) >>= parseAndThrow
   where
-    rethrowErr = \(e :: SomeException) -> throwM $ (simple ^. #liftShellEx) e
+    rethrowErr = \(e :: SomeException) -> throwIO $ (simple ^. #liftShellEx) e
     parseAndThrow t' = throwLeft $ (simple ^. #parser) t'
 {-# INLINEABLE runSimple #-}
 
@@ -95,13 +95,13 @@ runSimple simple =
 -- code.
 --
 -- @since 0.1
-runCommand :: MonadBase IO m => Command -> m Text
-runCommand command = liftBase $ do
+runCommand :: Command -> IO Text
+runCommand command = do
   (exitCode, out, err) <- TP.readProcess $ TP.shell $ T.unpack cmdStr
   case exitCode of
     ExitSuccess -> pure $ decodeUtf8Lenient (LBS.toStrict out)
     ExitFailure _ ->
-      throwM $ MkCommandException command $ T.pack $ show $ LBS.toStrict err
+      throwIO $ MkCommandException command $ T.pack $ show $ LBS.toStrict err
   where
     cmdStr = command ^. #unCommand
 {-# INLINEABLE runCommand #-}
@@ -164,20 +164,17 @@ instance Monoid (ActionsResult r) where
 --       successes.
 --
 -- @since 0.1
-tryAppActions :: MonadCatch m => [AppAction m result] -> m result
+tryAppActions :: [AppAction IO result] -> IO result
 tryAppActions apps = do
   eResult <- foldr tryAppAction (pure mempty) apps
   case eResult of
     Success result -> pure result
-    Errs errs -> throwM $ MkSomeExceptions errs
-    NoRuns -> throwM MkNoActionsRunException
+    Errs errs -> throwIO $ MkSomeExceptions errs
+    NoRuns -> throwIO MkNoActionsRunException
 {-# INLINEABLE tryAppActions #-}
 
 tryAppAction ::
-  MonadCatch m =>
-  AppAction m result ->
-  m (ActionsResult result) ->
-  m (ActionsResult result)
+  AppAction IO result -> IO (ActionsResult result) -> IO (ActionsResult result)
 tryAppAction appAction acc = do
   isSupported <- appAction ^. #supported
   if isSupported
@@ -199,20 +196,16 @@ tryAppAction appAction acc = do
 --       successes.
 --
 -- @since 0.1
-tryIOs :: MonadCatch m => [m result] -> m result
+tryIOs :: [IO result] -> IO result
 tryIOs actions = do
   eResult <- foldr tryIO (pure mempty) actions
   case eResult of
     Success result -> pure result
-    Errs errs -> throwM $ MkSomeExceptions errs
-    NoRuns -> throwM MkNoActionsRunException
+    Errs errs -> throwIO $ MkSomeExceptions errs
+    NoRuns -> throwIO MkNoActionsRunException
 {-# INLINEABLE tryIOs #-}
 
-tryIO ::
-  MonadCatch m =>
-  m result ->
-  m (ActionsResult result) ->
-  m (ActionsResult result)
+tryIO :: IO result -> IO (ActionsResult result) -> IO (ActionsResult result)
 tryIO action acc = do
   eResult :: Either SomeException result <- try action
   case eResult of

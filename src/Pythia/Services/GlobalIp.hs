@@ -63,7 +63,7 @@ import Refined qualified as R
 -- encountered (e.g. running a command or parse error).
 --
 -- @since 0.1
-queryGlobalIp :: (MonadBase IO m, MonadCatch m) => GlobalIpBothConfig -> m (IpAddress 'Ipv4, IpAddress 'Ipv6)
+queryGlobalIp :: GlobalIpBothConfig -> IO (IpAddress 'Ipv4, IpAddress 'Ipv6)
 queryGlobalIp = queryGlobalIp' #app #sources getBothIps
 {-# INLINEABLE queryGlobalIp #-}
 
@@ -75,7 +75,7 @@ queryGlobalIp = queryGlobalIp' #app #sources getBothIps
 -- encountered (e.g. running a command or parse error).
 --
 -- @since 0.1
-queryGlobalIpv4 :: (MonadBase IO m, MonadCatch m) => GlobalIpv4Config -> m (IpAddress 'Ipv4)
+queryGlobalIpv4 :: GlobalIpv4Config -> IO (IpAddress 'Ipv4)
 queryGlobalIpv4 = queryGlobalIp' #app #sources getIpv4s
 {-# INLINEABLE queryGlobalIpv4 #-}
 
@@ -87,17 +87,16 @@ queryGlobalIpv4 = queryGlobalIp' #app #sources getIpv4s
 -- encountered (e.g. running a command or parse error).
 --
 -- @since 0.1
-queryGlobalIpv6 :: (MonadBase IO m, MonadCatch m) => GlobalIpv6Config -> m (IpAddress 'Ipv6)
+queryGlobalIpv6 :: GlobalIpv6Config -> IO (IpAddress 'Ipv6)
 queryGlobalIpv6 = queryGlobalIp' #app #sources getIpv6s
 {-# INLINEABLE queryGlobalIpv6 #-}
 
 queryGlobalIp' ::
-  (MonadBase IO m, MonadCatch m) =>
   Lens' config (RunApp GlobalIpApp) ->
   Lens' config sources ->
   (GlobalIpApp -> sources -> IO result) ->
   config ->
-  m result
+  IO result
 queryGlobalIp' appLens sourceLens getIpFn config =
   case config ^. appLens of
     Many -> ShellApp.tryAppActions allApps
@@ -107,14 +106,14 @@ queryGlobalIp' appLens sourceLens getIpFn config =
       [ MkAppAction (singleRun GlobalIpDig) digSupported (showt GlobalIpDig),
         MkAppAction (singleRun GlobalIpCurl) curlSupported (showt GlobalIpCurl)
       ]
-    singleRun a = liftBase $ getIpFn a (config ^. sourceLens)
+    singleRun a = getIpFn a (config ^. sourceLens)
 {-# INLINEABLE queryGlobalIp' #-}
 
-curlSupported :: MonadBase IO m => m Bool
+curlSupported :: IO Bool
 curlSupported = U.exeSupported "curl"
 {-# INLINEABLE curlSupported #-}
 
-digSupported :: MonadBase IO m => m Bool
+digSupported :: IO Bool
 digSupported = U.exeSupported "dig"
 {-# INLINEABLE digSupported #-}
 
