@@ -28,6 +28,8 @@ import Data.Text qualified as T
 import Optics.Core (Iso', Lens')
 import Pythia.Data.Command (Command)
 import Pythia.Data.RunApp (RunApp (..))
+import Pythia.Internal.ShellApp (AppAction (..))
+import Pythia.Internal.ShellApp qualified as ShellApp
 import Pythia.Prelude
 import Pythia.Services.GlobalIp.Types
   ( GlobalIpApp (..),
@@ -43,8 +45,6 @@ import Pythia.Services.Types.Network
     IpRefinement,
     IpType (..),
   )
-import Pythia.ShellApp (AppAction (..))
-import Pythia.ShellApp qualified as ShellApp
 import Pythia.Utils qualified as U
 import Refined (Predicate, Refined)
 import Refined qualified as R

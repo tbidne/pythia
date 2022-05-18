@@ -5,7 +5,7 @@
 -- commands and parsing the result.
 --
 -- @since 0.1
-module Pythia.ShellApp
+module Pythia.Internal.ShellApp
   ( -- * SimpleShell
     SimpleShell (..),
     runSimple,

@@ -24,6 +24,8 @@ where
 
 import Pythia.Data.Percentage (Percentage (..))
 import Pythia.Data.RunApp (RunApp (..))
+import Pythia.Internal.ShellApp (AppAction (..))
+import Pythia.Internal.ShellApp qualified as ShellApp
 import Pythia.Prelude
 import Pythia.Services.Battery.Acpi (AcpiException (..))
 import Pythia.Services.Battery.Acpi qualified as Acpi
@@ -37,8 +39,6 @@ import Pythia.Services.Battery.Types
   )
 import Pythia.Services.Battery.UPower (UPowerException (..))
 import Pythia.Services.Battery.UPower qualified as UPower
-import Pythia.ShellApp (AppAction (..))
-import Pythia.ShellApp qualified as ShellApp
 
 -- | Queries the battery based on the configuration. If 'app' is
 -- 'Many' then we try supported apps in the following order:

@@ -20,6 +20,8 @@ import Data.Char qualified as Char
 import Data.Set qualified as Set
 import Data.Text qualified as T
 import Pythia.Control.Exception (fromExceptionViaPythia, toExceptionViaPythia)
+import Pythia.Internal.ShellApp (SimpleShell (..))
+import Pythia.Internal.ShellApp qualified as ShellApp
 import Pythia.Prelude
 import Pythia.Services.NetInterface.Types
   ( NetInterface (..),
@@ -32,8 +34,6 @@ import Pythia.Services.Types.Network
     IpAddresses (..),
     IpType (..),
   )
-import Pythia.ShellApp (SimpleShell (..))
-import Pythia.ShellApp qualified as ShellApp
 import Pythia.Utils (Pretty (..))
 import Pythia.Utils qualified as U
 import Refined (Predicate, Refined)

@@ -32,6 +32,8 @@ import Numeric.Data.NonNegative qualified as NN
 import Numeric.Data.Positive qualified as Pos
 import Pythia.Data.Percentage (Percentage (..))
 import Pythia.Data.RunApp (RunApp (..))
+import Pythia.Internal.ShellApp (AppAction (..))
+import Pythia.Internal.ShellApp qualified as ShellApp
 import Pythia.Prelude
 import Pythia.Services.Memory.Free (FreeException)
 import Pythia.Services.Memory.Free qualified as Free
@@ -41,8 +43,6 @@ import Pythia.Services.Memory.Types
     MemoryConfig (..),
     SystemMemory (..),
   )
-import Pythia.ShellApp (AppAction (..))
-import Pythia.ShellApp qualified as ShellApp
 
 -- | Queries the memory based on the configuration. If 'app' is
 -- 'Many' then we try supported apps in the following order:

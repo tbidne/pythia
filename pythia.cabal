@@ -76,6 +76,7 @@ library
     Pythia.Data.Percentage
     Pythia.Data.RunApp
     Pythia.Data.Supremum
+    Pythia.Internal.ShellApp
     Pythia.Prelude
     Pythia.Services.Battery
     Pythia.Services.Battery.Acpi
@@ -92,7 +93,6 @@ library
     Pythia.Services.NetInterface.NmCli
     Pythia.Services.NetInterface.Types
     Pythia.Services.Types.Network
-    Pythia.ShellApp
     Pythia.Utils
 
   build-depends:

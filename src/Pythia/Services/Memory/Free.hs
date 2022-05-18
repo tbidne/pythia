@@ -22,10 +22,10 @@ import Numeric.Algebra (ASemigroup (..))
 import Numeric.Data.NonNegative qualified as NN
 import Numeric.Data.Positive qualified as Pos
 import Pythia.Control.Exception (fromExceptionViaPythia, toExceptionViaPythia)
+import Pythia.Internal.ShellApp (SimpleShell (..))
+import Pythia.Internal.ShellApp qualified as ShellApp
 import Pythia.Prelude
 import Pythia.Services.Memory.Types (Memory (..), SystemMemory (..))
-import Pythia.ShellApp (SimpleShell (..))
-import Pythia.ShellApp qualified as ShellApp
 import Pythia.Utils (Pretty (..))
 import Pythia.Utils qualified as U
 import Text.Megaparsec (Parsec)

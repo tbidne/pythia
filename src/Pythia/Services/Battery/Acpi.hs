@@ -22,10 +22,10 @@ import Data.Text qualified as T
 import Numeric.Data.Interval qualified as Interval
 import Pythia.Control.Exception (fromExceptionViaPythia, toExceptionViaPythia)
 import Pythia.Data.Percentage (Percentage (..))
+import Pythia.Internal.ShellApp (SimpleShell (..))
+import Pythia.Internal.ShellApp qualified as ShellApp
 import Pythia.Prelude
 import Pythia.Services.Battery.Types (Battery (..), BatteryStatus (..))
-import Pythia.ShellApp (SimpleShell (..))
-import Pythia.ShellApp qualified as ShellApp
 import Pythia.Utils (Pretty (..))
 import Pythia.Utils qualified as U
 import Text.Megaparsec (ErrorFancy (..), Parsec, (<?>))

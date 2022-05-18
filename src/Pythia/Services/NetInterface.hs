@@ -37,6 +37,8 @@ import Data.Text qualified as T
 import GHC.OldList qualified as OL
 import Pythia.Control.Exception (fromExceptionViaPythia, toExceptionViaPythia)
 import Pythia.Data.RunApp (RunApp (..))
+import Pythia.Internal.ShellApp (AppAction (..))
+import Pythia.Internal.ShellApp qualified as ShellApp
 import Pythia.Prelude
 import Pythia.Services.NetInterface.Ip (IpException)
 import Pythia.Services.NetInterface.Ip qualified as Ip
@@ -51,8 +53,6 @@ import Pythia.Services.NetInterface.Types
     NetInterfaces (..),
   )
 import Pythia.Services.Types.Network (Device (..), IpAddress (..), IpType (..))
-import Pythia.ShellApp (AppAction (..))
-import Pythia.ShellApp qualified as ShellApp
 import Pythia.Utils (Pretty (..))
 import Pythia.Utils qualified as U
 
