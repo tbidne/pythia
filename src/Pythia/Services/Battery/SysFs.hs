@@ -142,7 +142,7 @@ batteryQuery = queryBattery
 -- @since 0.1
 supported :: IO Bool
 supported = do
-  efp <- try @SysFsException findSysBatDir
+  efp <- try @_ @SysFsException findSysBatDir
   case efp of
     Left _ -> pure False
     Right _ -> pure True
@@ -224,7 +224,7 @@ parseStatus :: FilePath -> IO BatteryStatus
 parseStatus fp = do
   statusTxt <-
     T.toLower . T.strip <$> readFileUtf8Lenient fp
-      `catch` \(e :: SomeException) -> throwIO $ SysFsReadFileException (T.pack fp) e
+      `catchAny` \e -> throwIO $ SysFsReadFileException (T.pack fp) e
   case statusTxt of
     "charging" -> pure Charging
     "discharging" -> pure Discharging
@@ -237,7 +237,7 @@ parsePercentage :: FilePath -> IO Percentage
 parsePercentage fp = do
   percentTxt <-
     readFileUtf8Lenient fp
-      `catch` \(e :: SomeException) -> throwIO $ SysFsReadFileException (T.pack fp) e
+      `catchAny` \e -> throwIO $ SysFsReadFileException (T.pack fp) e
   case readInterval percentTxt of
     Nothing -> throwIO $ SysFsBatteryParseException percentTxt
     Just bs -> pure $ MkPercentage bs

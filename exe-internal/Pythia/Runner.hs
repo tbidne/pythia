@@ -50,13 +50,13 @@ runPythia = runPythiaHandler (putStrLn . T.unpack)
 runPythiaHandler :: (Text -> IO a) -> IO a
 runPythiaHandler handler = do
   cmd <- OApp.execParser parserInfo
-  case cmd of
-    BatteryCmd cfg field -> handleBattery handler cfg field
-    MemoryCmd cfg field format -> handleMemory handler cfg field format
-    NetInterfaceCmd cfg device field -> handleNetInterface handler cfg device field
-    NetConnCmd cfg field -> handleNetConn handler cfg field
-    NetIpGlobalCmd cfg -> handleGlobalIp handler cfg
-    `catch` \(ex :: SomeException) -> handler (T.pack $ displayException ex)
+  (\e -> handler (T.pack $ displayException e))
+    `handleAny` case cmd of
+      BatteryCmd cfg field -> handleBattery handler cfg field
+      MemoryCmd cfg field format -> handleMemory handler cfg field format
+      NetInterfaceCmd cfg device field -> handleNetInterface handler cfg device field
+      NetConnCmd cfg field -> handleNetConn handler cfg field
+      NetIpGlobalCmd cfg -> handleGlobalIp handler cfg
 
 handleBattery :: (Text -> IO a) -> BatteryConfig -> BatteryField -> IO a
 handleBattery handler cfg field =

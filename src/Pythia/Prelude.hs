@@ -19,7 +19,16 @@ where
 
 import Control.Applicative as X (Alternative (..), Applicative (..))
 import Control.DeepSeq as X (NFData)
-import Control.Exception as X (Exception (..), SomeException, catch, handle, throwIO, try)
+import Control.Exception.Safe as X
+  ( Exception (..),
+    SomeException,
+    catch,
+    catchAny,
+    handle,
+    handleAny,
+    throwIO,
+    try,
+  )
 import Control.Monad as X (Monad (..), join, void, (<=<), (=<<), (>=>))
 import Data.Bifunctor as X (Bifunctor (..))
 import Data.Bool as X (Bool (..), not, otherwise, (&&), (||))
