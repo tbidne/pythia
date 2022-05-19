@@ -15,6 +15,8 @@ extra-deps:
   commit: be105b31e3bd2bc00c69cd5c1e869294b26fbb17
 - git: https://github.com/tbidne/byte-types.git
   commit: 60e7ad675f017cbd8467bef649cfcea48f626ab5
+- git: https://github.com/tbidne/env-guard.git
+  commit: 89a68d033d0671239b5e5e4a31f4355c46d4b6d3
 - git: https://github.com/tbidne/smart-math.git
   commit: 652cf1c7b61c1c8b67ce1ce1b4ecea77173b947a
 

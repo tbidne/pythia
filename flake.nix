@@ -2,12 +2,14 @@
   description = "A Haskell package for retrieving system information.";
   inputs.algebra-simple-src.url = "github:tbidne/algebra-simple";
   inputs.byte-types-src.url = "github:tbidne/byte-types";
+  inputs.env-guard-src.url = "github:tbidne/env-guard";
   inputs.flake-utils.url = "github:numtide/flake-utils";
   inputs.nixpkgs.url = "github:nixos/nixpkgs?rev=98000933d72a97632caf0db0027ea3eb2e5e7f29";
   inputs.smart-math-src.url = "github:tbidne/smart-math";
   outputs =
     { algebra-simple-src
     , byte-types-src
+    , env-guard-src
     , flake-utils
     , nixpkgs
     , self
@@ -37,6 +39,8 @@
               final.callCabal2nix "algebra-simple" algebra-simple-src { };
             byte-types =
               final.callCabal2nix "byte-types" byte-types-src { };
+            env-guard =
+              final.callCabal2nix "env-guard" env-guard-src { };
             smart-math =
               final.callCabal2nix "smart-math" smart-math-src { };
           };
