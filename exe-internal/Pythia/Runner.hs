@@ -8,6 +8,8 @@ module Pythia.Runner
 where
 
 import Data.Text qualified as T
+import Data.Time.Format (FormatTime)
+import Data.Time.Format qualified as Format
 import Options.Applicative qualified as OApp
 import Pythia
   ( BatteryConfig,
@@ -30,6 +32,7 @@ import Pythia.Args
     NetInterfaceField (..),
     PythiaCommand (..),
     These (..),
+    TimeType (..),
     parserInfo,
   )
 import Pythia.Data.Percentage (rawPercentage)
@@ -57,6 +60,7 @@ runPythiaHandler handler = do
       NetInterfaceCmd cfg device field -> handleNetInterface handler cfg device field
       NetConnCmd cfg field -> handleNetConn handler cfg field
       NetIpGlobalCmd cfg -> handleGlobalIp handler cfg
+      TimeCmd ttype format -> handleTime handler format ttype
 
 handleBattery :: (Text -> IO a) -> BatteryConfig -> BatteryField -> IO a
 handleBattery handler cfg field =
@@ -149,6 +153,16 @@ handleGlobalIp handler cfg = do
 
       _ <- prettyPrint handler ipv4Address
       prettyPrint handler ipv6Address
+
+handleTime :: (Text -> IO a) -> Maybe String -> TimeType -> IO a
+handleTime handler mformat = \case
+  TimeLocal -> Pythia.queryLocalTime >>= handler . formatTime
+  TimeUTC -> Pythia.queryUTC >>= handler . formatTime
+  TimeTZ tz -> Pythia.queryTimeZone tz >>= handler . formatTime
+  where
+    format = fromMaybe Format.rfc822DateFormat mformat
+    formatTime :: FormatTime t => t -> Text
+    formatTime = T.pack . Format.formatTime Format.defaultTimeLocale format
 
 prettyPrint :: Pretty a => (Text -> IO b) -> a -> IO b
 prettyPrint handler = handler . U.prettyToText

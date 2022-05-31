@@ -79,9 +79,9 @@ runSimple ::
   SimpleShell err result ->
   IO result
 runSimple simple =
-  rethrowErr `handle` runCommand (simple ^. #command) >>= parseAndThrow
+  rethrowErr `handleAny` runCommand (simple ^. #command) >>= parseAndThrow
   where
-    rethrowErr = \(e :: SomeException) -> throwIO $ (simple ^. #liftShellEx) e
+    rethrowErr e = throwIO $ (simple ^. #liftShellEx) e
     parseAndThrow t' = throwLeft $ (simple ^. #parser) t'
 {-# INLINEABLE runSimple #-}
 

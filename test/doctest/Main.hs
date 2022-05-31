@@ -21,6 +21,7 @@ files =
     "src/Pythia/Services/NetInterface/Ip.hs",
     "src/Pythia/Services/NetInterface/NmCli.hs",
     "src/Pythia/Services/NetInterface/Types.hs",
+    "src/Pythia/Services/Time.hs",
     "src/Pythia/Services/Types/Network.hs",
     "src/Pythia/Data/RunApp.hs",
     "src/Pythia/Utils.hs"

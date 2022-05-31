@@ -16,6 +16,7 @@ module Pythia.Args
     MemoryFormat (..),
     NetInterfaceField (..),
     NetConnField (..),
+    TimeType (..),
 
     -- ** Misc
     These (..),
@@ -77,6 +78,7 @@ data PythiaCommand
   | NetInterfaceCmd NetInterfaceConfig (Maybe Device) NetInterfaceField
   | NetConnCmd NetInterfaceConfig NetConnField
   | NetIpGlobalCmd (GlobalIpConfig (These [UrlSource 'Ipv4] [UrlSource 'Ipv6]))
+  | TimeCmd TimeType (Maybe String)
   deriving stock (Eq, Show)
 
 -- | Extra option for BatteryCmd.
@@ -134,6 +136,16 @@ data GlobalIpField
   | GlobalIpFieldBoth
   deriving stock (Eq, Show)
 
+-- | Time type.
+--
+-- @since 0.1
+type TimeType :: Type
+data TimeType
+  = TimeLocal
+  | TimeUTC
+  | TimeTZ Text
+  deriving stock (Eq, Show)
+
 -- | Optparse-Applicative info.
 parserInfo :: ParserInfo PythiaCommand
 parserInfo =
@@ -163,10 +175,11 @@ cmdParser :: Parser PythiaCommand
 cmdParser =
   OApp.hsubparser
     ( mkCommand "battery" parseBattery batStateTxt
+        <> mkCommand "global-ip" parseIpGlobal ipGlobalTxt
         <> mkCommand "memory" parseMemory memoryTxt
         <> mkCommand "net-if" parseNetInterface netInterfaceTxt
         <> mkCommand "net-conn" parseNetConn netConnTxt
-        <> mkCommand "global-ip" parseIpGlobal ipGlobalTxt
+        <> mkCommand "time" parseTime timeTxt
     )
     <**> OApp.helper
     <**> version
@@ -177,6 +190,7 @@ cmdParser =
     netInterfaceTxt = OApp.progDesc "Queries network interfaces."
     netConnTxt = OApp.progDesc "Queries network interfaces for a live connection."
     ipGlobalTxt = OApp.progDesc "Queries the global IP addresses."
+    timeTxt = OApp.progDesc "Queries the system time."
 
 version :: Parser (a -> a)
 version = OApp.infoOption txt (OApp.long "version" <> OApp.short 'v')
@@ -478,6 +492,46 @@ ipv6SrcOption =
       "Custom server URL for retrieving the IPv6 address. Can be specified"
         <> " multiple times and overrides the defaults. These sources are"
         <> " only used if we query for IPv6 per --ip-type."
+
+parseTime :: Parser PythiaCommand
+parseTime = TimeCmd <$> parseTimeType <*> parseTimeFormat
+
+parseTimeType :: Parser TimeType
+parseTimeType =
+  OApp.option
+    readApp
+    ( OApp.value TimeLocal
+        <> OApp.long "type"
+        <> OApp.short 't'
+        <> OApp.metavar "TYPE"
+        <> OApp.help helpTxt
+    )
+  where
+    helpTxt =
+      "Determines what time we return. Must be one of [local | utc | TZ]"
+        <> ", where TZ is a tz database label e.g. America/New_York. See"
+        <> " https://en.wikipedia.org/wiki/Tz_database."
+    readApp = do
+      a <- OApp.str
+      case a of
+        "local" -> pure TimeLocal
+        "utc" -> pure TimeUTC
+        other -> pure $ TimeTZ other
+
+parseTimeFormat :: Parser (Maybe String)
+parseTimeFormat =
+  A.optional $
+    OApp.option
+      OApp.str
+      ( OApp.long "format"
+          <> OApp.short 'f'
+          <> OApp.metavar "STR"
+          <> OApp.help helpTxt
+      )
+  where
+    helpTxt =
+      "Glibc-style format string e.g. %Y-%m-%d for yyyy-mm-dd."
+        <> " See https://hackage.haskell.org/package/time-1.13/docs/Data-Time-Format.html#v:formatTime"
 
 mkCommand :: String -> Parser a -> OApp.InfoMod a -> Mod CommandFields a
 mkCommand cmdTxt parser helpTxt = OApp.command cmdTxt (OApp.info parser helpTxt)

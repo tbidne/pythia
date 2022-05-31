@@ -24,6 +24,7 @@ import Control.Exception.Safe as X
     SomeException,
     catch,
     catchAny,
+    catchAnyDeep,
     handle,
     handleAny,
     throwIO,
@@ -54,6 +55,7 @@ import Data.Text qualified as T
 import Data.Text.Encoding qualified as TextEnc
 import Data.Text.Encoding.Error qualified as TextEncErr
 import Data.Traversable as X (Traversable (..), for)
+import Data.Tuple as X (uncurry)
 import Data.Void as X (Void)
 import Data.Word as X (Word8)
 import GHC.Enum as X (Bounded (..), Enum (..))

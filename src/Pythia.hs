@@ -9,6 +9,7 @@ module Pythia
     module Pythia.Services.GlobalIp,
     module Pythia.Services.Memory,
     module Pythia.Services.NetInterface,
+    module Pythia.Services.Time,
 
     -- * Exceptions
     -- $exceptions
@@ -21,6 +22,7 @@ import Pythia.Services.Battery
 import Pythia.Services.GlobalIp
 import Pythia.Services.Memory
 import Pythia.Services.NetInterface
+import Pythia.Services.Time
 
 -- $services
 -- Each service is self-contained in that it should have everything you need
