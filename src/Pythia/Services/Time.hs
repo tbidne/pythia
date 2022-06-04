@@ -138,7 +138,8 @@ queryTimeZone tzStr = do
 queryTimeZoneLabel :: TZLabel -> IO ZonedTime
 queryTimeZoneLabel tzLabel =
   (\x -> ZonedTime (toLT x) (toTZ x))
-    <$> getTZandCurrUTC `catchAny` (throwIO . TimeGeneralException)
+    <$> getTZandCurrUTC
+    `catchAny` (throwIO . TimeGeneralException)
   where
     getTZandCurrUTC = (All.tzByLabel tzLabel,) <$> queryUTC
 {-# INLINEABLE queryTimeZoneLabel #-}

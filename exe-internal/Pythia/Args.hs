@@ -62,6 +62,9 @@ data These a b
   | These a b
   deriving stock (Eq, Show)
 
+-- | Determines how to print memory.
+--
+-- @since 0.1
 type MemoryFormat :: Type
 data MemoryFormat
   = MemoryBytes

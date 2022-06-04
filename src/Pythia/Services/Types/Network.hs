@@ -137,12 +137,14 @@ instance Predicate Ipv4Refinement Text where
         if len == 0
           then "Received empty IPv4 address. Should have length (0, 16)."
           else
-            "Invalid IPv4 length: <" <> showt len
+            "Invalid IPv4 length: <"
+              <> showt len
               <> "> for ip text: <"
               <> txt
               <> ">. Should be in (0, 16)."
       errChars =
-        "Invalid IPv4 content: <" <> txt
+        "Invalid IPv4 content: <"
+          <> txt
           <> ">. Should only contain decimal digits or dots."
   {-# INLINEABLE validate #-}
 
@@ -183,12 +185,14 @@ instance Predicate Ipv6Refinement Text where
         if len == 0
           then "Received empty IPv6 address. Should have length (0, 40)."
           else
-            "Invalid IPv6 length: <" <> showt len
+            "Invalid IPv6 length: <"
+              <> showt len
               <> "> for ip text: <"
               <> txt
               <> ">. Should be in (0, 40)."
       errChars =
-        "Invalid IPv6 content: <" <> txt
+        "Invalid IPv6 content: <"
+          <> txt
           <> ">. Should only contain hex digits or colons."
   {-# INLINEABLE validate #-}
 

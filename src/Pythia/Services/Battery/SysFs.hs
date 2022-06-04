@@ -223,7 +223,9 @@ fileExists fp = do
 parseStatus :: FilePath -> IO BatteryStatus
 parseStatus fp = do
   statusTxt <-
-    T.toLower . T.strip <$> readFileUtf8Lenient fp
+    T.toLower
+      . T.strip
+      <$> readFileUtf8Lenient fp
       `catchAny` \e -> throwIO $ SysFsReadFileException (T.pack fp) e
   case statusTxt of
     "charging" -> pure Charging
