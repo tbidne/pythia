@@ -33,7 +33,7 @@ jobs:
           nix-shell nix/cabal_9-2.nix --command \
             "cabal update && \
              cabal build --write-ghc-environment-files=always && \
-             RUN_DOCTEST=true cabal test doctest"
+             RUN_DOCTEST=1 cabal test doctest"
 
       - name: Unit Tests
         run: |

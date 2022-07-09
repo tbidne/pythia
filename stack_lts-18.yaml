@@ -8,18 +8,17 @@ ghc-options:
     -Wmissing-home-modules -Wmissing-export-lists -Wpartial-fields
     -Wredundant-constraints -Wunused-packages -Wmissing-deriving-strategies
 extra-deps:
+- env-guard-0.2@sha256:59410eed9b9ddbd115760a59c7170927320d8612e414701d323a0c8985c97523,1251
 - optics-core-0.4.1@sha256:b163d1a8f392536c645cbd728c3e29d9f35864b25b1e3cef3a29806ee8a21c6b,5545
 - optics-th-0.4.1@sha256:786f37412cb1ff62842277698fdc11efb3cf4e799011e341d9ef118a8100a860,3089
 - package-version-0.1.0.0@sha256:bb9fc93e905540aa8e1b32f80c2dc82756a4481c63779bd92e3796ed8085ab98,2854
 - tz-0.1.3.6@sha256:1b0c04d8d7f494888f166c66b72e7fcbc2269e57d1d17d48294ac4e19133a3ef,4631
 - git: https://github.com/tbidne/algebra-simple.git
-  commit: be105b31e3bd2bc00c69cd5c1e869294b26fbb17
+  commit: aa8ebb5c324248dba28d2b707363939c4904046b
 - git: https://github.com/tbidne/byte-types.git
-  commit: 60e7ad675f017cbd8467bef649cfcea48f626ab5
-- git: https://github.com/tbidne/env-guard.git
-  commit: 89a68d033d0671239b5e5e4a31f4355c46d4b6d3
+  commit: 632161ffadc466612bdb6a2fc8ac4626d15762f2
 - git: https://github.com/tbidne/smart-math.git
-  commit: 652cf1c7b61c1c8b67ce1ce1b4ecea77173b947a
+  commit: ac21a9869423107feff8de7a5ed27a9dfbb66a92
 flags:
   refined:
     aeson: false

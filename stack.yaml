@@ -8,15 +8,14 @@ ghc-options:
     -Wmissing-home-modules -Wmissing-export-lists -Wpartial-fields
     -Wredundant-constraints -Wunused-packages -Wmissing-deriving-strategies
 extra-deps:
+- env-guard-0.2@sha256:59410eed9b9ddbd115760a59c7170927320d8612e414701d323a0c8985c97523,1251
 - package-version-0.1.0.0@sha256:bb9fc93e905540aa8e1b32f80c2dc82756a4481c63779bd92e3796ed8085ab98,2854
 - git: https://github.com/tbidne/algebra-simple.git
-  commit: be105b31e3bd2bc00c69cd5c1e869294b26fbb17
+  commit: aa8ebb5c324248dba28d2b707363939c4904046b
 - git: https://github.com/tbidne/byte-types.git
-  commit: 60e7ad675f017cbd8467bef649cfcea48f626ab5
-- git: https://github.com/tbidne/env-guard.git
-  commit: 89a68d033d0671239b5e5e4a31f4355c46d4b6d3
+  commit: 632161ffadc466612bdb6a2fc8ac4626d15762f2
 - git: https://github.com/tbidne/smart-math.git
-  commit: 652cf1c7b61c1c8b67ce1ce1b4ecea77173b947a
+  commit: ac21a9869423107feff8de7a5ed27a9dfbb66a92
 flags:
   refined:
     aeson: false

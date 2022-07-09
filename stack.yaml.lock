@@ -6,6 +6,13 @@
 packages:
 - completed:
     pantry-tree:
+      sha256: c8135d95be0df0ce63d0ee398af20e38f505153032b32c4ab0e8f0f615501d46
+      size: 419
+    hackage: env-guard-0.2@sha256:59410eed9b9ddbd115760a59c7170927320d8612e414701d323a0c8985c97523,1251
+  original:
+    hackage: env-guard-0.2@sha256:59410eed9b9ddbd115760a59c7170927320d8612e414701d323a0c8985c97523,1251
+- completed:
+    pantry-tree:
       sha256: 8e33ac2f8d2db754cf11d1439fa970dbf14c6756746426ba89f54a7183a9d2d7
       size: 981
     hackage: package-version-0.1.0.0@sha256:bb9fc93e905540aa8e1b32f80c2dc82756a4481c63779bd92e3796ed8085ab98,2854
@@ -14,46 +21,35 @@ packages:
 - completed:
     name: algebra-simple
     pantry-tree:
-      sha256: 9946b6fc1b6d0f3b9f36c7e1348183ba047500f27af21f8ed3d687e8dcac58a4
-      size: 4282
-    commit: be105b31e3bd2bc00c69cd5c1e869294b26fbb17
+      sha256: a99c28e1f0304d9bbd24c6f60603c41e8ea82efaf0377e49f31fc48718c0a57b
+      size: 4923
+    commit: aa8ebb5c324248dba28d2b707363939c4904046b
     git: https://github.com/tbidne/algebra-simple.git
     version: '0.1'
   original:
-    commit: be105b31e3bd2bc00c69cd5c1e869294b26fbb17
+    commit: aa8ebb5c324248dba28d2b707363939c4904046b
     git: https://github.com/tbidne/algebra-simple.git
 - completed:
     name: byte-types
     pantry-tree:
-      sha256: c8e141bce89f888101c43669ea849706ceed0cde4c4a0818494077cc193e8d2b
-      size: 3229
-    commit: 60e7ad675f017cbd8467bef649cfcea48f626ab5
+      sha256: 15e5011bb6208b08a9f01fcf077db874717ba88da5542df04a4f0a372fe9460f
+      size: 4091
+    commit: 632161ffadc466612bdb6a2fc8ac4626d15762f2
     git: https://github.com/tbidne/byte-types.git
     version: '0.1'
   original:
-    commit: 60e7ad675f017cbd8467bef649cfcea48f626ab5
+    commit: 632161ffadc466612bdb6a2fc8ac4626d15762f2
     git: https://github.com/tbidne/byte-types.git
-- completed:
-    name: env-guard
-    pantry-tree:
-      sha256: 9316c18d5e16921505028dca43257cd98e8fd467b76e49554e3b969da63590e2
-      size: 1335
-    commit: 89a68d033d0671239b5e5e4a31f4355c46d4b6d3
-    git: https://github.com/tbidne/env-guard.git
-    version: '0.1'
-  original:
-    commit: 89a68d033d0671239b5e5e4a31f4355c46d4b6d3
-    git: https://github.com/tbidne/env-guard.git
 - completed:
     name: smart-math
     pantry-tree:
-      sha256: 056a6c94c6266680df3b027ad3e0b1f9ac94026919210decdc135d0c16cae09a
-      size: 3357
-    commit: 652cf1c7b61c1c8b67ce1ce1b4ecea77173b947a
+      sha256: d7b69d0355dba0d9ebbbdce094a458e2aae50ab69d76b092afd6dd2b72538fc0
+      size: 4066
+    commit: ac21a9869423107feff8de7a5ed27a9dfbb66a92
     git: https://github.com/tbidne/smart-math.git
     version: '0.1'
   original:
-    commit: 652cf1c7b61c1c8b67ce1ce1b4ecea77173b947a
+    commit: ac21a9869423107feff8de7a5ed27a9dfbb66a92
     git: https://github.com/tbidne/smart-math.git
 snapshots:
 - completed:
