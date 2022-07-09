@@ -1,0 +1,33 @@
+name: "stack_lts-19"
+
+on:
+  push:
+    branches:
+      - main
+
+  pull_request:
+    branches:
+      - main
+
+  workflow_dispatch:
+
+jobs:
+  stack_lts-19:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Setup nix
+        uses: cachix/install-nix-action@v12
+        with:
+          nix_path: nixpkgs=https://github.com/NixOS/nixpkgs/archive/1ffba9f2f683063c2b14c9f4d12c55ad5f4ed887.tar.gz
+
+      - name: Compile
+        run: |
+          nix-shell nix/stack_lts-19.nix --command \
+            "stack update && stack build --nix --ghc-options -Werror"
+
+      - name: Test
+        run: |
+          nix-shell nix/stack_lts-19.nix --command \
+            "stack update && stack test --nix --ghc-options -Werror"

@@ -7,6 +7,9 @@ package pythia
     -Wmissing-home-modules -Wmissing-export-lists -Wpartial-fields
     -Wredundant-constraints -Wunused-packages -Wmissing-deriving-strategies
 
+optimization: 2
+test-show-details: direct
+
 package refined
   flags: -aeson -quickcheck
 

@@ -1,4 +1,4 @@
-resolver: lts-19.14
+resolver: nightly-2022-07-07
 packages:
 - .
 ghc-options:
@@ -9,6 +9,7 @@ ghc-options:
     -Wredundant-constraints -Wunused-packages -Wmissing-deriving-strategies
 extra-deps:
 - package-version-0.1.0.0@sha256:bb9fc93e905540aa8e1b32f80c2dc82756a4481c63779bd92e3796ed8085ab98,2854
+- refined-0.6.3@sha256:347cef8788e6eb8813fea918566ad3afa1bf329c90713d91e60dfe63cbab3dad,2839
 - git: https://github.com/tbidne/algebra-simple.git
   commit: be105b31e3bd2bc00c69cd5c1e869294b26fbb17
 - git: https://github.com/tbidne/byte-types.git
@@ -22,4 +23,4 @@ flags:
     aeson: false
     quickcheck: false
 nix:
-  shell-file: nix/stack_lts-19.nix
+  shell-file: nix/stack_nightly.nix

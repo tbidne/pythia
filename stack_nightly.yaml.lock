@@ -12,6 +12,13 @@ packages:
   original:
     hackage: package-version-0.1.0.0@sha256:bb9fc93e905540aa8e1b32f80c2dc82756a4481c63779bd92e3796ed8085ab98,2854
 - completed:
+    pantry-tree:
+      sha256: 6cb978cd2eba44e59671cd8a531e22fdb07c0e5907e7f9a7b561fc0f09a2048d
+      size: 507
+    hackage: refined-0.6.3@sha256:347cef8788e6eb8813fea918566ad3afa1bf329c90713d91e60dfe63cbab3dad,2839
+  original:
+    hackage: refined-0.6.3@sha256:347cef8788e6eb8813fea918566ad3afa1bf329c90713d91e60dfe63cbab3dad,2839
+- completed:
     name: algebra-simple
     pantry-tree:
       sha256: 9946b6fc1b6d0f3b9f36c7e1348183ba047500f27af21f8ed3d687e8dcac58a4
@@ -57,7 +64,7 @@ packages:
     git: https://github.com/tbidne/smart-math.git
 snapshots:
 - completed:
-    sha256: 4c31d4ef975b0211078862566aedf3b82b6cea569fc2cde4c72a51e5a8d236ce
-    size: 618951
-    url: https://raw.githubusercontent.com/commercialhaskell/stackage-snapshots/master/lts/19/14.yaml
-  original: lts-19.14
+    sha256: f749167ba2a9ff2fcd0434bbd76a17a277572e90798617bc024d40a5324ce2af
+    size: 616346
+    url: https://raw.githubusercontent.com/commercialhaskell/stackage-snapshots/master/nightly/2022/7/7.yaml
+  original: nightly-2022-07-07
