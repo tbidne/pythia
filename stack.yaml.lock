@@ -21,35 +21,35 @@ packages:
 - completed:
     name: algebra-simple
     pantry-tree:
-      sha256: a99c28e1f0304d9bbd24c6f60603c41e8ea82efaf0377e49f31fc48718c0a57b
-      size: 4923
-    commit: aa8ebb5c324248dba28d2b707363939c4904046b
+      sha256: 89428919fcac72e858065d24f38033929a99f4812dedb907749a89b1ca0911c7
+      size: 4921
+    commit: 12bf44cb4815cf6ee040636f86e10d04386a6e4c
     git: https://github.com/tbidne/algebra-simple.git
     version: '0.1'
   original:
-    commit: aa8ebb5c324248dba28d2b707363939c4904046b
+    commit: 12bf44cb4815cf6ee040636f86e10d04386a6e4c
     git: https://github.com/tbidne/algebra-simple.git
 - completed:
     name: byte-types
     pantry-tree:
-      sha256: 15e5011bb6208b08a9f01fcf077db874717ba88da5542df04a4f0a372fe9460f
-      size: 4091
-    commit: 632161ffadc466612bdb6a2fc8ac4626d15762f2
+      sha256: fcf2200c5ef3bcfba4affb5fe6939920b5d4696d42242f1620f0dd835f02f184
+      size: 4089
+    commit: 56e8d7bc81546a518475dcc460e91ff9d5d8f0cb
     git: https://github.com/tbidne/byte-types.git
     version: '0.1'
   original:
-    commit: 632161ffadc466612bdb6a2fc8ac4626d15762f2
+    commit: 56e8d7bc81546a518475dcc460e91ff9d5d8f0cb
     git: https://github.com/tbidne/byte-types.git
 - completed:
     name: smart-math
     pantry-tree:
-      sha256: d7b69d0355dba0d9ebbbdce094a458e2aae50ab69d76b092afd6dd2b72538fc0
-      size: 4066
-    commit: ac21a9869423107feff8de7a5ed27a9dfbb66a92
+      sha256: 78d153855323e3a1698746ce82c63ab8cd2d67ae0a3272fac2a1aee863174f78
+      size: 4065
+    commit: cb659fdbb635e8dbfdf48ee18befb3186af29fc2
     git: https://github.com/tbidne/smart-math.git
     version: '0.1'
   original:
-    commit: ac21a9869423107feff8de7a5ed27a9dfbb66a92
+    commit: cb659fdbb635e8dbfdf48ee18befb3186af29fc2
     git: https://github.com/tbidne/smart-math.git
 snapshots:
 - completed:

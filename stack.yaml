@@ -11,11 +11,11 @@ extra-deps:
 - env-guard-0.2@sha256:59410eed9b9ddbd115760a59c7170927320d8612e414701d323a0c8985c97523,1251
 - package-version-0.1.0.0@sha256:bb9fc93e905540aa8e1b32f80c2dc82756a4481c63779bd92e3796ed8085ab98,2854
 - git: https://github.com/tbidne/algebra-simple.git
-  commit: aa8ebb5c324248dba28d2b707363939c4904046b
+  commit: 12bf44cb4815cf6ee040636f86e10d04386a6e4c
 - git: https://github.com/tbidne/byte-types.git
-  commit: 632161ffadc466612bdb6a2fc8ac4626d15762f2
+  commit: 56e8d7bc81546a518475dcc460e91ff9d5d8f0cb
 - git: https://github.com/tbidne/smart-math.git
-  commit: ac21a9869423107feff8de7a5ed27a9dfbb66a92
+  commit: cb659fdbb635e8dbfdf48ee18befb3186af29fc2
 flags:
   refined:
     aeson: false

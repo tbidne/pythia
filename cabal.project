@@ -16,14 +16,14 @@ package refined
 source-repository-package
     type: git
     location: https://github.com/tbidne/algebra-simple.git
-    tag: aa8ebb5c324248dba28d2b707363939c4904046b
+    tag: 12bf44cb4815cf6ee040636f86e10d04386a6e4c
 
 source-repository-package
     type: git
     location: https://github.com/tbidne/byte-types.git
-    tag: 632161ffadc466612bdb6a2fc8ac4626d15762f2
+    tag: 56e8d7bc81546a518475dcc460e91ff9d5d8f0cb
 
 source-repository-package
     type: git
     location: https://github.com/tbidne/smart-math.git
-    tag: ac21a9869423107feff8de7a5ed27a9dfbb66a92
+    tag: cb659fdbb635e8dbfdf48ee18befb3186af29fc2
