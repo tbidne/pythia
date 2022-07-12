@@ -16,7 +16,7 @@ module Pythia.Args
     MemoryFormat (..),
     NetInterfaceField (..),
     NetConnField (..),
-    TimeType (..),
+    TimezoneDest (..),
 
     -- ** Misc
     These (..),
@@ -81,7 +81,7 @@ data PythiaCommand
   | NetInterfaceCmd NetInterfaceConfig (Maybe Device) NetInterfaceField
   | NetConnCmd NetInterfaceConfig NetConnField
   | NetIpGlobalCmd (GlobalIpConfig (These [UrlSource 'Ipv4] [UrlSource 'Ipv6]))
-  | TimeCmd TimeType (Maybe String)
+  | TimeCmd TimezoneDest (Maybe String)
   deriving stock (Eq, Show)
 
 -- | Extra option for BatteryCmd.
@@ -142,11 +142,11 @@ data GlobalIpField
 -- | Time type.
 --
 -- @since 0.1
-type TimeType :: Type
-data TimeType
-  = TimeLocal
-  | TimeUTC
-  | TimeTZ Text
+type TimezoneDest :: Type
+data TimezoneDest
+  = TimezoneDestLocal
+  | TimezoneDestUTC
+  | TimezoneDestTZ Text
   deriving stock (Eq, Show)
 
 -- | Optparse-Applicative info.
@@ -497,29 +497,31 @@ ipv6SrcOption =
         <> " only used if we query for IPv6 per --ip-type."
 
 parseTime :: Parser PythiaCommand
-parseTime = TimeCmd <$> parseTimeType <*> parseTimeFormat
+parseTime = TimeCmd <$> parseTimezoneDest <*> parseTimeFormat
 
-parseTimeType :: Parser TimeType
-parseTimeType =
+parseTimezoneDest :: Parser TimezoneDest
+parseTimezoneDest =
   OApp.option
     readApp
-    ( OApp.value TimeLocal
-        <> OApp.long "type"
-        <> OApp.short 't'
-        <> OApp.metavar "TYPE"
+    ( OApp.value TimezoneDestLocal
+        <> OApp.long "dest"
+        <> OApp.short 'd'
+        <> OApp.metavar "[utc | TZ]"
         <> OApp.help helpTxt
     )
   where
     helpTxt =
-      "Determines what time we return. Must be one of [local | utc | TZ]"
-        <> ", where TZ is a tz database label e.g. America/New_York. See"
-        <> " https://en.wikipedia.org/wiki/Tz_database."
+      mconcat
+        [ "Determines what timezone we return. If none is given we assume",
+          " local time. If given, must be one of [utc | TZ] where TZ is a tz",
+          " database label e.g. America/New_York. See",
+          " https://en.wikipedia.org/wiki/Tz_database."
+        ]
     readApp = do
       a <- OApp.str
       case a of
-        "local" -> pure TimeLocal
-        "utc" -> pure TimeUTC
-        other -> pure $ TimeTZ other
+        "utc" -> pure TimezoneDestUTC
+        other -> pure $ TimezoneDestTZ other
 
 parseTimeFormat :: Parser (Maybe String)
 parseTimeFormat =
@@ -533,7 +535,7 @@ parseTimeFormat =
       )
   where
     helpTxt =
-      "Glibc-style format string e.g. %Y-%m-%d for yyyy-mm-dd."
+      "Glibc-style format string e.g. %Y-%m-%d for yyyy-mm-dd. Defaults to RFC822."
         <> " See https://hackage.haskell.org/package/time-1.13/docs/Data-Time-Format.html#v:formatTime"
 
 mkCommand :: String -> Parser a -> OApp.InfoMod a -> Mod CommandFields a

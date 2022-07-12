@@ -29,6 +29,7 @@
   * [Network Interfaces](#network-interfaces)
   * [Network Connection](#network-connection)
   * [Global IP](#global-ip)
+  * [Time](#time)
 
 # Introduction
 
@@ -309,4 +310,42 @@ $ pythia global-ip --app curl --ipv4-src http://whatismyip.akamai.com/
 
 $ pythia global-ip --app dig --ipv4-src "@resolver1.opendns.com myip.opendns.com"
 165.52.200.7
+```
+
+## Time
+
+This service is for reading the current system time.
+
+### Usage
+
+```
+Usage: pythia time [-d|--dest [utc | TZ]] [-f|--format STR]
+  Queries the system time.
+
+Available options:
+  -d,--dest [utc | TZ]     Determines what timezone we return. If none is given
+                           we assume local time. If given, must be one of [utc |
+                           TZ] where TZ is a tz database label e.g.
+                           America/New_York. See
+                           https://en.wikipedia.org/wiki/Tz_database.
+  -f,--format STR          Glibc-style format string e.g. %Y-%m-%d for
+                           yyyy-mm-dd. Defaults to RFC822 See
+                           https://hackage.haskell.org/package/time-1.13/docs/Data-Time-Format.html#v:formatTime
+  -h,--help                Show this help text
+```
+
+### Examples
+
+```
+# get current local time
+$ pythia time
+Tue, 12 Jul 2022 23:19:00 NZST
+
+# get current time and convert
+$ pythia time -d America/New_York
+Tue, 12 Jul 2022 07:19:28 EDT
+
+# use glibc-style format
+$ pythia time -f %H:%M
+23:20
 ```

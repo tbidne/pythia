@@ -32,7 +32,7 @@ import Pythia.Args
     NetInterfaceField (..),
     PythiaCommand (..),
     These (..),
-    TimeType (..),
+    TimezoneDest (..),
     parserInfo,
   )
 import Pythia.Data.Percentage (rawPercentage)
@@ -154,11 +154,11 @@ handleGlobalIp handler cfg = do
       _ <- prettyPrint handler ipv4Address
       prettyPrint handler ipv6Address
 
-handleTime :: (Text -> IO a) -> Maybe String -> TimeType -> IO a
+handleTime :: (Text -> IO a) -> Maybe String -> TimezoneDest -> IO a
 handleTime handler mformat = \case
-  TimeLocal -> Pythia.queryLocalTime >>= handler . formatTime
-  TimeUTC -> Pythia.queryUTC >>= handler . formatTime
-  TimeTZ tz -> Pythia.queryTimeZone tz >>= handler . formatTime
+  TimezoneDestLocal -> Pythia.queryLocalTime >>= handler . formatTime
+  TimezoneDestUTC -> Pythia.queryUTC >>= handler . formatTime
+  TimezoneDestTZ tz -> Pythia.queryTimeZone tz >>= handler . formatTime
   where
     format = fromMaybe Format.rfc822DateFormat mformat
     formatTime :: FormatTime t => t -> Text

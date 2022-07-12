@@ -188,6 +188,7 @@ test-suite functional
     Functional.Pythia.Services.Memory
     Functional.Pythia.Services.NetConnection
     Functional.Pythia.Services.NetInterface
+    Functional.Pythia.Services.Time
 
   build-depends:
     , base
