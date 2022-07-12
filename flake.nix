@@ -5,6 +5,7 @@
   inputs.flake-utils.url = "github:numtide/flake-utils";
   inputs.nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
   inputs.smart-math-src.url = "github:tbidne/smart-math";
+  inputs.time-conv-src.url = "github:tbidne/time-conv";
   outputs =
     { algebra-simple-src
     , byte-types-src
@@ -12,6 +13,7 @@
     , nixpkgs
     , self
     , smart-math-src
+    , time-conv-src
     }:
     flake-utils.lib.eachDefaultSystem (system:
     let
@@ -39,6 +41,8 @@
               final.callCabal2nix "byte-types" byte-types-src { };
             smart-math =
               final.callCabal2nix "smart-math" smart-math-src { };
+            time-conv =
+              final.callCabal2nix "time-conv" time-conv-src { };
           };
         };
     in

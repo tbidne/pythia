@@ -27,3 +27,8 @@ source-repository-package
     type: git
     location: https://github.com/tbidne/smart-math.git
     tag: cb659fdbb635e8dbfdf48ee18befb3186af29fc2
+
+source-repository-package
+    type: git
+    location: https://github.com/tbidne/time-conv.git
+    tag: 3c46e02d1e5d40ea3b5a53bee56f70cb52df87d4

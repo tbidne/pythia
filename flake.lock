@@ -167,6 +167,21 @@
         "type": "github"
       }
     },
+    "flake-utils_7": {
+      "locked": {
+        "lastModified": 1656928814,
+        "narHash": "sha256-RIFfgBuKz6Hp89yRr7+NR5tzIAbn52h8vT6vXkYjZoM=",
+        "owner": "numtide",
+        "repo": "flake-utils",
+        "rev": "7e2a3b3dfd9af950a856d66b0a7d01e3c18aa249",
+        "type": "github"
+      },
+      "original": {
+        "owner": "numtide",
+        "repo": "flake-utils",
+        "type": "github"
+      }
+    },
     "nixpkgs": {
       "locked": {
         "lastModified": 1657265485,
@@ -263,13 +278,30 @@
         "type": "github"
       }
     },
+    "nixpkgs_7": {
+      "locked": {
+        "lastModified": 1657265485,
+        "narHash": "sha256-PUQ9C7mfi0/BnaAUX2R/PIkoNCb/Jtx9EpnhMBNrO/o=",
+        "owner": "nixos",
+        "repo": "nixpkgs",
+        "rev": "b39924fc7764c08ae3b51beef9a3518c414cdb7d",
+        "type": "github"
+      },
+      "original": {
+        "owner": "nixos",
+        "ref": "nixos-unstable",
+        "repo": "nixpkgs",
+        "type": "github"
+      }
+    },
     "root": {
       "inputs": {
         "algebra-simple-src": "algebra-simple-src",
         "byte-types-src": "byte-types-src",
         "flake-utils": "flake-utils_4",
         "nixpkgs": "nixpkgs_4",
-        "smart-math-src": "smart-math-src"
+        "smart-math-src": "smart-math-src",
+        "time-conv-src": "time-conv-src"
       }
     },
     "smart-math-src": {
@@ -289,6 +321,25 @@
       "original": {
         "owner": "tbidne",
         "repo": "smart-math",
+        "type": "github"
+      }
+    },
+    "time-conv-src": {
+      "inputs": {
+        "flake-utils": "flake-utils_7",
+        "nixpkgs": "nixpkgs_7"
+      },
+      "locked": {
+        "lastModified": 1657619868,
+        "narHash": "sha256-GRyQDa0Q4vcEIKw7JB7j5liSEziwVBfhJqiKkTbCUCc=",
+        "owner": "tbidne",
+        "repo": "time-conv",
+        "rev": "3c46e02d1e5d40ea3b5a53bee56f70cb52df87d4",
+        "type": "github"
+      },
+      "original": {
+        "owner": "tbidne",
+        "repo": "time-conv",
         "type": "github"
       }
     }

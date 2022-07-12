@@ -19,6 +19,8 @@ extra-deps:
   commit: 56e8d7bc81546a518475dcc460e91ff9d5d8f0cb
 - git: https://github.com/tbidne/smart-math.git
   commit: cb659fdbb635e8dbfdf48ee18befb3186af29fc2
+- git: https://github.com/tbidne/time-conv.git
+  commit: 3c46e02d1e5d40ea3b5a53bee56f70cb52df87d4
 flags:
   refined:
     aeson: false
