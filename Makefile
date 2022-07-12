@@ -105,7 +105,8 @@ haddock:
 
 .PHONY: haddockc
 haddockc:
-	nix run github:tbidne/nix-hs-tools/0.6#haddock-cov -- . -x Pythia.Prelude
+# the skipped modules are for reexports that either don't have haddocks or ci can't find them.
+	nix run github:tbidne/nix-hs-tools/0.6#haddock-cov -- . -x Pythia.Prelude -x Pythia.Utils -x Pythia.Services.Time
 
 .PHONY: hackage
 hackage:
