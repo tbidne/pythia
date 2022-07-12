@@ -79,7 +79,7 @@ import Optics.Core as X
     _Left,
     _Right,
   )
-import Optics.TH as X (makeFieldLabelsNoPrefix, makePrismLabels)
+import Optics.TH as X (makeFieldLabelsNoPrefix, makePrisms)
 import System.IO as X (FilePath, IO, print, putStrLn)
 
 -- $setup

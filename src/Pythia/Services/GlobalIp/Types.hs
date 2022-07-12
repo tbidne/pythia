@@ -67,7 +67,7 @@ data GlobalIpApp
     )
 
 -- | @since 0.1
-makePrismLabels ''GlobalIpApp
+makePrisms ''GlobalIpApp
 
 -- | Additional URL source for retrieving IP information. The intended app
 -- should not be included (i.e. curl or dig), but any desired flags should

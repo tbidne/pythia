@@ -59,7 +59,7 @@ data FreeException
     FreeParseException Text
 
 -- | @since 0.1
-makePrismLabels ''FreeException
+makePrisms ''FreeException
 
 -- | @since 0.1
 deriving stock instance Show FreeException

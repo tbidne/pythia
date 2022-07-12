@@ -68,7 +68,7 @@ data IpException
     IpParseException Text
 
 -- | @since 0.1
-makePrismLabels ''IpException
+makePrisms ''IpException
 
 -- | @since 0.1
 deriving stock instance Show IpException

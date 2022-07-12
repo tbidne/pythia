@@ -75,7 +75,7 @@ data SysFsException
     forall e. Exception e => SysFsReadFileException Text e
 
 -- | @since 0.1
-makePrismLabels ''SysFsException
+makePrisms ''SysFsException
 
 -- | @since 0.1
 deriving stock instance Show SysFsException

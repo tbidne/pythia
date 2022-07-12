@@ -60,7 +60,7 @@ data MemoryApp
     )
 
 -- | @since 0.1
-makePrismLabels ''MemoryApp
+makePrisms ''MemoryApp
 
 -- | Memory configuration.
 --

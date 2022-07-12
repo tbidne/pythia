@@ -68,7 +68,7 @@ data NetInterfaceApp
     )
 
 -- | @since 0.1
-makePrismLabels ''NetInterfaceApp
+makePrisms ''NetInterfaceApp
 
 -- | Complete configuration for querying network interfaces.
 --
@@ -139,7 +139,7 @@ data NetInterfaceType
     )
 
 -- | @since 0.1
-makePrismLabels ''NetInterfaceType
+makePrisms ''NetInterfaceType
 
 instance Pretty NetInterfaceType where
   pretty = pretty . show
@@ -172,7 +172,7 @@ data NetInterfaceState
     )
 
 -- | @since 0.1
-makePrismLabels ''NetInterfaceState
+makePrisms ''NetInterfaceState
 
 instance Pretty NetInterfaceState where
   pretty = pretty . show

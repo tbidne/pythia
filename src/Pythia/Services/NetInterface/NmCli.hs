@@ -69,7 +69,7 @@ data NmCliException
     NmCliParseException Text
 
 -- | @since 0.1
-makePrismLabels ''NmCliException
+makePrisms ''NmCliException
 
 -- | @since 0.1
 deriving stock instance Show NmCliException

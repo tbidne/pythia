@@ -60,7 +60,7 @@ data AcpiException
     AcpiParseException Text
 
 -- | @since 0.1
-makePrismLabels ''AcpiException
+makePrisms ''AcpiException
 
 -- | @since 0.1
 deriving stock instance Show AcpiException

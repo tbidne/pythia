@@ -65,7 +65,7 @@ data BatteryApp
     )
 
 -- | @since 0.1
-makePrismLabels ''BatteryApp
+makePrisms ''BatteryApp
 
 -- | Battery configuration.
 --
@@ -131,7 +131,7 @@ data BatteryStatus
     )
 
 -- | @since 0.1
-makePrismLabels ''BatteryStatus
+makePrisms ''BatteryStatus
 
 -- | @since 0.1
 instance Pretty BatteryStatus where

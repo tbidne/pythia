@@ -73,7 +73,7 @@ data UPowerException
     UPowerNoPercentageNorStatus Text
 
 -- | @since 0.1
-makePrismLabels ''UPowerException
+makePrisms ''UPowerException
 
 -- | @since 0.1
 deriving stock instance Show UPowerException
