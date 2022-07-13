@@ -6,6 +6,8 @@
 -- @since 0.1
 module Pythia.Data.RunApp
   ( RunApp (..),
+    _Many,
+    _Single,
   )
 where
 

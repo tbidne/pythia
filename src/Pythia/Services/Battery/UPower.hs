@@ -12,6 +12,10 @@ module Pythia.Services.Battery.UPower
 
     -- * Misc
     UPowerException (..),
+    _UPowerGeneralException,
+    _UPowerNoPercentage,
+    _UPowerNoStatus,
+    _UPowerNoPercentageNorStatus,
     parseBattery,
   )
 where

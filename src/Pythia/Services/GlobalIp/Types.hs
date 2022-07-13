@@ -11,6 +11,8 @@ module Pythia.Services.GlobalIp.Types
     GlobalIpBothConfig,
     GlobalIpConfig (..),
     GlobalIpApp (..),
+    _GlobalIpDig,
+    _GlobalIpCurl,
 
     -- ** Extra URL sources
     UrlSource (..),

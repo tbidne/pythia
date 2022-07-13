@@ -12,6 +12,8 @@ module Pythia.Services.Battery.Acpi
 
     -- * Misc
     AcpiException (..),
+    _AcpiGeneralException,
+    _AcpiParseException,
     parseBattery,
   )
 where

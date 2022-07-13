@@ -6,6 +6,7 @@
 -- @since 0.1
 module Pythia.Services.Memory.Types
   ( MemoryApp (..),
+    _MemoryFree,
     MemoryConfig (..),
     Memory (..),
     SystemMemory (..),

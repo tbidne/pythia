@@ -12,6 +12,8 @@ module Pythia.Services.NetInterface.Ip
 
     -- * Misc
     IpException (..),
+    _IpGeneralException,
+    _IpParseException,
     parseInterfaces,
   )
 where

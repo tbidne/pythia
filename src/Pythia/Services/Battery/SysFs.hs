@@ -12,6 +12,11 @@ module Pythia.Services.Battery.SysFs
 
     -- * Misc
     SysFsException (..),
+    _SysFsDirNotFound,
+    _SysFsBatteryDirNotFound,
+    _SysFsFileNotFound,
+    _SysFsBatteryParseException,
+    _SysFsReadFileException,
   )
 where
 

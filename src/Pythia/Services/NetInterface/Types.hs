@@ -7,11 +7,21 @@
 module Pythia.Services.NetInterface.Types
   ( -- * Configuration
     NetInterfaceApp (..),
+    _NetInterfaceNmCli,
+    _NetInterfaceIp,
     NetInterfaceConfig (..),
 
     -- * NetInterface Fields
     NetInterfaceType (..),
+    _Ethernet,
+    _Wifi,
+    _Wifi_P2P,
+    _Loopback,
+    _Tun,
     NetInterfaceState (..),
+    _Up,
+    _Down,
+    _UnknownState,
     NetInterface (..),
     NetInterfaces (..),
   )

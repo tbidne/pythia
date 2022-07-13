@@ -8,9 +8,16 @@ module Pythia.Services.Battery.Types
   ( -- * Configuration
     BatteryConfig (..),
     BatteryApp (..),
+    _BatterySysFs,
+    _BatteryAcpi,
+    _BatteryUPower,
 
     -- * Battery Fields
     BatteryStatus (..),
+    _Charging,
+    _Discharging,
+    _Full,
+    _Pending,
     Battery (..),
   )
 where

@@ -11,6 +11,8 @@ module Pythia.Services.Memory.Free
 
     -- * Misc
     FreeException (..),
+    _FreeGeneralException,
+    _FreeParseException,
     parseMemory,
   )
 where

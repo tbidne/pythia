@@ -12,6 +12,8 @@ module Pythia.Services.NetInterface.NmCli
 
     -- * Misc
     NmCliException (..),
+    _NmCliGeneralException,
+    _NmCliParseException,
     parseInterfaces,
   )
 where
