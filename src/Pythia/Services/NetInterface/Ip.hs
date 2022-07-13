@@ -1,6 +1,3 @@
-{-# LANGUAGE TemplateHaskell #-}
-{-# LANGUAGE UndecidableInstances #-}
-
 -- | This module provides functionality for retrieving network connection
 -- information using ip utility.
 --
@@ -12,8 +9,6 @@ module Pythia.Services.NetInterface.Ip
 
     -- * Misc
     IpException (..),
-    _IpGeneralException,
-    _IpParseException,
     parseInterfaces,
   )
 where
@@ -68,9 +63,6 @@ data IpException
     --
     -- @since 0.1
     IpParseException Text
-
--- | @since 0.1
-makePrisms ''IpException
 
 -- | @since 0.1
 deriving stock instance Show IpException

@@ -16,13 +16,12 @@ module Pythia.Services.GlobalIp.Types
 
     -- ** Extra URL sources
     UrlSource (..),
+    urlSourceIso,
     urlSourceCmdIso,
   )
 where
 
-import Optics.Core (Iso)
-import Optics.Core qualified as O
-import Pythia.Data.Command (Command (..))
+import Pythia.Data.Command (Command (..), commandIso)
 import Pythia.Data.RunApp (RunApp (..))
 import Pythia.Data.Supremum (Supremum (..))
 import Pythia.Prelude
@@ -86,7 +85,7 @@ makePrisms ''GlobalIpApp
 --
 -- @since 0.1
 type UrlSource :: IpType -> Type
-newtype UrlSource a = MkIpvSource
+newtype UrlSource a = MkUrlSource
   { -- | @since 0.1
     unUrlSource :: Text
   }
@@ -110,13 +109,15 @@ newtype UrlSource a = MkIpvSource
     )
 
 -- | @since 0.1
-makeFieldLabelsNoPrefix ''UrlSource
+urlSourceIso :: Iso (UrlSource a) (UrlSource b) Text Text
+urlSourceIso = iso unUrlSource MkUrlSource
+{-# INLINEABLE urlSourceIso #-}
 
 -- | Isomorphism between 'UrlSource' and 'Command'
 --
 -- @since 0.1
 urlSourceCmdIso :: Iso (UrlSource a) (UrlSource a) Command Command
-urlSourceCmdIso = O.iso (MkCommand . unUrlSource) (MkIpvSource . unCommand)
+urlSourceCmdIso = urlSourceIso % re commandIso
 {-# INLINEABLE urlSourceCmdIso #-}
 
 -- | Complete configuration for querying global IP addresses. The 'Monoid'

@@ -1,6 +1,3 @@
-{-# LANGUAGE TemplateHaskell #-}
-{-# LANGUAGE UndecidableInstances #-}
-
 -- | This module provides functionality for retrieving memory usage using Free.
 --
 -- @since 0.1
@@ -11,8 +8,6 @@ module Pythia.Services.Memory.Free
 
     -- * Misc
     FreeException (..),
-    _FreeGeneralException,
-    _FreeParseException,
     parseMemory,
   )
 where
@@ -59,9 +54,6 @@ data FreeException
     --
     -- @since 0.1
     FreeParseException Text
-
--- | @since 0.1
-makePrisms ''FreeException
 
 -- | @since 0.1
 deriving stock instance Show FreeException

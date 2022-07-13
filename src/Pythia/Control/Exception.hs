@@ -13,7 +13,9 @@ module Pythia.Control.Exception
     -- * Miscellaneous Exceptions
     CommandException (..),
     SomeExceptions (..),
+    someExceptionsIso,
     NotSupportedException (..),
+    notSupportedExceptionIso,
     NoActionsRunException (..),
   )
 where
@@ -130,7 +132,7 @@ instance Pretty CommandException where
 type SomeExceptions :: Type
 newtype SomeExceptions = MkSomeExceptions
   { -- | @since 0.1
-    unExceptions :: NonEmpty SomeException
+    unSomeExceptions :: NonEmpty SomeException
   }
   deriving stock
     ( -- | @since 0.1
@@ -140,7 +142,8 @@ newtype SomeExceptions = MkSomeExceptions
     )
 
 -- | @since 0.1
-makeFieldLabelsNoPrefix ''SomeExceptions
+someExceptionsIso :: Iso' SomeExceptions (NonEmpty SomeException)
+someExceptionsIso = iso unSomeExceptions MkSomeExceptions
 
 -- | @since 0.1
 instance Exception SomeExceptions where
@@ -188,7 +191,8 @@ newtype NotSupportedException = MkNotSupportedException
     )
 
 -- | @since 0.1
-makeFieldLabelsNoPrefix ''NotSupportedException
+notSupportedExceptionIso :: Iso' NotSupportedException Text
+notSupportedExceptionIso = iso unNotSupportedException MkNotSupportedException
 
 -- | @since 0.1
 instance Exception NotSupportedException where

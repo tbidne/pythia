@@ -25,7 +25,6 @@ where
 
 import Data.Char qualified as Char
 import Data.Text qualified as T
-import Optics.Core (Iso', Lens')
 import Pythia.Data.Command (Command)
 import Pythia.Data.RunApp (RunApp (..))
 import Pythia.Internal.ShellApp (AppAction (..))
@@ -200,10 +199,10 @@ getIp ::
   Iso' a Command ->
   [a] ->
   IO (Refined p Text)
-getIp iso cmds = ShellApp.tryIOs (fmap go cmds)
+getIp cmdIso cmds = ShellApp.tryIOs (fmap go cmds)
   where
     go cmd = do
-      txt <- ShellApp.runCommand $ cmd ^. iso
+      txt <- ShellApp.runCommand $ cmd ^. cmdIso
       R.refineThrow (trim txt)
 {-# INLINEABLE getIp #-}
 

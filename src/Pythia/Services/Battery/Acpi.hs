@@ -1,6 +1,3 @@
-{-# LANGUAGE TemplateHaskell #-}
-{-# LANGUAGE UndecidableInstances #-}
-
 -- | This module provides functionality for retrieving battery information
 -- using ACPI.
 --
@@ -12,8 +9,6 @@ module Pythia.Services.Battery.Acpi
 
     -- * Misc
     AcpiException (..),
-    _AcpiGeneralException,
-    _AcpiParseException,
     parseBattery,
   )
 where
@@ -60,9 +55,6 @@ data AcpiException
     --
     -- @since 0.1
     AcpiParseException Text
-
--- | @since 0.1
-makePrisms ''AcpiException
 
 -- | @since 0.1
 deriving stock instance Show AcpiException

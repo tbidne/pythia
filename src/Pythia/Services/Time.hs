@@ -1,5 +1,3 @@
-{-# LANGUAGE UndecidableInstances #-}
-
 -- | This module exports time related services.
 --
 -- @since 0.1

@@ -1,11 +1,9 @@
-{-# LANGUAGE TemplateHaskell #-}
-{-# LANGUAGE UndecidableInstances #-}
-
 -- | This module provides the 'Command' type.
 --
 -- @since 0.1
 module Pythia.Data.Command
   ( Command (..),
+    commandIso,
   )
 where
 
@@ -40,4 +38,5 @@ newtype Command = MkCommand
     )
 
 -- | @since 0.1
-makeFieldLabelsNoPrefix ''Command
+commandIso :: Iso' Command Text
+commandIso = iso unCommand MkCommand

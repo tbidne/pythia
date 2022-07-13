@@ -1,6 +1,3 @@
-{-# LANGUAGE TemplateHaskell #-}
-{-# LANGUAGE UndecidableInstances #-}
-
 -- | This module provides functionality for retrieving battery information
 -- using SysFS.
 --
@@ -12,11 +9,6 @@ module Pythia.Services.Battery.SysFs
 
     -- * Misc
     SysFsException (..),
-    _SysFsDirNotFound,
-    _SysFsBatteryDirNotFound,
-    _SysFsFileNotFound,
-    _SysFsBatteryParseException,
-    _SysFsReadFileException,
   )
 where
 
@@ -78,9 +70,6 @@ data SysFsException
     --
     -- @since 0.1
     forall e. Exception e => SysFsReadFileException Text e
-
--- | @since 0.1
-makePrisms ''SysFsException
 
 -- | @since 0.1
 deriving stock instance Show SysFsException

@@ -9,6 +9,7 @@ module Pythia.Services.Memory.Types
     _MemoryFree,
     MemoryConfig (..),
     Memory (..),
+    memoryIso,
     SystemMemory (..),
   )
 where
@@ -115,7 +116,8 @@ newtype Memory (f :: Type -> Type) = MkMemory
     )
 
 -- | @since 0.1
-makeFieldLabelsNoPrefix ''Memory
+memoryIso :: Iso' (Memory f) (Bytes 'B (f Double))
+memoryIso = iso unMemory MkMemory
 
 -- | @since 0.1
 deriving stock instance Eq (f Double) => Eq (Memory f)

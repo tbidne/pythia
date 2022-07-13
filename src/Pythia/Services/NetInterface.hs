@@ -1,6 +1,3 @@
-{-# LANGUAGE TemplateHaskell #-}
-{-# LANGUAGE UndecidableInstances #-}
-
 -- | This module exports interface related services.
 --
 -- @since 0.1
@@ -74,9 +71,6 @@ newtype DeviceNotFoundException = MkDeviceNotFoundException
     ( -- | @since 0.1
       NFData
     )
-
--- | @since 0.1
-makeFieldLabelsNoPrefix ''DeviceNotFoundException
 
 -- | @since 0.1
 instance Pretty DeviceNotFoundException where

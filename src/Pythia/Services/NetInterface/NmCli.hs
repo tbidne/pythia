@@ -1,6 +1,3 @@
-{-# LANGUAGE TemplateHaskell #-}
-{-# LANGUAGE UndecidableInstances #-}
-
 -- | This module provides functionality for retrieving network connection
 -- information using nmcli.
 --
@@ -12,8 +9,6 @@ module Pythia.Services.NetInterface.NmCli
 
     -- * Misc
     NmCliException (..),
-    _NmCliGeneralException,
-    _NmCliParseException,
     parseInterfaces,
   )
 where
@@ -69,9 +64,6 @@ data NmCliException
     --
     -- @since 0.1
     NmCliParseException Text
-
--- | @since 0.1
-makePrisms ''NmCliException
 
 -- | @since 0.1
 deriving stock instance Show NmCliException

@@ -1,6 +1,3 @@
-{-# LANGUAGE TemplateHaskell #-}
-{-# LANGUAGE UndecidableInstances #-}
-
 -- | Provides common network types.
 --
 -- @since 0.1
@@ -8,7 +5,9 @@ module Pythia.Services.Types.Network
   ( -- * IP Types
     IpType (..),
     IpAddress (..),
+    ipAddressIso,
     IpAddresses (..),
+    ipAddressesIso,
 
     -- ** Refinements
     IpRefinement,
@@ -17,6 +16,7 @@ module Pythia.Services.Types.Network
 
     -- * Network Device
     Device (..),
+    deviceIso,
   )
 where
 
@@ -68,7 +68,8 @@ newtype Device = MkDevice
     )
 
 -- | @since 0.1
-makeFieldLabelsNoPrefix ''Device
+deviceIso :: Iso' Device Text
+deviceIso = iso unDevice MkDevice
 
 -- | IP types.
 --
@@ -231,7 +232,8 @@ instance Pretty (IpAddress a) where
   {-# INLINEABLE pretty #-}
 
 -- | @since 0.1
-makeFieldLabelsNoPrefix ''IpAddress
+ipAddressIso :: Iso' (IpAddress a) (Refined (IpRefinement a) Text)
+ipAddressIso = iso unIpAddress MkIpAddress
 
 -- | @since 0.1
 type IpAddresses :: IpType -> Type
@@ -254,7 +256,8 @@ newtype IpAddresses a = MkIpAddresses
     )
 
 -- | @since 0.1
-makeFieldLabelsNoPrefix ''IpAddresses
+ipAddressesIso :: Iso' (IpAddresses a) [IpAddress a]
+ipAddressesIso = iso unIpAddresses MkIpAddresses
 
 -- | @since 0.1
 instance Semigroup (IpAddresses a) where

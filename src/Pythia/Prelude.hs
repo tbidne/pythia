@@ -67,7 +67,12 @@ import GHC.Read as X (Read (..))
 import GHC.Real as X (even, floor, (/))
 import GHC.Show as X (Show (..))
 import Optics.Core as X
-  ( over,
+  ( Iso,
+    Iso',
+    Lens',
+    iso,
+    over,
+    re,
     view,
     (%),
     (%~),

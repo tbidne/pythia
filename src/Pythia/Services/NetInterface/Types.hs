@@ -24,6 +24,7 @@ module Pythia.Services.NetInterface.Types
     _UnknownState,
     NetInterface (..),
     NetInterfaces (..),
+    netInterfacesIso,
   )
 where
 
@@ -273,4 +274,5 @@ instance Pretty NetInterfaces where
   {-# INLINEABLE pretty #-}
 
 -- | @since 0.1
-makeFieldLabelsNoPrefix ''NetInterfaces
+netInterfacesIso :: Iso' NetInterfaces [NetInterface]
+netInterfacesIso = iso unNetInterfaces MkNetInterfaces

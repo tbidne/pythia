@@ -1,6 +1,3 @@
-{-# LANGUAGE TemplateHaskell #-}
-{-# LANGUAGE UndecidableInstances #-}
-
 -- | This module provides functionality for retrieving battery information
 -- using UPower.
 --
@@ -12,10 +9,6 @@ module Pythia.Services.Battery.UPower
 
     -- * Misc
     UPowerException (..),
-    _UPowerGeneralException,
-    _UPowerNoPercentage,
-    _UPowerNoStatus,
-    _UPowerNoPercentageNorStatus,
     parseBattery,
   )
 where
@@ -75,9 +68,6 @@ data UPowerException
     --
     -- @since 0.1
     UPowerNoPercentageNorStatus Text
-
--- | @since 0.1
-makePrisms ''UPowerException
 
 -- | @since 0.1
 deriving stock instance Show UPowerException
