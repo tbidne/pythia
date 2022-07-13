@@ -1,3 +1,6 @@
+{-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE UndecidableInstances #-}
+
 -- | Provides common network types.
 --
 -- @since 0.1
@@ -5,9 +8,7 @@ module Pythia.Services.Types.Network
   ( -- * IP Types
     IpType (..),
     IpAddress (..),
-    ipAddressIso,
     IpAddresses (..),
-    ipAddressesIso,
 
     -- ** Refinements
     IpRefinement,
@@ -16,7 +17,6 @@ module Pythia.Services.Types.Network
 
     -- * Network Device
     Device (..),
-    deviceIso,
   )
 where
 
@@ -67,9 +67,7 @@ newtype Device = MkDevice
       NFData
     )
 
--- | @since 0.1
-deviceIso :: Iso' Device Text
-deviceIso = iso unDevice MkDevice
+makePrismLabels ''Device
 
 -- | IP types.
 --
@@ -77,9 +75,9 @@ deviceIso = iso unDevice MkDevice
 type IpType :: Type
 data IpType
   = -- | @since 0.1
-    Ipv4
+    IpTypeIpv4
   | -- | @since 0.1
-    Ipv6
+    IpTypeIpv6
   deriving stock
     ( -- | @since 0.1
       Eq,
@@ -93,13 +91,16 @@ data IpType
       NFData
     )
 
+-- | @since 0.1
+makePrismLabels ''IpType
+
 -- | Maps 'IpType' to its 'Text' refinement.
 --
 -- @since 0.1
 type IpRefinement :: IpType -> Type
 type family IpRefinement a where
-  IpRefinement 'Ipv4 = Ipv4Refinement
-  IpRefinement 'Ipv6 = Ipv6Refinement
+  IpRefinement 'IpTypeIpv4 = Ipv4Refinement
+  IpRefinement 'IpTypeIpv6 = Ipv6Refinement
 
 -- | IPv4 Refinement. We implement a custom type here so we get better error
 -- messages. 'Text' must satisfy:
@@ -112,13 +113,13 @@ type family IpRefinement a where
 -- Right (Refined "192.168.1.2")
 --
 -- >>> trim $ R.refine @Ipv4Refinement @Text ""
--- "Left   The predicate (Ipv4Refinement) failed with the message: Received empty IPv4 address. Should have length (0, 16)."
+-- "Left   The predicate (Ipv4Refinement) failed with the message: Expected IPv4 with length (0, 16). Received empty."
 --
 -- >>> trim $ R.refine @Ipv4Refinement @Text "192.168.111.222.7"
--- "Left   The predicate (Ipv4Refinement) failed with the message: Invalid IPv4 length: <17> for ip text: <192.168.111.222.7>. Should be in (0, 16)."
+-- "Left   The predicate (Ipv4Refinement) failed with the message: Expected IPv4 address with length (0, 16). Received '192.168.111.222.7' of length 17"
 --
 -- >>> trim $ R.refine @Ipv4Refinement @Text "192.168x1.2"
--- "Left   The predicate (Ipv4Refinement) failed with the message: Invalid IPv4 content: <192.168x1.2>. Should only contain decimal digits or dots."
+-- "Left   The predicate (Ipv4Refinement) failed with the message: IPv4 address should only contain decimal digits or dots. Received invalid: 192.168x1.2"
 --
 -- @since 0.1
 type Ipv4Refinement :: Type
@@ -136,17 +137,15 @@ instance Predicate Ipv4Refinement Text where
       validChars = T.all (\c -> Char.isDigit c || c == '.') txt
       errLen =
         if len == 0
-          then "Received empty IPv4 address. Should have length (0, 16)."
+          then "Expected IPv4 with length (0, 16). Received empty."
           else
-            "Invalid IPv4 length: <"
-              <> showt len
-              <> "> for ip text: <"
+            "Expected IPv4 address with length (0, 16). Received '"
               <> txt
-              <> ">. Should be in (0, 16)."
+              <> "' of length "
+              <> showt len
       errChars =
-        "Invalid IPv4 content: <"
+        "IPv4 address should only contain decimal digits or dots. Received invalid: "
           <> txt
-          <> ">. Should only contain decimal digits or dots."
   {-# INLINEABLE validate #-}
 
 -- | IPv6 Refinement. We implement a custom type here so we get better error
@@ -160,13 +159,13 @@ instance Predicate Ipv4Refinement Text where
 -- Right (Refined "fe80::a328:482:5263:10b8")
 --
 -- >>> trim $ R.refine @Ipv6Refinement @Text ""
--- "Left   The predicate (Ipv6Refinement) failed with the message: Received empty IPv6 address. Should have length (0, 40)."
+-- "Left   The predicate (Ipv6Refinement) failed with the message: Expected IPv6 of length (0, 40). Received empty."
 --
 -- >>> trim $ R.refine @Ipv6Refinement @Text "fe80:a328:4822:5263:10b8:4062:10d3:16ac:"
--- "Left   The predicate (Ipv6Refinement) failed with the message: Invalid IPv6 length: <40> for ip text: <fe80:a328:4822:5263:10b8:4062:10d3:16ac:>. Should be in (0, 40)."
+-- "Left   The predicate (Ipv6Refinement) failed with the message: Expected IPv6 with length (0, 40). Received 'fe80:a328:4822:5263:10b8:4062:10d3:16ac:' of length 40"
 --
 -- >>> trim $ R.refine @Ipv6Refinement @Text "fe80::a328:482:5263:10b8x"
--- "Left   The predicate (Ipv6Refinement) failed with the message: Invalid IPv6 content: <fe80::a328:482:5263:10b8x>. Should only contain hex digits or colons."
+-- "Left   The predicate (Ipv6Refinement) failed with the message: IPv6 address should only contain hex digits or colons. Received invalid: fe80::a328:482:5263:10b8x"
 --
 -- @since 0.1
 type Ipv6Refinement :: Type
@@ -184,25 +183,23 @@ instance Predicate Ipv6Refinement Text where
       validChars = T.all (\c -> Char.isHexDigit c || c == ':') txt
       errLen =
         if len == 0
-          then "Received empty IPv6 address. Should have length (0, 40)."
+          then "Expected IPv6 of length (0, 40). Received empty."
           else
-            "Invalid IPv6 length: <"
-              <> showt len
-              <> "> for ip text: <"
+            "Expected IPv6 with length (0, 40). Received '"
               <> txt
-              <> ">. Should be in (0, 40)."
+              <> "' of length "
+              <> showt len
       errChars =
-        "Invalid IPv6 content: <"
+        "IPv6 address should only contain hex digits or colons. Received invalid: "
           <> txt
-          <> ">. Should only contain hex digits or colons."
   {-# INLINEABLE validate #-}
 
 -- | Type for an IP address. The type family 'IpRefinement' refines the
 -- underlying 'Text' according to the spec.
 --
--- * 'Ipv4': All characters are digits or dots, and the length is
+-- * 'IpTypeIpv4': All characters are digits or dots, and the length is
 --           @0 < l < 16@.
--- * 'Ipv6': All characters are hex digits or colons, and the length is
+-- * 'IpTypeIpv6': All characters are hex digits or colons, and the length is
 --           @0 < l < 40@.
 --
 -- @since 0.1
@@ -226,19 +223,32 @@ newtype IpAddress a = MkIpAddress
       NFData
     )
 
+-- Generating with makePrismLabels ''IpAddress fails to typecheck.
+-- In particular, it appears like it's trying to generate an instance for
+-- different types (IpAddress i) (IpAddress j), which causes an error
+-- "liberal coverage condition fails". Thus manually writing it instead.
+
+-- | @since 0.1
+instance
+  ( k ~ An_Iso,
+    a ~ Refined (IpRefinement i) Text,
+    b ~ Refined (IpRefinement i) Text
+  ) =>
+  LabelOptic "_MkIpAddress" k (IpAddress i) (IpAddress i) a b
+  where
+  labelOptic = iso unIpAddress MkIpAddress
+  {-# INLINEABLE labelOptic #-}
+
 -- | @since 0.1
 instance Pretty (IpAddress a) where
   pretty = pretty . R.unrefine . unIpAddress
   {-# INLINEABLE pretty #-}
 
 -- | @since 0.1
-ipAddressIso :: Iso' (IpAddress a) (Refined (IpRefinement a) Text)
-ipAddressIso = iso unIpAddress MkIpAddress
-
--- | @since 0.1
 type IpAddresses :: IpType -> Type
 newtype IpAddresses a = MkIpAddresses
-  { unIpAddresses :: [IpAddress a]
+  { -- | @since 0.1
+    unIpAddresses :: [IpAddress a]
   }
   deriving stock
     ( -- | @since 0.1
@@ -256,8 +266,7 @@ newtype IpAddresses a = MkIpAddresses
     )
 
 -- | @since 0.1
-ipAddressesIso :: Iso' (IpAddresses a) [IpAddress a]
-ipAddressesIso = iso unIpAddresses MkIpAddresses
+makePrismLabels ''IpAddresses
 
 -- | @since 0.1
 instance Semigroup (IpAddresses a) where

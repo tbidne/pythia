@@ -1,3 +1,6 @@
+{-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE UndecidableInstances #-}
+
 -- | This module exports interface related services.
 --
 -- @since 0.1
@@ -24,9 +27,9 @@ module Pythia.Services.NetInterface
     RunApp (..),
 
     -- ** Errors
-    DeviceNotFoundException (..),
-    IpException (..),
-    NmCliException (..),
+    DeviceNotFound (..),
+    IpParseError (..),
+    NmCliParseError (..),
   )
 where
 
@@ -37,9 +40,9 @@ import Pythia.Data.RunApp (RunApp (..))
 import Pythia.Internal.ShellApp (AppAction (..))
 import Pythia.Internal.ShellApp qualified as ShellApp
 import Pythia.Prelude
-import Pythia.Services.NetInterface.Ip (IpException)
+import Pythia.Services.NetInterface.Ip (IpParseError (..))
 import Pythia.Services.NetInterface.Ip qualified as Ip
-import Pythia.Services.NetInterface.NmCli (NmCliException)
+import Pythia.Services.NetInterface.NmCli (NmCliParseError (..))
 import Pythia.Services.NetInterface.NmCli qualified as NmCli
 import Pythia.Services.NetInterface.Types
   ( NetInterface (..),
@@ -49,20 +52,31 @@ import Pythia.Services.NetInterface.Types
     NetInterfaceType (..),
     NetInterfaces (..),
   )
-import Pythia.Services.Types.Network (Device (..), IpAddress (..), IpType (..))
+import Pythia.Services.Types.Network
+  ( Device (..),
+    IpAddress (..),
+    IpType (..),
+  )
 import Pythia.Utils (Pretty (..))
 import Pythia.Utils qualified as U
 
 -- | Exception for when we cannot find a desired device.
 --
+-- ==== __Examples__
+--
+-- >>> displayException $ MkDeviceNotFound "bad device"
+-- "Device not found: bad device"
+--
 -- @since 0.1
-type DeviceNotFoundException :: Type
-newtype DeviceNotFoundException = MkDeviceNotFoundException
+type DeviceNotFound :: Type
+newtype DeviceNotFound = MkDeviceNotFound
   { -- | @since 0.1
-    unDeviceNotFoundException :: Device
+    unDeviceNotFound :: Device
   }
   deriving stock
     ( -- | @since 0.1
+      Eq,
+      -- | @since 0.1
       Generic,
       -- | @since 0.1
       Show
@@ -72,16 +86,17 @@ newtype DeviceNotFoundException = MkDeviceNotFoundException
       NFData
     )
 
+makePrismLabels ''DeviceNotFound
+
 -- | @since 0.1
-instance Pretty DeviceNotFoundException where
-  pretty (MkDeviceNotFoundException d) =
-    pretty @Text "Device not found: <"
+instance Pretty DeviceNotFound where
+  pretty (MkDeviceNotFound d) =
+    pretty @Text "Device not found: "
       <> pretty d
-      <> pretty @Text ">"
   {-# INLINEABLE pretty #-}
 
 -- | @since 0.1
-instance Exception DeviceNotFoundException where
+instance Exception DeviceNotFound where
   displayException = T.unpack . U.prettyToText
   {-# INLINEABLE displayException #-}
   toException = toExceptionViaPythia
@@ -90,11 +105,11 @@ instance Exception DeviceNotFoundException where
   {-# INLINEABLE fromException #-}
 
 -- | Queries for all network interface data. If the 'NetInterfaceConfig'\'s app
--- is 'Many' then we try all 'NetInterfaceApp's supported by this system, in
+-- is 'RunAppMany' then we try all 'NetInterfaceApp's supported by this system, in
 -- the following order:
 --
 -- @
--- ['NetInterfaceNmCli', 'NetInterfaceIp']
+-- ['NetInterfaceAppNmCli', 'NetInterfaceAppIp']
 -- @
 --
 -- __Throws:__
@@ -105,17 +120,18 @@ instance Exception DeviceNotFoundException where
 -- @since 0.1
 queryNetInterfaces :: NetInterfaceConfig -> IO NetInterfaces
 queryNetInterfaces cfg = case cfg ^. #app of
-  Many -> runMultipleQueries
-  Single app -> toSingleShellApp app
+  RunAppMany -> runMultipleQueries
+  RunAppSingle app -> toSingleShellApp app
 {-# INLINEABLE queryNetInterfaces #-}
 
 -- | Like 'queryNetInterfaces' but returns data for a single device.
 --
 -- __Throws:__
 --
--- * 'DeviceNotFoundException': if the device is not found.
--- * 'Pythia.Control.Exception.PythiaException': if an error is
--- encountered (e.g. running a command or parse error).
+-- * 'DeviceNotFound'
+-- * 'IpParseError'
+-- * 'NmCliParseError'
+-- * 'Pythia.Control.Exception.CommandException'
 --
 -- @since 0.1
 queryNetInterface :: Device -> NetInterfaceConfig -> IO NetInterface
@@ -125,14 +141,14 @@ queryNetInterface d = queryNetInterfaces >=> findDevice d
 findDevice :: Device -> NetInterfaces -> IO NetInterface
 findDevice device = throwMaybe e . headMaybe . unNetInterfaces . filterDevice device
   where
-    e = MkDeviceNotFoundException device
+    e = MkDeviceNotFound device
 {-# INLINEABLE findDevice #-}
 
--- | Takes the first 'NetInterface' that has state 'Up', according to
+-- | Takes the first 'NetInterface' that has state 'NetInterfaceStateUp', according to
 -- 'NetInterfaceState'\'s 'Ord':
 --
 -- @
--- 'Ethernet' < 'Wifi' < 'Wifi_P2P' < 'Loopback' < 'Tun'
+-- 'NetInterfaceTypeEthernet' < 'NetInterfaceTypeWifi' < 'NetInterfaceTypeWifi_P2P' < 'NetInterfaceTypeLoopback' < 'NetInterfaceTypeTun'
 -- @
 --
 -- __Examples__
@@ -141,27 +157,27 @@ findDevice device = throwMaybe e . headMaybe . unNetInterfaces . filterDevice de
 -- Nothing
 --
 -- >>> :{
---   let wifiUp = MkNetInterface "" (Just Wifi) Up (Just "WifiUp") mempty mempty
---       wifiDown = MkNetInterface "" (Just Wifi) Down (Just "WifiDown") mempty mempty
---       loopUp = MkNetInterface "" (Just Loopback) Up (Just "LoopUp") mempty mempty
---    in findUp $ MkNetInterfaces [loopUp, wifiDown, wifiUp]
+--   let wifiUp = MkNetInterface "" (Just NetInterfaceTypeWifi) NetInterfaceStateUp (Just "NetInterfaceTypeWifiUp") mempty mempty
+--       wifiNetInterfaceStateDown = MkNetInterface "" (Just NetInterfaceTypeWifi) NetInterfaceStateDown (Just "NetInterfaceTypeWifiNetInterfaceStateDown") mempty mempty
+--       loopUp = MkNetInterface "" (Just NetInterfaceTypeLoopback) NetInterfaceStateUp (Just "LoopUp") mempty mempty
+--    in findUp $ MkNetInterfaces [loopUp, wifiNetInterfaceStateDown, wifiUp]
 -- :}
--- Just (MkNetInterface {device = MkDevice {unDevice = ""}, ntype = Just Wifi, state = Up, name = Just "WifiUp", ipv4s = MkIpAddresses {unIpAddresses = []}, ipv6s = MkIpAddresses {unIpAddresses = []}})
+-- Just (MkNetInterface {device = MkDevice {unDevice = ""}, ntype = Just NetInterfaceTypeWifi, state = NetInterfaceStateUp, name = Just "NetInterfaceTypeWifiUp", ipv4s = MkIpAddresses {unIpAddresses = []}, ipv6s = MkIpAddresses {unIpAddresses = []}})
 --
 -- @since 0.1
 findUp :: NetInterfaces -> Maybe NetInterface
 findUp = headMaybe . (sortType . filterUp) . unNetInterfaces
   where
     sortType = OL.sortOn (view #ntype)
-    filterUp = filter ((== Up) . view #state)
+    filterUp = filter ((== NetInterfaceStateUp) . view #state)
 {-# INLINEABLE findUp #-}
 
 runMultipleQueries :: IO NetInterfaces
 runMultipleQueries = ShellApp.tryAppActions allApps
   where
     allApps =
-      [ MkAppAction (toSingleShellApp NetInterfaceNmCli) NmCli.supported (showt NetInterfaceNmCli),
-        MkAppAction (toSingleShellApp NetInterfaceIp) Ip.supported (showt NetInterfaceIp)
+      [ MkAppAction (toSingleShellApp NetInterfaceAppNmCli) NmCli.supported "nmcli",
+        MkAppAction (toSingleShellApp NetInterfaceAppIp) Ip.supported "ip"
       ]
 {-# INLINEABLE runMultipleQueries #-}
 
@@ -172,6 +188,6 @@ filterDevice device (MkNetInterfaces ifs) =
 {-# INLINEABLE filterDevice #-}
 
 toSingleShellApp :: NetInterfaceApp -> IO NetInterfaces
-toSingleShellApp NetInterfaceNmCli = NmCli.netInterfaceShellApp
-toSingleShellApp NetInterfaceIp = Ip.netInterfaceShellApp
+toSingleShellApp NetInterfaceAppNmCli = NmCli.netInterfaceShellApp
+toSingleShellApp NetInterfaceAppIp = Ip.netInterfaceShellApp
 {-# INLINEABLE toSingleShellApp #-}

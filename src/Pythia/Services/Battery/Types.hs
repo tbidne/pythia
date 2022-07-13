@@ -8,16 +8,9 @@ module Pythia.Services.Battery.Types
   ( -- * Configuration
     BatteryConfig (..),
     BatteryApp (..),
-    _BatterySysFs,
-    _BatteryAcpi,
-    _BatteryUPower,
 
     -- * Battery Fields
     BatteryStatus (..),
-    _Charging,
-    _Discharging,
-    _Full,
-    _Pending,
     Battery (..),
   )
 where
@@ -36,15 +29,15 @@ data BatteryApp
   = -- | Uses the sysfs interface i.e. /sys.
     --
     -- @since 0.1
-    BatterySysFs
+    BatteryAppSysFs
   | -- | Uses the ACPI utility.
     --
     -- @since 0.1
-    BatteryAcpi
+    BatteryAppAcpi
   | -- | Uses the UPower utility.
     --
     -- @since 0.1
-    BatteryUPower
+    BatteryAppUPower
   deriving stock
     ( -- | @since 0.1
       Bounded,
@@ -72,12 +65,12 @@ data BatteryApp
     )
 
 -- | @since 0.1
-makePrisms ''BatteryApp
+makePrismLabels ''BatteryApp
 
 -- | Battery configuration.
 --
 -- >>> mempty @BatteryConfig
--- MkBatteryConfig {app = Many}
+-- MkBatteryConfig {app = RunAppMany}
 --
 -- @since 0.1
 type BatteryConfig :: Type
@@ -99,7 +92,7 @@ newtype BatteryConfig = MkBatteryConfig
     )
 
 -- | @since 0.1
-makeFieldLabelsNoPrefix ''BatteryConfig
+makePrismLabels ''BatteryConfig
 
 -- | @since 0.1
 instance Semigroup BatteryConfig where
@@ -117,13 +110,13 @@ instance Monoid BatteryConfig where
 type BatteryStatus :: Type
 data BatteryStatus
   = -- | @since 0.1
-    Charging
+    BatteryStatusCharging
   | -- | @since 0.1
-    Discharging
+    BatteryStatusDischarging
   | -- | @since 0.1
-    Full
+    BatteryStatusFull
   | -- | @since 0.1
-    Pending
+    BatteryStatusPending
   deriving stock
     ( -- | @since 0.1
       Eq,
@@ -138,11 +131,14 @@ data BatteryStatus
     )
 
 -- | @since 0.1
-makePrisms ''BatteryStatus
+makePrismLabels ''BatteryStatus
 
 -- | @since 0.1
 instance Pretty BatteryStatus where
-  pretty = pretty . show
+  pretty BatteryStatusCharging = "Charging"
+  pretty BatteryStatusDischarging = "Discharging"
+  pretty BatteryStatusFull = "Full"
+  pretty BatteryStatusPending = "Pending"
   {-# INLINEABLE pretty #-}
 
 -- | Full battery state, including percentage and status data.

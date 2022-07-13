@@ -51,6 +51,6 @@ runsTime :: (Text -> IO ()) -> Maybe String -> Maybe String -> String -> TestTre
 runsTime expectation ty format desc = testCase desc $ do
   let argList =
         ["time"]
-          <> maybe [] (\s -> ["--type", s]) ty
+          <> maybe [] (\s -> ["--dest", s]) ty
           <> maybe [] (\f -> ["--format", f]) format
   capturePythia argList >>= expectation

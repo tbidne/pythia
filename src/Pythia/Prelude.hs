@@ -29,6 +29,7 @@ import Control.Exception.Safe as X
     handleAny,
     throwIO,
     try,
+    tryAny,
   )
 import Control.Monad as X (Monad (..), join, void, (<=<), (=<<), (>=>))
 import Data.Bifunctor as X (Bifunctor (..))
@@ -67,11 +68,15 @@ import GHC.Read as X (Read (..))
 import GHC.Real as X (even, floor, (/))
 import GHC.Show as X (Show (..))
 import Optics.Core as X
-  ( Iso,
+  ( A_Prism,
+    An_Iso,
+    Iso,
     Iso',
+    LabelOptic (..),
     Lens',
     iso,
     over,
+    prism,
     re,
     view,
     (%),
@@ -84,7 +89,7 @@ import Optics.Core as X
     _Left,
     _Right,
   )
-import Optics.TH as X (makeFieldLabelsNoPrefix, makePrisms)
+import Optics.TH as X (makeFieldLabelsNoPrefix, makePrismLabels)
 import System.IO as X (FilePath, IO, print, putStrLn)
 
 -- $setup

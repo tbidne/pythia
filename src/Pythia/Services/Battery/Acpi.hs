@@ -1,3 +1,6 @@
+{-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE UndecidableInstances #-}
+
 -- | This module provides functionality for retrieving battery information
 -- using ACPI.
 --
@@ -8,7 +11,7 @@ module Pythia.Services.Battery.Acpi
     supported,
 
     -- * Misc
-    AcpiException (..),
+    AcpiParseError (..),
     parseBattery,
   )
 where
@@ -31,48 +34,43 @@ import Text.Megaparsec.Char qualified as MPC
 import Text.Megaparsec.Error qualified as MPE
 import Text.Read qualified as TR
 
--- $setup
--- >>> import GHC.Exception (errorCallException)
-
--- | Errors that can occur with acpi.
+-- | Error parsing acpi output.
 --
 -- ==== __Examples__
 --
--- >>> putStrLn $ displayException $ AcpiGeneralException $ errorCallException "oh no"
--- Acpi exception: <oh no>
---
--- >>> putStrLn $ displayException $ AcpiParseException "parse error"
--- Acpi parse exception: <parse error>
+-- >>> displayException $ MkAcpiParseError "parse error"
+-- "Acpi parse error: parse error"
 --
 -- @since 0.1
-type AcpiException :: Type
-data AcpiException
-  = -- | For general exceptions.
-    --
-    -- @since 0.1
-    forall e. Exception e => AcpiGeneralException e
-  | -- | Parse errors.
-    --
-    -- @since 0.1
-    AcpiParseException Text
+type AcpiParseError :: Type
+newtype AcpiParseError = MkAcpiParseError
+  { -- | @since 0.1
+    unAcpiParseError :: Text
+  }
+  deriving stock
+    ( -- | @since 0.1
+      Eq,
+      -- | @since 0.1
+      Generic,
+      -- | @since 0.1
+      Show
+    )
+  deriving anyclass
+    ( -- | @since 0.1
+      NFData
+    )
 
 -- | @since 0.1
-deriving stock instance Show AcpiException
+makePrismLabels ''AcpiParseError
 
 -- | @since 0.1
-instance Pretty AcpiException where
-  pretty (AcpiGeneralException e) =
-    pretty @Text "Acpi exception: <"
-      <> pretty (displayException e)
-      <> pretty @Text ">"
-  pretty (AcpiParseException s) =
-    pretty @Text "Acpi parse exception: <"
-      <> pretty s
-      <> pretty @Text ">"
+instance Pretty AcpiParseError where
+  pretty (MkAcpiParseError s) =
+    pretty @Text "Acpi parse error: " <> pretty s
   {-# INLINEABLE pretty #-}
 
 -- | @since 0.1
-instance Exception AcpiException where
+instance Exception AcpiParseError where
   displayException = T.unpack . U.prettyToText
   {-# INLINEABLE displayException #-}
   toException = toExceptionViaPythia
@@ -94,8 +92,7 @@ batteryShellApp = ShellApp.runSimple shell
     shell =
       MkSimpleShell
         { command = "acpi",
-          parser = parseBattery,
-          liftShellEx = AcpiGeneralException
+          parser = parseBattery
         }
 {-# INLINEABLE batteryShellApp #-}
 
@@ -112,26 +109,26 @@ supported = U.exeSupported "acpi"
 -- ==== __Examples__
 --
 -- >>> parseBattery "Battery 0: Full, 100%"
--- Right (MkBattery {percentage = MkPercentage {unPercentage = UnsafeLRInterval {unLRInterval = 100}}, status = Full})
+-- Right (MkBattery {percentage = MkPercentage {unPercentage = UnsafeLRInterval {unLRInterval = 100}}, status = BatteryStatusFull})
 --
 -- >>> parseBattery "Battery 0: Discharging, 80%"
--- Right (MkBattery {percentage = MkPercentage {unPercentage = UnsafeLRInterval {unLRInterval = 80}}, status = Discharging})
+-- Right (MkBattery {percentage = MkPercentage {unPercentage = UnsafeLRInterval {unLRInterval = 80}}, status = BatteryStatusDischarging})
 --
 -- >>> parseBattery "Battery 0: Charging, 40%"
--- Right (MkBattery {percentage = MkPercentage {unPercentage = UnsafeLRInterval {unLRInterval = 40}}, status = Charging})
+-- Right (MkBattery {percentage = MkPercentage {unPercentage = UnsafeLRInterval {unLRInterval = 40}}, status = BatteryStatusCharging})
 --
 -- >>> parseBattery "Battery 0: bad status, 80%"
--- Left (AcpiParseException "Acpi.hs:1:12:\n  |\n1 | Battery 0: bad status, 80%\n  |            ^\nUnknown status\n")
+-- Left (MkAcpiParseError {unAcpiParseError = "Acpi.hs:1:12:\n  |\n1 | Battery 0: bad status, 80%\n  |            ^\nUnknown status\n"})
 --
 -- >>> parseBattery "Battery 0: Discharging, 150%"
--- Left (AcpiParseException "Acpi.hs:1:28:\n  |\n1 | Battery 0: Discharging, 150%\n  |                            ^\nexpecting percentage\n")
+-- Left (MkAcpiParseError {unAcpiParseError = "Acpi.hs:1:28:\n  |\n1 | Battery 0: Discharging, 150%\n  |                            ^\nexpecting percentage\n"})
 --
 -- @since 0.1
-parseBattery :: Text -> Either AcpiException Battery
+parseBattery :: Text -> Either AcpiParseError Battery
 parseBattery txt = first mkErr parseResult
   where
     parseResult = MP.parse mparseBattery "Acpi.hs" txt
-    mkErr err = AcpiParseException $ T.pack $ MPE.errorBundlePretty err
+    mkErr err = MkAcpiParseError $ T.pack $ MPE.errorBundlePretty err
 {-# INLINEABLE parseBattery #-}
 
 type MParser :: Type -> Type
@@ -160,10 +157,10 @@ mparseState =
     <|> MP.fancyFailure (Set.fromList [ErrorFail "Unknown status"])
     <?> "<Discharging|Charging|Not charging|Full>"
   where
-    discharging = MPC.string' "Discharging" $> Discharging
-    charging = MPC.string' "Charging" $> Charging
-    full = MPC.string' "Full" $> Full
-    pending = MPC.string' "Not charging" $> Pending
+    discharging = MPC.string' "Discharging" $> BatteryStatusDischarging
+    charging = MPC.string' "Charging" $> BatteryStatusCharging
+    full = MPC.string' "Full" $> BatteryStatusFull
+    pending = MPC.string' "Not charging" $> BatteryStatusPending
 {-# INLINEABLE mparseState #-}
 
 mparsePercent :: MParser Percentage

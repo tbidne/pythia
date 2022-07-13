@@ -7,24 +7,13 @@
 module Pythia.Services.NetInterface.Types
   ( -- * Configuration
     NetInterfaceApp (..),
-    _NetInterfaceNmCli,
-    _NetInterfaceIp,
     NetInterfaceConfig (..),
 
     -- * NetInterface Fields
     NetInterfaceType (..),
-    _Ethernet,
-    _Wifi,
-    _Wifi_P2P,
-    _Loopback,
-    _Tun,
     NetInterfaceState (..),
-    _Up,
-    _Down,
-    _UnknownState,
     NetInterface (..),
     NetInterfaces (..),
-    netInterfacesIso,
   )
 where
 
@@ -47,11 +36,11 @@ data NetInterfaceApp
   = -- | Uses the Network Manager cli utility.
     --
     -- @since 0.1
-    NetInterfaceNmCli
+    NetInterfaceAppNmCli
   | -- | Uses the \'ip\' utility.
     --
     -- @since 0.1
-    NetInterfaceIp
+    NetInterfaceAppIp
   deriving stock
     ( -- | @since 0.1
       Bounded,
@@ -79,12 +68,12 @@ data NetInterfaceApp
     )
 
 -- | @since 0.1
-makePrisms ''NetInterfaceApp
+makePrismLabels ''NetInterfaceApp
 
 -- | Complete configuration for querying network interfaces.
 --
 -- >>> mempty @NetInterfaceConfig
--- MkNetInterfaceConfig {app = Many}
+-- MkNetInterfaceConfig {app = RunAppMany}
 --
 -- @since 0.1
 type NetInterfaceConfig :: Type
@@ -106,7 +95,7 @@ newtype NetInterfaceConfig = MkNetInterfaceConfig
     )
 
 -- | @since 0.1
-makeFieldLabelsNoPrefix ''NetInterfaceConfig
+makePrismLabels ''NetInterfaceConfig
 
 -- | @since 0.1
 instance Semigroup NetInterfaceConfig where
@@ -125,15 +114,15 @@ instance Monoid NetInterfaceConfig where
 type NetInterfaceType :: Type
 data NetInterfaceType
   = -- | @since 0.1
-    Ethernet
+    NetInterfaceTypeEthernet
   | -- | @since 0.1
-    Wifi
+    NetInterfaceTypeWifi
   | -- | @since 0.1
-    Wifi_P2P
+    NetInterfaceTypeWifi_P2P
   | -- | @since 0.1
-    Loopback
+    NetInterfaceTypeLoopback
   | -- | @since 0.1
-    Tun
+    NetInterfaceTypeTun
   deriving stock
     ( -- | @since 0.1
       Eq,
@@ -150,7 +139,7 @@ data NetInterfaceType
     )
 
 -- | @since 0.1
-makePrisms ''NetInterfaceType
+makePrismLabels ''NetInterfaceType
 
 instance Pretty NetInterfaceType where
   pretty = pretty . show
@@ -162,11 +151,11 @@ instance Pretty NetInterfaceType where
 type NetInterfaceState :: Type
 data NetInterfaceState
   = -- | @since 0.1
-    Up
+    NetInterfaceStateUp
   | -- | @since 0.1
-    Down
+    NetInterfaceStateDown
   | -- | @since 0.1
-    UnknownState Text
+    NetInterfaceStateUnknown Text
   deriving stock
     ( -- | @since 0.1
       Eq,
@@ -183,13 +172,13 @@ data NetInterfaceState
     )
 
 -- | @since 0.1
-makePrisms ''NetInterfaceState
+makePrismLabels ''NetInterfaceState
 
 instance Pretty NetInterfaceState where
   pretty = pretty . show
   {-# INLINEABLE pretty #-}
 
--- | Full connection data.
+-- | BatteryStatusFull connection data.
 --
 -- @since 0.1
 type NetInterface :: Type
@@ -200,14 +189,14 @@ data NetInterface = MkNetInterface
     ntype :: Maybe NetInterfaceType,
     -- | @since 0.1
     state :: NetInterfaceState,
-    -- | The name of the connection (e.g. Wifi SSID).
+    -- | The name of the connection (e.g. NetInterfaceTypeWifi SSID).
     --
     -- @since 0.1
     name :: Maybe Text,
     -- | @since 0.1
-    ipv4s :: IpAddresses 'Ipv4,
+    ipv4s :: IpAddresses 'IpTypeIpv4,
     -- | @since 0.1
-    ipv6s :: IpAddresses 'Ipv6
+    ipv6s :: IpAddresses 'IpTypeIpv6
   }
   deriving stock
     ( -- | @since 0.1
@@ -269,10 +258,9 @@ newtype NetInterfaces = MkNetInterfaces
     )
 
 -- | @since 0.1
+makePrismLabels ''NetInterfaces
+
+-- | @since 0.1
 instance Pretty NetInterfaces where
   pretty = U.vsep . U.punctuate (U.pretty @Text "\n") . fmap pretty . unNetInterfaces
   {-# INLINEABLE pretty #-}
-
--- | @since 0.1
-netInterfacesIso :: Iso' NetInterfaces [NetInterface]
-netInterfacesIso = iso unNetInterfaces MkNetInterfaces

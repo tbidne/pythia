@@ -5,7 +5,6 @@ where
 
 import Data.Text qualified as T
 import Numeric.Data.Interval (LRInterval (..))
-import Pythia.Data.Percentage (percentageIso)
 import Pythia.Services.Battery.Types (BatteryStatus (..))
 import Pythia.Services.Battery.UPower qualified as UPower
 import Unit.Prelude
@@ -22,16 +21,16 @@ tests =
     ]
 
 parseCharging :: TestTree
-parseCharging = parseX 20 ("charging", Charging)
+parseCharging = parseX 20 ("charging", BatteryStatusCharging)
 
 parseDischarging :: TestTree
-parseDischarging = parseX 80 ("discharging", Discharging)
+parseDischarging = parseX 80 ("discharging", BatteryStatusDischarging)
 
 parseFull :: TestTree
-parseFull = parseX 100 ("fully-charged", Full)
+parseFull = parseX 100 ("fully-charged", BatteryStatusFull)
 
 parsePending :: TestTree
-parsePending = parseX 100 ("pending-charge", Pending)
+parsePending = parseX 100 ("pending-charge", BatteryStatusPending)
 
 unknownStatusFails :: TestTree
 unknownStatusFails = testCase "Unknown status fails" $ do
@@ -42,7 +41,7 @@ parseX :: Word8 -> (Text, BatteryStatus) -> TestTree
 parseX lvl (csTxt, cs) = testCase desc $ do
   let result = UPower.parseBattery (state lvl csTxt)
   Just cs @=? result ^? _Right % #status
-  Just (MkLRInterval lvl) @=? result ^? _Right % #percentage % percentageIso
+  Just (MkLRInterval lvl) @=? result ^? _Right % #percentage % #_MkPercentage
   where
     desc = "Parses percentage " <> show lvl <> ", status " <> T.unpack csTxt
 

@@ -1,3 +1,6 @@
+{-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE UndecidableInstances #-}
+
 -- | This module provides functionality for retrieving battery information
 -- using UPower.
 --
@@ -8,7 +11,7 @@ module Pythia.Services.Battery.UPower
     supported,
 
     -- * Misc
-    UPowerException (..),
+    UPowerParseError (..),
     parseBattery,
   )
 where
@@ -30,70 +33,53 @@ import Text.Megaparsec qualified as MP
 import Text.Megaparsec.Char qualified as MPC
 import Text.Read qualified as TR
 
--- $setup
--- >>> import GHC.Exception (errorCallException)
-
 -- | Errors that can occur with upower.
 --
 -- ==== __Examples__
 --
--- >>> putStrLn $ displayException $ UPowerGeneralException $ errorCallException "oh no"
--- UPower exception: <oh no>
+-- >>> displayException $ UPowerParseErrorPercentage "output"
+-- "No percentage found in upower output: output"
 --
--- >>> putStrLn $ displayException $ UPowerNoPercentage "output"
--- UPower parse error. No percentage found in output: <output>
---
--- >>> putStrLn $ displayException $ UPowerNoStatus "output"
--- UPower parse error. No status found in output: <output>
---
--- >>> putStrLn $ displayException $ UPowerNoPercentageNorStatus "output"
--- UPower parse error. No percentage nor status found in output: <output>
+-- >>> displayException $ UPowerParseErrorStatus "output"
+-- "No status found in upower output: output"
 --
 -- @since 0.1
-type UPowerException :: Type
-data UPowerException
-  = -- | General exceptions.
+type UPowerParseError :: Type
+data UPowerParseError
+  = -- | Did not find percentage.
     --
     -- @since 0.1
-    forall e. Exception e => UPowerGeneralException e
-  | -- | Did not find percentage.
-    --
-    -- @since 0.1
-    UPowerNoPercentage Text
+    UPowerParseErrorPercentage Text
   | -- | Did not find status.
     --
     -- @since 0.1
-    UPowerNoStatus Text
-  | -- | Found neither percentage nor status.
-    --
-    -- @since 0.1
-    UPowerNoPercentageNorStatus Text
+    UPowerParseErrorStatus Text
+  deriving stock
+    ( -- | @since 0.1
+      Eq,
+      -- | @since 0.1
+      Generic,
+      -- | @since 0.1
+      Show
+    )
+  deriving anyclass
+    ( -- | @since 0.1
+      NFData
+    )
 
 -- | @since 0.1
-deriving stock instance Show UPowerException
+makePrismLabels ''UPowerParseError
 
 -- | @since 0.1
-instance Pretty UPowerException where
-  pretty (UPowerGeneralException e) =
-    pretty @Text "UPower exception: <"
-      <> pretty (displayException e)
-      <> pretty @Text ">"
-  pretty (UPowerNoPercentage s) =
-    pretty @Text "UPower parse error. No percentage found in output: <"
-      <> pretty s
-      <> pretty @Text ">"
-  pretty (UPowerNoStatus s) =
-    pretty @Text "UPower parse error. No status found in output: <"
-      <> pretty s
-      <> pretty @Text ">"
-  pretty (UPowerNoPercentageNorStatus s) =
-    pretty @Text "UPower parse error. No percentage nor status found in output: <"
-      <> pretty s
-      <> pretty @Text ">"
+instance Pretty UPowerParseError where
+  pretty (UPowerParseErrorPercentage s) =
+    pretty @Text "No percentage found in upower output: " <> pretty s
+  pretty (UPowerParseErrorStatus s) =
+    pretty @Text "No status found in upower output: " <> pretty s
   {-# INLINEABLE pretty #-}
 
 -- | @since 0.1
-instance Exception UPowerException where
+instance Exception UPowerParseError where
   displayException = T.unpack . U.prettyToText
   {-# INLINEABLE displayException #-}
   toException = toExceptionViaPythia
@@ -115,8 +101,7 @@ batteryShellApp = ShellApp.runSimple shell
     shell =
       MkSimpleShell
         { command = "upower -i `upower -e | grep 'BAT'`",
-          parser = parseBattery,
-          liftShellEx = UPowerGeneralException
+          parser = parseBattery
         }
 {-# INLINEABLE batteryShellApp #-}
 
@@ -133,35 +118,35 @@ supported = U.exeSupported "upower"
 -- ==== __Examples__
 --
 -- >>> parseBattery "state: fully-charged\npercentage: 100%"
--- Right (MkBattery {percentage = MkPercentage {unPercentage = UnsafeLRInterval {unLRInterval = 100}}, status = Full})
+-- Right (MkBattery {percentage = MkPercentage {unPercentage = UnsafeLRInterval {unLRInterval = 100}}, status = BatteryStatusFull})
 --
 -- >>> parseBattery "state: discharging\npercentage: 70%"
--- Right (MkBattery {percentage = MkPercentage {unPercentage = UnsafeLRInterval {unLRInterval = 70}}, status = Discharging})
+-- Right (MkBattery {percentage = MkPercentage {unPercentage = UnsafeLRInterval {unLRInterval = 70}}, status = BatteryStatusDischarging})
 --
 -- >>> parseBattery "state: charging\npercentage: 40%"
--- Right (MkBattery {percentage = MkPercentage {unPercentage = UnsafeLRInterval {unLRInterval = 40}}, status = Charging})
---
--- >>> parseBattery "state: bad\npercentage: 40%"
--- Left (UPowerNoStatus "state: bad\npercentage: 40%")
+-- Right (MkBattery {percentage = MkPercentage {unPercentage = UnsafeLRInterval {unLRInterval = 40}}, status = BatteryStatusCharging})
 --
 -- >>> parseBattery "state: pending-charge\npercentage: 40%"
--- Right (MkBattery {percentage = MkPercentage {unPercentage = UnsafeLRInterval {unLRInterval = 40}}, status = Pending})
+-- Right (MkBattery {percentage = MkPercentage {unPercentage = UnsafeLRInterval {unLRInterval = 40}}, status = BatteryStatusPending})
+--
+-- >>> parseBattery "state: bad\npercentage: 40%"
+-- Left (UPowerParseErrorStatus "state: bad\npercentage: 40%")
 --
 -- >>> parseBattery "state: fully-charged"
--- Left (UPowerNoPercentage "state: fully-charged")
+-- Left (UPowerParseErrorPercentage "state: fully-charged")
 --
 -- >>> parseBattery "percentage: 80%"
--- Left (UPowerNoStatus "percentage: 80%")
+-- Left (UPowerParseErrorStatus "percentage: 80%")
 --
 -- >>> parseBattery "nothing"
--- Left (UPowerNoPercentageNorStatus "nothing")
+-- Left (UPowerParseErrorStatus "nothing")
 --
 -- @since 0.1
-parseBattery :: Text -> Either UPowerException Battery
+parseBattery :: Text -> Either UPowerParseError Battery
 parseBattery txt = case foldMap parseLine ts of
-  None -> Left $ UPowerNoPercentageNorStatus txt
-  Percent _ -> Left $ UPowerNoStatus txt
-  Status _ -> Left $ UPowerNoPercentage txt
+  None -> Left $ UPowerParseErrorStatus txt
+  Percent _ -> Left $ UPowerParseErrorStatus txt
+  Status _ -> Left $ UPowerParseErrorPercentage txt
   Both bs -> Right bs
   where
     ts = T.lines txt
@@ -228,9 +213,9 @@ parseStatus = do
     <|> MP.try pending
     <|> MP.fancyFailure (Set.fromList [ErrorFail "Unknown status"])
   where
-    discharging = MPC.string' "discharging" $> Discharging
-    charging = MPC.string' "charging" $> Charging <* rest
-    full = MPC.string' "fully-charged" $> Full <* rest
-    pending = MPC.string' "pending-charge" $> Pending <* rest
+    discharging = MPC.string' "discharging" $> BatteryStatusDischarging
+    charging = MPC.string' "charging" $> BatteryStatusCharging <* rest
+    full = MPC.string' "fully-charged" $> BatteryStatusFull <* rest
+    pending = MPC.string' "pending-charge" $> BatteryStatusPending <* rest
     rest = MPC.space *> MP.eof
 {-# INLINEABLE parseStatus #-}

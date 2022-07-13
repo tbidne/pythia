@@ -1,3 +1,6 @@
+{-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE UndecidableInstances #-}
+
 -- | This module provides functionality for retrieving network connection
 -- information using nmcli.
 --
@@ -8,7 +11,7 @@ module Pythia.Services.NetInterface.NmCli
     supported,
 
     -- * Misc
-    NmCliException (..),
+    NmCliParseError (..),
     parseInterfaces,
   )
 where
@@ -40,48 +43,40 @@ import Text.Megaparsec (ErrorFancy (..), Parsec, (<?>))
 import Text.Megaparsec qualified as MP
 import Text.Megaparsec.Char qualified as MPC
 
--- $setup
--- >>> import GHC.Exception (errorCallException)
-
--- | Errors that can occur with nmcli.
+-- | Error parsing nmcli output.
 --
 -- ==== __Examples__
 --
--- >>> putStrLn $ displayException $ NmCliGeneralException $ errorCallException "oh no"
--- NmCli exception: <oh no>
---
--- >>> putStrLn $ displayException $ NmCliParseException "parse error"
--- NmCli parse exception: <parse error>
+-- >>> displayException $ MkNmCliParseError "parse error"
+-- "NmCli parse error: parse error"
 --
 -- @since 0.1
-type NmCliException :: Type
-data NmCliException
-  = -- | General exceptions.
-    --
-    -- @since 0.1
-    forall e. Exception e => NmCliGeneralException e
-  | -- | Parse exceptions.
-    --
-    -- @since 0.1
-    NmCliParseException Text
+type NmCliParseError :: Type
+newtype NmCliParseError = MkNmCliParseError Text
+  deriving stock
+    ( -- | @since 0.1
+      Eq,
+      -- | @since 0.1
+      Generic,
+      -- | @since 0.1
+      Show
+    )
+  deriving anyclass
+    ( -- | @since 0.1
+      NFData
+    )
 
 -- | @since 0.1
-deriving stock instance Show NmCliException
+makePrismLabels ''NmCliParseError
 
 -- | @since 0.1
-instance Pretty NmCliException where
-  pretty (NmCliGeneralException e) =
-    pretty @Text "NmCli exception: <"
-      <> pretty (displayException e)
-      <> pretty @Text ">"
-  pretty (NmCliParseException s) =
-    pretty @Text "NmCli parse exception: <"
-      <> pretty s
-      <> pretty @Text ">"
+instance Pretty NmCliParseError where
+  pretty (MkNmCliParseError s) =
+    pretty @Text "NmCli parse error: " <> pretty s
   {-# INLINEABLE pretty #-}
 
 -- | @since 0.1
-instance Exception NmCliException where
+instance Exception NmCliParseError where
   displayException = T.unpack . U.prettyToText
   {-# INLINEABLE displayException #-}
   toException = toExceptionViaPythia
@@ -103,8 +98,7 @@ netInterfaceShellApp = ShellApp.runSimple shell
     shell =
       MkSimpleShell
         { command = "nmcli -t -m multiline device show",
-          parser = parseInterfaces,
-          liftShellEx = NmCliGeneralException
+          parser = parseInterfaces
         }
 {-# INLINEABLE netInterfaceShellApp #-}
 
@@ -122,11 +116,11 @@ type MParser = Parsec Void Text
 -- | Attemps to parse the output of nmcli.
 --
 -- @since 0.1
-parseInterfaces :: Text -> Either NmCliException NetInterfaces
+parseInterfaces :: Text -> Either NmCliParseError NetInterfaces
 parseInterfaces txt = case MP.parse mparseInterfaces "Pythia.Services.NetInterface.NmCli" txt of
   Left ex ->
     let prettyErr = MP.errorBundlePretty ex
-     in Left $ NmCliParseException $ T.pack prettyErr
+     in Left $ MkNmCliParseError $ T.pack prettyErr
   Right ifs -> Right ifs
 {-# INLINEABLE parseInterfaces #-}
 
@@ -179,11 +173,11 @@ parseNetInterfaceType = do
   MPC.eol
   pure type'
   where
-    wifi = MPC.string "wifi" $> Wifi
-    wifiP2p = MPC.string "wifi-p2p" $> Wifi_P2P
-    ethernet = MPC.string "ethernet" $> Ethernet
-    loopback = MPC.string "loopback" $> Loopback
-    tun = MPC.string "tun" $> Tun
+    wifi = MPC.string "wifi" $> NetInterfaceTypeWifi
+    wifiP2p = MPC.string "wifi-p2p" $> NetInterfaceTypeWifi_P2P
+    ethernet = MPC.string "ethernet" $> NetInterfaceTypeEthernet
+    loopback = MPC.string "loopback" $> NetInterfaceTypeLoopback
+    tun = MPC.string "tun" $> NetInterfaceTypeTun
 {-# INLINEABLE parseNetInterfaceType #-}
 
 parseHwaddr :: MParser ()
@@ -208,10 +202,10 @@ parseNetInterfaceState = do
   U.takeLine_
   pure state'
   where
-    up = MPC.string "(connected)" $> Up
-    down = MPC.string "(disconnected)" $> Down
-    unavail = MPC.string "(unavailable)" $> Down
-    unknown = UnknownState <$> MP.takeWhile1P (Just "type") (/= '\n')
+    up = MPC.string "(connected)" $> NetInterfaceStateUp
+    down = MPC.string "(disconnected)" $> NetInterfaceStateDown
+    unavail = MPC.string "(unavailable)" $> NetInterfaceStateDown
+    unknown = NetInterfaceStateUnknown <$> MP.takeWhile1P (Just "type") (/= '\n')
 {-# INLINEABLE parseNetInterfaceState #-}
 
 parseName :: MParser (Maybe Text)
@@ -232,11 +226,11 @@ parseWiredProp :: MParser ()
 parseWiredProp = MPC.string "WIRED-PROPERTIES" *> U.takeLine_
 {-# INLINEABLE parseWiredProp #-}
 
-parseIpv4s :: MParser [IpAddress 'Ipv4]
+parseIpv4s :: MParser [IpAddress 'IpTypeIpv4]
 parseIpv4s = parseAllIpInfo "4" MkIpAddress
 {-# INLINEABLE parseIpv4s #-}
 
-parseIpv6s :: MParser [IpAddress 'Ipv6]
+parseIpv6s :: MParser [IpAddress 'IpTypeIpv6]
 parseIpv6s = parseAllIpInfo "6" MkIpAddress
 {-# INLINEABLE parseIpv6s #-}
 

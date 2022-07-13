@@ -13,9 +13,7 @@ module Pythia.Control.Exception
     -- * Miscellaneous Exceptions
     CommandException (..),
     SomeExceptions (..),
-    someExceptionsIso,
     NotSupportedException (..),
-    notSupportedExceptionIso,
     NoActionsRunException (..),
   )
 where
@@ -35,6 +33,9 @@ import Pythia.Utils qualified as U
 -- @since 0.1
 type PythiaException :: Type
 data PythiaException = forall e. Exception e => MkPythiaException e
+
+-- | @since 0.1
+makePrismLabels ''PythiaException
 
 -- | @since 0.1
 deriving stock instance Show PythiaException
@@ -87,6 +88,8 @@ data CommandException = MkCommandException
   }
   deriving stock
     ( -- | @since 0.1
+      Eq,
+      -- | @since 0.1
       Generic,
       -- | @since 0.1
       Show
@@ -141,9 +144,7 @@ newtype SomeExceptions = MkSomeExceptions
       Show
     )
 
--- | @since 0.1
-someExceptionsIso :: Iso' SomeExceptions (NonEmpty SomeException)
-someExceptionsIso = iso unSomeExceptions MkSomeExceptions
+makePrismLabels ''SomeExceptions
 
 -- | @since 0.1
 instance Exception SomeExceptions where
@@ -181,6 +182,8 @@ newtype NotSupportedException = MkNotSupportedException
   }
   deriving stock
     ( -- | @since 0.1
+      Eq,
+      -- | @since 0.1
       Generic,
       -- | @since 0.1
       Show
@@ -191,8 +194,7 @@ newtype NotSupportedException = MkNotSupportedException
     )
 
 -- | @since 0.1
-notSupportedExceptionIso :: Iso' NotSupportedException Text
-notSupportedExceptionIso = iso unNotSupportedException MkNotSupportedException
+makePrismLabels ''NotSupportedException
 
 -- | @since 0.1
 instance Exception NotSupportedException where
@@ -222,6 +224,8 @@ type NoActionsRunException :: Type
 data NoActionsRunException = MkNoActionsRunException
   deriving stock
     ( -- | @since 0.1
+      Eq,
+      -- | @since 0.1
       Generic,
       -- | @since 0.1
       Show
@@ -230,6 +234,9 @@ data NoActionsRunException = MkNoActionsRunException
     ( -- | @since 0.1
       NFData
     )
+
+-- | @since 0.1
+makePrismLabels ''NoActionsRunException
 
 -- | @since 0.1
 instance Pretty NoActionsRunException where

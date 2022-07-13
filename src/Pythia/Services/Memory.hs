@@ -20,7 +20,7 @@ module Pythia.Services.Memory
     RunApp (..),
 
     -- ** Errors
-    FreeException (..),
+    FreeParseError (..),
   )
 where
 
@@ -35,7 +35,7 @@ import Pythia.Data.RunApp (RunApp (..))
 import Pythia.Internal.ShellApp (AppAction (..))
 import Pythia.Internal.ShellApp qualified as ShellApp
 import Pythia.Prelude
-import Pythia.Services.Memory.Free (FreeException)
+import Pythia.Services.Memory.Free (FreeParseError (..))
 import Pythia.Services.Memory.Free qualified as Free
 import Pythia.Services.Memory.Types
   ( Memory (..),
@@ -45,7 +45,7 @@ import Pythia.Services.Memory.Types
   )
 
 -- | Queries the memory based on the configuration. If 'app' is
--- 'Many' then we try supported apps in the following order:
+-- 'RunAppMany' then we try supported apps in the following order:
 --
 -- @
 -- ['MemoryFree']
@@ -53,23 +53,23 @@ import Pythia.Services.Memory.Types
 --
 -- __Throws:__
 --
--- * 'Pythia.Control.Exception.PythiaException': if an error is
--- encountered (e.g. running a command or parse error).
+-- * 'FreeParseError'
+-- * 'Pythia.Control.Exception.CommandException'
 --
 -- @since 0.1
 queryMemory :: MemoryConfig -> IO SystemMemory
 queryMemory config =
   case config ^. #app of
-    Many -> ShellApp.tryAppActions allApps
-    Single app -> toShellApp app
+    RunAppMany -> ShellApp.tryAppActions allApps
+    RunAppSingle app -> toShellApp app
   where
     allApps =
-      [ MkAppAction (toShellApp MemoryFree) Free.supported (showt MemoryFree)
+      [ MkAppAction (toShellApp MemoryAppFree) Free.supported "free"
       ]
 {-# INLINEABLE queryMemory #-}
 
 toShellApp :: MemoryApp -> IO SystemMemory
-toShellApp MemoryFree = Free.memoryShellApp
+toShellApp MemoryAppFree = Free.memoryShellApp
 {-# INLINEABLE toShellApp #-}
 
 -- | Returns the amount of free memory.

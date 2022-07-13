@@ -11,17 +11,12 @@ module Pythia.Services.GlobalIp.Types
     GlobalIpBothConfig,
     GlobalIpConfig (..),
     GlobalIpApp (..),
-    _GlobalIpDig,
-    _GlobalIpCurl,
 
     -- ** Extra URL sources
     UrlSource (..),
-    urlSourceIso,
-    urlSourceCmdIso,
   )
 where
 
-import Pythia.Data.Command (Command (..), commandIso)
 import Pythia.Data.RunApp (RunApp (..))
 import Pythia.Data.Supremum (Supremum (..))
 import Pythia.Prelude
@@ -36,11 +31,11 @@ data GlobalIpApp
     -- fastest and most reliable.
     --
     -- @since 0.1
-    GlobalIpDig
+    GlobalIpAppDig
   | -- | Uses curl to lookup the ip addresses.
     --
     -- @since 0.1
-    GlobalIpCurl
+    GlobalIpAppCurl
   deriving stock
     ( -- | @since 0.1
       Bounded,
@@ -68,7 +63,7 @@ data GlobalIpApp
     )
 
 -- | @since 0.1
-makePrisms ''GlobalIpApp
+makePrismLabels ''GlobalIpApp
 
 -- | Additional URL source for retrieving IP information. The intended app
 -- should not be included (i.e. curl or dig), but any desired flags should
@@ -109,23 +104,14 @@ newtype UrlSource a = MkUrlSource
     )
 
 -- | @since 0.1
-urlSourceIso :: Iso (UrlSource a) (UrlSource b) Text Text
-urlSourceIso = iso unUrlSource MkUrlSource
-{-# INLINEABLE urlSourceIso #-}
-
--- | Isomorphism between 'UrlSource' and 'Command'
---
--- @since 0.1
-urlSourceCmdIso :: Iso (UrlSource a) (UrlSource a) Command Command
-urlSourceCmdIso = urlSourceIso % re commandIso
-{-# INLINEABLE urlSourceCmdIso #-}
+makePrismLabels ''UrlSource
 
 -- | Complete configuration for querying global IP addresses. The 'Monoid'
 -- instance will construct a config that tries all apps and has no extra
 -- sources.
 --
--- >>> mempty @(GlobalIpConfig [UrlSource Ipv4])
--- MkGlobalIpConfig {app = Many, sources = []}
+-- >>> mempty @(GlobalIpConfig [UrlSource IpTypeIpv4])
+-- MkGlobalIpConfig {app = RunAppMany, sources = []}
 --
 -- @since 0.1
 type GlobalIpConfig :: Type -> Type
@@ -135,7 +121,7 @@ data GlobalIpConfig a = MkGlobalIpConfig
     -- @since 0.1
     app :: RunApp GlobalIpApp,
     -- | Extra lookup sources. This will be either a single @['UrlSource' a]@
-    -- or a pair @(['UrlSource' 'Ipv4'], ['UrlSource' 'Ipv6'])@, depending on
+    -- or a pair @(['UrlSource' 'IpTypeIpv4'], ['UrlSource' 'IpTypeIpv6'])@, depending on
     -- which address we want to retrieve.
     --
     -- @since 0.1
@@ -168,20 +154,20 @@ instance Monoid a => Monoid (GlobalIpConfig a) where
   mempty = MkGlobalIpConfig mempty mempty
   {-# INLINEABLE mempty #-}
 
--- | Type alias for 'Ipv4' 'GlobalIpConfig'.
+-- | Type alias for 'IpTypeIpv4' 'GlobalIpConfig'.
 --
 -- @since 0.1.0.0
 type GlobalIpv4Config :: Type
-type GlobalIpv4Config = GlobalIpConfig [UrlSource 'Ipv4]
+type GlobalIpv4Config = GlobalIpConfig [UrlSource 'IpTypeIpv4]
 
--- | Type alias for 'Ipv6' 'GlobalIpConfig'.
+-- | Type alias for 'IpTypeIpv6' 'GlobalIpConfig'.
 --
 -- @since 0.1.0.0
 type GlobalIpv6Config :: Type
-type GlobalIpv6Config = GlobalIpConfig [UrlSource 'Ipv6]
+type GlobalIpv6Config = GlobalIpConfig [UrlSource 'IpTypeIpv6]
 
--- | Type alias for 'Ipv4' and 'Ipv6' 'GlobalIpConfig'.
+-- | Type alias for 'IpTypeIpv4' and 'IpTypeIpv6' 'GlobalIpConfig'.
 --
 -- @since 0.1.0.0
 type GlobalIpBothConfig :: Type
-type GlobalIpBothConfig = GlobalIpConfig ([UrlSource 'Ipv4], [UrlSource 'Ipv6])
+type GlobalIpBothConfig = GlobalIpConfig ([UrlSource 'IpTypeIpv4], [UrlSource 'IpTypeIpv6])

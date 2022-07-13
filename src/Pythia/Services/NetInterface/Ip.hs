@@ -1,3 +1,6 @@
+{-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE UndecidableInstances #-}
+
 -- | This module provides functionality for retrieving network connection
 -- information using ip utility.
 --
@@ -8,7 +11,7 @@ module Pythia.Services.NetInterface.Ip
     supported,
 
     -- * Misc
-    IpException (..),
+    IpParseError (..),
     parseInterfaces,
   )
 where
@@ -39,48 +42,43 @@ import Text.Megaparsec (ErrorFancy (..), Parsec, (<?>))
 import Text.Megaparsec qualified as MP
 import Text.Megaparsec.Char qualified as MPC
 
--- $setup
--- >>> import GHC.Exception (errorCallException)
-
--- | Errors that can occur with ip.
+-- | Error parsing ip output.
 --
 -- ==== __Examples__
 --
--- >>> putStrLn $ displayException $ IpGeneralException $ errorCallException "oh no"
--- Ip exception: <oh no>
---
--- >>> putStrLn $ displayException $ IpParseException "parse error"
--- Ip parse exception: <parse error>
+-- >>> displayException $ MkIpParseError "parse error"
+-- "Ip parse error: parse error"
 --
 -- @since 0.1
-type IpException :: Type
-data IpException
-  = -- | General exceptions.
-    --
-    -- @since 0.1
-    forall e. Exception e => IpGeneralException e
-  | -- | Parse exception.
-    --
-    -- @since 0.1
-    IpParseException Text
+type IpParseError :: Type
+newtype IpParseError = MkIpParseError
+  { -- | @since 0.1
+    unIpParseError :: Text
+  }
+  deriving stock
+    ( -- | @since 0.1
+      Eq,
+      -- | @since 0.1
+      Generic,
+      -- | @since 0.1
+      Show
+    )
+  deriving anyclass
+    ( -- | @since 0.1
+      NFData
+    )
 
 -- | @since 0.1
-deriving stock instance Show IpException
+makePrismLabels ''IpParseError
 
 -- | @since 0.1
-instance Pretty IpException where
-  pretty (IpGeneralException e) =
-    pretty @Text "Ip exception: <"
-      <> pretty (displayException e)
-      <> pretty @Text ">"
-  pretty (IpParseException s) =
-    pretty @Text "Ip parse exception: <"
-      <> pretty s
-      <> pretty @Text ">"
+instance Pretty IpParseError where
+  pretty (MkIpParseError s) =
+    pretty @Text "Ip parse error: " <> pretty s
   {-# INLINEABLE pretty #-}
 
 -- | @since 0.1
-instance Exception IpException where
+instance Exception IpParseError where
   displayException = T.unpack . U.prettyToText
   {-# INLINEABLE displayException #-}
   toException = toExceptionViaPythia
@@ -102,8 +100,7 @@ netInterfaceShellApp = ShellApp.runSimple shell
     shell =
       MkSimpleShell
         { command = "ip address",
-          parser = parseInterfaces,
-          liftShellEx = IpGeneralException
+          parser = parseInterfaces
         }
 {-# INLINEABLE netInterfaceShellApp #-}
 
@@ -121,11 +118,11 @@ type MParser = Parsec Void Text
 -- | Attempts to parse the output of IP.
 --
 -- @since 0.1
-parseInterfaces :: Text -> Either IpException NetInterfaces
+parseInterfaces :: Text -> Either IpParseError NetInterfaces
 parseInterfaces txt = case MP.parse mparseInterfaces "" txt of
   Left ex ->
     let prettyErr = MP.errorBundlePretty ex
-     in Left $ IpParseException $ T.pack prettyErr
+     in Left $ MkIpParseError $ T.pack prettyErr
   Right ifs -> Right ifs
 {-# INLINEABLE parseInterfaces #-}
 
@@ -162,11 +159,11 @@ parseLink :: MParser ()
 parseLink = MPC.space *> MPC.string "link" *> U.takeLine_
 {-# INLINEABLE parseLink #-}
 
-parseIpv4s :: MParser [IpAddress 'Ipv4]
+parseIpv4s :: MParser [IpAddress 'IpTypeIpv4]
 parseIpv4s = parseIps "inet " MkIpAddress
 {-# INLINEABLE parseIpv4s #-}
 
-parseIpv6s :: MParser [IpAddress 'Ipv6]
+parseIpv6s :: MParser [IpAddress 'IpTypeIpv6]
 parseIpv6s = parseIps "inet6 " MkIpAddress
 {-# INLINEABLE parseIpv6s #-}
 
@@ -220,7 +217,7 @@ parseNetInterfaceState = do
     <|> unknown
     <?> "state"
   where
-    up = MPC.string "UP" $> Up
-    down = MPC.string "DOWN" $> Down
-    unknown = UnknownState <$> MP.takeWhile1P (Just "type") (not . Char.isSpace)
+    up = MPC.string "UP" $> NetInterfaceStateUp
+    down = MPC.string "DOWN" $> NetInterfaceStateDown
+    unknown = NetInterfaceStateUnknown <$> MP.takeWhile1P (Just "type") (not . Char.isSpace)
 {-# INLINEABLE parseNetInterfaceState #-}

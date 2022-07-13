@@ -65,8 +65,8 @@ wifi :: NetInterface
 wifi =
   MkNetInterface
     "wlp0s20f3"
-    (Just Wifi)
-    Up
+    (Just NetInterfaceTypeWifi)
+    NetInterfaceStateUp
     (Just "KiWiFi")
     (MkIpAddresses [unsafeIpAddress "192.168.1.2"])
     (MkIpAddresses [unsafeIpAddress "fe80::fe44:82ff:fede:f814", unsafeIpAddress "fe80::a328:482:5263:10b8"])
@@ -75,8 +75,8 @@ wifiP2p :: NetInterface
 wifiP2p =
   MkNetInterface
     "p2p-dev-wlp0s20f3"
-    (Just Wifi_P2P)
-    Down
+    (Just NetInterfaceTypeWifi_P2P)
+    NetInterfaceStateDown
     Nothing
     mempty
     mempty
@@ -85,8 +85,8 @@ ethernet :: NetInterface
 ethernet =
   MkNetInterface
     "enp0s31f6"
-    (Just Ethernet)
-    Down
+    (Just NetInterfaceTypeEthernet)
+    NetInterfaceStateDown
     Nothing
     mempty
     mempty
@@ -95,8 +95,8 @@ loopback :: NetInterface
 loopback =
   MkNetInterface
     "lo"
-    (Just Loopback)
-    (UnknownState "(unmanaged)")
+    (Just NetInterfaceTypeLoopback)
+    (NetInterfaceStateUnknown "(unmanaged)")
     Nothing
     (MkIpAddresses [unsafeIpAddress "127.0.0.1"])
     (MkIpAddresses [unsafeIpAddress "::1"])
@@ -105,8 +105,8 @@ vpn :: NetInterface
 vpn =
   MkNetInterface
     "tailscale0"
-    (Just Tun)
-    (UnknownState "(unmanaged)")
+    (Just NetInterfaceTypeTun)
+    (NetInterfaceStateUnknown "(unmanaged)")
     Nothing
     mempty
     (MkIpAddresses [unsafeIpAddress "fe80::a63f:791a:3eaa:9d86"])

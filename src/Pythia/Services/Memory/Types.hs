@@ -6,10 +6,8 @@
 -- @since 0.1
 module Pythia.Services.Memory.Types
   ( MemoryApp (..),
-    _MemoryFree,
     MemoryConfig (..),
     Memory (..),
-    memoryIso,
     SystemMemory (..),
   )
 where
@@ -34,7 +32,7 @@ data MemoryApp
   = -- | Uses the free utility.
     --
     -- @since 0.1
-    MemoryFree
+    MemoryAppFree
   deriving stock
     ( -- | @since 0.1
       Bounded,
@@ -62,12 +60,12 @@ data MemoryApp
     )
 
 -- | @since 0.1
-makePrisms ''MemoryApp
+makePrismLabels ''MemoryApp
 
 -- | Memory configuration.
 --
 -- >>> mempty @MemoryConfig
--- MkMemoryConfig {app = Many}
+-- MkMemoryConfig {app = RunAppMany}
 --
 -- @since 0.1
 type MemoryConfig :: Type
@@ -89,7 +87,7 @@ newtype MemoryConfig = MkMemoryConfig
     )
 
 -- | @since 0.1
-makeFieldLabelsNoPrefix ''MemoryConfig
+makePrismLabels ''MemoryConfig
 
 -- | @since 0.1
 instance Semigroup MemoryConfig where
@@ -116,8 +114,7 @@ newtype Memory (f :: Type -> Type) = MkMemory
     )
 
 -- | @since 0.1
-memoryIso :: Iso' (Memory f) (Bytes 'B (f Double))
-memoryIso = iso unMemory MkMemory
+makePrismLabels ''Memory
 
 -- | @since 0.1
 deriving stock instance Eq (f Double) => Eq (Memory f)

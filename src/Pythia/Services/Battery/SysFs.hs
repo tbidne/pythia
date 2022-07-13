@@ -1,3 +1,6 @@
+{-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE UndecidableInstances #-}
+
 -- | This module provides functionality for retrieving battery information
 -- using SysFS.
 --
@@ -8,13 +11,16 @@ module Pythia.Services.Battery.SysFs
     supported,
 
     -- * Misc
-    SysFsException (..),
+    SysFsDirNotFound (..),
+    SysFsBatteryDirNotFound (..),
+    SysFsFileNotFound (..),
+    SysFsBatteryParseError (..),
   )
 where
 
 import Data.Text qualified as T
 import Numeric.Data.Interval qualified as Interval
-import Pythia.Control.Exception (fromExceptionViaPythia, toExceptionViaPythia)
+import Pythia.Control.Exception (PythiaException (..), fromExceptionViaPythia, toExceptionViaPythia)
 import Pythia.Data.Percentage (Percentage (..))
 import Pythia.Prelude
 import Pythia.Services.Battery.Types (Battery (..), BatteryStatus (..))
@@ -24,85 +30,182 @@ import System.Directory qualified as Dir
 import System.FilePath ((</>))
 import Text.Read qualified as TR
 
--- $setup
--- >>> import GHC.Exception (errorCallException)
+sysDir :: FilePath
+sysDir = "/sys/class/power_supply"
+{-# INLINEABLE sysDir #-}
 
--- | Errors that can occur with sysfs.
+sysfsDir :: FilePath
+sysfsDir = "/sysfs/class/power_supply"
+{-# INLINEABLE sysfsDir #-}
+
+-- | Sysfs dir not found error.
 --
 -- ==== __Examples__
 --
--- >>> putStrLn $ displayException SysFsDirNotFound
--- SysFs exception: Could not find either dir: /sys/class/power_supply, /sysfs/class/power_supply
---
--- >>> putStrLn $ displayException SysFsBatteryDirNotFound
--- SysFs exception: Could not find BAT[0-5]? subdirectory under /sys(fs)/class/power_supply
---
--- >>> putStrLn $ displayException $ SysFsFileNotFound "foo"
--- SysFs exception: Could not find file: <foo>
---
--- >>> putStrLn $ displayException $ SysFsBatteryParseException "parse error"
--- SysFs parse error: <parse error>
---
--- >>> putStrLn $ displayException $ SysFsReadFileException "foo" (errorCallException "oh no")
--- SysFs read file <foo> exception: <oh no>
+-- >>> displayException MkSysFsDirNotFound
+-- "Could not find either sysfs dirs: /sys/class/power_supply, /sysfs/class/power_supply"
 --
 -- @since 0.1
-type SysFsException :: Type
-data SysFsException
-  = -- | Error searching for \/sys\/class\/power_supply or
-    -- \/sysfs\/class\/power_supply.
-    --
-    -- @since 0.1
-    SysFsDirNotFound
-  | -- | Error searching for \<sysfs\>/BAT{0-5}?.
-    --
-    -- @since 0.1
-    SysFsBatteryDirNotFound
-  | -- | Errors searching for files.
-    --
-    -- @since 0.1
-    SysFsFileNotFound Text
-  | -- | Errors with the battery percentage format.
-    --
-    -- @since 0.1
-    SysFsBatteryParseException Text
-  | -- | Error reading a file.
-    --
-    -- @since 0.1
-    forall e. Exception e => SysFsReadFileException Text e
+type SysFsDirNotFound :: Type
+data SysFsDirNotFound = MkSysFsDirNotFound
+  deriving stock
+    ( -- | @since 0.1
+      Eq,
+      -- | @since 0.1
+      Generic,
+      -- | @since 0.1
+      Show
+    )
+  deriving anyclass
+    ( -- | @since 0.1
+      NFData
+    )
 
 -- | @since 0.1
-deriving stock instance Show SysFsException
+makePrismLabels ''SysFsDirNotFound
 
 -- | @since 0.1
-instance Pretty SysFsException where
-  pretty SysFsDirNotFound =
-    pretty @Text "SysFs exception: Could not find either dir: "
+instance Pretty SysFsDirNotFound where
+  pretty MkSysFsDirNotFound =
+    pretty @Text "Could not find either sysfs dirs: "
       <> pretty sysDir
       <> pretty @Text ", "
       <> pretty sysfsDir
-  pretty SysFsBatteryDirNotFound =
-    pretty @Text $
-      "SysFs exception: Could not find BAT[0-5]? subdirectory under"
-        <> " /sys(fs)/class/power_supply"
-  pretty (SysFsFileNotFound f) =
-    pretty @Text "SysFs exception: Could not find file: <"
-      <> pretty f
-      <> pretty @Text ">"
-  pretty (SysFsBatteryParseException e) =
-    pretty @Text "SysFs parse error: <"
-      <> pretty e
-      <> pretty @Text ">"
-  pretty (SysFsReadFileException fp e) =
-    pretty @Text "SysFs read file <"
-      <> pretty fp
-      <> pretty @Text "> exception: <"
-      <> pretty (displayException e)
-      <> pretty @Text ">"
   {-# INLINEABLE pretty #-}
 
 -- | @since 0.1
-instance Exception SysFsException where
+instance Exception SysFsDirNotFound where
+  displayException = T.unpack . U.prettyToText
+  {-# INLINEABLE displayException #-}
+  toException = toExceptionViaPythia
+  {-# INLINEABLE toException #-}
+  fromException = fromExceptionViaPythia
+  {-# INLINEABLE fromException #-}
+
+-- | Sysfs battery dir not found.
+--
+-- ==== __Examples__
+--
+-- >>> displayException MkSysFsBatteryDirNotFound
+-- "Could not find BAT[0-5]? subdirectory under /sys(fs)/class/power_supply"
+--
+-- @since 0.1
+type SysFsBatteryDirNotFound :: Type
+data SysFsBatteryDirNotFound = MkSysFsBatteryDirNotFound
+  deriving stock
+    ( -- | @since 0.1
+      Eq,
+      -- | @since 0.1
+      Generic,
+      -- | @since 0.1
+      Show
+    )
+  deriving anyclass
+    ( -- | @since 0.1
+      NFData
+    )
+
+-- | @since 0.1
+makePrismLabels ''SysFsBatteryDirNotFound
+
+-- | @since 0.1
+instance Pretty SysFsBatteryDirNotFound where
+  pretty MkSysFsBatteryDirNotFound =
+    pretty @Text $
+      "Could not find BAT[0-5]? subdirectory under"
+        <> " /sys(fs)/class/power_supply"
+  {-# INLINEABLE pretty #-}
+
+-- | @since 0.1
+instance Exception SysFsBatteryDirNotFound where
+  displayException = T.unpack . U.prettyToText
+  {-# INLINEABLE displayException #-}
+  toException = toExceptionViaPythia
+  {-# INLINEABLE toException #-}
+  fromException = fromExceptionViaPythia
+  {-# INLINEABLE fromException #-}
+
+-- | Sysfs file not found.
+--
+-- ==== __Examples__
+--
+-- >>> displayException $ MkSysFsFileNotFound "foo"
+-- "Could not find sysfs file: foo"
+--
+-- @since 0.1
+type SysFsFileNotFound :: Type
+newtype SysFsFileNotFound = MkSysFsFileNotFound
+  { -- | @since 0.1
+    unSysFsFileNotFound :: Text
+  }
+  deriving stock
+    ( -- | @since 0.1
+      Eq,
+      -- | @since 0.1
+      Generic,
+      -- | @since 0.1
+      Show
+    )
+  deriving anyclass
+    ( -- | @since 0.1
+      NFData
+    )
+
+-- | @since 0.1
+makePrismLabels ''SysFsFileNotFound
+
+-- | @since 0.1
+instance Pretty SysFsFileNotFound where
+  pretty (MkSysFsFileNotFound f) =
+    pretty @Text "Could not find sysfs file: " <> pretty f
+  {-# INLINEABLE pretty #-}
+
+-- | @since 0.1
+instance Exception SysFsFileNotFound where
+  displayException = T.unpack . U.prettyToText
+  {-# INLINEABLE displayException #-}
+  toException = toExceptionViaPythia
+  {-# INLINEABLE toException #-}
+  fromException = fromExceptionViaPythia
+  {-# INLINEABLE fromException #-}
+
+-- | Sysfs battery parse error.
+--
+-- ==== __Examples__
+--
+-- >>> displayException $ MkSysFsBatteryParseError "bad"
+-- "SysFs parse error: bad"
+--
+-- @since 0.1
+type SysFsBatteryParseError :: Type
+newtype SysFsBatteryParseError = MkSysFsBatteryParseError
+  { -- | @since 0.1
+    unSysFsBatteryParseError :: Text
+  }
+  deriving stock
+    ( -- | @since 0.1
+      Eq,
+      -- | @since 0.1
+      Generic,
+      -- | @since 0.1
+      Show
+    )
+  deriving anyclass
+    ( -- | @since 0.1
+      NFData
+    )
+
+-- | @since 0.1
+makePrismLabels ''SysFsBatteryParseError
+
+-- | @since 0.1
+instance Pretty SysFsBatteryParseError where
+  pretty (MkSysFsBatteryParseError e) =
+    pretty @Text "SysFs parse error: " <> pretty e
+  {-# INLINEABLE pretty #-}
+
+-- | @since 0.1
+instance Exception SysFsBatteryParseError where
   displayException = T.unpack . U.prettyToText
   {-# INLINEABLE displayException #-}
   toException = toExceptionViaPythia
@@ -136,7 +239,7 @@ batteryQuery = queryBattery
 -- @since 0.1
 supported :: IO Bool
 supported = do
-  efp <- try @_ @SysFsException findSysBatDir
+  efp <- tryAny findSysBatDir
   case efp of
     Left _ -> pure False
     Right _ -> pure True
@@ -162,23 +265,15 @@ findSysBatDir = do
         sysFsExists <- Dir.doesDirectoryExist sysfsDir
         if sysFsExists
           then pure sysfsDir
-          else throwIO SysFsDirNotFound
+          else throwIO MkSysFsDirNotFound
   findBatteryDir sysBase
 {-# INLINEABLE findSysBatDir #-}
-
-sysDir :: FilePath
-sysDir = "/sys/class/power_supply"
-{-# INLINEABLE sysDir #-}
-
-sysfsDir :: FilePath
-sysfsDir = "/sysfs/class/power_supply"
-{-# INLINEABLE sysfsDir #-}
 
 findBatteryDir :: FilePath -> IO FilePath
 findBatteryDir sysBase = do
   mResult <- foldr firstExists (pure Nothing) batDirs
   case mResult of
-    Nothing -> throwIO SysFsBatteryDirNotFound
+    Nothing -> throwIO MkSysFsBatteryDirNotFound
     Just result -> pure result
   where
     firstExists bd acc = do
@@ -211,7 +306,7 @@ fileExists fp = do
   b <- Dir.doesFileExist fp
   if b
     then pure fp
-    else throwIO $ SysFsFileNotFound $ T.pack fp
+    else throwIO $ MkSysFsFileNotFound $ T.pack fp
 {-# INLINEABLE fileExists #-}
 
 parseStatus :: FilePath -> IO BatteryStatus
@@ -220,22 +315,22 @@ parseStatus fp = do
     T.toLower
       . T.strip
       <$> readFileUtf8Lenient fp
-      `catchAny` \e -> throwIO $ SysFsReadFileException (T.pack fp) e
+      `catchAny` \e -> throwIO $ MkPythiaException e
   case statusTxt of
-    "charging" -> pure Charging
-    "discharging" -> pure Discharging
-    "not charging" -> pure Pending
-    "full" -> pure Full
-    bad -> throwIO $ SysFsBatteryParseException $ "Unknown status: <" <> bad <> ">"
+    "charging" -> pure BatteryStatusCharging
+    "discharging" -> pure BatteryStatusDischarging
+    "not charging" -> pure BatteryStatusPending
+    "full" -> pure BatteryStatusFull
+    bad -> throwIO $ MkSysFsBatteryParseError $ "Unknown status: " <> bad
 {-# INLINEABLE parseStatus #-}
 
 parsePercentage :: FilePath -> IO Percentage
 parsePercentage fp = do
   percentTxt <-
     readFileUtf8Lenient fp
-      `catchAny` \e -> throwIO $ SysFsReadFileException (T.pack fp) e
+      `catchAny` \e -> throwIO $ MkPythiaException e
   case readInterval percentTxt of
-    Nothing -> throwIO $ SysFsBatteryParseException percentTxt
+    Nothing -> throwIO $ MkSysFsBatteryParseError percentTxt
     Just bs -> pure $ MkPercentage bs
   where
     readInterval = Interval.mkLRInterval <=< TR.readMaybe . T.unpack

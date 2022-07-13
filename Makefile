@@ -17,9 +17,9 @@ clean:
 .PHONY: test
 test:
 	if [ -z "$(ARGS)" ]; then \
-		RUN_DOCTEST=1 cabal test; \
+		RUN_DOCTEST=1 RUN_FUNCTIONAL=1 cabal test; \
 	else \
-		RUN_DOCTEST=1 cabal test $(ARGS); \
+		RUN_DOCTEST=1 RUN_FUNCTIONAL=1 cabal test $(ARGS); \
 	fi
 
 .PHONY: doctest
@@ -49,7 +49,7 @@ watch:
 # ci
 
 .PHONY: cic
-cic: formatc lintc haddockc
+cic: formatc lintc
 
 .PHONY: ci
 ci: lint format

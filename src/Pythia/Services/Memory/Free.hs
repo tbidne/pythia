@@ -1,3 +1,6 @@
+{-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE UndecidableInstances #-}
+
 -- | This module provides functionality for retrieving memory usage using Free.
 --
 -- @since 0.1
@@ -7,7 +10,7 @@ module Pythia.Services.Memory.Free
     supported,
 
     -- * Misc
-    FreeException (..),
+    FreeParseError (..),
     parseMemory,
   )
 where
@@ -30,48 +33,43 @@ import Text.Megaparsec qualified as MP
 import Text.Megaparsec.Char qualified as MPC
 import Text.Read qualified as TR
 
--- $setup
--- >>> import GHC.Exception (errorCallException)
-
 -- | Errors that can occur with acpi.
 --
 -- ==== __Examples__
 --
--- >>> putStrLn $ displayException $ FreeGeneralException $ errorCallException "oh no"
--- Free exception: <oh no>
---
--- >>> putStrLn $ displayException $ FreeParseException "parse error"
--- Free parse exception: <parse error>
+-- >>> displayException $ MkFreeParseError "parse error"
+-- "Could not parse memory from: parse error"
 --
 -- @since 0.1
-type FreeException :: Type
-data FreeException
-  = -- | For general exceptions.
-    --
-    -- @since 0.1
-    forall e. Exception e => FreeGeneralException e
-  | -- | Parse errors.
-    --
-    -- @since 0.1
-    FreeParseException Text
+type FreeParseError :: Type
+newtype FreeParseError = MkFreeParseError
+  { -- | @since 0.1
+    unFreeParseError :: Text
+  }
+  deriving stock
+    ( -- | @since 0.1
+      Eq,
+      -- | @since 0.1
+      Generic,
+      -- | @since 0.1
+      Show
+    )
+  deriving anyclass
+    ( -- | @since 0.1
+      NFData
+    )
 
 -- | @since 0.1
-deriving stock instance Show FreeException
+makePrismLabels ''FreeParseError
 
 -- | @since 0.1
-instance Pretty FreeException where
-  pretty (FreeGeneralException e) =
-    pretty @Text "Free exception: <"
-      <> pretty (displayException e)
-      <> ">"
-  pretty (FreeParseException s) =
-    pretty @Text "Free parse exception: <"
-      <> pretty s
-      <> pretty @Text ">"
+instance Pretty FreeParseError where
+  pretty (MkFreeParseError s) =
+    pretty @Text "Could not parse memory from: " <> pretty s
   {-# INLINEABLE pretty #-}
 
 -- | @since 0.1
-instance Exception FreeException where
+instance Exception FreeParseError where
   displayException = T.unpack . U.prettyToText
   {-# INLINEABLE displayException #-}
   toException = toExceptionViaPythia
@@ -93,8 +91,7 @@ memoryShellApp = ShellApp.runSimple shell
     shell =
       MkSimpleShell
         { command = "free --bytes",
-          parser = parseMemory,
-          liftShellEx = FreeGeneralException
+          parser = parseMemory
         }
 {-# INLINEABLE memoryShellApp #-}
 
@@ -109,9 +106,9 @@ supported = U.exeSupported "free"
 -- | Attempts to parse the output of free.
 --
 -- @since 0.1
-parseMemory :: Text -> Either FreeException SystemMemory
+parseMemory :: Text -> Either FreeParseError SystemMemory
 parseMemory txt = case U.foldAlt parseLine ts of
-  Nothing -> Left $ FreeParseException $ "Could not parse memory input: " <> txt
+  Nothing -> Left $ MkFreeParseError txt
   Just mem -> Right mem
   where
     ts = T.lines txt

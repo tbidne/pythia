@@ -68,7 +68,7 @@ wifi =
   MkNetInterface
     "wlp0s20f3"
     Nothing
-    Up
+    NetInterfaceStateUp
     Nothing
     (MkIpAddresses [unsafeIpAddress "192.168.1.2"])
     (MkIpAddresses [unsafeIpAddress "fe80::a328:482:5263:10b8", unsafeIpAddress "fe80::fe44:82ff:fede:f814"])
@@ -78,7 +78,7 @@ ethernet =
   MkNetInterface
     "enp0s31f6"
     Nothing
-    Down
+    NetInterfaceStateDown
     Nothing
     (MkIpAddresses [])
     (MkIpAddresses [])
@@ -88,7 +88,7 @@ loopback =
   MkNetInterface
     "lo"
     Nothing
-    (UnknownState "UNKNOWN")
+    (NetInterfaceStateUnknown "UNKNOWN")
     Nothing
     (MkIpAddresses [unsafeIpAddress "127.0.0.1"])
     (MkIpAddresses [unsafeIpAddress "::1"])
@@ -98,7 +98,7 @@ vpn =
   MkNetInterface
     "tailscale0"
     Nothing
-    (UnknownState "UNKNOWN")
+    (NetInterfaceStateUnknown "UNKNOWN")
     Nothing
     (MkIpAddresses [])
     (MkIpAddresses [unsafeIpAddress "fe80::a63f:791a:3eaa:9d86"])

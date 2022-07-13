@@ -47,12 +47,7 @@ data SimpleShell err result = MkSimpleShell
     -- | The parser for the result of running the command.
     --
     -- @since 0.1
-    parser :: Text -> Either err result,
-    -- | Lifts an exception into @err@. Used so that a 'SimpleShell' will
-    -- throw exceptions of the same type.
-    --
-    -- @since 0.1
-    liftShellEx :: forall e. Exception e => e -> err
+    parser :: Text -> Either err result
   }
 
 -- | @since 0.1
@@ -60,7 +55,7 @@ makeFieldLabelsNoPrefix ''SimpleShell
 
 -- | @since 0.1
 instance Bifunctor SimpleShell where
-  bimap f g (MkSimpleShell c p le) = MkSimpleShell c p' (f . le)
+  bimap f g (MkSimpleShell c p) = MkSimpleShell c p'
     where
       p' = bimap f g . p
   {-# INLINEABLE bimap #-}
@@ -73,16 +68,10 @@ instance Bifunctor SimpleShell where
 -- error is encountered.
 --
 -- @since 0.1
-runSimple ::
-  forall err result.
-  Exception err =>
-  SimpleShell err result ->
-  IO result
-runSimple simple =
-  rethrowErr `handleAny` runCommand (simple ^. #command) >>= parseAndThrow
+runSimple :: Exception err => SimpleShell err result -> IO result
+runSimple simple = runCommand (simple ^. #command) >>= parseAndThrow
   where
-    rethrowErr e = throwIO $ (simple ^. #liftShellEx) e
-    parseAndThrow t' = throwLeft $ (simple ^. #parser) t'
+    parseAndThrow = throwLeft . (simple ^. #parser)
 {-# INLINEABLE runSimple #-}
 
 -- | Runs a 'Command' and returns either the text result or error encountered.
@@ -165,9 +154,8 @@ instance Monoid (ActionsResult r) where
 --
 -- @since 0.1
 tryAppActions :: [AppAction IO result] -> IO result
-tryAppActions apps = do
-  eResult <- foldr tryAppAction (pure mempty) apps
-  case eResult of
+tryAppActions apps =
+  foldr tryAppAction (pure mempty) apps >>= \case
     Success result -> pure result
     Errs errs -> throwIO $ MkSomeExceptions errs
     NoRuns -> throwIO MkNoActionsRunException
@@ -197,18 +185,16 @@ tryAppAction appAction acc = do
 --
 -- @since 0.1
 tryIOs :: [IO result] -> IO result
-tryIOs actions = do
-  eResult <- foldr tryIO (pure mempty) actions
-  case eResult of
+tryIOs actions =
+  foldr tryIO (pure mempty) actions >>= \case
     Success result -> pure result
     Errs errs -> throwIO $ MkSomeExceptions errs
     NoRuns -> throwIO MkNoActionsRunException
 {-# INLINEABLE tryIOs #-}
 
 tryIO :: IO result -> IO (ActionsResult result) -> IO (ActionsResult result)
-tryIO action acc = do
-  eResult :: Either SomeException result <- try action
-  case eResult of
+tryIO action acc =
+  tryAny action >>= \case
     Right result -> pure $ Success result
     Left ex -> appendEx ex <$> acc
 {-# INLINEABLE tryIO #-}

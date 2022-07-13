@@ -80,7 +80,7 @@ data PythiaCommand
   | MemoryCmd MemoryConfig MemoryField MemoryFormat
   | NetInterfaceCmd NetInterfaceConfig (Maybe Device) NetInterfaceField
   | NetConnCmd NetInterfaceConfig NetConnField
-  | NetIpGlobalCmd (GlobalIpConfig (These [UrlSource 'Ipv4] [UrlSource 'Ipv6]))
+  | NetIpGlobalCmd (GlobalIpConfig (These [UrlSource 'IpTypeIpv4] [UrlSource 'IpTypeIpv6]))
   | TimeCmd TimezoneDest (Maybe String)
   deriving stock (Eq, Show)
 
@@ -214,7 +214,7 @@ parseBattery = do
   app <-
     OApp.option
       reader
-      ( OApp.value Many
+      ( OApp.value RunAppMany
           <> OApp.long "app"
           <> OApp.short 'a'
           <> OApp.metavar "APP"
@@ -227,9 +227,9 @@ parseBattery = do
     reader = do
       a <- OApp.str
       case a of
-        "acpi" -> pure $ Single BatteryAcpi
-        "sysfs" -> pure $ Single BatterySysFs
-        "upower" -> pure $ Single BatteryUPower
+        "acpi" -> pure $ RunAppSingle BatteryAppAcpi
+        "sysfs" -> pure $ RunAppSingle BatteryAppSysFs
+        "upower" -> pure $ RunAppSingle BatteryAppUPower
         _ -> OApp.readerAbort $ ErrorMsg $ "Unrecognized battery app: " <> T.unpack a
 
 parseBatteryField :: Parser BatteryField
@@ -285,7 +285,7 @@ parseMemoryAppOption :: Parser (RunApp MemoryApp)
 parseMemoryAppOption =
   OApp.option
     readApp
-    ( OApp.value Many
+    ( OApp.value RunAppMany
         <> OApp.long "app"
         <> OApp.short 'a'
         <> OApp.metavar "APP"
@@ -297,7 +297,7 @@ parseMemoryAppOption =
     readApp = do
       a <- OApp.str
       case a of
-        "free" -> pure $ Single MemoryFree
+        "free" -> pure $ RunAppSingle MemoryAppFree
         _ -> OApp.readerAbort $ ErrorMsg $ "Unrecognized memory app: " <> T.unpack a
 
 parseMemoryFormat :: Parser MemoryFormat
@@ -345,7 +345,7 @@ netInterfaceAppOption :: Parser (RunApp NetInterfaceApp)
 netInterfaceAppOption =
   OApp.option
     readApp
-    ( OApp.value Many
+    ( OApp.value RunAppMany
         <> OApp.long "app"
         <> OApp.short 'a'
         <> OApp.metavar "APP"
@@ -357,8 +357,8 @@ netInterfaceAppOption =
     readApp = do
       a <- OApp.str
       case a of
-        "nmcli" -> pure $ Single NetInterfaceNmCli
-        "ip" -> pure $ Single NetInterfaceIp
+        "nmcli" -> pure $ RunAppSingle NetInterfaceAppNmCli
+        "ip" -> pure $ RunAppSingle NetInterfaceAppIp
         _ -> OApp.readerAbort $ ErrorMsg $ "Unrecognized network interface app: " <> T.unpack a
 
 netInterfaceDeviceOption :: Parser (Maybe Device)
@@ -424,7 +424,7 @@ ipAppOption :: Parser (RunApp GlobalIpApp)
 ipAppOption =
   OApp.option
     readApp
-    ( OApp.value Many
+    ( OApp.value RunAppMany
         <> OApp.long "app"
         <> OApp.short 'a'
         <> OApp.metavar "APP"
@@ -436,8 +436,8 @@ ipAppOption =
     readApp = do
       a <- OApp.str
       case a of
-        "dig" -> pure $ Single GlobalIpDig
-        "curl" -> pure $ Single GlobalIpCurl
+        "dig" -> pure $ RunAppSingle GlobalIpAppDig
+        "curl" -> pure $ RunAppSingle GlobalIpAppCurl
         _ ->
           OApp.readerAbort $
             ErrorMsg $
@@ -465,7 +465,7 @@ ipTypeOption =
         "both" -> pure GlobalIpFieldBoth
         _ -> OApp.readerAbort $ ErrorMsg $ "Unrecognized ip type: " <> T.unpack a
 
-ipv4SrcOption :: Parser [UrlSource 'Ipv4]
+ipv4SrcOption :: Parser [UrlSource 'IpTypeIpv4]
 ipv4SrcOption =
   A.many $
     OApp.option
@@ -481,7 +481,7 @@ ipv4SrcOption =
         <> " and overrides the defaults. These sources are only used if we"
         <> " query for IPv4 per --ip-type."
 
-ipv6SrcOption :: Parser [UrlSource 'Ipv6]
+ipv6SrcOption :: Parser [UrlSource 'IpTypeIpv6]
 ipv6SrcOption =
   A.many $
     OApp.option

@@ -16,9 +16,12 @@ module Pythia.Services.Battery
     RunApp (..),
 
     -- ** Errors
-    AcpiException (..),
-    UPowerException (..),
-    SysFsException (..),
+    AcpiParseError (..),
+    SysFsDirNotFound (..),
+    SysFsBatteryDirNotFound (..),
+    SysFsFileNotFound (..),
+    SysFsBatteryParseError (..),
+    UPowerParseError (..),
   )
 where
 
@@ -27,9 +30,14 @@ import Pythia.Data.RunApp (RunApp (..))
 import Pythia.Internal.ShellApp (AppAction (..))
 import Pythia.Internal.ShellApp qualified as ShellApp
 import Pythia.Prelude
-import Pythia.Services.Battery.Acpi (AcpiException (..))
+import Pythia.Services.Battery.Acpi (AcpiParseError (..))
 import Pythia.Services.Battery.Acpi qualified as Acpi
-import Pythia.Services.Battery.SysFs (SysFsException (..))
+import Pythia.Services.Battery.SysFs
+  ( SysFsBatteryDirNotFound (..),
+    SysFsBatteryParseError (..),
+    SysFsDirNotFound (..),
+    SysFsFileNotFound (..),
+  )
 import Pythia.Services.Battery.SysFs qualified as SysFs
 import Pythia.Services.Battery.Types
   ( Battery (..),
@@ -37,37 +45,42 @@ import Pythia.Services.Battery.Types
     BatteryConfig (..),
     BatteryStatus (..),
   )
-import Pythia.Services.Battery.UPower (UPowerException (..))
+import Pythia.Services.Battery.UPower (UPowerParseError (..))
 import Pythia.Services.Battery.UPower qualified as UPower
 
 -- | Queries the battery based on the configuration. If 'app' is
--- 'Many' then we try supported apps in the following order:
+-- 'RunAppMany' then we try supported apps in the following order:
 --
 -- @
--- ['BatterySysFs', 'BatteryAcpi', 'BatteryUPower']
+-- ['BatteryAppSysFs', 'BatteryAppAcpi', 'BatteryAppUPower']
 -- @
 --
 -- __Throws:__
 --
--- * 'Pythia.Control.Exception.PythiaException': if an error is
--- encountered (e.g. running a command or parse error).
+-- * 'AcpiParseError'
+-- * 'SysFsDirNotFound'
+-- * 'SysFsBatteryDirNotFound'
+-- * 'SysFsFileNotFound'
+-- * 'SysFsBatteryParseError'
+-- * 'UPowerParseError'
+-- * 'Pythia.Control.Exception.CommandException'
 --
 -- @since 0.1
 queryBattery :: BatteryConfig -> IO Battery
 queryBattery config =
   case config ^. #app of
-    Many -> ShellApp.tryAppActions allApps
-    Single app -> toShellApp app
+    RunAppMany -> ShellApp.tryAppActions allApps
+    RunAppSingle app -> toShellApp app
   where
     allApps =
-      [ MkAppAction (toShellApp BatterySysFs) SysFs.supported (showt BatterySysFs),
-        MkAppAction (toShellApp BatteryAcpi) Acpi.supported (showt BatteryAcpi),
-        MkAppAction (toShellApp BatteryUPower) UPower.supported (showt BatteryUPower)
+      [ MkAppAction (toShellApp BatteryAppSysFs) SysFs.supported "sysfs",
+        MkAppAction (toShellApp BatteryAppAcpi) Acpi.supported "acpi",
+        MkAppAction (toShellApp BatteryAppUPower) UPower.supported "upower"
       ]
 {-# INLINEABLE queryBattery #-}
 
 toShellApp :: BatteryApp -> IO Battery
-toShellApp BatteryAcpi = Acpi.batteryShellApp
-toShellApp BatterySysFs = SysFs.batteryQuery
-toShellApp BatteryUPower = UPower.batteryShellApp
+toShellApp BatteryAppAcpi = Acpi.batteryShellApp
+toShellApp BatteryAppSysFs = SysFs.batteryQuery
+toShellApp BatteryAppUPower = UPower.batteryShellApp
 {-# INLINEABLE toShellApp #-}
