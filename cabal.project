@@ -16,19 +16,19 @@ package refined
 source-repository-package
     type: git
     location: https://github.com/tbidne/algebra-simple.git
-    tag: 12bf44cb4815cf6ee040636f86e10d04386a6e4c
+    tag: 078953fdac6bb9738aa6adae12bd893cf4debc01
 
 source-repository-package
     type: git
     location: https://github.com/tbidne/byte-types.git
-    tag: 56e8d7bc81546a518475dcc460e91ff9d5d8f0cb
+    tag: d081ebf918b1e1430b1399bf2bd27fdf11b695dc
 
 source-repository-package
     type: git
     location: https://github.com/tbidne/smart-math.git
-    tag: cb659fdbb635e8dbfdf48ee18befb3186af29fc2
+    tag: f1f42d96ef11259f0d5a078f7d3cb6f5d8bb044b
 
 source-repository-package
     type: git
     location: https://github.com/tbidne/time-conv.git
-    tag: 3c46e02d1e5d40ea3b5a53bee56f70cb52df87d4
+    tag: 7bcf5964949563c00f7ab378503d3aa08a42a62d

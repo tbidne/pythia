@@ -42,46 +42,46 @@ packages:
 - completed:
     name: algebra-simple
     pantry-tree:
-      sha256: 89428919fcac72e858065d24f38033929a99f4812dedb907749a89b1ca0911c7
+      sha256: 88e752bf0ad77dd36cb6961d2106351d489628efb18baede62b8a4951084dbb6
       size: 4921
-    commit: 12bf44cb4815cf6ee040636f86e10d04386a6e4c
+    commit: 078953fdac6bb9738aa6adae12bd893cf4debc01
     git: https://github.com/tbidne/algebra-simple.git
     version: '0.1'
   original:
-    commit: 12bf44cb4815cf6ee040636f86e10d04386a6e4c
+    commit: 078953fdac6bb9738aa6adae12bd893cf4debc01
     git: https://github.com/tbidne/algebra-simple.git
 - completed:
     name: byte-types
     pantry-tree:
-      sha256: fcf2200c5ef3bcfba4affb5fe6939920b5d4696d42242f1620f0dd835f02f184
+      sha256: 9a746677159a34f4b120c89d9c513dc735beec82cf64a086775742de12944e94
       size: 4089
-    commit: 56e8d7bc81546a518475dcc460e91ff9d5d8f0cb
+    commit: d081ebf918b1e1430b1399bf2bd27fdf11b695dc
     git: https://github.com/tbidne/byte-types.git
     version: '0.1'
   original:
-    commit: 56e8d7bc81546a518475dcc460e91ff9d5d8f0cb
+    commit: d081ebf918b1e1430b1399bf2bd27fdf11b695dc
     git: https://github.com/tbidne/byte-types.git
 - completed:
     name: smart-math
     pantry-tree:
-      sha256: 78d153855323e3a1698746ce82c63ab8cd2d67ae0a3272fac2a1aee863174f78
-      size: 4065
-    commit: cb659fdbb635e8dbfdf48ee18befb3186af29fc2
+      sha256: a807a2ae8e2feb9bef39c34b24cd6380a91169ee0d9a66665733747380751257
+      size: 3998
+    commit: f1f42d96ef11259f0d5a078f7d3cb6f5d8bb044b
     git: https://github.com/tbidne/smart-math.git
     version: '0.1'
   original:
-    commit: cb659fdbb635e8dbfdf48ee18befb3186af29fc2
+    commit: f1f42d96ef11259f0d5a078f7d3cb6f5d8bb044b
     git: https://github.com/tbidne/smart-math.git
 - completed:
     name: time-conv
     pantry-tree:
-      sha256: e10939e7e7c9abe9458c03ae77e550709c844fd10de0d1e82405b3faf72d7d02
-      size: 2437
-    commit: 3c46e02d1e5d40ea3b5a53bee56f70cb52df87d4
+      sha256: 767ee2b3dc4464857bc0d07f40d927de4cb95be966ec302f4987061bebe50492
+      size: 2438
+    commit: 7bcf5964949563c00f7ab378503d3aa08a42a62d
     git: https://github.com/tbidne/time-conv.git
     version: '0.1'
   original:
-    commit: 3c46e02d1e5d40ea3b5a53bee56f70cb52df87d4
+    commit: 7bcf5964949563c00f7ab378503d3aa08a42a62d
     git: https://github.com/tbidne/time-conv.git
 snapshots:
 - completed:
