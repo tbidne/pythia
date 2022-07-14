@@ -14,6 +14,20 @@ module Pythia.Services.NetInterface.Types
     NetInterfaceState (..),
     NetInterface (..),
     NetInterfaces (..),
+
+    -- * Optics
+    _NetInterfaceAppNmCli,
+    _NetInterfaceAppIp,
+    _MkNetInterfaceConfig,
+    _NetInterfaceTypeEthernet,
+    _NetInterfaceTypeWifi,
+    _NetInterfaceTypeWifi_P2P,
+    _NetInterfaceTypeLoopback,
+    _NetInterfaceTypeTun,
+    _NetInterfaceStateUp,
+    _NetInterfaceStateDown,
+    _NetInterfaceStateUnknown,
+    _MkNetInterfaces,
   )
 where
 
@@ -68,7 +82,7 @@ data NetInterfaceApp
     )
 
 -- | @since 0.1
-makePrismLabels ''NetInterfaceApp
+makePrisms ''NetInterfaceApp
 
 -- | Complete configuration for querying network interfaces.
 --
@@ -95,7 +109,7 @@ newtype NetInterfaceConfig = MkNetInterfaceConfig
     )
 
 -- | @since 0.1
-makePrismLabels ''NetInterfaceConfig
+makePrisms ''NetInterfaceConfig
 
 -- | @since 0.1
 instance Semigroup NetInterfaceConfig where
@@ -139,7 +153,7 @@ data NetInterfaceType
     )
 
 -- | @since 0.1
-makePrismLabels ''NetInterfaceType
+makePrisms ''NetInterfaceType
 
 instance Pretty NetInterfaceType where
   pretty = pretty . show
@@ -172,7 +186,7 @@ data NetInterfaceState
     )
 
 -- | @since 0.1
-makePrismLabels ''NetInterfaceState
+makePrisms ''NetInterfaceState
 
 instance Pretty NetInterfaceState where
   pretty = pretty . show
@@ -258,7 +272,7 @@ newtype NetInterfaces = MkNetInterfaces
     )
 
 -- | @since 0.1
-makePrismLabels ''NetInterfaces
+makePrisms ''NetInterfaces
 
 -- | @since 0.1
 instance Pretty NetInterfaces where

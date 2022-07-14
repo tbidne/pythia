@@ -12,6 +12,16 @@ module Pythia.Services.Battery.Types
     -- * Battery Fields
     BatteryStatus (..),
     Battery (..),
+
+    -- * Optics
+    _MkBatteryConfig,
+    _BatteryAppAcpi,
+    _BatteryAppSysFs,
+    _BatteryAppUPower,
+    _BatteryStatusCharging,
+    _BatteryStatusDischarging,
+    _BatteryStatusFull,
+    _BatteryStatusPending,
   )
 where
 
@@ -65,7 +75,7 @@ data BatteryApp
     )
 
 -- | @since 0.1
-makePrismLabels ''BatteryApp
+makePrisms ''BatteryApp
 
 -- | Battery configuration.
 --
@@ -92,7 +102,7 @@ newtype BatteryConfig = MkBatteryConfig
     )
 
 -- | @since 0.1
-makePrismLabels ''BatteryConfig
+makePrisms ''BatteryConfig
 
 -- | @since 0.1
 instance Semigroup BatteryConfig where
@@ -131,7 +141,7 @@ data BatteryStatus
     )
 
 -- | @since 0.1
-makePrismLabels ''BatteryStatus
+makePrisms ''BatteryStatus
 
 -- | @since 0.1
 instance Pretty BatteryStatus where

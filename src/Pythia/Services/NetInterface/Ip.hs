@@ -1,5 +1,4 @@
 {-# LANGUAGE TemplateHaskell #-}
-{-# LANGUAGE UndecidableInstances #-}
 
 -- | This module provides functionality for retrieving network connection
 -- information using ip utility.
@@ -12,6 +11,7 @@ module Pythia.Services.NetInterface.Ip
 
     -- * Misc
     IpParseError (..),
+    _MkIpParseError,
     parseInterfaces,
   )
 where
@@ -69,7 +69,7 @@ newtype IpParseError = MkIpParseError
     )
 
 -- | @since 0.1
-makePrismLabels ''IpParseError
+makePrisms ''IpParseError
 
 -- | @since 0.1
 instance Pretty IpParseError where

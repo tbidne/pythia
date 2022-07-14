@@ -1,11 +1,11 @@
 {-# LANGUAGE TemplateHaskell #-}
-{-# LANGUAGE UndecidableInstances #-}
 
 -- | Provides the 'Percentage' type.
 --
 -- @since 0.1
 module Pythia.Data.Percentage
   ( Percentage (..),
+    _MkPercentage,
     rawPercentage,
   )
 where
@@ -38,7 +38,7 @@ newtype Percentage = MkPercentage
     )
 
 -- | @since 0.1
-makePrismLabels ''Percentage
+makePrisms ''Percentage
 
 -- | @since 0.1
 instance Pretty Percentage where

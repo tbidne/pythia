@@ -1,5 +1,4 @@
 {-# LANGUAGE TemplateHaskell #-}
-{-# LANGUAGE UndecidableInstances #-}
 
 -- | This module exports interface related services.
 --
@@ -30,6 +29,33 @@ module Pythia.Services.NetInterface
     DeviceNotFound (..),
     IpParseError (..),
     NmCliParseError (..),
+
+    -- * Optics
+
+    -- ** Types
+    _MkNetInterfaces,
+    _NetInterfaceStateUp,
+    _NetInterfaceStateDown,
+    _NetInterfaceStateUnknown,
+    _NetInterfaceTypeEthernet,
+    _NetInterfaceTypeWifi,
+    _NetInterfaceTypeWifi_P2P,
+    _NetInterfaceTypeLoopback,
+    _NetInterfaceTypeTun,
+    _MkDevice,
+    _IpTypeIpv4,
+    _IpTypeIpv6,
+    _MkIpAddress,
+
+    -- ** Configuration
+    _MkNetInterfaceConfig,
+    _NetInterfaceAppNmCli,
+    _NetInterfaceAppIp,
+
+    -- ** Errors
+    _MkDeviceNotFound,
+    _MkIpParseError,
+    _MkNmCliParseError,
   )
 where
 
@@ -40,23 +66,12 @@ import Pythia.Data.RunApp (RunApp (..))
 import Pythia.Internal.ShellApp (AppAction (..))
 import Pythia.Internal.ShellApp qualified as ShellApp
 import Pythia.Prelude
-import Pythia.Services.NetInterface.Ip (IpParseError (..))
+import Pythia.Services.NetInterface.Ip
 import Pythia.Services.NetInterface.Ip qualified as Ip
-import Pythia.Services.NetInterface.NmCli (NmCliParseError (..))
+import Pythia.Services.NetInterface.NmCli
 import Pythia.Services.NetInterface.NmCli qualified as NmCli
 import Pythia.Services.NetInterface.Types
-  ( NetInterface (..),
-    NetInterfaceApp (..),
-    NetInterfaceConfig (..),
-    NetInterfaceState (..),
-    NetInterfaceType (..),
-    NetInterfaces (..),
-  )
 import Pythia.Services.Types.Network
-  ( Device (..),
-    IpAddress (..),
-    IpType (..),
-  )
 import Pythia.Utils (Pretty (..))
 import Pythia.Utils qualified as U
 
@@ -86,7 +101,8 @@ newtype DeviceNotFound = MkDeviceNotFound
       NFData
     )
 
-makePrismLabels ''DeviceNotFound
+-- | @since 0.1
+makePrisms ''DeviceNotFound
 
 -- | @since 0.1
 instance Pretty DeviceNotFound where

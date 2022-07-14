@@ -22,6 +22,27 @@ module Pythia.Services.Battery
     SysFsFileNotFound (..),
     SysFsBatteryParseError (..),
     UPowerParseError (..),
+
+    -- * Optics
+
+    -- ** Types
+    _BatteryStatusCharging,
+    _BatteryStatusDischarging,
+    _BatteryStatusFull,
+    _BatteryStatusPending,
+
+    -- ** Configuration
+    _MkBatteryConfig,
+    _BatteryAppAcpi,
+    _BatteryAppSysFs,
+    _BatteryAppUPower,
+
+    -- ** Errors
+    _MkAcpiParseError,
+    _MkSysFsFileNotFound,
+    _MkSysFsBatteryParseError,
+    _UPowerParseErrorPercentage,
+    _UPowerParseErrorStatus,
   )
 where
 
@@ -30,13 +51,15 @@ import Pythia.Data.RunApp (RunApp (..))
 import Pythia.Internal.ShellApp (AppAction (..))
 import Pythia.Internal.ShellApp qualified as ShellApp
 import Pythia.Prelude
-import Pythia.Services.Battery.Acpi (AcpiParseError (..))
+import Pythia.Services.Battery.Acpi (AcpiParseError (..), _MkAcpiParseError)
 import Pythia.Services.Battery.Acpi qualified as Acpi
 import Pythia.Services.Battery.SysFs
   ( SysFsBatteryDirNotFound (..),
     SysFsBatteryParseError (..),
     SysFsDirNotFound (..),
     SysFsFileNotFound (..),
+    _MkSysFsBatteryParseError,
+    _MkSysFsFileNotFound,
   )
 import Pythia.Services.Battery.SysFs qualified as SysFs
 import Pythia.Services.Battery.Types
@@ -44,8 +67,20 @@ import Pythia.Services.Battery.Types
     BatteryApp (..),
     BatteryConfig (..),
     BatteryStatus (..),
+    _BatteryAppAcpi,
+    _BatteryAppSysFs,
+    _BatteryAppUPower,
+    _BatteryStatusCharging,
+    _BatteryStatusDischarging,
+    _BatteryStatusFull,
+    _BatteryStatusPending,
+    _MkBatteryConfig,
   )
-import Pythia.Services.Battery.UPower (UPowerParseError (..))
+import Pythia.Services.Battery.UPower
+  ( UPowerParseError (..),
+    _UPowerParseErrorPercentage,
+    _UPowerParseErrorStatus,
+  )
 import Pythia.Services.Battery.UPower qualified as UPower
 
 -- | Queries the battery based on the configuration. If 'app' is

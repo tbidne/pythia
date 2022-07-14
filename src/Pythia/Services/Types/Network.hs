@@ -1,5 +1,4 @@
 {-# LANGUAGE TemplateHaskell #-}
-{-# LANGUAGE UndecidableInstances #-}
 
 -- | Provides common network types.
 --
@@ -17,6 +16,13 @@ module Pythia.Services.Types.Network
 
     -- * Network Device
     Device (..),
+
+    -- * Optics
+    _MkDevice,
+    _IpTypeIpv4,
+    _IpTypeIpv6,
+    _MkIpAddress,
+    _MkIpAddresses,
   )
 where
 
@@ -67,7 +73,8 @@ newtype Device = MkDevice
       NFData
     )
 
-makePrismLabels ''Device
+-- | @since 0.1
+makePrisms ''Device
 
 -- | IP types.
 --
@@ -92,7 +99,7 @@ data IpType
     )
 
 -- | @since 0.1
-makePrismLabels ''IpType
+makePrisms ''IpType
 
 -- | Maps 'IpType' to its 'Text' refinement.
 --
@@ -223,21 +230,8 @@ newtype IpAddress a = MkIpAddress
       NFData
     )
 
--- Generating with makePrismLabels ''IpAddress fails to typecheck.
--- In particular, it appears like it's trying to generate an instance for
--- different types (IpAddress i) (IpAddress j), which causes an error
--- "liberal coverage condition fails". Thus manually writing it instead.
-
 -- | @since 0.1
-instance
-  ( k ~ An_Iso,
-    a ~ Refined (IpRefinement i) Text,
-    b ~ Refined (IpRefinement i) Text
-  ) =>
-  LabelOptic "_MkIpAddress" k (IpAddress i) (IpAddress i) a b
-  where
-  labelOptic = iso unIpAddress MkIpAddress
-  {-# INLINEABLE labelOptic #-}
+makePrisms ''IpAddress
 
 -- | @since 0.1
 instance Pretty (IpAddress a) where
@@ -266,7 +260,7 @@ newtype IpAddresses a = MkIpAddresses
     )
 
 -- | @since 0.1
-makePrismLabels ''IpAddresses
+makePrisms ''IpAddresses
 
 -- | @since 0.1
 instance Semigroup (IpAddresses a) where

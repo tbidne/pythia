@@ -25,12 +25,15 @@ import Pythia.Services.NetInterface
 import Pythia.Services.Time
 
 -- $services
--- Each service is self-contained in that it should have everything you need
--- to use it.
+-- Each service is self-contained in that it should have everything needed
+-- for typical usage. Generally, @Pythia.Services.X@ exports everything of
+-- interest in @Pythia.Services.X.*@. That said, there is some additional
+-- functionality in @Pythia.Data.*@ and @Pythia.Control.Exception@
+-- that may occasionally be of interest (e.g. optics).
 
 -- $exceptions
 -- Pythia's error handling is defined in terms of @safe-exceptions@.
 -- "Pythia.Control.Exception" defines general exceptions that can be thrown
 -- from 'GHC.IO.IO'; Additionally, services can also throw specific exceptions (e.g.
 -- 'AcpiException' from "Pythia.Services.Battery.Acpi"). All exceptions are
--- unifed under the supertype 'PythiaException'.
+-- unified under the supertype 'PythiaException'.

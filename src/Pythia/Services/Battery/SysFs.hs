@@ -1,5 +1,4 @@
 {-# LANGUAGE TemplateHaskell #-}
-{-# LANGUAGE UndecidableInstances #-}
 
 -- | This module provides functionality for retrieving battery information
 -- using SysFS.
@@ -14,7 +13,9 @@ module Pythia.Services.Battery.SysFs
     SysFsDirNotFound (..),
     SysFsBatteryDirNotFound (..),
     SysFsFileNotFound (..),
+    _MkSysFsFileNotFound,
     SysFsBatteryParseError (..),
+    _MkSysFsBatteryParseError,
   )
 where
 
@@ -62,9 +63,6 @@ data SysFsDirNotFound = MkSysFsDirNotFound
     )
 
 -- | @since 0.1
-makePrismLabels ''SysFsDirNotFound
-
--- | @since 0.1
 instance Pretty SysFsDirNotFound where
   pretty MkSysFsDirNotFound =
     pretty @Text "Could not find either sysfs dirs: "
@@ -104,9 +102,6 @@ data SysFsBatteryDirNotFound = MkSysFsBatteryDirNotFound
     ( -- | @since 0.1
       NFData
     )
-
--- | @since 0.1
-makePrismLabels ''SysFsBatteryDirNotFound
 
 -- | @since 0.1
 instance Pretty SysFsBatteryDirNotFound where
@@ -152,7 +147,7 @@ newtype SysFsFileNotFound = MkSysFsFileNotFound
     )
 
 -- | @since 0.1
-makePrismLabels ''SysFsFileNotFound
+makePrisms ''SysFsFileNotFound
 
 -- | @since 0.1
 instance Pretty SysFsFileNotFound where
@@ -196,7 +191,7 @@ newtype SysFsBatteryParseError = MkSysFsBatteryParseError
     )
 
 -- | @since 0.1
-makePrismLabels ''SysFsBatteryParseError
+makePrisms ''SysFsBatteryParseError
 
 -- | @since 0.1
 instance Pretty SysFsBatteryParseError where

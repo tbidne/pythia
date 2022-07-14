@@ -1,5 +1,4 @@
 {-# LANGUAGE TemplateHaskell #-}
-{-# LANGUAGE UndecidableInstances #-}
 
 -- | This module provides functionality for retrieving memory usage using Free.
 --
@@ -11,6 +10,7 @@ module Pythia.Services.Memory.Free
 
     -- * Misc
     FreeParseError (..),
+    _MkFreeParseError,
     parseMemory,
   )
 where
@@ -60,7 +60,7 @@ newtype FreeParseError = MkFreeParseError
     )
 
 -- | @since 0.1
-makePrismLabels ''FreeParseError
+makePrisms ''FreeParseError
 
 -- | @since 0.1
 instance Pretty FreeParseError where

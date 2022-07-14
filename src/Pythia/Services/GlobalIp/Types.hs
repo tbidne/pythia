@@ -14,6 +14,11 @@ module Pythia.Services.GlobalIp.Types
 
     -- ** Extra URL sources
     UrlSource (..),
+
+    -- * Optics
+    _GlobalIpAppDig,
+    _GlobalIpAppCurl,
+    _MkUrlSource,
   )
 where
 
@@ -63,7 +68,7 @@ data GlobalIpApp
     )
 
 -- | @since 0.1
-makePrismLabels ''GlobalIpApp
+makePrisms ''GlobalIpApp
 
 -- | Additional URL source for retrieving IP information. The intended app
 -- should not be included (i.e. curl or dig), but any desired flags should
@@ -104,7 +109,7 @@ newtype UrlSource a = MkUrlSource
     )
 
 -- | @since 0.1
-makePrismLabels ''UrlSource
+makePrisms ''UrlSource
 
 -- | Complete configuration for querying global IP addresses. The 'Monoid'
 -- instance will construct a config that tries all apps and has no extra

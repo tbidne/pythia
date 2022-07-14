@@ -25,7 +25,7 @@ where
 
 import Data.Char qualified as Char
 import Data.Text qualified as T
-import Pythia.Data.Command (Command)
+import Pythia.Data.Command (Command, _MkCommand)
 import Pythia.Data.RunApp (RunApp (..))
 import Pythia.Internal.ShellApp (AppAction (..))
 import Pythia.Internal.ShellApp qualified as ShellApp
@@ -37,6 +37,7 @@ import Pythia.Services.GlobalIp.Types
     GlobalIpv4Config,
     GlobalIpv6Config,
     UrlSource (..),
+    _MkUrlSource,
   )
 import Pythia.Services.Types.Network
   ( IpAddress (..),
@@ -147,8 +148,8 @@ getIpv6s app extraSrcs = do
 {-# INLINEABLE getIpv6s #-}
 
 prependApp :: GlobalIpApp -> [UrlSource a] -> [UrlSource a]
-prependApp GlobalIpAppCurl srcs = fmap (#unUrlSource %~ ("curl " <>)) srcs
-prependApp GlobalIpAppDig srcs = fmap (#unUrlSource %~ (\s -> "dig " <> s <> " +short")) srcs
+prependApp GlobalIpAppCurl srcs = fmap (_MkUrlSource %~ ("curl " <>)) srcs
+prependApp GlobalIpAppDig srcs = fmap (_MkUrlSource %~ (\s -> "dig " <> s <> " +short")) srcs
 {-# INLINEABLE prependApp #-}
 
 ipv4Defaults :: GlobalIpApp -> [UrlSource 'IpTypeIpv4]
@@ -188,7 +189,7 @@ digDefaults = (ipv4s, ipv6s)
 {-# INLINEABLE digDefaults #-}
 
 getIpFromSources :: Predicate (IpRefinement a) Text => [UrlSource a] -> IO (IpAddress a)
-getIpFromSources = fmap MkIpAddress . getIp (#_MkUrlSource % re #_MkCommand)
+getIpFromSources = fmap MkIpAddress . getIp (_MkUrlSource % re _MkCommand)
 {-# INLINEABLE getIpFromSources #-}
 
 getIp ::

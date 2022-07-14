@@ -1,11 +1,11 @@
 {-# LANGUAGE TemplateHaskell #-}
-{-# LANGUAGE UndecidableInstances #-}
 
 -- | This module provides the 'Command' type.
 --
 -- @since 0.1
 module Pythia.Data.Command
   ( Command (..),
+    _MkCommand,
   )
 where
 
@@ -40,4 +40,4 @@ newtype Command = MkCommand
     )
 
 -- | @since 0.1
-makePrismLabels ''Command
+makePrisms ''Command

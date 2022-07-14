@@ -15,6 +15,12 @@ module Pythia.Control.Exception
     SomeExceptions (..),
     NotSupportedException (..),
     NoActionsRunException (..),
+
+    -- * Optics
+    _MkPythiaException,
+    _MkSomeExceptions,
+    _MkNotSupportedException,
+    _MkNoActionsRunException,
   )
 where
 
@@ -35,7 +41,7 @@ type PythiaException :: Type
 data PythiaException = forall e. Exception e => MkPythiaException e
 
 -- | @since 0.1
-makePrismLabels ''PythiaException
+makePrisms ''PythiaException
 
 -- | @since 0.1
 deriving stock instance Show PythiaException
@@ -144,7 +150,8 @@ newtype SomeExceptions = MkSomeExceptions
       Show
     )
 
-makePrismLabels ''SomeExceptions
+-- | @since 0.1
+makePrisms ''SomeExceptions
 
 -- | @since 0.1
 instance Exception SomeExceptions where
@@ -194,7 +201,7 @@ newtype NotSupportedException = MkNotSupportedException
     )
 
 -- | @since 0.1
-makePrismLabels ''NotSupportedException
+makePrisms ''NotSupportedException
 
 -- | @since 0.1
 instance Exception NotSupportedException where
@@ -236,7 +243,7 @@ data NoActionsRunException = MkNoActionsRunException
     )
 
 -- | @since 0.1
-makePrismLabels ''NoActionsRunException
+makePrisms ''NoActionsRunException
 
 -- | @since 0.1
 instance Pretty NoActionsRunException where

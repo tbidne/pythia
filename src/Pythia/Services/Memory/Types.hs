@@ -7,7 +7,9 @@
 module Pythia.Services.Memory.Types
   ( MemoryApp (..),
     MemoryConfig (..),
+    _MkMemoryConfig,
     Memory (..),
+    _MkMemory,
     SystemMemory (..),
   )
 where
@@ -59,9 +61,6 @@ data MemoryApp
       NFData
     )
 
--- | @since 0.1
-makePrismLabels ''MemoryApp
-
 -- | Memory configuration.
 --
 -- >>> mempty @MemoryConfig
@@ -87,7 +86,7 @@ newtype MemoryConfig = MkMemoryConfig
     )
 
 -- | @since 0.1
-makePrismLabels ''MemoryConfig
+makePrisms ''MemoryConfig
 
 -- | @since 0.1
 instance Semigroup MemoryConfig where
@@ -114,7 +113,7 @@ newtype Memory (f :: Type -> Type) = MkMemory
     )
 
 -- | @since 0.1
-makePrismLabels ''Memory
+makePrisms ''Memory
 
 -- | @since 0.1
 deriving stock instance Eq (f Double) => Eq (Memory f)

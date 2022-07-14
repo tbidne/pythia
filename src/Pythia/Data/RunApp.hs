@@ -1,11 +1,12 @@
 {-# LANGUAGE TemplateHaskell #-}
-{-# LANGUAGE UndecidableInstances #-}
 
 -- | This module provides the 'RunApp' type.
 --
 -- @since 0.1
 module Pythia.Data.RunApp
   ( RunApp (..),
+    _RunAppMany,
+    _RunAppSingle,
   )
 where
 
@@ -51,7 +52,7 @@ data RunApp a
     )
 
 -- | @since 0.1
-makePrismLabels ''RunApp
+makePrisms ''RunApp
 
 -- | @since 0.1
 instance Semigroup a => Semigroup (RunApp a) where

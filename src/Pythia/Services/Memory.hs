@@ -21,6 +21,17 @@ module Pythia.Services.Memory
 
     -- ** Errors
     FreeParseError (..),
+
+    -- * Optics
+
+    -- ** Types
+    _MkMemory,
+
+    -- ** Configuration
+    _MkMemoryConfig,
+
+    -- ** Errors
+    _MkFreeParseError,
   )
 where
 
@@ -35,13 +46,15 @@ import Pythia.Data.RunApp (RunApp (..))
 import Pythia.Internal.ShellApp (AppAction (..))
 import Pythia.Internal.ShellApp qualified as ShellApp
 import Pythia.Prelude
-import Pythia.Services.Memory.Free (FreeParseError (..))
+import Pythia.Services.Memory.Free (FreeParseError (..), _MkFreeParseError)
 import Pythia.Services.Memory.Free qualified as Free
 import Pythia.Services.Memory.Types
   ( Memory (..),
     MemoryApp (..),
     MemoryConfig (..),
     SystemMemory (..),
+    _MkMemory,
+    _MkMemoryConfig,
   )
 
 -- | Queries the memory based on the configuration. If 'app' is

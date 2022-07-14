@@ -4,7 +4,8 @@ module Unit.Pythia.Services.Battery.Acpi
 where
 
 import Data.Text qualified as T
-import Numeric.Data.Interval (LRInterval (..))
+import Numeric.Data.Interval (unsafeLRInterval)
+import Pythia.Data.Percentage (_MkPercentage)
 import Pythia.Services.Battery.Acpi qualified as Acpi
 import Pythia.Services.Battery.Types (BatteryStatus (..))
 import Unit.Prelude
@@ -41,7 +42,7 @@ parseX :: Word8 -> (Text, BatteryStatus) -> TestTree
 parseX lvl (csTxt, cs) = testCase desc $ do
   let result = Acpi.parseBattery (battery lvl csTxt)
   Just cs @=? result ^? _Right % #status
-  Just (MkLRInterval lvl) @=? result ^? _Right % #percentage % #_MkPercentage
+  Just (unsafeLRInterval lvl) @=? result ^? _Right % #percentage % _MkPercentage
   where
     desc = "Parses percentage " <> show lvl <> ", state " <> T.unpack csTxt
 
