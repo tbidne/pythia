@@ -19,14 +19,14 @@ module Pythia.Services.NetInterface.Types
     _NetInterfaceAppNmCli,
     _NetInterfaceAppIp,
     _MkNetInterfaceConfig,
-    _NetInterfaceTypeEthernet,
-    _NetInterfaceTypeWifi,
-    _NetInterfaceTypeWifi_P2P,
-    _NetInterfaceTypeLoopback,
-    _NetInterfaceTypeTun,
-    _NetInterfaceStateUp,
-    _NetInterfaceStateDown,
-    _NetInterfaceStateUnknown,
+    _Ethernet,
+    _Wifi,
+    _Wifi_P2P,
+    _Loopback,
+    _Tun,
+    _NetStateUp,
+    _NetStateDown,
+    _NetStateUnknown,
     _MkNetInterfaces,
   )
 where
@@ -87,7 +87,7 @@ makePrisms ''NetInterfaceApp
 -- | Complete configuration for querying network interfaces.
 --
 -- >>> mempty @NetInterfaceConfig
--- MkNetInterfaceConfig {app = RunAppMany}
+-- MkNetInterfaceConfig {app = Many}
 --
 -- @since 0.1
 type NetInterfaceConfig :: Type
@@ -128,15 +128,15 @@ instance Monoid NetInterfaceConfig where
 type NetInterfaceType :: Type
 data NetInterfaceType
   = -- | @since 0.1
-    NetInterfaceTypeEthernet
+    Ethernet
   | -- | @since 0.1
-    NetInterfaceTypeWifi
+    Wifi
   | -- | @since 0.1
-    NetInterfaceTypeWifi_P2P
+    Wifi_P2P
   | -- | @since 0.1
-    NetInterfaceTypeLoopback
+    Loopback
   | -- | @since 0.1
-    NetInterfaceTypeTun
+    Tun
   deriving stock
     ( -- | @since 0.1
       Eq,
@@ -165,11 +165,11 @@ instance Pretty NetInterfaceType where
 type NetInterfaceState :: Type
 data NetInterfaceState
   = -- | @since 0.1
-    NetInterfaceStateUp
+    NetStateUp
   | -- | @since 0.1
-    NetInterfaceStateDown
+    NetStateDown
   | -- | @since 0.1
-    NetInterfaceStateUnknown Text
+    NetStateUnknown Text
   deriving stock
     ( -- | @since 0.1
       Eq,
@@ -192,7 +192,7 @@ instance Pretty NetInterfaceState where
   pretty = pretty . show
   {-# INLINEABLE pretty #-}
 
--- | BatteryStatusFull connection data.
+-- | Full connection data.
 --
 -- @since 0.1
 type NetInterface :: Type
@@ -203,14 +203,14 @@ data NetInterface = MkNetInterface
     ntype :: Maybe NetInterfaceType,
     -- | @since 0.1
     state :: NetInterfaceState,
-    -- | The name of the connection (e.g. NetInterfaceTypeWifi SSID).
+    -- | The name of the connection (e.g. Wifi SSID).
     --
     -- @since 0.1
     name :: Maybe Text,
     -- | @since 0.1
-    ipv4s :: IpAddresses 'IpTypeIpv4,
+    ipv4s :: IpAddresses 'Ipv4,
     -- | @since 0.1
-    ipv6s :: IpAddresses 'IpTypeIpv6
+    ipv6s :: IpAddresses 'Ipv6
   }
   deriving stock
     ( -- | @since 0.1

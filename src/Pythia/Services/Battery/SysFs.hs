@@ -312,10 +312,10 @@ parseStatus fp = do
       <$> readFileUtf8Lenient fp
       `catchAny` \e -> throwIO $ MkPythiaException e
   case statusTxt of
-    "charging" -> pure BatteryStatusCharging
-    "discharging" -> pure BatteryStatusDischarging
-    "not charging" -> pure BatteryStatusPending
-    "full" -> pure BatteryStatusFull
+    "charging" -> pure Charging
+    "discharging" -> pure Discharging
+    "not charging" -> pure Pending
+    "full" -> pure Full
     bad -> throwIO $ MkSysFsBatteryParseError $ "Unknown status: " <> bad
 {-# INLINEABLE parseStatus #-}
 

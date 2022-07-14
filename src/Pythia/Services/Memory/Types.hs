@@ -64,7 +64,7 @@ data MemoryApp
 -- | Memory configuration.
 --
 -- >>> mempty @MemoryConfig
--- MkMemoryConfig {app = RunAppMany}
+-- MkMemoryConfig {app = Many}
 --
 -- @since 0.1
 type MemoryConfig :: Type

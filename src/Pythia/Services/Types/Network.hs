@@ -19,8 +19,8 @@ module Pythia.Services.Types.Network
 
     -- * Optics
     _MkDevice,
-    _IpTypeIpv4,
-    _IpTypeIpv6,
+    _Ipv4,
+    _Ipv6,
     _MkIpAddress,
     _MkIpAddresses,
   )
@@ -82,9 +82,9 @@ makePrisms ''Device
 type IpType :: Type
 data IpType
   = -- | @since 0.1
-    IpTypeIpv4
+    Ipv4
   | -- | @since 0.1
-    IpTypeIpv6
+    Ipv6
   deriving stock
     ( -- | @since 0.1
       Eq,
@@ -106,8 +106,8 @@ makePrisms ''IpType
 -- @since 0.1
 type IpRefinement :: IpType -> Type
 type family IpRefinement a where
-  IpRefinement 'IpTypeIpv4 = Ipv4Refinement
-  IpRefinement 'IpTypeIpv6 = Ipv6Refinement
+  IpRefinement 'Ipv4 = Ipv4Refinement
+  IpRefinement 'Ipv6 = Ipv6Refinement
 
 -- | IPv4 Refinement. We implement a custom type here so we get better error
 -- messages. 'Text' must satisfy:
@@ -204,9 +204,9 @@ instance Predicate Ipv6Refinement Text where
 -- | Type for an IP address. The type family 'IpRefinement' refines the
 -- underlying 'Text' according to the spec.
 --
--- * 'IpTypeIpv4': All characters are digits or dots, and the length is
+-- * 'Ipv4': All characters are digits or dots, and the length is
 --           @0 < l < 16@.
--- * 'IpTypeIpv6': All characters are hex digits or colons, and the length is
+-- * 'Ipv6': All characters are hex digits or colons, and the length is
 --           @0 < l < 40@.
 --
 -- @since 0.1

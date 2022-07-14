@@ -58,7 +58,7 @@ import Pythia.Services.Memory.Types
   )
 
 -- | Queries the memory based on the configuration. If 'app' is
--- 'RunAppMany' then we try supported apps in the following order:
+-- 'Many' then we try supported apps in the following order:
 --
 -- @
 -- ['MemoryFree']
@@ -73,8 +73,8 @@ import Pythia.Services.Memory.Types
 queryMemory :: MemoryConfig -> IO SystemMemory
 queryMemory config =
   case config ^. #app of
-    RunAppMany -> ShellApp.tryAppActions allApps
-    RunAppSingle app -> toShellApp app
+    Many -> ShellApp.tryAppActions allApps
+    Single app -> toShellApp app
   where
     allApps =
       [ MkAppAction (toShellApp MemoryAppFree) Free.supported "free"

@@ -5,26 +5,26 @@
 -- @since 0.1
 module Pythia.Data.RunApp
   ( RunApp (..),
-    _RunAppMany,
-    _RunAppSingle,
+    _Many,
+    _Single,
   )
 where
 
 import Pythia.Prelude
 
 -- | Used in conjunction for our services for indicating how we want to run
--- queries. 'RunAppMany' is the identity for its monoid instance.
+-- queries. 'Many' is the identity for its monoid instance.
 --
 -- ==== __Examples__
 --
--- >>> RunAppMany <> RunAppSingle "r"
--- RunAppSingle "r"
+-- >>> Many <> Single "r"
+-- Single "r"
 --
--- >>> RunAppSingle "l" <> RunAppMany
--- RunAppSingle "l"
+-- >>> Single "l" <> Many
+-- Single "l"
 --
 -- >>> mempty @(RunApp String)
--- RunAppMany
+-- Many
 --
 -- @since 0.1
 type RunApp :: Type -> Type
@@ -33,11 +33,11 @@ data RunApp a
     -- the first success.
     --
     -- @since 0.1
-    RunAppMany
+    Many
   | -- | Runs a single query based on the parameter app.
     --
     -- @since 0.1
-    RunAppSingle a
+    Single a
   deriving stock
     ( -- | @since 0.1
       Eq,
@@ -56,12 +56,12 @@ makePrisms ''RunApp
 
 -- | @since 0.1
 instance Semigroup a => Semigroup (RunApp a) where
-  RunAppMany <> r = r
-  l <> RunAppMany = l
-  RunAppSingle l <> RunAppSingle r = RunAppSingle (l <> r)
+  Many <> r = r
+  l <> Many = l
+  Single l <> Single r = Single (l <> r)
   {-# INLINEABLE (<>) #-}
 
 -- | @since 0.1
 instance Semigroup a => Monoid (RunApp a) where
-  mempty = RunAppMany
+  mempty = Many
   {-# INLINEABLE mempty #-}

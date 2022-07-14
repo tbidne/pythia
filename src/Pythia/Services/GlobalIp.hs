@@ -49,7 +49,7 @@ import Refined (Predicate, Refined)
 import Refined qualified as R
 
 -- | Queries for IPv4 and IPv6 global IP address based on the configuration.
--- If 'app' is 'RunAppMany' then we try supported apps in the following
+-- If 'app' is 'Many' then we try supported apps in the following
 -- order:
 --
 -- @
@@ -61,7 +61,7 @@ import Refined qualified as R
 -- * 'Pythia.Control.Exception.CommandException'
 --
 -- @since 0.1
-queryGlobalIp :: GlobalIpBothConfig -> IO (IpAddress 'IpTypeIpv4, IpAddress 'IpTypeIpv6)
+queryGlobalIp :: GlobalIpBothConfig -> IO (IpAddress 'Ipv4, IpAddress 'Ipv6)
 queryGlobalIp = queryGlobalIp' #app #sources getBothIps
 {-# INLINEABLE queryGlobalIp #-}
 
@@ -73,7 +73,7 @@ queryGlobalIp = queryGlobalIp' #app #sources getBothIps
 -- encountered (e.g. running a command or parse error).
 --
 -- @since 0.1
-queryGlobalIpv4 :: GlobalIpv4Config -> IO (IpAddress 'IpTypeIpv4)
+queryGlobalIpv4 :: GlobalIpv4Config -> IO (IpAddress 'Ipv4)
 queryGlobalIpv4 = queryGlobalIp' #app #sources getIpv4s
 {-# INLINEABLE queryGlobalIpv4 #-}
 
@@ -85,7 +85,7 @@ queryGlobalIpv4 = queryGlobalIp' #app #sources getIpv4s
 -- encountered (e.g. running a command or parse error).
 --
 -- @since 0.1
-queryGlobalIpv6 :: GlobalIpv6Config -> IO (IpAddress 'IpTypeIpv6)
+queryGlobalIpv6 :: GlobalIpv6Config -> IO (IpAddress 'Ipv6)
 queryGlobalIpv6 = queryGlobalIp' #app #sources getIpv6s
 {-# INLINEABLE queryGlobalIpv6 #-}
 
@@ -97,8 +97,8 @@ queryGlobalIp' ::
   IO result
 queryGlobalIp' appLens sourceLens getIpFn config =
   case config ^. appLens of
-    RunAppMany -> ShellApp.tryAppActions allApps
-    RunAppSingle app -> singleRun app
+    Many -> ShellApp.tryAppActions allApps
+    Single app -> singleRun app
   where
     allApps =
       [ MkAppAction (singleRun GlobalIpAppDig) digSupported "dig",
@@ -117,8 +117,8 @@ digSupported = U.exeSupported "dig"
 
 getBothIps ::
   GlobalIpApp ->
-  ([UrlSource 'IpTypeIpv4], [UrlSource 'IpTypeIpv6]) ->
-  IO (IpAddress 'IpTypeIpv4, IpAddress 'IpTypeIpv6)
+  ([UrlSource 'Ipv4], [UrlSource 'Ipv6]) ->
+  IO (IpAddress 'Ipv4, IpAddress 'Ipv6)
 getBothIps app (ipv4Srcs, ipv6Srcs) =
   (,)
     <$> getIpv4s app ipv4Srcs
@@ -127,8 +127,8 @@ getBothIps app (ipv4Srcs, ipv6Srcs) =
 
 getIpv4s ::
   GlobalIpApp ->
-  [UrlSource 'IpTypeIpv4] ->
-  IO (IpAddress 'IpTypeIpv4)
+  [UrlSource 'Ipv4] ->
+  IO (IpAddress 'Ipv4)
 getIpv4s app extraSrcs = do
   let sources = case extraSrcs of
         [] -> ipv4Defaults app
@@ -138,8 +138,8 @@ getIpv4s app extraSrcs = do
 
 getIpv6s ::
   GlobalIpApp ->
-  [UrlSource 'IpTypeIpv6] ->
-  IO (IpAddress 'IpTypeIpv6)
+  [UrlSource 'Ipv6] ->
+  IO (IpAddress 'Ipv6)
 getIpv6s app extraSrcs = do
   let sources = case extraSrcs of
         [] -> ipv6Defaults app
@@ -152,17 +152,17 @@ prependApp GlobalIpAppCurl srcs = fmap (_MkUrlSource %~ ("curl " <>)) srcs
 prependApp GlobalIpAppDig srcs = fmap (_MkUrlSource %~ (\s -> "dig " <> s <> " +short")) srcs
 {-# INLINEABLE prependApp #-}
 
-ipv4Defaults :: GlobalIpApp -> [UrlSource 'IpTypeIpv4]
+ipv4Defaults :: GlobalIpApp -> [UrlSource 'Ipv4]
 ipv4Defaults GlobalIpAppCurl = curlDefaults ^. _1
 ipv4Defaults GlobalIpAppDig = digDefaults ^. _1
 {-# INLINEABLE ipv4Defaults #-}
 
-ipv6Defaults :: GlobalIpApp -> [UrlSource 'IpTypeIpv6]
+ipv6Defaults :: GlobalIpApp -> [UrlSource 'Ipv6]
 ipv6Defaults GlobalIpAppCurl = curlDefaults ^. _2
 ipv6Defaults GlobalIpAppDig = digDefaults ^. _2
 {-# INLINEABLE ipv6Defaults #-}
 
-curlDefaults :: ([UrlSource 'IpTypeIpv4], [UrlSource 'IpTypeIpv6])
+curlDefaults :: ([UrlSource 'Ipv4], [UrlSource 'Ipv6])
 curlDefaults = (ipv4s, ipv6s)
   where
     ipv4s =
@@ -174,7 +174,7 @@ curlDefaults = (ipv4s, ipv6s)
     ipv6s = []
 {-# INLINEABLE curlDefaults #-}
 
-digDefaults :: ([UrlSource 'IpTypeIpv4], [UrlSource 'IpTypeIpv6])
+digDefaults :: ([UrlSource 'Ipv4], [UrlSource 'Ipv6])
 digDefaults = (ipv4s, ipv6s)
   where
     ipv4s =

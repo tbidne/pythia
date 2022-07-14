@@ -26,10 +26,10 @@ module Pythia.Services.Battery
     -- * Optics
 
     -- ** Types
-    _BatteryStatusCharging,
-    _BatteryStatusDischarging,
-    _BatteryStatusFull,
-    _BatteryStatusPending,
+    _Charging,
+    _Discharging,
+    _Full,
+    _Pending,
 
     -- ** Configuration
     _MkBatteryConfig,
@@ -70,11 +70,11 @@ import Pythia.Services.Battery.Types
     _BatteryAppAcpi,
     _BatteryAppSysFs,
     _BatteryAppUPower,
-    _BatteryStatusCharging,
-    _BatteryStatusDischarging,
-    _BatteryStatusFull,
-    _BatteryStatusPending,
+    _Charging,
+    _Discharging,
+    _Full,
     _MkBatteryConfig,
+    _Pending,
   )
 import Pythia.Services.Battery.UPower
   ( UPowerParseError (..),
@@ -84,7 +84,7 @@ import Pythia.Services.Battery.UPower
 import Pythia.Services.Battery.UPower qualified as UPower
 
 -- | Queries the battery based on the configuration. If 'app' is
--- 'RunAppMany' then we try supported apps in the following order:
+-- 'Many' then we try supported apps in the following order:
 --
 -- @
 -- ['BatteryAppSysFs', 'BatteryAppAcpi', 'BatteryAppUPower']
@@ -104,8 +104,8 @@ import Pythia.Services.Battery.UPower qualified as UPower
 queryBattery :: BatteryConfig -> IO Battery
 queryBattery config =
   case config ^. #app of
-    RunAppMany -> ShellApp.tryAppActions allApps
-    RunAppSingle app -> toShellApp app
+    Many -> ShellApp.tryAppActions allApps
+    Single app -> toShellApp app
   where
     allApps =
       [ MkAppAction (toShellApp BatteryAppSysFs) SysFs.supported "sysfs",

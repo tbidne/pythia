@@ -115,8 +115,8 @@ makePrisms ''UrlSource
 -- instance will construct a config that tries all apps and has no extra
 -- sources.
 --
--- >>> mempty @(GlobalIpConfig [UrlSource IpTypeIpv4])
--- MkGlobalIpConfig {app = RunAppMany, sources = []}
+-- >>> mempty @(GlobalIpConfig [UrlSource Ipv4])
+-- MkGlobalIpConfig {app = Many, sources = []}
 --
 -- @since 0.1
 type GlobalIpConfig :: Type -> Type
@@ -126,7 +126,7 @@ data GlobalIpConfig a = MkGlobalIpConfig
     -- @since 0.1
     app :: RunApp GlobalIpApp,
     -- | Extra lookup sources. This will be either a single @['UrlSource' a]@
-    -- or a pair @(['UrlSource' 'IpTypeIpv4'], ['UrlSource' 'IpTypeIpv6'])@, depending on
+    -- or a pair @(['UrlSource' 'Ipv4'], ['UrlSource' 'Ipv6'])@, depending on
     -- which address we want to retrieve.
     --
     -- @since 0.1
@@ -159,20 +159,20 @@ instance Monoid a => Monoid (GlobalIpConfig a) where
   mempty = MkGlobalIpConfig mempty mempty
   {-# INLINEABLE mempty #-}
 
--- | Type alias for 'IpTypeIpv4' 'GlobalIpConfig'.
+-- | Type alias for 'Ipv4' 'GlobalIpConfig'.
 --
 -- @since 0.1.0.0
 type GlobalIpv4Config :: Type
-type GlobalIpv4Config = GlobalIpConfig [UrlSource 'IpTypeIpv4]
+type GlobalIpv4Config = GlobalIpConfig [UrlSource 'Ipv4]
 
--- | Type alias for 'IpTypeIpv6' 'GlobalIpConfig'.
+-- | Type alias for 'Ipv6' 'GlobalIpConfig'.
 --
 -- @since 0.1.0.0
 type GlobalIpv6Config :: Type
-type GlobalIpv6Config = GlobalIpConfig [UrlSource 'IpTypeIpv6]
+type GlobalIpv6Config = GlobalIpConfig [UrlSource 'Ipv6]
 
--- | Type alias for 'IpTypeIpv4' and 'IpTypeIpv6' 'GlobalIpConfig'.
+-- | Type alias for 'Ipv4' and 'Ipv6' 'GlobalIpConfig'.
 --
 -- @since 0.1.0.0
 type GlobalIpBothConfig :: Type
-type GlobalIpBothConfig = GlobalIpConfig ([UrlSource 'IpTypeIpv4], [UrlSource 'IpTypeIpv6])
+type GlobalIpBothConfig = GlobalIpConfig ([UrlSource 'Ipv4], [UrlSource 'Ipv6])

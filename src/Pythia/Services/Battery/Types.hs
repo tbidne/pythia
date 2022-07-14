@@ -18,10 +18,10 @@ module Pythia.Services.Battery.Types
     _BatteryAppAcpi,
     _BatteryAppSysFs,
     _BatteryAppUPower,
-    _BatteryStatusCharging,
-    _BatteryStatusDischarging,
-    _BatteryStatusFull,
-    _BatteryStatusPending,
+    _Charging,
+    _Discharging,
+    _Full,
+    _Pending,
   )
 where
 
@@ -80,7 +80,7 @@ makePrisms ''BatteryApp
 -- | Battery configuration.
 --
 -- >>> mempty @BatteryConfig
--- MkBatteryConfig {app = RunAppMany}
+-- MkBatteryConfig {app = Many}
 --
 -- @since 0.1
 type BatteryConfig :: Type
@@ -120,13 +120,13 @@ instance Monoid BatteryConfig where
 type BatteryStatus :: Type
 data BatteryStatus
   = -- | @since 0.1
-    BatteryStatusCharging
+    Charging
   | -- | @since 0.1
-    BatteryStatusDischarging
+    Discharging
   | -- | @since 0.1
-    BatteryStatusFull
+    Full
   | -- | @since 0.1
-    BatteryStatusPending
+    Pending
   deriving stock
     ( -- | @since 0.1
       Eq,
@@ -145,10 +145,10 @@ makePrisms ''BatteryStatus
 
 -- | @since 0.1
 instance Pretty BatteryStatus where
-  pretty BatteryStatusCharging = "Charging"
-  pretty BatteryStatusDischarging = "Discharging"
-  pretty BatteryStatusFull = "Full"
-  pretty BatteryStatusPending = "Pending"
+  pretty Charging = "Charging"
+  pretty Discharging = "Discharging"
+  pretty Full = "Full"
+  pretty Pending = "Pending"
   {-# INLINEABLE pretty #-}
 
 -- | Full battery state, including percentage and status data.

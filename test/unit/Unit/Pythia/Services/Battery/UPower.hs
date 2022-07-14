@@ -22,16 +22,16 @@ tests =
     ]
 
 parseCharging :: TestTree
-parseCharging = parseX 20 ("charging", BatteryStatusCharging)
+parseCharging = parseX 20 ("charging", Charging)
 
 parseDischarging :: TestTree
-parseDischarging = parseX 80 ("discharging", BatteryStatusDischarging)
+parseDischarging = parseX 80 ("discharging", Discharging)
 
 parseFull :: TestTree
-parseFull = parseX 100 ("fully-charged", BatteryStatusFull)
+parseFull = parseX 100 ("fully-charged", Full)
 
 parsePending :: TestTree
-parsePending = parseX 100 ("pending-charge", BatteryStatusPending)
+parsePending = parseX 100 ("pending-charge", Pending)
 
 unknownStatusFails :: TestTree
 unknownStatusFails = testCase "Unknown status fails" $ do

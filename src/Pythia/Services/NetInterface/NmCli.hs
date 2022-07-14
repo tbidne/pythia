@@ -176,11 +176,11 @@ parseNetInterfaceType = do
   MPC.eol
   pure type'
   where
-    wifi = MPC.string "wifi" $> NetInterfaceTypeWifi
-    wifiP2p = MPC.string "wifi-p2p" $> NetInterfaceTypeWifi_P2P
-    ethernet = MPC.string "ethernet" $> NetInterfaceTypeEthernet
-    loopback = MPC.string "loopback" $> NetInterfaceTypeLoopback
-    tun = MPC.string "tun" $> NetInterfaceTypeTun
+    wifi = MPC.string "wifi" $> Wifi
+    wifiP2p = MPC.string "wifi-p2p" $> Wifi_P2P
+    ethernet = MPC.string "ethernet" $> Ethernet
+    loopback = MPC.string "loopback" $> Loopback
+    tun = MPC.string "tun" $> Tun
 {-# INLINEABLE parseNetInterfaceType #-}
 
 parseHwaddr :: MParser ()
@@ -205,10 +205,10 @@ parseNetInterfaceState = do
   U.takeLine_
   pure state'
   where
-    up = MPC.string "(connected)" $> NetInterfaceStateUp
-    down = MPC.string "(disconnected)" $> NetInterfaceStateDown
-    unavail = MPC.string "(unavailable)" $> NetInterfaceStateDown
-    unknown = NetInterfaceStateUnknown <$> MP.takeWhile1P (Just "type") (/= '\n')
+    up = MPC.string "(connected)" $> NetStateUp
+    down = MPC.string "(disconnected)" $> NetStateDown
+    unavail = MPC.string "(unavailable)" $> NetStateDown
+    unknown = NetStateUnknown <$> MP.takeWhile1P (Just "type") (/= '\n')
 {-# INLINEABLE parseNetInterfaceState #-}
 
 parseName :: MParser (Maybe Text)
@@ -229,11 +229,11 @@ parseWiredProp :: MParser ()
 parseWiredProp = MPC.string "WIRED-PROPERTIES" *> U.takeLine_
 {-# INLINEABLE parseWiredProp #-}
 
-parseIpv4s :: MParser [IpAddress 'IpTypeIpv4]
+parseIpv4s :: MParser [IpAddress 'Ipv4]
 parseIpv4s = parseAllIpInfo "4" MkIpAddress
 {-# INLINEABLE parseIpv4s #-}
 
-parseIpv6s :: MParser [IpAddress 'IpTypeIpv6]
+parseIpv6s :: MParser [IpAddress 'Ipv6]
 parseIpv6s = parseAllIpInfo "6" MkIpAddress
 {-# INLINEABLE parseIpv6s #-}
 

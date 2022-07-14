@@ -109,13 +109,13 @@ supported = U.exeSupported "acpi"
 -- ==== __Examples__
 --
 -- >>> parseBattery "Battery 0: Full, 100%"
--- Right (MkBattery {percentage = MkPercentage {unPercentage = UnsafeLRInterval {unLRInterval = 100}}, status = BatteryStatusFull})
+-- Right (MkBattery {percentage = MkPercentage {unPercentage = UnsafeLRInterval {unLRInterval = 100}}, status = Full})
 --
 -- >>> parseBattery "Battery 0: Discharging, 80%"
--- Right (MkBattery {percentage = MkPercentage {unPercentage = UnsafeLRInterval {unLRInterval = 80}}, status = BatteryStatusDischarging})
+-- Right (MkBattery {percentage = MkPercentage {unPercentage = UnsafeLRInterval {unLRInterval = 80}}, status = Discharging})
 --
 -- >>> parseBattery "Battery 0: Charging, 40%"
--- Right (MkBattery {percentage = MkPercentage {unPercentage = UnsafeLRInterval {unLRInterval = 40}}, status = BatteryStatusCharging})
+-- Right (MkBattery {percentage = MkPercentage {unPercentage = UnsafeLRInterval {unLRInterval = 40}}, status = Charging})
 --
 -- >>> parseBattery "Battery 0: bad status, 80%"
 -- Left (MkAcpiParseError {unAcpiParseError = "Acpi.hs:1:12:\n  |\n1 | Battery 0: bad status, 80%\n  |            ^\nUnknown status\n"})
@@ -157,10 +157,10 @@ mparseState =
     <|> MP.fancyFailure (Set.fromList [ErrorFail "Unknown status"])
     <?> "<Discharging|Charging|Not charging|Full>"
   where
-    discharging = MPC.string' "Discharging" $> BatteryStatusDischarging
-    charging = MPC.string' "Charging" $> BatteryStatusCharging
-    full = MPC.string' "Full" $> BatteryStatusFull
-    pending = MPC.string' "Not charging" $> BatteryStatusPending
+    discharging = MPC.string' "Discharging" $> Discharging
+    charging = MPC.string' "Charging" $> Charging
+    full = MPC.string' "Full" $> Full
+    pending = MPC.string' "Not charging" $> Pending
 {-# INLINEABLE mparseState #-}
 
 mparsePercent :: MParser Percentage

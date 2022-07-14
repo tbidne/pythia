@@ -119,16 +119,16 @@ supported = U.exeSupported "upower"
 -- ==== __Examples__
 --
 -- >>> parseBattery "state: fully-charged\npercentage: 100%"
--- Right (MkBattery {percentage = MkPercentage {unPercentage = UnsafeLRInterval {unLRInterval = 100}}, status = BatteryStatusFull})
+-- Right (MkBattery {percentage = MkPercentage {unPercentage = UnsafeLRInterval {unLRInterval = 100}}, status = Full})
 --
 -- >>> parseBattery "state: discharging\npercentage: 70%"
--- Right (MkBattery {percentage = MkPercentage {unPercentage = UnsafeLRInterval {unLRInterval = 70}}, status = BatteryStatusDischarging})
+-- Right (MkBattery {percentage = MkPercentage {unPercentage = UnsafeLRInterval {unLRInterval = 70}}, status = Discharging})
 --
 -- >>> parseBattery "state: charging\npercentage: 40%"
--- Right (MkBattery {percentage = MkPercentage {unPercentage = UnsafeLRInterval {unLRInterval = 40}}, status = BatteryStatusCharging})
+-- Right (MkBattery {percentage = MkPercentage {unPercentage = UnsafeLRInterval {unLRInterval = 40}}, status = Charging})
 --
 -- >>> parseBattery "state: pending-charge\npercentage: 40%"
--- Right (MkBattery {percentage = MkPercentage {unPercentage = UnsafeLRInterval {unLRInterval = 40}}, status = BatteryStatusPending})
+-- Right (MkBattery {percentage = MkPercentage {unPercentage = UnsafeLRInterval {unLRInterval = 40}}, status = Pending})
 --
 -- >>> parseBattery "state: bad\npercentage: 40%"
 -- Left (UPowerParseErrorStatus "state: bad\npercentage: 40%")
@@ -214,9 +214,9 @@ parseStatus = do
     <|> MP.try pending
     <|> MP.fancyFailure (Set.fromList [ErrorFail "Unknown status"])
   where
-    discharging = MPC.string' "discharging" $> BatteryStatusDischarging
-    charging = MPC.string' "charging" $> BatteryStatusCharging <* rest
-    full = MPC.string' "fully-charged" $> BatteryStatusFull <* rest
-    pending = MPC.string' "pending-charge" $> BatteryStatusPending <* rest
+    discharging = MPC.string' "discharging" $> Discharging
+    charging = MPC.string' "charging" $> Charging <* rest
+    full = MPC.string' "fully-charged" $> Full <* rest
+    pending = MPC.string' "pending-charge" $> Pending <* rest
     rest = MPC.space *> MP.eof
 {-# INLINEABLE parseStatus #-}

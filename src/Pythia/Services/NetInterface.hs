@@ -34,17 +34,17 @@ module Pythia.Services.NetInterface
 
     -- ** Types
     _MkNetInterfaces,
-    _NetInterfaceStateUp,
-    _NetInterfaceStateDown,
-    _NetInterfaceStateUnknown,
-    _NetInterfaceTypeEthernet,
-    _NetInterfaceTypeWifi,
-    _NetInterfaceTypeWifi_P2P,
-    _NetInterfaceTypeLoopback,
-    _NetInterfaceTypeTun,
+    _NetStateUp,
+    _NetStateDown,
+    _NetStateUnknown,
+    _Ethernet,
+    _Wifi,
+    _Wifi_P2P,
+    _Loopback,
+    _Tun,
     _MkDevice,
-    _IpTypeIpv4,
-    _IpTypeIpv6,
+    _Ipv4,
+    _Ipv6,
     _MkIpAddress,
 
     -- ** Configuration
@@ -121,7 +121,7 @@ instance Exception DeviceNotFound where
   {-# INLINEABLE fromException #-}
 
 -- | Queries for all network interface data. If the 'NetInterfaceConfig'\'s app
--- is 'RunAppMany' then we try all 'NetInterfaceApp's supported by this system, in
+-- is 'Many' then we try all 'NetInterfaceApp's supported by this system, in
 -- the following order:
 --
 -- @
@@ -136,8 +136,8 @@ instance Exception DeviceNotFound where
 -- @since 0.1
 queryNetInterfaces :: NetInterfaceConfig -> IO NetInterfaces
 queryNetInterfaces cfg = case cfg ^. #app of
-  RunAppMany -> runMultipleQueries
-  RunAppSingle app -> toSingleShellApp app
+  Many -> runMultipleQueries
+  Single app -> toSingleShellApp app
 {-# INLINEABLE queryNetInterfaces #-}
 
 -- | Like 'queryNetInterfaces' but returns data for a single device.
@@ -160,11 +160,11 @@ findDevice device = throwMaybe e . headMaybe . unNetInterfaces . filterDevice de
     e = MkDeviceNotFound device
 {-# INLINEABLE findDevice #-}
 
--- | Takes the first 'NetInterface' that has state 'NetInterfaceStateUp', according to
+-- | Takes the first 'NetInterface' that has state 'NetStateUp', according to
 -- 'NetInterfaceState'\'s 'Ord':
 --
 -- @
--- 'NetInterfaceTypeEthernet' < 'NetInterfaceTypeWifi' < 'NetInterfaceTypeWifi_P2P' < 'NetInterfaceTypeLoopback' < 'NetInterfaceTypeTun'
+-- 'Ethernet' < 'Wifi' < 'Wifi_P2P' < 'Loopback' < 'Tun'
 -- @
 --
 -- __Examples__
@@ -173,19 +173,19 @@ findDevice device = throwMaybe e . headMaybe . unNetInterfaces . filterDevice de
 -- Nothing
 --
 -- >>> :{
---   let wifiUp = MkNetInterface "" (Just NetInterfaceTypeWifi) NetInterfaceStateUp (Just "NetInterfaceTypeWifiUp") mempty mempty
---       wifiNetInterfaceStateDown = MkNetInterface "" (Just NetInterfaceTypeWifi) NetInterfaceStateDown (Just "NetInterfaceTypeWifiNetInterfaceStateDown") mempty mempty
---       loopUp = MkNetInterface "" (Just NetInterfaceTypeLoopback) NetInterfaceStateUp (Just "LoopUp") mempty mempty
---    in findUp $ MkNetInterfaces [loopUp, wifiNetInterfaceStateDown, wifiUp]
+--   let wifiUp = MkNetInterface "" (Just Wifi) NetStateUp (Just "WifiUp") mempty mempty
+--       wifiNetStateDown = MkNetInterface "" (Just Wifi) NetStateDown (Just "WifiNetStateDown") mempty mempty
+--       loopUp = MkNetInterface "" (Just Loopback) NetStateUp (Just "LoopUp") mempty mempty
+--    in findUp $ MkNetInterfaces [loopUp, wifiNetStateDown, wifiUp]
 -- :}
--- Just (MkNetInterface {device = MkDevice {unDevice = ""}, ntype = Just NetInterfaceTypeWifi, state = NetInterfaceStateUp, name = Just "NetInterfaceTypeWifiUp", ipv4s = MkIpAddresses {unIpAddresses = []}, ipv6s = MkIpAddresses {unIpAddresses = []}})
+-- Just (MkNetInterface {device = MkDevice {unDevice = ""}, ntype = Just Wifi, state = NetStateUp, name = Just "WifiUp", ipv4s = MkIpAddresses {unIpAddresses = []}, ipv6s = MkIpAddresses {unIpAddresses = []}})
 --
 -- @since 0.1
 findUp :: NetInterfaces -> Maybe NetInterface
 findUp = headMaybe . (sortType . filterUp) . unNetInterfaces
   where
     sortType = OL.sortOn (view #ntype)
-    filterUp = filter ((== NetInterfaceStateUp) . view #state)
+    filterUp = filter ((== NetStateUp) . view #state)
 {-# INLINEABLE findUp #-}
 
 runMultipleQueries :: IO NetInterfaces
