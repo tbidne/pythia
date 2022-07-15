@@ -1,0 +1,127 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><link rel="stylesheet" type="text/css" href="style.css" /><script type="text/javascript" src="highlight.js"></script></head><body><pre><span class="hs-pragma">{-# LANGUAGE TemplateHaskell #-}</span><span>
+</span><span id="line-2"></span><span>
+</span><span id="line-3"></span><span class="hs-comment">-- | This module provides the 'RunApp' type.</span><span>
+</span><span id="line-4"></span><span class="hs-comment">--</span><span>
+</span><span id="line-5"></span><span class="hs-comment">-- @since 0.1</span><span>
+</span><span id="line-6"></span><span class="hs-keyword">module</span><span> </span><span class="hs-identifier">Pythia.Data.RunApp</span><span>
+</span><span id="line-7"></span><span>  </span><span class="hs-special">(</span><span> </span><span class="annot"><a href="Pythia.Data.RunApp.html#RunApp"><span class="hs-identifier">RunApp</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span class="hs-special">,</span><span>
+</span><span id="line-8"></span><span>    </span><span class="annot"><a href="Pythia.Data.RunApp.html#_Many"><span class="hs-identifier">_Many</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-9"></span><span>    </span><span class="annot"><a href="Pythia.Data.RunApp.html#_Single"><span class="hs-identifier">_Single</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-10"></span><span>  </span><span class="hs-special">)</span><span>
+</span><span id="line-11"></span><span class="hs-keyword">where</span><span>
+</span><span id="line-12"></span><span>
+</span><span id="line-13"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Pythia.Prelude.html"><span class="hs-identifier">Pythia.Prelude</span></a></span><span>
+</span><span id="line-14"></span><span>
+</span><span id="line-15"></span><span class="hs-comment">-- | Used in conjunction for our services for indicating how we want to run</span><span>
+</span><span id="line-16"></span><span class="hs-comment">-- queries. 'Many' is the identity for its monoid instance.</span><span>
+</span><span id="line-17"></span><span class="hs-comment">--</span><span>
+</span><span id="line-18"></span><span class="hs-comment">-- ==== __Examples__</span><span>
+</span><span id="line-19"></span><span class="hs-comment">--</span><span>
+</span><span id="line-20"></span><span class="hs-comment">-- &gt;&gt;&gt; Many &lt;&gt; Single &quot;r&quot;</span><span>
+</span><span id="line-21"></span><span class="hs-comment">-- Single &quot;r&quot;</span><span>
+</span><span id="line-22"></span><span class="hs-comment">--</span><span>
+</span><span id="line-23"></span><span class="hs-comment">-- &gt;&gt;&gt; Single &quot;l&quot; &lt;&gt; Many</span><span>
+</span><span id="line-24"></span><span class="hs-comment">-- Single &quot;l&quot;</span><span>
+</span><span id="line-25"></span><span class="hs-comment">--</span><span>
+</span><span id="line-26"></span><span class="hs-comment">-- &gt;&gt;&gt; mempty @(RunApp String)</span><span>
+</span><span id="line-27"></span><span class="hs-comment">-- Many</span><span>
+</span><span id="line-28"></span><span class="hs-comment">--</span><span>
+</span><span id="line-29"></span><span class="hs-comment">-- @since 0.1</span><span>
+</span><span id="line-30"></span><span class="hs-keyword">type</span><span> </span><span class="annot"><a href="Pythia.Data.RunApp.html#RunApp"><span class="hs-identifier hs-type">RunApp</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="file:///nix/store/16s6s6gbs6bxf3x75xpna03ygn755wig-ghc-9.2.3-doc/share/doc/ghc/html/libraries/ghc-prim-0.8.0/src/GHC.Types.html#Type"><span class="hs-identifier hs-type">Type</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="file:///nix/store/16s6s6gbs6bxf3x75xpna03ygn755wig-ghc-9.2.3-doc/share/doc/ghc/html/libraries/ghc-prim-0.8.0/src/GHC.Types.html#Type"><span class="hs-identifier hs-type">Type</span></a></span><span>
+</span><span id="line-31"></span><span id="local-6989586621679266962"><span id="local-6989586621679266963"></span></span><span class="hs-keyword">data</span><span> </span><span id="RunApp"><span class="annot"><a href="Pythia.Data.RunApp.html#RunApp"><span class="hs-identifier hs-var">RunApp</span></a></span></span><span> </span><span id="local-6989586621679267021"><span class="annot"><a href="#local-6989586621679267021"><span class="hs-identifier hs-type">a</span></a></span></span><span>
+</span><span id="line-32"></span><span>  </span><span class="hs-glyph">=</span><span> </span><span class="hs-comment">-- | Do not specify an application. Attempt to run all, returning</span><span>
+</span><span id="line-33"></span><span>    </span><span class="hs-comment">-- the first success.</span><span>
+</span><span id="line-34"></span><span>    </span><span class="hs-comment">--</span><span>
+</span><span id="line-35"></span><span>    </span><span class="hs-comment">-- @since 0.1</span><span>
+</span><span id="line-36"></span><span>    </span><span id="Many"><span class="annot"><a href="Pythia.Data.RunApp.html#Many"><span class="hs-identifier hs-var">Many</span></a></span></span><span>
+</span><span id="line-37"></span><span>  </span><span class="hs-glyph">|</span><span> </span><span class="hs-comment">-- | Runs a single query based on the parameter app.</span><span>
+</span><span id="line-38"></span><span>    </span><span class="hs-comment">--</span><span>
+</span><span id="line-39"></span><span>    </span><span class="hs-comment">-- @since 0.1</span><span>
+</span><span id="line-40"></span><span>    </span><span id="Single"><span class="annot"><a href="Pythia.Data.RunApp.html#Single"><span class="hs-identifier hs-var">Single</span></a></span></span><span> </span><span class="annot"><a href="#local-6989586621679267021"><span class="hs-identifier hs-type">a</span></a></span><span>
+</span><span id="line-41"></span><span>  </span><span class="hs-keyword">deriving</span><span> </span><span class="annot"><span class="hs-keyword">stock</span></span><span>
+</span><span id="line-42"></span><span>    </span><span class="hs-special">(</span><span> </span><span class="hs-comment">-- | @since 0.1</span><span>
+</span><span id="line-43"></span><span>      </span><span id="local-6989586621679266955"><span id="local-6989586621679266958"><span class="annot"><span class="annottext">RunApp a -&gt; RunApp a -&gt; Bool
+(RunApp a -&gt; RunApp a -&gt; Bool)
+-&gt; (RunApp a -&gt; RunApp a -&gt; Bool) -&gt; Eq (RunApp a)
+forall a. Eq a =&gt; RunApp a -&gt; RunApp a -&gt; Bool
+forall a. (a -&gt; a -&gt; Bool) -&gt; (a -&gt; a -&gt; Bool) -&gt; Eq a
+/= :: RunApp a -&gt; RunApp a -&gt; Bool
+$c/= :: forall a. Eq a =&gt; RunApp a -&gt; RunApp a -&gt; Bool
+== :: RunApp a -&gt; RunApp a -&gt; Bool
+$c== :: forall a. Eq a =&gt; RunApp a -&gt; RunApp a -&gt; Bool
+</span><a href="file:///nix/store/16s6s6gbs6bxf3x75xpna03ygn755wig-ghc-9.2.3-doc/share/doc/ghc/html/libraries/ghc-prim-0.8.0/src/GHC.Classes.html#Eq"><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Eq</span></a></span></span></span><span class="hs-special">,</span><span>
+</span><span id="line-44"></span><span>      </span><span class="hs-comment">-- | @since 0.1</span><span>
+</span><span id="line-45"></span><span>      </span><span class="annot"><span class="annottext">(forall x. RunApp a -&gt; Rep (RunApp a) x)
+-&gt; (forall x. Rep (RunApp a) x -&gt; RunApp a) -&gt; Generic (RunApp a)
+forall x. Rep (RunApp a) x -&gt; RunApp a
+forall x. RunApp a -&gt; Rep (RunApp a) x
+forall a.
+(forall x. a -&gt; Rep a x) -&gt; (forall x. Rep a x -&gt; a) -&gt; Generic a
+forall a x. Rep (RunApp a) x -&gt; RunApp a
+forall a x. RunApp a -&gt; Rep (RunApp a) x
+$cto :: forall a x. Rep (RunApp a) x -&gt; RunApp a
+$cfrom :: forall a x. RunApp a -&gt; Rep (RunApp a) x
+</span><a href="file:///nix/store/16s6s6gbs6bxf3x75xpna03ygn755wig-ghc-9.2.3-doc/share/doc/ghc/html/libraries/base-4.16.2.0/src/GHC.Generics.html#Generic"><span class="hs-identifier hs-var hs-var hs-var hs-var">Generic</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-46"></span><span>      </span><span class="hs-comment">-- | @since 0.1</span><span>
+</span><span id="line-47"></span><span>      </span><span id="local-6989586621679266942"><span id="local-6989586621679266944"><span id="local-6989586621679266949"><span class="annot"><span class="annottext">Int -&gt; RunApp a -&gt; ShowS
+[RunApp a] -&gt; ShowS
+RunApp a -&gt; String
+(Int -&gt; RunApp a -&gt; ShowS)
+-&gt; (RunApp a -&gt; String) -&gt; ([RunApp a] -&gt; ShowS) -&gt; Show (RunApp a)
+forall a. Show a =&gt; Int -&gt; RunApp a -&gt; ShowS
+forall a. Show a =&gt; [RunApp a] -&gt; ShowS
+forall a. Show a =&gt; RunApp a -&gt; String
+forall a.
+(Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; String) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+showList :: [RunApp a] -&gt; ShowS
+$cshowList :: forall a. Show a =&gt; [RunApp a] -&gt; ShowS
+show :: RunApp a -&gt; String
+$cshow :: forall a. Show a =&gt; RunApp a -&gt; String
+showsPrec :: Int -&gt; RunApp a -&gt; ShowS
+$cshowsPrec :: forall a. Show a =&gt; Int -&gt; RunApp a -&gt; ShowS
+</span><a href="file:///nix/store/16s6s6gbs6bxf3x75xpna03ygn755wig-ghc-9.2.3-doc/share/doc/ghc/html/libraries/base-4.16.2.0/src/GHC.Show.html#Show"><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Show</span></a></span></span></span></span><span>
+</span><span id="line-48"></span><span>    </span><span class="hs-special">)</span><span>
+</span><span id="line-49"></span><span>  </span><span class="hs-keyword">deriving</span><span> </span><span class="annot"><span class="hs-keyword">anyclass</span></span><span>
+</span><span id="line-50"></span><span>    </span><span class="hs-special">(</span><span> </span><span class="hs-comment">-- | @since 0.1.0.0</span><span>
+</span><span id="line-51"></span><span>      </span><span id="local-6989586621679266939"><span class="annot"><span class="annottext">RunApp a -&gt; ()
+(RunApp a -&gt; ()) -&gt; NFData (RunApp a)
+forall a. NFData a =&gt; RunApp a -&gt; ()
+forall a. (a -&gt; ()) -&gt; NFData a
+rnf :: RunApp a -&gt; ()
+$crnf :: forall a. NFData a =&gt; RunApp a -&gt; ()
+</span><a href="file:///nix/store/16s6s6gbs6bxf3x75xpna03ygn755wig-ghc-9.2.3-doc/share/doc/ghc/html/libraries/deepseq-1.4.6.1/src/Control.DeepSeq.html#C%3ANFData"><span class="hs-identifier hs-var hs-var hs-var hs-var">NFData</span></a></span></span><span>
+</span><span id="line-52"></span><span>    </span><span class="hs-special">)</span><span>
+</span><span id="line-53"></span><span>
+</span><span id="line-54"></span><span class="hs-comment">-- | @since 0.1</span><span>
+</span><span id="line-55"></span><span id="_Single"><span id="_Many"><span id="local-6989586621679267015"><span id="local-6989586621679267021"><span class="hs-identifier">makePrisms</span><span> </span><span class="hs-special">''</span><span class="hs-identifier">RunApp</span></span></span></span></span><span>
+</span><span id="line-56"></span><span>
+</span><span id="line-57"></span><span class="hs-comment">-- | @since 0.1</span><span>
+</span><span id="line-58"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621679266928"><span id="local-6989586621679266930"><span id="local-6989586621679267002"><span class="annot"><a href="file:///nix/store/16s6s6gbs6bxf3x75xpna03ygn755wig-ghc-9.2.3-doc/share/doc/ghc/html/libraries/base-4.16.2.0/src/GHC.Base.html#Semigroup"><span class="hs-identifier hs-type">Semigroup</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679267002"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><a href="file:///nix/store/16s6s6gbs6bxf3x75xpna03ygn755wig-ghc-9.2.3-doc/share/doc/ghc/html/libraries/base-4.16.2.0/src/GHC.Base.html#Semigroup"><span class="hs-identifier hs-type">Semigroup</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Pythia.Data.RunApp.html#RunApp"><span class="hs-identifier hs-type">RunApp</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679267002"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">)</span></span></span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-59"></span><span>  </span><span class="annot"><span class="annottext">RunApp a
+</span><a href="Pythia.Data.RunApp.html#Many"><span class="hs-identifier hs-var">Many</span></a></span><span> </span><span id="local-6989586621679266925"><span class="annot"><span class="annottext">&lt;&gt; :: RunApp a -&gt; RunApp a -&gt; RunApp a
+</span><a href="file:///nix/store/16s6s6gbs6bxf3x75xpna03ygn755wig-ghc-9.2.3-doc/share/doc/ghc/html/libraries/base-4.16.2.0/src/GHC.Base.html#%3C%3E"><span class="hs-operator hs-var hs-var hs-var hs-var">&lt;&gt;</span></a></span></span><span> </span><span id="local-6989586621679266924"><span class="annot"><span class="annottext">RunApp a
+</span><a href="#local-6989586621679266924"><span class="hs-identifier hs-var">r</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">RunApp a
+</span><a href="#local-6989586621679266924"><span class="hs-identifier hs-var">r</span></a></span><span>
+</span><span id="line-60"></span><span>  </span><span id="local-6989586621679266923"><span class="annot"><span class="annottext">RunApp a
+</span><a href="#local-6989586621679266923"><span class="hs-identifier hs-var">l</span></a></span></span><span> </span><span class="annot"><a href="file:///nix/store/16s6s6gbs6bxf3x75xpna03ygn755wig-ghc-9.2.3-doc/share/doc/ghc/html/libraries/base-4.16.2.0/src/GHC.Base.html#%3C%3E"><span class="hs-operator hs-var">&lt;&gt;</span></a></span><span> </span><span class="annot"><span class="annottext">RunApp a
+</span><a href="Pythia.Data.RunApp.html#Many"><span class="hs-identifier hs-var">Many</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">RunApp a
+</span><a href="#local-6989586621679266923"><span class="hs-identifier hs-var">l</span></a></span><span>
+</span><span id="line-61"></span><span>  </span><span class="annot"><a href="Pythia.Data.RunApp.html#Single"><span class="hs-identifier hs-type">Single</span></a></span><span> </span><span id="local-6989586621679266922"><span class="annot"><span class="annottext">a
+</span><a href="#local-6989586621679266922"><span class="hs-identifier hs-var">l</span></a></span></span><span> </span><span class="annot"><a href="file:///nix/store/16s6s6gbs6bxf3x75xpna03ygn755wig-ghc-9.2.3-doc/share/doc/ghc/html/libraries/base-4.16.2.0/src/GHC.Base.html#%3C%3E"><span class="hs-operator hs-var">&lt;&gt;</span></a></span><span> </span><span class="annot"><a href="Pythia.Data.RunApp.html#Single"><span class="hs-identifier hs-type">Single</span></a></span><span> </span><span id="local-6989586621679266921"><span class="annot"><span class="annottext">a
+</span><a href="#local-6989586621679266921"><span class="hs-identifier hs-var">r</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">a -&gt; RunApp a
+forall a. a -&gt; RunApp a
+</span><a href="Pythia.Data.RunApp.html#Single"><span class="hs-identifier hs-var">Single</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">a
+</span><a href="#local-6989586621679266922"><span class="hs-identifier hs-var">l</span></a></span><span> </span><span class="annot"><span class="annottext">a -&gt; a -&gt; a
+forall a. Semigroup a =&gt; a -&gt; a -&gt; a
+</span><a href="file:///nix/store/16s6s6gbs6bxf3x75xpna03ygn755wig-ghc-9.2.3-doc/share/doc/ghc/html/libraries/base-4.16.2.0/src/GHC.Base.html#%3C%3E"><span class="hs-operator hs-var">&lt;&gt;</span></a></span><span> </span><span class="annot"><span class="annottext">a
+</span><a href="#local-6989586621679266921"><span class="hs-identifier hs-var">r</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-62"></span><span>  </span><span class="hs-pragma">{-# INLINEABLE</span><span> </span><span class="hs-pragma">(</span><span class="hs-pragma">&lt;&gt;</span><span class="hs-pragma">)</span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-63"></span><span>
+</span><span id="line-64"></span><span class="hs-comment">-- | @since 0.1</span><span>
+</span><span id="line-65"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621679266914"><span id="local-6989586621679266916"><span id="local-6989586621679267000"><span class="annot"><a href="file:///nix/store/16s6s6gbs6bxf3x75xpna03ygn755wig-ghc-9.2.3-doc/share/doc/ghc/html/libraries/base-4.16.2.0/src/GHC.Base.html#Semigroup"><span class="hs-identifier hs-type">Semigroup</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679267000"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><a href="file:///nix/store/16s6s6gbs6bxf3x75xpna03ygn755wig-ghc-9.2.3-doc/share/doc/ghc/html/libraries/base-4.16.2.0/src/GHC.Base.html#Monoid"><span class="hs-identifier hs-type">Monoid</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Pythia.Data.RunApp.html#RunApp"><span class="hs-identifier hs-type">RunApp</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679267000"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">)</span></span></span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-66"></span><span>  </span><span id="local-6989586621679266912"><span class="annot"><span class="annottext">mempty :: RunApp a
+</span><a href="file:///nix/store/16s6s6gbs6bxf3x75xpna03ygn755wig-ghc-9.2.3-doc/share/doc/ghc/html/libraries/base-4.16.2.0/src/GHC.Base.html#mempty"><span class="hs-identifier hs-var hs-var hs-var hs-var">mempty</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">RunApp a
+forall a. RunApp a
+</span><a href="Pythia.Data.RunApp.html#Many"><span class="hs-identifier hs-var">Many</span></a></span><span>
+</span><span id="line-67"></span><span>  </span><span class="hs-pragma">{-# INLINEABLE</span><span> </span><span class="annot"><a href="file:///nix/store/16s6s6gbs6bxf3x75xpna03ygn755wig-ghc-9.2.3-doc/share/doc/ghc/html/libraries/base-4.16.2.0/src/GHC.Base.html#mempty"><span class="hs-pragma hs-type">mempty</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-68"></span></pre></body></html>

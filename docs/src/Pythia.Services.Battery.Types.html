@@ -1,0 +1,511 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><link rel="stylesheet" type="text/css" href="style.css" /><script type="text/javascript" src="highlight.js"></script></head><body><pre><span id="local-6989586621679270770"><span id="local-6989586621679270771"></span></span><span class="hs-pragma">{-# LANGUAGE TemplateHaskell #-}</span><span>
+</span><span id="line-2"></span><span class="hs-pragma">{-# LANGUAGE UndecidableInstances #-}</span><span>
+</span><span id="line-3"></span><span>
+</span><span id="line-4"></span><span class="hs-comment">-- | This module provides the core types describing the battery.</span><span>
+</span><span id="line-5"></span><span class="hs-comment">--</span><span>
+</span><span id="line-6"></span><span class="hs-comment">-- @since 0.1</span><span>
+</span><span id="line-7"></span><span class="hs-keyword">module</span><span> </span><span class="hs-identifier">Pythia.Services.Battery.Types</span><span>
+</span><span id="line-8"></span><span>  </span><span class="hs-special">(</span><span> </span><span class="annot"><span class="hs-comment">-- * Configuration</span></span><span>
+</span><span id="line-9"></span><span>    </span><span class="annot"><a href="Pythia.Services.Battery.Types.html#BatteryConfig"><span class="hs-identifier">BatteryConfig</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span class="hs-special">,</span><span>
+</span><span id="line-10"></span><span>    </span><span class="annot"><a href="Pythia.Services.Battery.Types.html#BatteryApp"><span class="hs-identifier">BatteryApp</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span class="hs-special">,</span><span>
+</span><span id="line-11"></span><span>
+</span><span id="line-12"></span><span>    </span><span class="annot"><span class="hs-comment">-- * Battery Fields</span></span><span>
+</span><span id="line-13"></span><span>    </span><span class="annot"><a href="Pythia.Services.Battery.Types.html#BatteryStatus"><span class="hs-identifier">BatteryStatus</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span class="hs-special">,</span><span>
+</span><span id="line-14"></span><span>    </span><span class="annot"><a href="Pythia.Services.Battery.Types.html#Battery"><span class="hs-identifier">Battery</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span class="hs-special">,</span><span>
+</span><span id="line-15"></span><span>
+</span><span id="line-16"></span><span>    </span><span class="annot"><span class="hs-comment">-- * Optics</span></span><span>
+</span><span id="line-17"></span><span>    </span><span class="annot"><a href="Pythia.Services.Battery.Types.html#_MkBatteryConfig"><span class="hs-identifier">_MkBatteryConfig</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-18"></span><span>    </span><span class="annot"><a href="Pythia.Services.Battery.Types.html#_BatteryAppAcpi"><span class="hs-identifier">_BatteryAppAcpi</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-19"></span><span>    </span><span class="annot"><a href="Pythia.Services.Battery.Types.html#_BatteryAppSysFs"><span class="hs-identifier">_BatteryAppSysFs</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-20"></span><span>    </span><span class="annot"><a href="Pythia.Services.Battery.Types.html#_BatteryAppUPower"><span class="hs-identifier">_BatteryAppUPower</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-21"></span><span>    </span><span class="annot"><a href="Pythia.Services.Battery.Types.html#_Charging"><span class="hs-identifier">_Charging</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-22"></span><span>    </span><span class="annot"><a href="Pythia.Services.Battery.Types.html#_Discharging"><span class="hs-identifier">_Discharging</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-23"></span><span>    </span><span class="annot"><a href="Pythia.Services.Battery.Types.html#_Full"><span class="hs-identifier">_Full</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-24"></span><span>    </span><span class="annot"><a href="Pythia.Services.Battery.Types.html#_Pending"><span class="hs-identifier">_Pending</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-25"></span><span>  </span><span class="hs-special">)</span><span>
+</span><span id="line-26"></span><span class="hs-keyword">where</span><span>
+</span><span id="line-27"></span><span>
+</span><span id="line-28"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Pythia.Data.Percentage.html"><span class="hs-identifier">Pythia.Data.Percentage</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Pythia.Data.Percentage.html#Percentage"><span class="hs-identifier">Percentage</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-29"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Pythia.Data.RunApp.html"><span class="hs-identifier">Pythia.Data.RunApp</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Pythia.Data.RunApp.html#RunApp"><span class="hs-identifier">RunApp</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-30"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Pythia.Data.Supremum.html"><span class="hs-identifier">Pythia.Data.Supremum</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Pythia.Data.Supremum.html#Supremum"><span class="hs-identifier">Supremum</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span class="hs-special">)</span><span>
+</span><span id="line-31"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Pythia.Prelude.html"><span class="hs-identifier">Pythia.Prelude</span></a></span><span>
+</span><span id="line-32"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Pythia.Utils.html"><span class="hs-identifier">Pythia.Utils</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="file:///nix/store/76qzbp4abnrjkr3xal2a7k80s020g8pv-prettyprinter-1.7.1-doc/share/doc/prettyprinter-1.7.1/html/src/Prettyprinter.Internal.html#Pretty"><span class="hs-identifier">Pretty</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span class="hs-special">,</span><span> </span><span class="annot"><a href="file:///nix/store/76qzbp4abnrjkr3xal2a7k80s020g8pv-prettyprinter-1.7.1-doc/share/doc/prettyprinter-1.7.1/html/src/Prettyprinter.Internal.html#%3C%2B%3E"><span class="hs-operator">(&lt;+&gt;)</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-33"></span><span>
+</span><span id="line-34"></span><span class="hs-comment">-- | Determines how we should query the system for battery state information.</span><span>
+</span><span id="line-35"></span><span class="hs-comment">--</span><span>
+</span><span id="line-36"></span><span class="hs-comment">-- @since 0.1</span><span>
+</span><span id="line-37"></span><span class="hs-keyword">type</span><span> </span><span class="annot"><a href="Pythia.Services.Battery.Types.html#BatteryApp"><span class="hs-identifier hs-type">BatteryApp</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="file:///nix/store/16s6s6gbs6bxf3x75xpna03ygn755wig-ghc-9.2.3-doc/share/doc/ghc/html/libraries/ghc-prim-0.8.0/src/GHC.Types.html#Type"><span class="hs-identifier hs-type">Type</span></a></span><span>
+</span><span id="line-38"></span><span id="local-6989586621679270757"><span id="local-6989586621679270758"></span></span><span class="hs-keyword">data</span><span> </span><span id="BatteryApp"><span class="annot"><a href="Pythia.Services.Battery.Types.html#BatteryApp"><span class="hs-identifier hs-var">BatteryApp</span></a></span></span><span>
+</span><span id="line-39"></span><span>  </span><span class="hs-glyph">=</span><span> </span><span class="hs-comment">-- | Uses the sysfs interface i.e. /sys.</span><span>
+</span><span id="line-40"></span><span>    </span><span class="hs-comment">--</span><span>
+</span><span id="line-41"></span><span>    </span><span class="hs-comment">-- @since 0.1</span><span>
+</span><span id="line-42"></span><span>    </span><span id="BatteryAppSysFs"><span class="annot"><a href="Pythia.Services.Battery.Types.html#BatteryAppSysFs"><span class="hs-identifier hs-var">BatteryAppSysFs</span></a></span></span><span>
+</span><span id="line-43"></span><span>  </span><span class="hs-glyph">|</span><span> </span><span class="hs-comment">-- | Uses the ACPI utility.</span><span>
+</span><span id="line-44"></span><span>    </span><span class="hs-comment">--</span><span>
+</span><span id="line-45"></span><span>    </span><span class="hs-comment">-- @since 0.1</span><span>
+</span><span id="line-46"></span><span>    </span><span id="BatteryAppAcpi"><span class="annot"><a href="Pythia.Services.Battery.Types.html#BatteryAppAcpi"><span class="hs-identifier hs-var">BatteryAppAcpi</span></a></span></span><span>
+</span><span id="line-47"></span><span>  </span><span class="hs-glyph">|</span><span> </span><span class="hs-comment">-- | Uses the UPower utility.</span><span>
+</span><span id="line-48"></span><span>    </span><span class="hs-comment">--</span><span>
+</span><span id="line-49"></span><span>    </span><span class="hs-comment">-- @since 0.1</span><span>
+</span><span id="line-50"></span><span>    </span><span id="BatteryAppUPower"><span class="annot"><a href="Pythia.Services.Battery.Types.html#BatteryAppUPower"><span class="hs-identifier hs-var">BatteryAppUPower</span></a></span></span><span>
+</span><span id="line-51"></span><span>  </span><span class="hs-keyword">deriving</span><span> </span><span class="annot"><span class="hs-keyword">stock</span></span><span>
+</span><span id="line-52"></span><span>    </span><span class="hs-special">(</span><span> </span><span class="hs-comment">-- | @since 0.1</span><span>
+</span><span id="line-53"></span><span>      </span><span id="local-6989586621679270750"><span id="local-6989586621679270752"><span class="annot"><span class="annottext">BatteryApp
+BatteryApp -&gt; BatteryApp -&gt; Bounded BatteryApp
+forall a. a -&gt; a -&gt; Bounded a
+maxBound :: BatteryApp
+$cmaxBound :: BatteryApp
+minBound :: BatteryApp
+$cminBound :: BatteryApp
+</span><a href="file:///nix/store/16s6s6gbs6bxf3x75xpna03ygn755wig-ghc-9.2.3-doc/share/doc/ghc/html/libraries/base-4.16.2.0/src/GHC.Enum.html#Bounded"><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Bounded</span></a></span></span></span><span class="hs-special">,</span><span>
+</span><span id="line-54"></span><span>      </span><span class="hs-comment">-- | @since 0.1</span><span>
+</span><span id="line-55"></span><span>      </span><span id="local-6989586621679270706"><span id="local-6989586621679270708"><span id="local-6989586621679270712"><span id="local-6989586621679270716"><span id="local-6989586621679270718"><span id="local-6989586621679270732"><span id="local-6989586621679270738"><span id="local-6989586621679270746"><span class="annot"><span class="annottext">Int -&gt; BatteryApp
+BatteryApp -&gt; Int
+BatteryApp -&gt; [BatteryApp]
+BatteryApp -&gt; BatteryApp
+BatteryApp -&gt; BatteryApp -&gt; [BatteryApp]
+BatteryApp -&gt; BatteryApp -&gt; BatteryApp -&gt; [BatteryApp]
+(BatteryApp -&gt; BatteryApp)
+-&gt; (BatteryApp -&gt; BatteryApp)
+-&gt; (Int -&gt; BatteryApp)
+-&gt; (BatteryApp -&gt; Int)
+-&gt; (BatteryApp -&gt; [BatteryApp])
+-&gt; (BatteryApp -&gt; BatteryApp -&gt; [BatteryApp])
+-&gt; (BatteryApp -&gt; BatteryApp -&gt; [BatteryApp])
+-&gt; (BatteryApp -&gt; BatteryApp -&gt; BatteryApp -&gt; [BatteryApp])
+-&gt; Enum BatteryApp
+forall a.
+(a -&gt; a)
+-&gt; (a -&gt; a)
+-&gt; (Int -&gt; a)
+-&gt; (a -&gt; Int)
+-&gt; (a -&gt; [a])
+-&gt; (a -&gt; a -&gt; [a])
+-&gt; (a -&gt; a -&gt; [a])
+-&gt; (a -&gt; a -&gt; a -&gt; [a])
+-&gt; Enum a
+enumFromThenTo :: BatteryApp -&gt; BatteryApp -&gt; BatteryApp -&gt; [BatteryApp]
+$cenumFromThenTo :: BatteryApp -&gt; BatteryApp -&gt; BatteryApp -&gt; [BatteryApp]
+enumFromTo :: BatteryApp -&gt; BatteryApp -&gt; [BatteryApp]
+$cenumFromTo :: BatteryApp -&gt; BatteryApp -&gt; [BatteryApp]
+enumFromThen :: BatteryApp -&gt; BatteryApp -&gt; [BatteryApp]
+$cenumFromThen :: BatteryApp -&gt; BatteryApp -&gt; [BatteryApp]
+enumFrom :: BatteryApp -&gt; [BatteryApp]
+$cenumFrom :: BatteryApp -&gt; [BatteryApp]
+fromEnum :: BatteryApp -&gt; Int
+$cfromEnum :: BatteryApp -&gt; Int
+toEnum :: Int -&gt; BatteryApp
+$ctoEnum :: Int -&gt; BatteryApp
+pred :: BatteryApp -&gt; BatteryApp
+$cpred :: BatteryApp -&gt; BatteryApp
+succ :: BatteryApp -&gt; BatteryApp
+$csucc :: BatteryApp -&gt; BatteryApp
+</span><a href="file:///nix/store/16s6s6gbs6bxf3x75xpna03ygn755wig-ghc-9.2.3-doc/share/doc/ghc/html/libraries/base-4.16.2.0/src/GHC.Enum.html#Enum"><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Enum</span></a></span></span></span></span></span></span></span></span></span><span class="hs-special">,</span><span>
+</span><span id="line-56"></span><span>      </span><span class="hs-comment">-- | @since 0.1</span><span>
+</span><span id="line-57"></span><span>      </span><span id="local-6989586621679270701"><span id="local-6989586621679270703"><span class="annot"><span class="annottext">BatteryApp -&gt; BatteryApp -&gt; Bool
+(BatteryApp -&gt; BatteryApp -&gt; Bool)
+-&gt; (BatteryApp -&gt; BatteryApp -&gt; Bool) -&gt; Eq BatteryApp
+forall a. (a -&gt; a -&gt; Bool) -&gt; (a -&gt; a -&gt; Bool) -&gt; Eq a
+/= :: BatteryApp -&gt; BatteryApp -&gt; Bool
+$c/= :: BatteryApp -&gt; BatteryApp -&gt; Bool
+== :: BatteryApp -&gt; BatteryApp -&gt; Bool
+$c== :: BatteryApp -&gt; BatteryApp -&gt; Bool
+</span><a href="file:///nix/store/16s6s6gbs6bxf3x75xpna03ygn755wig-ghc-9.2.3-doc/share/doc/ghc/html/libraries/ghc-prim-0.8.0/src/GHC.Classes.html#Eq"><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Eq</span></a></span></span></span><span class="hs-special">,</span><span>
+</span><span id="line-58"></span><span>      </span><span class="hs-comment">-- | @since 0.1</span><span>
+</span><span id="line-59"></span><span>      </span><span class="annot"><span class="annottext">(forall x. BatteryApp -&gt; Rep BatteryApp x)
+-&gt; (forall x. Rep BatteryApp x -&gt; BatteryApp) -&gt; Generic BatteryApp
+forall x. Rep BatteryApp x -&gt; BatteryApp
+forall x. BatteryApp -&gt; Rep BatteryApp x
+forall a.
+(forall x. a -&gt; Rep a x) -&gt; (forall x. Rep a x -&gt; a) -&gt; Generic a
+$cto :: forall x. Rep BatteryApp x -&gt; BatteryApp
+$cfrom :: forall x. BatteryApp -&gt; Rep BatteryApp x
+</span><a href="file:///nix/store/16s6s6gbs6bxf3x75xpna03ygn755wig-ghc-9.2.3-doc/share/doc/ghc/html/libraries/base-4.16.2.0/src/GHC.Generics.html#Generic"><span class="hs-identifier hs-var hs-var hs-var hs-var">Generic</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-60"></span><span>      </span><span class="hs-comment">-- | @since 0.1</span><span>
+</span><span id="line-61"></span><span>      </span><span id="local-6989586621679270678"><span id="local-6989586621679270680"><span id="local-6989586621679270683"><span id="local-6989586621679270686"><span id="local-6989586621679270689"><span id="local-6989586621679270691"><span id="local-6989586621679270693"><span class="annot"><span class="annottext">Eq BatteryApp
+Eq BatteryApp
+-&gt; (BatteryApp -&gt; BatteryApp -&gt; Ordering)
+-&gt; (BatteryApp -&gt; BatteryApp -&gt; Bool)
+-&gt; (BatteryApp -&gt; BatteryApp -&gt; Bool)
+-&gt; (BatteryApp -&gt; BatteryApp -&gt; Bool)
+-&gt; (BatteryApp -&gt; BatteryApp -&gt; Bool)
+-&gt; (BatteryApp -&gt; BatteryApp -&gt; BatteryApp)
+-&gt; (BatteryApp -&gt; BatteryApp -&gt; BatteryApp)
+-&gt; Ord BatteryApp
+BatteryApp -&gt; BatteryApp -&gt; Bool
+BatteryApp -&gt; BatteryApp -&gt; Ordering
+BatteryApp -&gt; BatteryApp -&gt; BatteryApp
+forall a.
+Eq a
+-&gt; (a -&gt; a -&gt; Ordering)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; a)
+-&gt; (a -&gt; a -&gt; a)
+-&gt; Ord a
+min :: BatteryApp -&gt; BatteryApp -&gt; BatteryApp
+$cmin :: BatteryApp -&gt; BatteryApp -&gt; BatteryApp
+max :: BatteryApp -&gt; BatteryApp -&gt; BatteryApp
+$cmax :: BatteryApp -&gt; BatteryApp -&gt; BatteryApp
+&gt;= :: BatteryApp -&gt; BatteryApp -&gt; Bool
+$c&gt;= :: BatteryApp -&gt; BatteryApp -&gt; Bool
+&gt; :: BatteryApp -&gt; BatteryApp -&gt; Bool
+$c&gt; :: BatteryApp -&gt; BatteryApp -&gt; Bool
+&lt;= :: BatteryApp -&gt; BatteryApp -&gt; Bool
+$c&lt;= :: BatteryApp -&gt; BatteryApp -&gt; Bool
+&lt; :: BatteryApp -&gt; BatteryApp -&gt; Bool
+$c&lt; :: BatteryApp -&gt; BatteryApp -&gt; Bool
+compare :: BatteryApp -&gt; BatteryApp -&gt; Ordering
+$ccompare :: BatteryApp -&gt; BatteryApp -&gt; Ordering
+</span><a href="file:///nix/store/16s6s6gbs6bxf3x75xpna03ygn755wig-ghc-9.2.3-doc/share/doc/ghc/html/libraries/ghc-prim-0.8.0/src/GHC.Classes.html#Ord"><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Ord</span></a></span></span></span></span></span></span></span></span><span class="hs-special">,</span><span>
+</span><span id="line-62"></span><span>      </span><span class="hs-comment">-- | @since 0.1</span><span>
+</span><span id="line-63"></span><span>      </span><span id="local-6989586621679270671"><span id="local-6989586621679270673"><span id="local-6989586621679270675"><span class="annot"><span class="annottext">Int -&gt; BatteryApp -&gt; ShowS
+[BatteryApp] -&gt; ShowS
+BatteryApp -&gt; [Char]
+(Int -&gt; BatteryApp -&gt; ShowS)
+-&gt; (BatteryApp -&gt; [Char])
+-&gt; ([BatteryApp] -&gt; ShowS)
+-&gt; Show BatteryApp
+forall a.
+(Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; [Char]) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+showList :: [BatteryApp] -&gt; ShowS
+$cshowList :: [BatteryApp] -&gt; ShowS
+show :: BatteryApp -&gt; [Char]
+$cshow :: BatteryApp -&gt; [Char]
+showsPrec :: Int -&gt; BatteryApp -&gt; ShowS
+$cshowsPrec :: Int -&gt; BatteryApp -&gt; ShowS
+</span><a href="file:///nix/store/16s6s6gbs6bxf3x75xpna03ygn755wig-ghc-9.2.3-doc/share/doc/ghc/html/libraries/base-4.16.2.0/src/GHC.Show.html#Show"><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Show</span></a></span></span></span></span><span>
+</span><span id="line-64"></span><span>    </span><span class="hs-special">)</span><span>
+</span><span id="line-65"></span><span>  </span><span class="hs-keyword">deriving</span><span>
+</span><span id="line-66"></span><span>    </span><span class="hs-special">(</span><span> </span><span class="hs-comment">-- | @since 0.1</span><span>
+</span><span id="line-67"></span><span>      </span><span id="local-6989586621679270652"><span id="local-6989586621679270658"><span id="local-6989586621679270665"><span class="annot"><span class="annottext">Semigroup BatteryApp
+BatteryApp
+Semigroup BatteryApp
+-&gt; BatteryApp
+-&gt; (BatteryApp -&gt; BatteryApp -&gt; BatteryApp)
+-&gt; ([BatteryApp] -&gt; BatteryApp)
+-&gt; Monoid BatteryApp
+[BatteryApp] -&gt; BatteryApp
+BatteryApp -&gt; BatteryApp -&gt; BatteryApp
+forall a.
+Semigroup a -&gt; a -&gt; (a -&gt; a -&gt; a) -&gt; ([a] -&gt; a) -&gt; Monoid a
+mconcat :: [BatteryApp] -&gt; BatteryApp
+$cmconcat :: [BatteryApp] -&gt; BatteryApp
+mappend :: BatteryApp -&gt; BatteryApp -&gt; BatteryApp
+$cmappend :: BatteryApp -&gt; BatteryApp -&gt; BatteryApp
+mempty :: BatteryApp
+$cmempty :: BatteryApp
+</span><a href="file:///nix/store/16s6s6gbs6bxf3x75xpna03ygn755wig-ghc-9.2.3-doc/share/doc/ghc/html/libraries/base-4.16.2.0/src/GHC.Base.html#Monoid"><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Monoid</span></a></span></span></span></span><span class="hs-special">,</span><span>
+</span><span id="line-68"></span><span>      </span><span class="hs-comment">-- | @since 0.1</span><span>
+</span><span id="line-69"></span><span>      </span><span id="local-6989586621679270631"><span id="local-6989586621679270638"><span id="local-6989586621679270644"><span class="annot"><span class="annottext">NonEmpty BatteryApp -&gt; BatteryApp
+BatteryApp -&gt; BatteryApp -&gt; BatteryApp
+(BatteryApp -&gt; BatteryApp -&gt; BatteryApp)
+-&gt; (NonEmpty BatteryApp -&gt; BatteryApp)
+-&gt; (forall b. Integral b =&gt; b -&gt; BatteryApp -&gt; BatteryApp)
+-&gt; Semigroup BatteryApp
+forall b. Integral b =&gt; b -&gt; BatteryApp -&gt; BatteryApp
+forall a.
+(a -&gt; a -&gt; a)
+-&gt; (NonEmpty a -&gt; a)
+-&gt; (forall b. Integral b =&gt; b -&gt; a -&gt; a)
+-&gt; Semigroup a
+stimes :: forall b. Integral b =&gt; b -&gt; BatteryApp -&gt; BatteryApp
+$cstimes :: forall b. Integral b =&gt; b -&gt; BatteryApp -&gt; BatteryApp
+sconcat :: NonEmpty BatteryApp -&gt; BatteryApp
+$csconcat :: NonEmpty BatteryApp -&gt; BatteryApp
+&lt;&gt; :: BatteryApp -&gt; BatteryApp -&gt; BatteryApp
+$c&lt;&gt; :: BatteryApp -&gt; BatteryApp -&gt; BatteryApp
+</span><a href="file:///nix/store/16s6s6gbs6bxf3x75xpna03ygn755wig-ghc-9.2.3-doc/share/doc/ghc/html/libraries/base-4.16.2.0/src/GHC.Base.html#Semigroup"><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Semigroup</span></a></span></span></span></span><span>
+</span><span id="line-70"></span><span>    </span><span class="hs-special">)</span><span>
+</span><span id="line-71"></span><span>    </span><span class="hs-keyword">via</span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Pythia.Data.Supremum.html#Supremum"><span class="hs-identifier hs-type">Supremum</span></a></span><span> </span><span class="annot"><a href="Pythia.Services.Battery.Types.html#BatteryApp"><span class="hs-identifier hs-type">BatteryApp</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-72"></span><span>  </span><span class="hs-keyword">deriving</span><span> </span><span class="annot"><span class="hs-keyword">anyclass</span></span><span>
+</span><span id="line-73"></span><span>    </span><span class="hs-special">(</span><span> </span><span class="hs-comment">-- | @since 0.1.0.0</span><span>
+</span><span id="line-74"></span><span>      </span><span id="local-6989586621679270623"><span class="annot"><span class="annottext">BatteryApp -&gt; ()
+(BatteryApp -&gt; ()) -&gt; NFData BatteryApp
+forall a. (a -&gt; ()) -&gt; NFData a
+rnf :: BatteryApp -&gt; ()
+$crnf :: BatteryApp -&gt; ()
+</span><a href="file:///nix/store/16s6s6gbs6bxf3x75xpna03ygn755wig-ghc-9.2.3-doc/share/doc/ghc/html/libraries/deepseq-1.4.6.1/src/Control.DeepSeq.html#C%3ANFData"><span class="hs-identifier hs-var hs-var hs-var hs-var">NFData</span></a></span></span><span>
+</span><span id="line-75"></span><span>    </span><span class="hs-special">)</span><span>
+</span><span id="line-76"></span><span>
+</span><span id="line-77"></span><span class="hs-comment">-- | @since 0.1</span><span>
+</span><span id="line-78"></span><span id="_BatteryAppUPower"><span id="_BatteryAppSysFs"><span id="_BatteryAppAcpi"><span class="hs-identifier">makePrisms</span><span> </span><span class="hs-special">''</span><span class="hs-identifier">BatteryApp</span></span></span></span><span>
+</span><span id="line-79"></span><span>
+</span><span id="line-80"></span><span class="hs-comment">-- | Battery configuration.</span><span>
+</span><span id="line-81"></span><span class="hs-comment">--</span><span>
+</span><span id="line-82"></span><span class="hs-comment">-- &gt;&gt;&gt; mempty @BatteryConfig</span><span>
+</span><span id="line-83"></span><span class="hs-comment">-- MkBatteryConfig {app = Many}</span><span>
+</span><span id="line-84"></span><span class="hs-comment">--</span><span>
+</span><span id="line-85"></span><span class="hs-comment">-- @since 0.1</span><span>
+</span><span id="line-86"></span><span class="hs-keyword">type</span><span> </span><span class="annot"><a href="Pythia.Services.Battery.Types.html#BatteryConfig"><span class="hs-identifier hs-type">BatteryConfig</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="file:///nix/store/16s6s6gbs6bxf3x75xpna03ygn755wig-ghc-9.2.3-doc/share/doc/ghc/html/libraries/ghc-prim-0.8.0/src/GHC.Types.html#Type"><span class="hs-identifier hs-type">Type</span></a></span><span>
+</span><span id="line-87"></span><span id="local-6989586621679270616"><span id="local-6989586621679270617"></span></span><span class="hs-keyword">newtype</span><span> </span><span id="BatteryConfig"><span class="annot"><a href="Pythia.Services.Battery.Types.html#BatteryConfig"><span class="hs-identifier hs-var">BatteryConfig</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span id="MkBatteryConfig"><span class="annot"><a href="Pythia.Services.Battery.Types.html#MkBatteryConfig"><span class="hs-identifier hs-var">MkBatteryConfig</span></a></span></span><span>
+</span><span id="line-88"></span><span>  </span><span class="hs-special">{</span><span> </span><span class="hs-comment">-- | @since 0.1</span><span>
+</span><span id="line-89"></span><span>    </span><span id="%24sel%3Aapp%3AMkBatteryConfig"><span class="annot"><span class="annottext">BatteryConfig -&gt; RunApp BatteryApp
+</span><a href="Pythia.Services.Battery.Types.html#%24sel%3Aapp%3AMkBatteryConfig"><span class="hs-identifier hs-var hs-var">app</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Pythia.Data.RunApp.html#RunApp"><span class="hs-identifier hs-type">RunApp</span></a></span><span> </span><span class="annot"><a href="Pythia.Services.Battery.Types.html#BatteryApp"><span class="hs-identifier hs-type">BatteryApp</span></a></span><span>
+</span><span id="line-90"></span><span>  </span><span class="hs-special">}</span><span>
+</span><span id="line-91"></span><span>  </span><span class="hs-keyword">deriving</span><span> </span><span class="annot"><span class="hs-keyword">stock</span></span><span>
+</span><span id="line-92"></span><span>    </span><span class="hs-special">(</span><span> </span><span class="hs-comment">-- | @since 0.1</span><span>
+</span><span id="line-93"></span><span>      </span><span id="local-6989586621679270607"><span id="local-6989586621679270612"><span class="annot"><span class="annottext">BatteryConfig -&gt; BatteryConfig -&gt; Bool
+(BatteryConfig -&gt; BatteryConfig -&gt; Bool)
+-&gt; (BatteryConfig -&gt; BatteryConfig -&gt; Bool) -&gt; Eq BatteryConfig
+forall a. (a -&gt; a -&gt; Bool) -&gt; (a -&gt; a -&gt; Bool) -&gt; Eq a
+/= :: BatteryConfig -&gt; BatteryConfig -&gt; Bool
+$c/= :: BatteryConfig -&gt; BatteryConfig -&gt; Bool
+== :: BatteryConfig -&gt; BatteryConfig -&gt; Bool
+$c== :: BatteryConfig -&gt; BatteryConfig -&gt; Bool
+</span><a href="file:///nix/store/16s6s6gbs6bxf3x75xpna03ygn755wig-ghc-9.2.3-doc/share/doc/ghc/html/libraries/ghc-prim-0.8.0/src/GHC.Classes.html#Eq"><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Eq</span></a></span></span></span><span class="hs-special">,</span><span>
+</span><span id="line-94"></span><span>      </span><span class="hs-comment">-- | @since 0.1</span><span>
+</span><span id="line-95"></span><span>      </span><span class="annot"><span class="annottext">(forall x. BatteryConfig -&gt; Rep BatteryConfig x)
+-&gt; (forall x. Rep BatteryConfig x -&gt; BatteryConfig)
+-&gt; Generic BatteryConfig
+forall x. Rep BatteryConfig x -&gt; BatteryConfig
+forall x. BatteryConfig -&gt; Rep BatteryConfig x
+forall a.
+(forall x. a -&gt; Rep a x) -&gt; (forall x. Rep a x -&gt; a) -&gt; Generic a
+$cto :: forall x. Rep BatteryConfig x -&gt; BatteryConfig
+$cfrom :: forall x. BatteryConfig -&gt; Rep BatteryConfig x
+</span><a href="file:///nix/store/16s6s6gbs6bxf3x75xpna03ygn755wig-ghc-9.2.3-doc/share/doc/ghc/html/libraries/base-4.16.2.0/src/GHC.Generics.html#Generic"><span class="hs-identifier hs-var hs-var hs-var hs-var">Generic</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-96"></span><span>      </span><span class="hs-comment">-- | @since 0.1</span><span>
+</span><span id="line-97"></span><span>      </span><span id="local-6989586621679270595"><span id="local-6989586621679270597"><span id="local-6989586621679270603"><span class="annot"><span class="annottext">Int -&gt; BatteryConfig -&gt; ShowS
+[BatteryConfig] -&gt; ShowS
+BatteryConfig -&gt; [Char]
+(Int -&gt; BatteryConfig -&gt; ShowS)
+-&gt; (BatteryConfig -&gt; [Char])
+-&gt; ([BatteryConfig] -&gt; ShowS)
+-&gt; Show BatteryConfig
+forall a.
+(Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; [Char]) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+showList :: [BatteryConfig] -&gt; ShowS
+$cshowList :: [BatteryConfig] -&gt; ShowS
+show :: BatteryConfig -&gt; [Char]
+$cshow :: BatteryConfig -&gt; [Char]
+showsPrec :: Int -&gt; BatteryConfig -&gt; ShowS
+$cshowsPrec :: Int -&gt; BatteryConfig -&gt; ShowS
+</span><a href="file:///nix/store/16s6s6gbs6bxf3x75xpna03ygn755wig-ghc-9.2.3-doc/share/doc/ghc/html/libraries/base-4.16.2.0/src/GHC.Show.html#Show"><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Show</span></a></span></span></span></span><span>
+</span><span id="line-98"></span><span>    </span><span class="hs-special">)</span><span>
+</span><span id="line-99"></span><span>  </span><span class="hs-keyword">deriving</span><span> </span><span class="annot"><span class="hs-keyword">anyclass</span></span><span>
+</span><span id="line-100"></span><span>    </span><span class="hs-special">(</span><span> </span><span class="hs-comment">-- | @since 0.1</span><span>
+</span><span id="line-101"></span><span>      </span><span id="local-6989586621679270593"><span class="annot"><span class="annottext">BatteryConfig -&gt; ()
+(BatteryConfig -&gt; ()) -&gt; NFData BatteryConfig
+forall a. (a -&gt; ()) -&gt; NFData a
+rnf :: BatteryConfig -&gt; ()
+$crnf :: BatteryConfig -&gt; ()
+</span><a href="#local-6989586621679270593"><span class="hs-identifier hs-var hs-var hs-var hs-var">NFData</span></a></span></span><span>
+</span><span id="line-102"></span><span>    </span><span class="hs-special">)</span><span>
+</span><span id="line-103"></span><span>
+</span><span id="line-104"></span><span class="hs-comment">-- | @since 0.1</span><span>
+</span><span id="line-105"></span><span id="_MkBatteryConfig"><span class="hs-identifier">makePrisms</span><span> </span><span class="hs-special">''</span><span class="hs-identifier">BatteryConfig</span></span><span>
+</span><span id="line-106"></span><span>
+</span><span id="line-107"></span><span class="hs-comment">-- | @since 0.1</span><span>
+</span><span id="line-108"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621679270587"><span id="local-6989586621679270589"><span class="annot"><a href="file:///nix/store/16s6s6gbs6bxf3x75xpna03ygn755wig-ghc-9.2.3-doc/share/doc/ghc/html/libraries/base-4.16.2.0/src/GHC.Base.html#Semigroup"><span class="hs-identifier hs-type">Semigroup</span></a></span><span> </span><span class="annot"><a href="Pythia.Services.Battery.Types.html#BatteryConfig"><span class="hs-identifier hs-type">BatteryConfig</span></a></span></span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-109"></span><span>  </span><span class="annot"><a href="Pythia.Services.Battery.Types.html#MkBatteryConfig"><span class="hs-identifier hs-type">MkBatteryConfig</span></a></span><span> </span><span id="local-6989586621679270583"><span class="annot"><span class="annottext">RunApp BatteryApp
+</span><a href="#local-6989586621679270583"><span class="hs-identifier hs-var">l</span></a></span></span><span> </span><span id="local-6989586621679270582"><span class="annot"><span class="annottext">&lt;&gt; :: BatteryConfig -&gt; BatteryConfig -&gt; BatteryConfig
+</span><a href="file:///nix/store/16s6s6gbs6bxf3x75xpna03ygn755wig-ghc-9.2.3-doc/share/doc/ghc/html/libraries/base-4.16.2.0/src/GHC.Base.html#%3C%3E"><span class="hs-operator hs-var hs-var hs-var hs-var">&lt;&gt;</span></a></span></span><span> </span><span class="annot"><a href="Pythia.Services.Battery.Types.html#MkBatteryConfig"><span class="hs-identifier hs-type">MkBatteryConfig</span></a></span><span> </span><span id="local-6989586621679270581"><span class="annot"><span class="annottext">RunApp BatteryApp
+</span><a href="#local-6989586621679270581"><span class="hs-identifier hs-var">r</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">RunApp BatteryApp -&gt; BatteryConfig
+</span><a href="Pythia.Services.Battery.Types.html#MkBatteryConfig"><span class="hs-identifier hs-var">MkBatteryConfig</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">RunApp BatteryApp
+</span><a href="#local-6989586621679270583"><span class="hs-identifier hs-var">l</span></a></span><span> </span><span class="annot"><span class="annottext">RunApp BatteryApp -&gt; RunApp BatteryApp -&gt; RunApp BatteryApp
+forall a. Semigroup a =&gt; a -&gt; a -&gt; a
+</span><a href="file:///nix/store/16s6s6gbs6bxf3x75xpna03ygn755wig-ghc-9.2.3-doc/share/doc/ghc/html/libraries/base-4.16.2.0/src/GHC.Base.html#%3C%3E"><span class="hs-operator hs-var">&lt;&gt;</span></a></span><span> </span><span class="annot"><span class="annottext">RunApp BatteryApp
+</span><a href="#local-6989586621679270581"><span class="hs-identifier hs-var">r</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-110"></span><span>  </span><span class="hs-pragma">{-# INLINEABLE</span><span> </span><span class="hs-pragma">(</span><span class="hs-pragma">&lt;&gt;</span><span class="hs-pragma">)</span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-111"></span><span>
+</span><span id="line-112"></span><span class="hs-comment">-- | @since 0.1</span><span>
+</span><span id="line-113"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621679270574"><span id="local-6989586621679270576"><span class="annot"><a href="file:///nix/store/16s6s6gbs6bxf3x75xpna03ygn755wig-ghc-9.2.3-doc/share/doc/ghc/html/libraries/base-4.16.2.0/src/GHC.Base.html#Monoid"><span class="hs-identifier hs-type">Monoid</span></a></span><span> </span><span class="annot"><a href="Pythia.Services.Battery.Types.html#BatteryConfig"><span class="hs-identifier hs-type">BatteryConfig</span></a></span></span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-114"></span><span>  </span><span id="local-6989586621679270570"><span class="annot"><span class="annottext">mempty :: BatteryConfig
+</span><a href="file:///nix/store/16s6s6gbs6bxf3x75xpna03ygn755wig-ghc-9.2.3-doc/share/doc/ghc/html/libraries/base-4.16.2.0/src/GHC.Base.html#mempty"><span class="hs-identifier hs-var hs-var hs-var hs-var">mempty</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">RunApp BatteryApp -&gt; BatteryConfig
+</span><a href="Pythia.Services.Battery.Types.html#MkBatteryConfig"><span class="hs-identifier hs-var">MkBatteryConfig</span></a></span><span> </span><span class="annot"><span class="annottext">RunApp BatteryApp
+forall a. Monoid a =&gt; a
+</span><a href="file:///nix/store/16s6s6gbs6bxf3x75xpna03ygn755wig-ghc-9.2.3-doc/share/doc/ghc/html/libraries/base-4.16.2.0/src/GHC.Base.html#mempty"><span class="hs-identifier hs-var">mempty</span></a></span><span>
+</span><span id="line-115"></span><span>  </span><span class="hs-pragma">{-# INLINEABLE</span><span> </span><span class="annot"><a href="file:///nix/store/16s6s6gbs6bxf3x75xpna03ygn755wig-ghc-9.2.3-doc/share/doc/ghc/html/libraries/base-4.16.2.0/src/GHC.Base.html#mempty"><span class="hs-pragma hs-type">mempty</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-116"></span><span>
+</span><span id="line-117"></span><span class="hs-comment">-- | Represents battery charging status.</span><span>
+</span><span id="line-118"></span><span class="hs-comment">--</span><span>
+</span><span id="line-119"></span><span class="hs-comment">-- @since 0.1</span><span>
+</span><span id="line-120"></span><span class="hs-keyword">type</span><span> </span><span class="annot"><a href="Pythia.Services.Battery.Types.html#BatteryStatus"><span class="hs-identifier hs-type">BatteryStatus</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="file:///nix/store/16s6s6gbs6bxf3x75xpna03ygn755wig-ghc-9.2.3-doc/share/doc/ghc/html/libraries/ghc-prim-0.8.0/src/GHC.Types.html#Type"><span class="hs-identifier hs-type">Type</span></a></span><span>
+</span><span id="line-121"></span><span id="local-6989586621679270568"><span id="local-6989586621679270569"></span></span><span class="hs-keyword">data</span><span> </span><span id="BatteryStatus"><span class="annot"><a href="Pythia.Services.Battery.Types.html#BatteryStatus"><span class="hs-identifier hs-var">BatteryStatus</span></a></span></span><span>
+</span><span id="line-122"></span><span>  </span><span class="hs-glyph">=</span><span> </span><span class="hs-comment">-- | @since 0.1</span><span>
+</span><span id="line-123"></span><span>    </span><span id="Charging"><span class="annot"><a href="Pythia.Services.Battery.Types.html#Charging"><span class="hs-identifier hs-var">Charging</span></a></span></span><span>
+</span><span id="line-124"></span><span>  </span><span class="hs-glyph">|</span><span> </span><span class="hs-comment">-- | @since 0.1</span><span>
+</span><span id="line-125"></span><span>    </span><span id="Discharging"><span class="annot"><a href="Pythia.Services.Battery.Types.html#Discharging"><span class="hs-identifier hs-var">Discharging</span></a></span></span><span>
+</span><span id="line-126"></span><span>  </span><span class="hs-glyph">|</span><span> </span><span class="hs-comment">-- | @since 0.1</span><span>
+</span><span id="line-127"></span><span>    </span><span id="Full"><span class="annot"><a href="Pythia.Services.Battery.Types.html#Full"><span class="hs-identifier hs-var">Full</span></a></span></span><span>
+</span><span id="line-128"></span><span>  </span><span class="hs-glyph">|</span><span> </span><span class="hs-comment">-- | @since 0.1</span><span>
+</span><span id="line-129"></span><span>    </span><span id="Pending"><span class="annot"><a href="Pythia.Services.Battery.Types.html#Pending"><span class="hs-identifier hs-var">Pending</span></a></span></span><span>
+</span><span id="line-130"></span><span>  </span><span class="hs-keyword">deriving</span><span> </span><span class="annot"><span class="hs-keyword">stock</span></span><span>
+</span><span id="line-131"></span><span>    </span><span class="hs-special">(</span><span> </span><span class="hs-comment">-- | @since 0.1</span><span>
+</span><span id="line-132"></span><span>      </span><span id="local-6989586621679270560"><span id="local-6989586621679270562"><span class="annot"><span class="annottext">BatteryStatus -&gt; BatteryStatus -&gt; Bool
+(BatteryStatus -&gt; BatteryStatus -&gt; Bool)
+-&gt; (BatteryStatus -&gt; BatteryStatus -&gt; Bool) -&gt; Eq BatteryStatus
+forall a. (a -&gt; a -&gt; Bool) -&gt; (a -&gt; a -&gt; Bool) -&gt; Eq a
+/= :: BatteryStatus -&gt; BatteryStatus -&gt; Bool
+$c/= :: BatteryStatus -&gt; BatteryStatus -&gt; Bool
+== :: BatteryStatus -&gt; BatteryStatus -&gt; Bool
+$c== :: BatteryStatus -&gt; BatteryStatus -&gt; Bool
+</span><a href="file:///nix/store/16s6s6gbs6bxf3x75xpna03ygn755wig-ghc-9.2.3-doc/share/doc/ghc/html/libraries/ghc-prim-0.8.0/src/GHC.Classes.html#Eq"><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Eq</span></a></span></span></span><span class="hs-special">,</span><span>
+</span><span id="line-133"></span><span>      </span><span class="hs-comment">-- | @since 0.1</span><span>
+</span><span id="line-134"></span><span>      </span><span class="annot"><span class="annottext">(forall x. BatteryStatus -&gt; Rep BatteryStatus x)
+-&gt; (forall x. Rep BatteryStatus x -&gt; BatteryStatus)
+-&gt; Generic BatteryStatus
+forall x. Rep BatteryStatus x -&gt; BatteryStatus
+forall x. BatteryStatus -&gt; Rep BatteryStatus x
+forall a.
+(forall x. a -&gt; Rep a x) -&gt; (forall x. Rep a x -&gt; a) -&gt; Generic a
+$cto :: forall x. Rep BatteryStatus x -&gt; BatteryStatus
+$cfrom :: forall x. BatteryStatus -&gt; Rep BatteryStatus x
+</span><a href="file:///nix/store/16s6s6gbs6bxf3x75xpna03ygn755wig-ghc-9.2.3-doc/share/doc/ghc/html/libraries/base-4.16.2.0/src/GHC.Generics.html#Generic"><span class="hs-identifier hs-var hs-var hs-var hs-var">Generic</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-135"></span><span>      </span><span class="hs-comment">-- | @since 0.1</span><span>
+</span><span id="line-136"></span><span>      </span><span id="local-6989586621679270552"><span id="local-6989586621679270554"><span id="local-6989586621679270556"><span class="annot"><span class="annottext">Int -&gt; BatteryStatus -&gt; ShowS
+[BatteryStatus] -&gt; ShowS
+BatteryStatus -&gt; [Char]
+(Int -&gt; BatteryStatus -&gt; ShowS)
+-&gt; (BatteryStatus -&gt; [Char])
+-&gt; ([BatteryStatus] -&gt; ShowS)
+-&gt; Show BatteryStatus
+forall a.
+(Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; [Char]) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+showList :: [BatteryStatus] -&gt; ShowS
+$cshowList :: [BatteryStatus] -&gt; ShowS
+show :: BatteryStatus -&gt; [Char]
+$cshow :: BatteryStatus -&gt; [Char]
+showsPrec :: Int -&gt; BatteryStatus -&gt; ShowS
+$cshowsPrec :: Int -&gt; BatteryStatus -&gt; ShowS
+</span><a href="file:///nix/store/16s6s6gbs6bxf3x75xpna03ygn755wig-ghc-9.2.3-doc/share/doc/ghc/html/libraries/base-4.16.2.0/src/GHC.Show.html#Show"><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Show</span></a></span></span></span></span><span>
+</span><span id="line-137"></span><span>    </span><span class="hs-special">)</span><span>
+</span><span id="line-138"></span><span>  </span><span class="hs-keyword">deriving</span><span> </span><span class="annot"><span class="hs-keyword">anyclass</span></span><span>
+</span><span id="line-139"></span><span>    </span><span class="hs-special">(</span><span> </span><span class="hs-comment">-- | @since 0.1</span><span>
+</span><span id="line-140"></span><span>      </span><span id="local-6989586621679270550"><span class="annot"><span class="annottext">BatteryStatus -&gt; ()
+(BatteryStatus -&gt; ()) -&gt; NFData BatteryStatus
+forall a. (a -&gt; ()) -&gt; NFData a
+rnf :: BatteryStatus -&gt; ()
+$crnf :: BatteryStatus -&gt; ()
+</span><a href="#local-6989586621679270550"><span class="hs-identifier hs-var hs-var hs-var hs-var">NFData</span></a></span></span><span>
+</span><span id="line-141"></span><span>    </span><span class="hs-special">)</span><span>
+</span><span id="line-142"></span><span>
+</span><span id="line-143"></span><span class="hs-comment">-- | @since 0.1</span><span>
+</span><span id="line-144"></span><span id="_Pending"><span id="_Full"><span id="_Discharging"><span id="_Charging"><span class="hs-identifier">makePrisms</span><span> </span><span class="hs-special">''</span><span class="hs-identifier">BatteryStatus</span></span></span></span></span><span>
+</span><span id="line-145"></span><span>
+</span><span id="line-146"></span><span class="hs-comment">-- | @since 0.1</span><span>
+</span><span id="line-147"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621679270543"><span class="annot"><a href="file:///nix/store/76qzbp4abnrjkr3xal2a7k80s020g8pv-prettyprinter-1.7.1-doc/share/doc/prettyprinter-1.7.1/html/src/Prettyprinter.Internal.html#Pretty"><span class="hs-identifier hs-type">Pretty</span></a></span><span> </span><span class="annot"><a href="Pythia.Services.Battery.Types.html#BatteryStatus"><span class="hs-identifier hs-type">BatteryStatus</span></a></span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-148"></span><span>  </span><span id="local-6989586621679270536"><span class="annot"><span class="annottext">pretty :: forall ann. BatteryStatus -&gt; Doc ann
+</span><a href="file:///nix/store/76qzbp4abnrjkr3xal2a7k80s020g8pv-prettyprinter-1.7.1-doc/share/doc/prettyprinter-1.7.1/html/src/Prettyprinter.Internal.html#pretty"><span class="hs-identifier hs-var hs-var hs-var hs-var">pretty</span></a></span></span><span> </span><span class="annot"><span class="annottext">BatteryStatus
+</span><a href="Pythia.Services.Battery.Types.html#Charging"><span class="hs-identifier hs-var">Charging</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Doc ann
+</span><span class="hs-string">&quot;Charging&quot;</span></span><span>
+</span><span id="line-149"></span><span>  </span><span class="annot"><a href="file:///nix/store/76qzbp4abnrjkr3xal2a7k80s020g8pv-prettyprinter-1.7.1-doc/share/doc/prettyprinter-1.7.1/html/src/Prettyprinter.Internal.html#pretty"><span class="hs-identifier hs-var">pretty</span></a></span><span> </span><span class="annot"><span class="annottext">BatteryStatus
+</span><a href="Pythia.Services.Battery.Types.html#Discharging"><span class="hs-identifier hs-var">Discharging</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Doc ann
+</span><span class="hs-string">&quot;Discharging&quot;</span></span><span>
+</span><span id="line-150"></span><span>  </span><span class="annot"><a href="file:///nix/store/76qzbp4abnrjkr3xal2a7k80s020g8pv-prettyprinter-1.7.1-doc/share/doc/prettyprinter-1.7.1/html/src/Prettyprinter.Internal.html#pretty"><span class="hs-identifier hs-var">pretty</span></a></span><span> </span><span class="annot"><span class="annottext">BatteryStatus
+</span><a href="Pythia.Services.Battery.Types.html#Full"><span class="hs-identifier hs-var">Full</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Doc ann
+</span><span class="hs-string">&quot;Full&quot;</span></span><span>
+</span><span id="line-151"></span><span>  </span><span class="annot"><a href="file:///nix/store/76qzbp4abnrjkr3xal2a7k80s020g8pv-prettyprinter-1.7.1-doc/share/doc/prettyprinter-1.7.1/html/src/Prettyprinter.Internal.html#pretty"><span class="hs-identifier hs-var">pretty</span></a></span><span> </span><span class="annot"><span class="annottext">BatteryStatus
+</span><a href="Pythia.Services.Battery.Types.html#Pending"><span class="hs-identifier hs-var">Pending</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Doc ann
+</span><span class="hs-string">&quot;Pending&quot;</span></span><span>
+</span><span id="line-152"></span><span>  </span><span class="hs-pragma">{-# INLINEABLE</span><span> </span><span class="annot"><a href="file:///nix/store/76qzbp4abnrjkr3xal2a7k80s020g8pv-prettyprinter-1.7.1-doc/share/doc/prettyprinter-1.7.1/html/src/Prettyprinter.Internal.html#pretty"><span class="hs-pragma hs-type">pretty</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-153"></span><span>
+</span><span id="line-154"></span><span class="hs-comment">-- | Full battery state, including percentage and status data.</span><span>
+</span><span id="line-155"></span><span class="hs-comment">--</span><span>
+</span><span id="line-156"></span><span class="hs-comment">-- @since 0.1</span><span>
+</span><span id="line-157"></span><span class="hs-keyword">type</span><span> </span><span class="annot"><a href="Pythia.Services.Battery.Types.html#Battery"><span class="hs-identifier hs-type">Battery</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="file:///nix/store/16s6s6gbs6bxf3x75xpna03ygn755wig-ghc-9.2.3-doc/share/doc/ghc/html/libraries/ghc-prim-0.8.0/src/GHC.Types.html#Type"><span class="hs-identifier hs-type">Type</span></a></span><span>
+</span><span id="line-158"></span><span id="local-6989586621679270533"><span id="local-6989586621679270534"></span></span><span class="hs-keyword">data</span><span> </span><span id="Battery"><span class="annot"><a href="Pythia.Services.Battery.Types.html#Battery"><span class="hs-identifier hs-var">Battery</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span id="MkBattery"><span class="annot"><a href="Pythia.Services.Battery.Types.html#MkBattery"><span class="hs-identifier hs-var">MkBattery</span></a></span></span><span>
+</span><span id="line-159"></span><span>  </span><span class="hs-special">{</span><span> </span><span class="hs-comment">-- | @since 0.1</span><span>
+</span><span id="line-160"></span><span>    </span><span id="%24sel%3Apercentage%3AMkBattery"><span class="annot"><span class="annottext">Battery -&gt; Percentage
+</span><a href="Pythia.Services.Battery.Types.html#%24sel%3Apercentage%3AMkBattery"><span class="hs-identifier hs-var hs-var">percentage</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Pythia.Data.Percentage.html#Percentage"><span class="hs-identifier hs-type">Percentage</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-161"></span><span>    </span><span class="hs-comment">-- | @since 0.1</span><span>
+</span><span id="line-162"></span><span>    </span><span id="%24sel%3Astatus%3AMkBattery"><span class="annot"><span class="annottext">Battery -&gt; BatteryStatus
+</span><a href="Pythia.Services.Battery.Types.html#%24sel%3Astatus%3AMkBattery"><span class="hs-identifier hs-var hs-var">status</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Pythia.Services.Battery.Types.html#BatteryStatus"><span class="hs-identifier hs-type">BatteryStatus</span></a></span><span>
+</span><span id="line-163"></span><span>  </span><span class="hs-special">}</span><span>
+</span><span id="line-164"></span><span>  </span><span class="hs-keyword">deriving</span><span> </span><span class="annot"><span class="hs-keyword">stock</span></span><span>
+</span><span id="line-165"></span><span>    </span><span class="hs-special">(</span><span> </span><span class="hs-comment">-- | @since 0.1</span><span>
+</span><span id="line-166"></span><span>      </span><span id="local-6989586621679270523"><span id="local-6989586621679270528"><span class="annot"><span class="annottext">Battery -&gt; Battery -&gt; Bool
+(Battery -&gt; Battery -&gt; Bool)
+-&gt; (Battery -&gt; Battery -&gt; Bool) -&gt; Eq Battery
+forall a. (a -&gt; a -&gt; Bool) -&gt; (a -&gt; a -&gt; Bool) -&gt; Eq a
+/= :: Battery -&gt; Battery -&gt; Bool
+$c/= :: Battery -&gt; Battery -&gt; Bool
+== :: Battery -&gt; Battery -&gt; Bool
+$c== :: Battery -&gt; Battery -&gt; Bool
+</span><a href="file:///nix/store/16s6s6gbs6bxf3x75xpna03ygn755wig-ghc-9.2.3-doc/share/doc/ghc/html/libraries/ghc-prim-0.8.0/src/GHC.Classes.html#Eq"><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Eq</span></a></span></span></span><span class="hs-special">,</span><span>
+</span><span id="line-167"></span><span>      </span><span class="hs-comment">-- | @since 0.1</span><span>
+</span><span id="line-168"></span><span>      </span><span class="annot"><span class="annottext">(forall x. Battery -&gt; Rep Battery x)
+-&gt; (forall x. Rep Battery x -&gt; Battery) -&gt; Generic Battery
+forall x. Rep Battery x -&gt; Battery
+forall x. Battery -&gt; Rep Battery x
+forall a.
+(forall x. a -&gt; Rep a x) -&gt; (forall x. Rep a x -&gt; a) -&gt; Generic a
+$cto :: forall x. Rep Battery x -&gt; Battery
+$cfrom :: forall x. Battery -&gt; Rep Battery x
+</span><a href="file:///nix/store/16s6s6gbs6bxf3x75xpna03ygn755wig-ghc-9.2.3-doc/share/doc/ghc/html/libraries/base-4.16.2.0/src/GHC.Generics.html#Generic"><span class="hs-identifier hs-var hs-var hs-var hs-var">Generic</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-169"></span><span>      </span><span class="hs-comment">-- | @since 0.1</span><span>
+</span><span id="line-170"></span><span>      </span><span id="local-6989586621679270511"><span id="local-6989586621679270513"><span id="local-6989586621679270519"><span class="annot"><span class="annottext">Int -&gt; Battery -&gt; ShowS
+[Battery] -&gt; ShowS
+Battery -&gt; [Char]
+(Int -&gt; Battery -&gt; ShowS)
+-&gt; (Battery -&gt; [Char]) -&gt; ([Battery] -&gt; ShowS) -&gt; Show Battery
+forall a.
+(Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; [Char]) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+showList :: [Battery] -&gt; ShowS
+$cshowList :: [Battery] -&gt; ShowS
+show :: Battery -&gt; [Char]
+$cshow :: Battery -&gt; [Char]
+showsPrec :: Int -&gt; Battery -&gt; ShowS
+$cshowsPrec :: Int -&gt; Battery -&gt; ShowS
+</span><a href="file:///nix/store/16s6s6gbs6bxf3x75xpna03ygn755wig-ghc-9.2.3-doc/share/doc/ghc/html/libraries/base-4.16.2.0/src/GHC.Show.html#Show"><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Show</span></a></span></span></span></span><span>
+</span><span id="line-171"></span><span>    </span><span class="hs-special">)</span><span>
+</span><span id="line-172"></span><span>  </span><span class="hs-keyword">deriving</span><span> </span><span class="annot"><span class="hs-keyword">anyclass</span></span><span>
+</span><span id="line-173"></span><span>    </span><span class="hs-special">(</span><span> </span><span class="hs-comment">-- | @since 0.1</span><span>
+</span><span id="line-174"></span><span>      </span><span id="local-6989586621679270509"><span class="annot"><span class="annottext">Battery -&gt; ()
+(Battery -&gt; ()) -&gt; NFData Battery
+forall a. (a -&gt; ()) -&gt; NFData a
+rnf :: Battery -&gt; ()
+$crnf :: Battery -&gt; ()
+</span><a href="#local-6989586621679270509"><span class="hs-identifier hs-var hs-var hs-var hs-var">NFData</span></a></span></span><span>
+</span><span id="line-175"></span><span>    </span><span class="hs-special">)</span><span>
+</span><span id="line-176"></span><span>
+</span><span id="line-177"></span><span class="hs-comment">-- | @since 0.1</span><span>
+</span><span id="line-178"></span><span id="local-6989586621679270499"><span id="local-6989586621679270504"><span id="local-6989586621679270902"><span id="local-6989586621679270903"><span id="local-6989586621679270904"><span id="local-6989586621679270905"><span id="local-6989586621679270906"><span id="local-6989586621679270907"><span class="hs-identifier">makeFieldLabelsNoPrefix</span><span> </span><span class="hs-special">''</span><span class="hs-identifier">Battery</span></span></span></span></span></span></span></span></span><span>
+</span><span id="line-179"></span><span>
+</span><span id="line-180"></span><span class="hs-comment">-- | @since 0.1</span><span>
+</span><span id="line-181"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621679270471"><span class="annot"><a href="file:///nix/store/76qzbp4abnrjkr3xal2a7k80s020g8pv-prettyprinter-1.7.1-doc/share/doc/prettyprinter-1.7.1/html/src/Prettyprinter.Internal.html#Pretty"><span class="hs-identifier hs-type">Pretty</span></a></span><span> </span><span class="annot"><a href="Pythia.Services.Battery.Types.html#Battery"><span class="hs-identifier hs-type">Battery</span></a></span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-182"></span><span>  </span><span id="local-6989586621679270445"><span class="annot"><span class="annottext">pretty :: forall ann. Battery -&gt; Doc ann
+</span><a href="#local-6989586621679270445"><span class="hs-identifier hs-var hs-var hs-var hs-var">pretty</span></a></span></span><span> </span><span id="local-6989586621679270444"><span class="annot"><span class="annottext">Battery
+</span><a href="#local-6989586621679270444"><span class="hs-identifier hs-var">bs</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-183"></span><span>    </span><span class="annot"><span class="annottext">Doc ann
+</span><a href="#local-6989586621679270443"><span class="hs-identifier hs-var">status</span></a></span><span>
+</span><span id="line-184"></span><span>      </span><span class="annot"><span class="annottext">Doc ann -&gt; Doc ann -&gt; Doc ann
+forall a. Semigroup a =&gt; a -&gt; a -&gt; a
+</span><a href="file:///nix/store/16s6s6gbs6bxf3x75xpna03ygn755wig-ghc-9.2.3-doc/share/doc/ghc/html/libraries/base-4.16.2.0/src/GHC.Base.html#%3C%3E"><span class="hs-operator hs-var">&lt;&gt;</span></a></span><span> </span><span class="annot"><span class="annottext">forall a ann. Pretty a =&gt; a -&gt; Doc ann
+</span><a href="file:///nix/store/76qzbp4abnrjkr3xal2a7k80s020g8pv-prettyprinter-1.7.1-doc/share/doc/prettyprinter-1.7.1/html/src/Prettyprinter.Internal.html#pretty"><span class="hs-identifier hs-var">pretty</span></a></span><span> </span><span class="hs-glyph">@</span><span class="annot"><a href="file:///nix/store/16s6s6gbs6bxf3x75xpna03ygn755wig-ghc-9.2.3-doc/share/doc/ghc/html/libraries/text-1.2.5.0/src/Data.Text.Internal.html#Text"><span class="hs-identifier hs-type">Text</span></a></span><span> </span><span class="annot"><span class="annottext">Text
+</span><span class="hs-string">&quot;:&quot;</span></span><span>
+</span><span id="line-185"></span><span>      </span><span class="annot"><span class="annottext">Doc ann -&gt; Doc ann -&gt; Doc ann
+forall ann. Doc ann -&gt; Doc ann -&gt; Doc ann
+</span><a href="file:///nix/store/76qzbp4abnrjkr3xal2a7k80s020g8pv-prettyprinter-1.7.1-doc/share/doc/prettyprinter-1.7.1/html/src/Prettyprinter.Internal.html#%3C%2B%3E"><span class="hs-operator hs-var">&lt;+&gt;</span></a></span><span> </span><span class="annot"><span class="annottext">Doc ann
+</span><a href="#local-6989586621679270442"><span class="hs-identifier hs-var">percentage</span></a></span><span>
+</span><span id="line-186"></span><span>    </span><span class="hs-keyword">where</span><span>
+</span><span id="line-187"></span><span>      </span><span id="local-6989586621679270443"><span class="annot"><span class="annottext">status :: Doc ann
+</span><a href="#local-6989586621679270443"><span class="hs-identifier hs-var hs-var">status</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">BatteryStatus -&gt; Doc ann
+forall a ann. Pretty a =&gt; a -&gt; Doc ann
+</span><a href="file:///nix/store/76qzbp4abnrjkr3xal2a7k80s020g8pv-prettyprinter-1.7.1-doc/share/doc/prettyprinter-1.7.1/html/src/Prettyprinter.Internal.html#pretty"><span class="hs-identifier hs-var">pretty</span></a></span><span> </span><span class="annot"><span class="annottext">(BatteryStatus -&gt; Doc ann) -&gt; BatteryStatus -&gt; Doc ann
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><a href="file:///nix/store/16s6s6gbs6bxf3x75xpna03ygn755wig-ghc-9.2.3-doc/share/doc/ghc/html/libraries/base-4.16.2.0/src/GHC.Base.html#%24"><span class="hs-operator hs-var">$</span></a></span><span> </span><span class="annot"><span class="annottext">Battery
+</span><a href="#local-6989586621679270444"><span class="hs-identifier hs-var">bs</span></a></span><span> </span><span class="annot"><span class="annottext">Battery
+-&gt; Optic' A_Lens NoIx Battery BatteryStatus -&gt; BatteryStatus
+forall k s (is :: IxList) a.
+Is k A_Getter =&gt;
+s -&gt; Optic' k is s a -&gt; a
+</span><a href="file:///nix/store/wnx39jjxjr7ivk5xmark8v1f1fl8cmvb-optics-core-0.4.1-doc/share/doc/optics-core-0.4.1/html/src/Optics.Operators.html#%5E."><span class="hs-operator hs-var">^.</span></a></span><span> </span><span class="annot"><span class="annottext">Optic' A_Lens NoIx Battery BatteryStatus
+</span><span class="">#status</span></span><span>
+</span><span id="line-188"></span><span>      </span><span id="local-6989586621679270442"><span class="annot"><span class="annottext">percentage :: Doc ann
+</span><a href="#local-6989586621679270442"><span class="hs-identifier hs-var hs-var">percentage</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Percentage -&gt; Doc ann
+forall a ann. Pretty a =&gt; a -&gt; Doc ann
+</span><a href="file:///nix/store/76qzbp4abnrjkr3xal2a7k80s020g8pv-prettyprinter-1.7.1-doc/share/doc/prettyprinter-1.7.1/html/src/Prettyprinter.Internal.html#pretty"><span class="hs-identifier hs-var">pretty</span></a></span><span> </span><span class="annot"><span class="annottext">(Percentage -&gt; Doc ann) -&gt; Percentage -&gt; Doc ann
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><a href="file:///nix/store/16s6s6gbs6bxf3x75xpna03ygn755wig-ghc-9.2.3-doc/share/doc/ghc/html/libraries/base-4.16.2.0/src/GHC.Base.html#%24"><span class="hs-operator hs-var">$</span></a></span><span> </span><span class="annot"><span class="annottext">Battery
+</span><a href="#local-6989586621679270444"><span class="hs-identifier hs-var">bs</span></a></span><span> </span><span class="annot"><span class="annottext">Battery -&gt; Optic' A_Lens NoIx Battery Percentage -&gt; Percentage
+forall k s (is :: IxList) a.
+Is k A_Getter =&gt;
+s -&gt; Optic' k is s a -&gt; a
+</span><a href="file:///nix/store/wnx39jjxjr7ivk5xmark8v1f1fl8cmvb-optics-core-0.4.1-doc/share/doc/optics-core-0.4.1/html/src/Optics.Operators.html#%5E."><span class="hs-operator hs-var">^.</span></a></span><span> </span><span class="annot"><span class="annottext">Optic' A_Lens NoIx Battery Percentage
+</span><span class="">#percentage</span></span><span>
+</span><span id="line-189"></span><span>  </span><span class="hs-pragma">{-# INLINEABLE</span><span> </span><span class="annot"><a href="file:///nix/store/76qzbp4abnrjkr3xal2a7k80s020g8pv-prettyprinter-1.7.1-doc/share/doc/prettyprinter-1.7.1/html/src/Prettyprinter.Internal.html#pretty"><span class="hs-pragma hs-type">pretty</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-190"></span></pre></body></html>

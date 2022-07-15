@@ -1,0 +1,140 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><link rel="stylesheet" type="text/css" href="style.css" /><script type="text/javascript" src="highlight.js"></script></head><body><pre><span class="hs-pragma">{-# LANGUAGE TemplateHaskell #-}</span><span>
+</span><span id="line-2"></span><span>
+</span><span id="line-3"></span><span class="hs-comment">-- | Provides the 'Percentage' type.</span><span>
+</span><span id="line-4"></span><span class="hs-comment">--</span><span>
+</span><span id="line-5"></span><span class="hs-comment">-- @since 0.1</span><span>
+</span><span id="line-6"></span><span class="hs-keyword">module</span><span> </span><span class="hs-identifier">Pythia.Data.Percentage</span><span>
+</span><span id="line-7"></span><span>  </span><span class="hs-special">(</span><span> </span><span class="annot"><a href="Pythia.Data.Percentage.html#Percentage"><span class="hs-identifier">Percentage</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span class="hs-special">,</span><span>
+</span><span id="line-8"></span><span>    </span><span class="annot"><a href="Pythia.Data.Percentage.html#_MkPercentage"><span class="hs-identifier">_MkPercentage</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-9"></span><span>    </span><span class="annot"><a href="Pythia.Data.Percentage.html#rawPercentage"><span class="hs-identifier">rawPercentage</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-10"></span><span>  </span><span class="hs-special">)</span><span>
+</span><span id="line-11"></span><span class="hs-keyword">where</span><span>
+</span><span id="line-12"></span><span>
+</span><span id="line-13"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Numeric.Data.Interval</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">LRInterval</span></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span class="hs-special">)</span><span>
+</span><span id="line-14"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Pythia.Prelude.html"><span class="hs-identifier">Pythia.Prelude</span></a></span><span>
+</span><span id="line-15"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Pythia.Utils.html"><span class="hs-identifier">Pythia.Utils</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="file:///nix/store/76qzbp4abnrjkr3xal2a7k80s020g8pv-prettyprinter-1.7.1-doc/share/doc/prettyprinter-1.7.1/html/src/Prettyprinter.Internal.html#Pretty"><span class="hs-identifier">Pretty</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span class="hs-special">)</span><span>
+</span><span id="line-16"></span><span>
+</span><span id="line-17"></span><span class="hs-comment">-- | Represents a percentage.</span><span>
+</span><span id="line-18"></span><span class="hs-comment">--</span><span>
+</span><span id="line-19"></span><span class="hs-comment">-- @since 0.1</span><span>
+</span><span id="line-20"></span><span class="hs-keyword">type</span><span> </span><span class="annot"><a href="Pythia.Data.Percentage.html#Percentage"><span class="hs-identifier hs-type">Percentage</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="file:///nix/store/16s6s6gbs6bxf3x75xpna03ygn755wig-ghc-9.2.3-doc/share/doc/ghc/html/libraries/ghc-prim-0.8.0/src/GHC.Types.html#Type"><span class="hs-identifier hs-type">Type</span></a></span><span>
+</span><span id="line-21"></span><span id="local-6989586621679270369"><span id="local-6989586621679270370"></span></span><span class="hs-keyword">newtype</span><span> </span><span id="Percentage"><span class="annot"><a href="Pythia.Data.Percentage.html#Percentage"><span class="hs-identifier hs-var">Percentage</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span id="MkPercentage"><span class="annot"><a href="Pythia.Data.Percentage.html#MkPercentage"><span class="hs-identifier hs-var">MkPercentage</span></a></span></span><span>
+</span><span id="line-22"></span><span>  </span><span class="hs-special">{</span><span> </span><span class="hs-comment">-- | @since 0.1</span><span>
+</span><span id="line-23"></span><span>    </span><span id="%24sel%3AunPercentage%3AMkPercentage"><span class="annot"><span class="annottext">Percentage -&gt; LRInterval 0 100 Word8
+</span><a href="Pythia.Data.Percentage.html#%24sel%3AunPercentage%3AMkPercentage"><span class="hs-identifier hs-var hs-var">unPercentage</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">LRInterval</span></span><span> </span><span class="annot"><span class="hs-number">0</span></span><span> </span><span class="annot"><span class="hs-number">100</span></span><span> </span><span class="annot"><a href="file:///nix/store/16s6s6gbs6bxf3x75xpna03ygn755wig-ghc-9.2.3-doc/share/doc/ghc/html/libraries/base-4.16.2.0/src/GHC.Word.html#Word8"><span class="hs-identifier hs-type">Word8</span></a></span><span>
+</span><span id="line-24"></span><span>  </span><span class="hs-special">}</span><span>
+</span><span id="line-25"></span><span>  </span><span class="hs-keyword">deriving</span><span> </span><span class="annot"><span class="hs-keyword">stock</span></span><span>
+</span><span id="line-26"></span><span>    </span><span class="hs-special">(</span><span> </span><span class="hs-comment">-- | @since 0.1</span><span>
+</span><span id="line-27"></span><span>      </span><span id="local-6989586621679270360"><span id="local-6989586621679270365"><span class="annot"><span class="annottext">Percentage -&gt; Percentage -&gt; Bool
+(Percentage -&gt; Percentage -&gt; Bool)
+-&gt; (Percentage -&gt; Percentage -&gt; Bool) -&gt; Eq Percentage
+forall a. (a -&gt; a -&gt; Bool) -&gt; (a -&gt; a -&gt; Bool) -&gt; Eq a
+/= :: Percentage -&gt; Percentage -&gt; Bool
+$c/= :: Percentage -&gt; Percentage -&gt; Bool
+== :: Percentage -&gt; Percentage -&gt; Bool
+$c== :: Percentage -&gt; Percentage -&gt; Bool
+</span><a href="file:///nix/store/16s6s6gbs6bxf3x75xpna03ygn755wig-ghc-9.2.3-doc/share/doc/ghc/html/libraries/ghc-prim-0.8.0/src/GHC.Classes.html#Eq"><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Eq</span></a></span></span></span><span class="hs-special">,</span><span>
+</span><span id="line-28"></span><span>      </span><span class="hs-comment">-- | @since 0.1</span><span>
+</span><span id="line-29"></span><span>      </span><span class="annot"><span class="annottext">(forall x. Percentage -&gt; Rep Percentage x)
+-&gt; (forall x. Rep Percentage x -&gt; Percentage) -&gt; Generic Percentage
+forall x. Rep Percentage x -&gt; Percentage
+forall x. Percentage -&gt; Rep Percentage x
+forall a.
+(forall x. a -&gt; Rep a x) -&gt; (forall x. Rep a x -&gt; a) -&gt; Generic a
+$cto :: forall x. Rep Percentage x -&gt; Percentage
+$cfrom :: forall x. Percentage -&gt; Rep Percentage x
+</span><a href="file:///nix/store/16s6s6gbs6bxf3x75xpna03ygn755wig-ghc-9.2.3-doc/share/doc/ghc/html/libraries/base-4.16.2.0/src/GHC.Generics.html#Generic"><span class="hs-identifier hs-var hs-var hs-var hs-var">Generic</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-30"></span><span>      </span><span class="hs-comment">-- | @since 0.1</span><span>
+</span><span id="line-31"></span><span>      </span><span id="local-6989586621679270331"><span id="local-6989586621679270333"><span id="local-6989586621679270336"><span id="local-6989586621679270339"><span id="local-6989586621679270342"><span id="local-6989586621679270346"><span id="local-6989586621679270351"><span class="annot"><span class="annottext">Eq Percentage
+Eq Percentage
+-&gt; (Percentage -&gt; Percentage -&gt; Ordering)
+-&gt; (Percentage -&gt; Percentage -&gt; Bool)
+-&gt; (Percentage -&gt; Percentage -&gt; Bool)
+-&gt; (Percentage -&gt; Percentage -&gt; Bool)
+-&gt; (Percentage -&gt; Percentage -&gt; Bool)
+-&gt; (Percentage -&gt; Percentage -&gt; Percentage)
+-&gt; (Percentage -&gt; Percentage -&gt; Percentage)
+-&gt; Ord Percentage
+Percentage -&gt; Percentage -&gt; Bool
+Percentage -&gt; Percentage -&gt; Ordering
+Percentage -&gt; Percentage -&gt; Percentage
+forall a.
+Eq a
+-&gt; (a -&gt; a -&gt; Ordering)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; a)
+-&gt; (a -&gt; a -&gt; a)
+-&gt; Ord a
+min :: Percentage -&gt; Percentage -&gt; Percentage
+$cmin :: Percentage -&gt; Percentage -&gt; Percentage
+max :: Percentage -&gt; Percentage -&gt; Percentage
+$cmax :: Percentage -&gt; Percentage -&gt; Percentage
+&gt;= :: Percentage -&gt; Percentage -&gt; Bool
+$c&gt;= :: Percentage -&gt; Percentage -&gt; Bool
+&gt; :: Percentage -&gt; Percentage -&gt; Bool
+$c&gt; :: Percentage -&gt; Percentage -&gt; Bool
+&lt;= :: Percentage -&gt; Percentage -&gt; Bool
+$c&lt;= :: Percentage -&gt; Percentage -&gt; Bool
+&lt; :: Percentage -&gt; Percentage -&gt; Bool
+$c&lt; :: Percentage -&gt; Percentage -&gt; Bool
+compare :: Percentage -&gt; Percentage -&gt; Ordering
+$ccompare :: Percentage -&gt; Percentage -&gt; Ordering
+</span><a href="file:///nix/store/16s6s6gbs6bxf3x75xpna03ygn755wig-ghc-9.2.3-doc/share/doc/ghc/html/libraries/ghc-prim-0.8.0/src/GHC.Classes.html#Ord"><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Ord</span></a></span></span></span></span></span></span></span></span><span class="hs-special">,</span><span>
+</span><span id="line-32"></span><span>      </span><span class="hs-comment">-- | @since 0.1</span><span>
+</span><span id="line-33"></span><span>      </span><span id="local-6989586621679270318"><span id="local-6989586621679270320"><span id="local-6989586621679270327"><span class="annot"><span class="annottext">Int -&gt; Percentage -&gt; ShowS
+[Percentage] -&gt; ShowS
+Percentage -&gt; String
+(Int -&gt; Percentage -&gt; ShowS)
+-&gt; (Percentage -&gt; String)
+-&gt; ([Percentage] -&gt; ShowS)
+-&gt; Show Percentage
+forall a.
+(Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; String) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+showList :: [Percentage] -&gt; ShowS
+$cshowList :: [Percentage] -&gt; ShowS
+show :: Percentage -&gt; String
+$cshow :: Percentage -&gt; String
+showsPrec :: Int -&gt; Percentage -&gt; ShowS
+$cshowsPrec :: Int -&gt; Percentage -&gt; ShowS
+</span><a href="file:///nix/store/16s6s6gbs6bxf3x75xpna03ygn755wig-ghc-9.2.3-doc/share/doc/ghc/html/libraries/base-4.16.2.0/src/GHC.Show.html#Show"><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Show</span></a></span></span></span></span><span>
+</span><span id="line-34"></span><span>    </span><span class="hs-special">)</span><span>
+</span><span id="line-35"></span><span>  </span><span class="hs-keyword">deriving</span><span> </span><span class="annot"><span class="hs-keyword">anyclass</span></span><span>
+</span><span id="line-36"></span><span>    </span><span class="hs-special">(</span><span> </span><span class="hs-comment">-- | @since 0.1</span><span>
+</span><span id="line-37"></span><span>      </span><span id="local-6989586621679270314"><span class="annot"><span class="annottext">Percentage -&gt; ()
+(Percentage -&gt; ()) -&gt; NFData Percentage
+forall a. (a -&gt; ()) -&gt; NFData a
+rnf :: Percentage -&gt; ()
+$crnf :: Percentage -&gt; ()
+</span><a href="file:///nix/store/16s6s6gbs6bxf3x75xpna03ygn755wig-ghc-9.2.3-doc/share/doc/ghc/html/libraries/deepseq-1.4.6.1/src/Control.DeepSeq.html#C%3ANFData"><span class="hs-identifier hs-var hs-var hs-var hs-var">NFData</span></a></span></span><span>
+</span><span id="line-38"></span><span>    </span><span class="hs-special">)</span><span>
+</span><span id="line-39"></span><span>
+</span><span id="line-40"></span><span class="hs-comment">-- | @since 0.1</span><span>
+</span><span id="line-41"></span><span id="_MkPercentage"><span class="hs-identifier">makePrisms</span><span> </span><span class="hs-special">''</span><span class="hs-identifier">Percentage</span></span><span>
+</span><span id="line-42"></span><span>
+</span><span id="line-43"></span><span class="hs-comment">-- | @since 0.1</span><span>
+</span><span id="line-44"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621679270309"><span class="annot"><a href="file:///nix/store/76qzbp4abnrjkr3xal2a7k80s020g8pv-prettyprinter-1.7.1-doc/share/doc/prettyprinter-1.7.1/html/src/Prettyprinter.Internal.html#Pretty"><span class="hs-identifier hs-type">Pretty</span></a></span><span> </span><span class="annot"><a href="Pythia.Data.Percentage.html#Percentage"><span class="hs-identifier hs-type">Percentage</span></a></span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-45"></span><span>  </span><span id="local-6989586621679270297"><span class="annot"><span class="annottext">pretty :: forall ann. Percentage -&gt; Doc ann
+</span><a href="file:///nix/store/76qzbp4abnrjkr3xal2a7k80s020g8pv-prettyprinter-1.7.1-doc/share/doc/prettyprinter-1.7.1/html/src/Prettyprinter.Internal.html#pretty"><span class="hs-identifier hs-var hs-var hs-var hs-var">pretty</span></a></span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Pythia.Data.Percentage.html#MkPercentage"><span class="hs-identifier hs-type">MkPercentage</span></a></span><span> </span><span id="local-6989586621679270295"><span class="annot"><span class="annottext">LRInterval 0 100 Word8
+</span><a href="#local-6989586621679270295"><span class="hs-identifier hs-var">p</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">LRInterval 0 100 Word8 -&gt; Doc ann
+forall a ann. Pretty a =&gt; a -&gt; Doc ann
+</span><a href="file:///nix/store/76qzbp4abnrjkr3xal2a7k80s020g8pv-prettyprinter-1.7.1-doc/share/doc/prettyprinter-1.7.1/html/src/Prettyprinter.Internal.html#pretty"><span class="hs-identifier hs-var">pretty</span></a></span><span> </span><span class="annot"><span class="annottext">LRInterval 0 100 Word8
+</span><a href="#local-6989586621679270295"><span class="hs-identifier hs-var">p</span></a></span><span> </span><span class="annot"><span class="annottext">Doc ann -&gt; Doc ann -&gt; Doc ann
+forall a. Semigroup a =&gt; a -&gt; a -&gt; a
+</span><a href="file:///nix/store/16s6s6gbs6bxf3x75xpna03ygn755wig-ghc-9.2.3-doc/share/doc/ghc/html/libraries/base-4.16.2.0/src/GHC.Base.html#%3C%3E"><span class="hs-operator hs-var">&lt;&gt;</span></a></span><span> </span><span class="annot"><span class="annottext">forall a ann. Pretty a =&gt; a -&gt; Doc ann
+</span><a href="file:///nix/store/76qzbp4abnrjkr3xal2a7k80s020g8pv-prettyprinter-1.7.1-doc/share/doc/prettyprinter-1.7.1/html/src/Prettyprinter.Internal.html#pretty"><span class="hs-identifier hs-var">pretty</span></a></span><span> </span><span class="hs-glyph">@</span><span class="annot"><a href="file:///nix/store/16s6s6gbs6bxf3x75xpna03ygn755wig-ghc-9.2.3-doc/share/doc/ghc/html/libraries/text-1.2.5.0/src/Data.Text.Internal.html#Text"><span class="hs-identifier hs-type">Text</span></a></span><span> </span><span class="annot"><span class="annottext">Text
+</span><span class="hs-string">&quot;%&quot;</span></span><span>
+</span><span id="line-46"></span><span>  </span><span class="hs-pragma">{-# INLINEABLE</span><span> </span><span class="annot"><a href="file:///nix/store/76qzbp4abnrjkr3xal2a7k80s020g8pv-prettyprinter-1.7.1-doc/share/doc/prettyprinter-1.7.1/html/src/Prettyprinter.Internal.html#pretty"><span class="hs-pragma hs-type">pretty</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-47"></span><span>
+</span><span id="line-48"></span><span class="hs-comment">-- | Retrieve the raw percentage.</span><span>
+</span><span id="line-49"></span><span class="hs-comment">--</span><span>
+</span><span id="line-50"></span><span class="hs-comment">-- @since 0.1</span><span>
+</span><span id="line-51"></span><span class="annot"><a href="Pythia.Data.Percentage.html#rawPercentage"><span class="hs-identifier hs-type">rawPercentage</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Pythia.Data.Percentage.html#Percentage"><span class="hs-identifier hs-type">Percentage</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="file:///nix/store/16s6s6gbs6bxf3x75xpna03ygn755wig-ghc-9.2.3-doc/share/doc/ghc/html/libraries/base-4.16.2.0/src/GHC.Word.html#Word8"><span class="hs-identifier hs-type">Word8</span></a></span><span>
+</span><span id="line-52"></span><span id="rawPercentage"><span class="annot"><span class="annottext">rawPercentage :: Percentage -&gt; Word8
+</span><a href="Pythia.Data.Percentage.html#rawPercentage"><span class="hs-identifier hs-var hs-var">rawPercentage</span></a></span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Pythia.Data.Percentage.html#MkPercentage"><span class="hs-identifier hs-type">MkPercentage</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">MkLRInterval</span></span><span> </span><span id="local-6989586621679270293"><span class="annot"><span class="annottext">Word8
+</span><a href="#local-6989586621679270293"><span class="hs-identifier hs-var">x</span></a></span></span><span class="hs-special">)</span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Word8
+</span><a href="#local-6989586621679270293"><span class="hs-identifier hs-var">x</span></a></span><span>
+</span><span id="line-53"></span><span class="hs-pragma">{-# INLINEABLE</span><span> </span><span class="annot"><a href="Pythia.Data.Percentage.html#rawPercentage"><span class="hs-pragma hs-type">rawPercentage</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-54"></span></pre></body></html>

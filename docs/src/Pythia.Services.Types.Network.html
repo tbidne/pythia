@@ -1,0 +1,791 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><link rel="stylesheet" type="text/css" href="style.css" /><script type="text/javascript" src="highlight.js"></script></head><body><pre><span class="hs-pragma">{-# LANGUAGE TemplateHaskell #-}</span><span>
+</span><span id="line-2"></span><span>
+</span><span id="line-3"></span><span class="hs-comment">-- | Provides common network types.</span><span>
+</span><span id="line-4"></span><span class="hs-comment">--</span><span>
+</span><span id="line-5"></span><span class="hs-comment">-- @since 0.1</span><span>
+</span><span id="line-6"></span><span class="hs-keyword">module</span><span> </span><span class="hs-identifier">Pythia.Services.Types.Network</span><span>
+</span><span id="line-7"></span><span>  </span><span class="hs-special">(</span><span> </span><span class="annot"><span class="hs-comment">-- * IP Types</span></span><span>
+</span><span id="line-8"></span><span>    </span><span class="annot"><a href="Pythia.Services.Types.Network.html#IpType"><span class="hs-identifier">IpType</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span class="hs-special">,</span><span>
+</span><span id="line-9"></span><span>    </span><span class="annot"><a href="Pythia.Services.Types.Network.html#IpAddress"><span class="hs-identifier">IpAddress</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span class="hs-special">,</span><span>
+</span><span id="line-10"></span><span>    </span><span class="annot"><a href="Pythia.Services.Types.Network.html#IpAddresses"><span class="hs-identifier">IpAddresses</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span class="hs-special">,</span><span>
+</span><span id="line-11"></span><span>
+</span><span id="line-12"></span><span>    </span><span class="annot"><span class="hs-comment">-- ** Refinements</span></span><span>
+</span><span id="line-13"></span><span>    </span><span class="annot"><a href="Pythia.Services.Types.Network.html#IpRefinement"><span class="hs-identifier">IpRefinement</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-14"></span><span>    </span><span class="annot"><a href="Pythia.Services.Types.Network.html#Ipv4Refinement"><span class="hs-identifier">Ipv4Refinement</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-15"></span><span>    </span><span class="annot"><a href="Pythia.Services.Types.Network.html#Ipv6Refinement"><span class="hs-identifier">Ipv6Refinement</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-16"></span><span>
+</span><span id="line-17"></span><span>    </span><span class="annot"><span class="hs-comment">-- * Network Device</span></span><span>
+</span><span id="line-18"></span><span>    </span><span class="annot"><a href="Pythia.Services.Types.Network.html#Device"><span class="hs-identifier">Device</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span class="hs-special">,</span><span>
+</span><span id="line-19"></span><span>
+</span><span id="line-20"></span><span>    </span><span class="annot"><span class="hs-comment">-- * Optics</span></span><span>
+</span><span id="line-21"></span><span>    </span><span class="annot"><a href="Pythia.Services.Types.Network.html#_MkDevice"><span class="hs-identifier">_MkDevice</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-22"></span><span>    </span><span class="annot"><a href="Pythia.Services.Types.Network.html#_Ipv4"><span class="hs-identifier">_Ipv4</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-23"></span><span>    </span><span class="annot"><a href="Pythia.Services.Types.Network.html#_Ipv6"><span class="hs-identifier">_Ipv6</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-24"></span><span>    </span><span class="annot"><a href="Pythia.Services.Types.Network.html#_MkIpAddress"><span class="hs-identifier">_MkIpAddress</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-25"></span><span>    </span><span class="annot"><a href="Pythia.Services.Types.Network.html#_MkIpAddresses"><span class="hs-identifier">_MkIpAddresses</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-26"></span><span>  </span><span class="hs-special">)</span><span>
+</span><span id="line-27"></span><span class="hs-keyword">where</span><span>
+</span><span id="line-28"></span><span>
+</span><span id="line-29"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="file:///nix/store/16s6s6gbs6bxf3x75xpna03ygn755wig-ghc-9.2.3-doc/share/doc/ghc/html/libraries/base-4.16.2.0/src/Data.Char.html"><span class="hs-identifier">Data.Char</span></a></span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="hs-keyword">as</span><span> </span><span class="annot"><span class="hs-identifier">Char</span></span><span>
+</span><span id="line-30"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="file:///nix/store/16s6s6gbs6bxf3x75xpna03ygn755wig-ghc-9.2.3-doc/share/doc/ghc/html/libraries/text-1.2.5.0/src/Data.Text.html"><span class="hs-identifier">Data.Text</span></a></span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="hs-keyword">as</span><span> </span><span class="annot"><span class="hs-identifier">T</span></span><span>
+</span><span id="line-31"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="file:///nix/store/16s6s6gbs6bxf3x75xpna03ygn755wig-ghc-9.2.3-doc/share/doc/ghc/html/libraries/base-4.16.2.0/src/Data.Typeable.html"><span class="hs-identifier">Data.Typeable</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="file:///nix/store/16s6s6gbs6bxf3x75xpna03ygn755wig-ghc-9.2.3-doc/share/doc/ghc/html/libraries/base-4.16.2.0/src/Data.Typeable.html#typeRep"><span class="hs-identifier">typeRep</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-32"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Pythia.Prelude.html"><span class="hs-identifier">Pythia.Prelude</span></a></span><span>
+</span><span id="line-33"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Pythia.Utils.html"><span class="hs-identifier">Pythia.Utils</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="file:///nix/store/76qzbp4abnrjkr3xal2a7k80s020g8pv-prettyprinter-1.7.1-doc/share/doc/prettyprinter-1.7.1/html/src/Prettyprinter.Internal.html#Pretty"><span class="hs-identifier">Pretty</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span class="hs-special">)</span><span>
+</span><span id="line-34"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Pythia.Utils.html"><span class="hs-identifier">Pythia.Utils</span></a></span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="hs-keyword">as</span><span> </span><span class="annot"><span class="hs-identifier">U</span></span><span>
+</span><span id="line-35"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="file:///nix/store/mxfd5xc68bb63djk8wihq9rn8aspa4fb-refined-0.6.3-doc/share/doc/refined-0.6.3/html/src/Refined.html"><span class="hs-identifier">Refined</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="file:///nix/store/mxfd5xc68bb63djk8wihq9rn8aspa4fb-refined-0.6.3-doc/share/doc/refined-0.6.3/html/src/Refined.html#Predicate"><span class="hs-identifier">Predicate</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="file:///nix/store/mxfd5xc68bb63djk8wihq9rn8aspa4fb-refined-0.6.3-doc/share/doc/refined-0.6.3/html/src/Refined.Unsafe.Type.html#Refined"><span class="hs-identifier">Refined</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-36"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="file:///nix/store/mxfd5xc68bb63djk8wihq9rn8aspa4fb-refined-0.6.3-doc/share/doc/refined-0.6.3/html/src/Refined.html"><span class="hs-identifier">Refined</span></a></span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="hs-keyword">as</span><span> </span><span class="annot"><span class="hs-identifier">R</span></span><span>
+</span><span id="line-37"></span><span>
+</span><span id="line-38"></span><span class="hs-comment">-- $setup</span><span>
+</span><span id="line-39"></span><span class="hs-comment">-- &gt;&gt;&gt; :{</span><span>
+</span><span id="line-40"></span><span class="hs-comment">--   let trim :: Show a =&gt; a -&gt; String</span><span>
+</span><span id="line-41"></span><span class="hs-comment">--       trim = T.unpack . T.strip . T.pack . show</span><span>
+</span><span id="line-42"></span><span class="hs-comment">-- :}</span><span>
+</span><span id="line-43"></span><span>
+</span><span id="line-44"></span><span class="hs-comment">-- | Newtype wrapper over a network device name.</span><span>
+</span><span id="line-45"></span><span class="hs-comment">--</span><span>
+</span><span id="line-46"></span><span class="hs-comment">-- @since 0.1</span><span>
+</span><span id="line-47"></span><span class="hs-keyword">type</span><span> </span><span class="annot"><a href="Pythia.Services.Types.Network.html#Device"><span class="hs-identifier hs-type">Device</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="file:///nix/store/16s6s6gbs6bxf3x75xpna03ygn755wig-ghc-9.2.3-doc/share/doc/ghc/html/libraries/ghc-prim-0.8.0/src/GHC.Types.html#Type"><span class="hs-identifier hs-type">Type</span></a></span><span>
+</span><span id="line-48"></span><span id="local-6989586621679267690"><span id="local-6989586621679267691"></span></span><span class="hs-keyword">newtype</span><span> </span><span id="Device"><span class="annot"><a href="Pythia.Services.Types.Network.html#Device"><span class="hs-identifier hs-var">Device</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span id="MkDevice"><span class="annot"><a href="Pythia.Services.Types.Network.html#MkDevice"><span class="hs-identifier hs-var">MkDevice</span></a></span></span><span>
+</span><span id="line-49"></span><span>  </span><span class="hs-special">{</span><span> </span><span class="hs-comment">-- | @since 0.1</span><span>
+</span><span id="line-50"></span><span>    </span><span id="%24sel%3AunDevice%3AMkDevice"><span class="annot"><span class="annottext">Device -&gt; Text
+</span><a href="Pythia.Services.Types.Network.html#%24sel%3AunDevice%3AMkDevice"><span class="hs-identifier hs-var hs-var">unDevice</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="file:///nix/store/16s6s6gbs6bxf3x75xpna03ygn755wig-ghc-9.2.3-doc/share/doc/ghc/html/libraries/text-1.2.5.0/src/Data.Text.Internal.html#Text"><span class="hs-identifier hs-type">Text</span></a></span><span>
+</span><span id="line-51"></span><span>  </span><span class="hs-special">}</span><span>
+</span><span id="line-52"></span><span>  </span><span class="hs-keyword">deriving</span><span> </span><span class="annot"><span class="hs-keyword">stock</span></span><span>
+</span><span id="line-53"></span><span>    </span><span class="hs-special">(</span><span> </span><span class="hs-comment">-- | @since 0.1</span><span>
+</span><span id="line-54"></span><span>      </span><span id="local-6989586621679267682"><span id="local-6989586621679267686"><span class="annot"><span class="annottext">Device -&gt; Device -&gt; Bool
+(Device -&gt; Device -&gt; Bool)
+-&gt; (Device -&gt; Device -&gt; Bool) -&gt; Eq Device
+forall a. (a -&gt; a -&gt; Bool) -&gt; (a -&gt; a -&gt; Bool) -&gt; Eq a
+/= :: Device -&gt; Device -&gt; Bool
+$c/= :: Device -&gt; Device -&gt; Bool
+== :: Device -&gt; Device -&gt; Bool
+$c== :: Device -&gt; Device -&gt; Bool
+</span><a href="file:///nix/store/16s6s6gbs6bxf3x75xpna03ygn755wig-ghc-9.2.3-doc/share/doc/ghc/html/libraries/ghc-prim-0.8.0/src/GHC.Classes.html#Eq"><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Eq</span></a></span></span></span><span class="hs-special">,</span><span>
+</span><span id="line-55"></span><span>      </span><span class="hs-comment">-- | @since 0.1</span><span>
+</span><span id="line-56"></span><span>      </span><span class="annot"><span class="annottext">(forall x. Device -&gt; Rep Device x)
+-&gt; (forall x. Rep Device x -&gt; Device) -&gt; Generic Device
+forall x. Rep Device x -&gt; Device
+forall x. Device -&gt; Rep Device x
+forall a.
+(forall x. a -&gt; Rep a x) -&gt; (forall x. Rep a x -&gt; a) -&gt; Generic a
+$cto :: forall x. Rep Device x -&gt; Device
+$cfrom :: forall x. Device -&gt; Rep Device x
+</span><a href="file:///nix/store/16s6s6gbs6bxf3x75xpna03ygn755wig-ghc-9.2.3-doc/share/doc/ghc/html/libraries/base-4.16.2.0/src/GHC.Generics.html#Generic"><span class="hs-identifier hs-var hs-var hs-var hs-var">Generic</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-57"></span><span>      </span><span class="hs-comment">-- | @since 0.1</span><span>
+</span><span id="line-58"></span><span>      </span><span id="local-6989586621679267656"><span id="local-6989586621679267658"><span id="local-6989586621679267661"><span id="local-6989586621679267664"><span id="local-6989586621679267667"><span id="local-6989586621679267670"><span id="local-6989586621679267674"><span class="annot"><span class="annottext">Eq Device
+Eq Device
+-&gt; (Device -&gt; Device -&gt; Ordering)
+-&gt; (Device -&gt; Device -&gt; Bool)
+-&gt; (Device -&gt; Device -&gt; Bool)
+-&gt; (Device -&gt; Device -&gt; Bool)
+-&gt; (Device -&gt; Device -&gt; Bool)
+-&gt; (Device -&gt; Device -&gt; Device)
+-&gt; (Device -&gt; Device -&gt; Device)
+-&gt; Ord Device
+Device -&gt; Device -&gt; Bool
+Device -&gt; Device -&gt; Ordering
+Device -&gt; Device -&gt; Device
+forall a.
+Eq a
+-&gt; (a -&gt; a -&gt; Ordering)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; a)
+-&gt; (a -&gt; a -&gt; a)
+-&gt; Ord a
+min :: Device -&gt; Device -&gt; Device
+$cmin :: Device -&gt; Device -&gt; Device
+max :: Device -&gt; Device -&gt; Device
+$cmax :: Device -&gt; Device -&gt; Device
+&gt;= :: Device -&gt; Device -&gt; Bool
+$c&gt;= :: Device -&gt; Device -&gt; Bool
+&gt; :: Device -&gt; Device -&gt; Bool
+$c&gt; :: Device -&gt; Device -&gt; Bool
+&lt;= :: Device -&gt; Device -&gt; Bool
+$c&lt;= :: Device -&gt; Device -&gt; Bool
+&lt; :: Device -&gt; Device -&gt; Bool
+$c&lt; :: Device -&gt; Device -&gt; Bool
+compare :: Device -&gt; Device -&gt; Ordering
+$ccompare :: Device -&gt; Device -&gt; Ordering
+</span><a href="file:///nix/store/16s6s6gbs6bxf3x75xpna03ygn755wig-ghc-9.2.3-doc/share/doc/ghc/html/libraries/ghc-prim-0.8.0/src/GHC.Classes.html#Ord"><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Ord</span></a></span></span></span></span></span></span></span></span><span class="hs-special">,</span><span>
+</span><span id="line-59"></span><span>      </span><span class="hs-comment">-- | @since 0.1</span><span>
+</span><span id="line-60"></span><span>      </span><span id="local-6989586621679267638"><span id="local-6989586621679267648"><span id="local-6989586621679267651"><span id="local-6989586621679267653"><span class="annot"><span class="annottext">ReadPrec [Device]
+ReadPrec Device
+Int -&gt; ReadS Device
+ReadS [Device]
+(Int -&gt; ReadS Device)
+-&gt; ReadS [Device]
+-&gt; ReadPrec Device
+-&gt; ReadPrec [Device]
+-&gt; Read Device
+forall a.
+(Int -&gt; ReadS a)
+-&gt; ReadS [a] -&gt; ReadPrec a -&gt; ReadPrec [a] -&gt; Read a
+readListPrec :: ReadPrec [Device]
+$creadListPrec :: ReadPrec [Device]
+readPrec :: ReadPrec Device
+$creadPrec :: ReadPrec Device
+readList :: ReadS [Device]
+$creadList :: ReadS [Device]
+readsPrec :: Int -&gt; ReadS Device
+$creadsPrec :: Int -&gt; ReadS Device
+</span><a href="file:///nix/store/16s6s6gbs6bxf3x75xpna03ygn755wig-ghc-9.2.3-doc/share/doc/ghc/html/libraries/base-4.16.2.0/src/GHC.Read.html#Read"><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Read</span></a></span></span></span></span></span><span class="hs-special">,</span><span>
+</span><span id="line-61"></span><span>      </span><span class="hs-comment">-- | @since 0.1</span><span>
+</span><span id="line-62"></span><span>      </span><span id="local-6989586621679267626"><span id="local-6989586621679267628"><span id="local-6989586621679267634"><span class="annot"><span class="annottext">Int -&gt; Device -&gt; ShowS
+[Device] -&gt; ShowS
+Device -&gt; String
+(Int -&gt; Device -&gt; ShowS)
+-&gt; (Device -&gt; String) -&gt; ([Device] -&gt; ShowS) -&gt; Show Device
+forall a.
+(Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; String) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+showList :: [Device] -&gt; ShowS
+$cshowList :: [Device] -&gt; ShowS
+show :: Device -&gt; String
+$cshow :: Device -&gt; String
+showsPrec :: Int -&gt; Device -&gt; ShowS
+$cshowsPrec :: Int -&gt; Device -&gt; ShowS
+</span><a href="file:///nix/store/16s6s6gbs6bxf3x75xpna03ygn755wig-ghc-9.2.3-doc/share/doc/ghc/html/libraries/base-4.16.2.0/src/GHC.Show.html#Show"><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Show</span></a></span></span></span></span><span>
+</span><span id="line-63"></span><span>    </span><span class="hs-special">)</span><span>
+</span><span id="line-64"></span><span>  </span><span class="hs-keyword">deriving</span><span>
+</span><span id="line-65"></span><span>    </span><span class="hs-special">(</span><span> </span><span class="hs-comment">-- | @since 0.1</span><span>
+</span><span id="line-66"></span><span>      </span><span id="local-6989586621679267623"><span class="annot"><span class="annottext">String -&gt; Device
+(String -&gt; Device) -&gt; IsString Device
+forall a. (String -&gt; a) -&gt; IsString a
+fromString :: String -&gt; Device
+$cfromString :: String -&gt; Device
+</span><a href="file:///nix/store/16s6s6gbs6bxf3x75xpna03ygn755wig-ghc-9.2.3-doc/share/doc/ghc/html/libraries/base-4.16.2.0/src/Data.String.html#IsString"><span class="hs-identifier hs-var hs-var hs-var hs-var">IsString</span></a></span></span><span class="hs-special">,</span><span>
+</span><span id="line-67"></span><span>      </span><span class="hs-comment">-- | @since 0.1</span><span>
+</span><span id="line-68"></span><span>      </span><span id="local-6989586621679267611"><span id="local-6989586621679267616"><span class="annot"><span class="annottext">(forall ann. Device -&gt; Doc ann)
+-&gt; (forall ann. [Device] -&gt; Doc ann) -&gt; Pretty Device
+forall ann. [Device] -&gt; Doc ann
+forall ann. Device -&gt; Doc ann
+forall a.
+(forall ann. a -&gt; Doc ann)
+-&gt; (forall ann. [a] -&gt; Doc ann) -&gt; Pretty a
+prettyList :: forall ann. [Device] -&gt; Doc ann
+$cprettyList :: forall ann. [Device] -&gt; Doc ann
+pretty :: forall ann. Device -&gt; Doc ann
+$cpretty :: forall ann. Device -&gt; Doc ann
+</span><a href="file:///nix/store/76qzbp4abnrjkr3xal2a7k80s020g8pv-prettyprinter-1.7.1-doc/share/doc/prettyprinter-1.7.1/html/src/Prettyprinter.Internal.html#C%3APretty"><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Pretty</span></a></span></span></span><span>
+</span><span id="line-69"></span><span>    </span><span class="hs-special">)</span><span>
+</span><span id="line-70"></span><span>    </span><span class="hs-keyword">via</span><span> </span><span class="annot"><a href="file:///nix/store/16s6s6gbs6bxf3x75xpna03ygn755wig-ghc-9.2.3-doc/share/doc/ghc/html/libraries/text-1.2.5.0/src/Data.Text.Internal.html#Text"><span class="hs-identifier hs-type">Text</span></a></span><span>
+</span><span id="line-71"></span><span>  </span><span class="hs-keyword">deriving</span><span> </span><span class="annot"><span class="hs-keyword">anyclass</span></span><span>
+</span><span id="line-72"></span><span>    </span><span class="hs-special">(</span><span> </span><span class="hs-comment">-- | @since 0.1</span><span>
+</span><span id="line-73"></span><span>      </span><span id="local-6989586621679267605"><span class="annot"><span class="annottext">Device -&gt; ()
+(Device -&gt; ()) -&gt; NFData Device
+forall a. (a -&gt; ()) -&gt; NFData a
+rnf :: Device -&gt; ()
+$crnf :: Device -&gt; ()
+</span><a href="file:///nix/store/16s6s6gbs6bxf3x75xpna03ygn755wig-ghc-9.2.3-doc/share/doc/ghc/html/libraries/deepseq-1.4.6.1/src/Control.DeepSeq.html#C%3ANFData"><span class="hs-identifier hs-var hs-var hs-var hs-var">NFData</span></a></span></span><span>
+</span><span id="line-74"></span><span>    </span><span class="hs-special">)</span><span>
+</span><span id="line-75"></span><span>
+</span><span id="line-76"></span><span class="hs-comment">-- | @since 0.1</span><span>
+</span><span id="line-77"></span><span id="_MkDevice"><span class="hs-identifier">makePrisms</span><span> </span><span class="hs-special">''</span><span class="hs-identifier">Device</span></span><span>
+</span><span id="line-78"></span><span>
+</span><span id="line-79"></span><span class="hs-comment">-- | IP types.</span><span>
+</span><span id="line-80"></span><span class="hs-comment">--</span><span>
+</span><span id="line-81"></span><span class="hs-comment">-- @since 0.1</span><span>
+</span><span id="line-82"></span><span class="hs-keyword">type</span><span> </span><span class="annot"><a href="Pythia.Services.Types.Network.html#IpType"><span class="hs-identifier hs-type">IpType</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="file:///nix/store/16s6s6gbs6bxf3x75xpna03ygn755wig-ghc-9.2.3-doc/share/doc/ghc/html/libraries/ghc-prim-0.8.0/src/GHC.Types.html#Type"><span class="hs-identifier hs-type">Type</span></a></span><span>
+</span><span id="line-83"></span><span id="local-6989586621679267601"><span id="local-6989586621679267602"></span></span><span class="hs-keyword">data</span><span> </span><span id="IpType"><span class="annot"><a href="Pythia.Services.Types.Network.html#IpType"><span class="hs-identifier hs-var">IpType</span></a></span></span><span>
+</span><span id="line-84"></span><span>  </span><span class="hs-glyph">=</span><span> </span><span class="hs-comment">-- | @since 0.1</span><span>
+</span><span id="line-85"></span><span>    </span><span id="Ipv4"><span class="annot"><a href="Pythia.Services.Types.Network.html#Ipv4"><span class="hs-identifier hs-var">Ipv4</span></a></span></span><span>
+</span><span id="line-86"></span><span>  </span><span class="hs-glyph">|</span><span> </span><span class="hs-comment">-- | @since 0.1</span><span>
+</span><span id="line-87"></span><span>    </span><span id="Ipv6"><span class="annot"><a href="Pythia.Services.Types.Network.html#Ipv6"><span class="hs-identifier hs-var">Ipv6</span></a></span></span><span>
+</span><span id="line-88"></span><span>  </span><span class="hs-keyword">deriving</span><span> </span><span class="annot"><span class="hs-keyword">stock</span></span><span>
+</span><span id="line-89"></span><span>    </span><span class="hs-special">(</span><span> </span><span class="hs-comment">-- | @since 0.1</span><span>
+</span><span id="line-90"></span><span>      </span><span id="local-6989586621679267595"><span id="local-6989586621679267597"><span class="annot"><span class="annottext">IpType -&gt; IpType -&gt; Bool
+(IpType -&gt; IpType -&gt; Bool)
+-&gt; (IpType -&gt; IpType -&gt; Bool) -&gt; Eq IpType
+forall a. (a -&gt; a -&gt; Bool) -&gt; (a -&gt; a -&gt; Bool) -&gt; Eq a
+/= :: IpType -&gt; IpType -&gt; Bool
+$c/= :: IpType -&gt; IpType -&gt; Bool
+== :: IpType -&gt; IpType -&gt; Bool
+$c== :: IpType -&gt; IpType -&gt; Bool
+</span><a href="file:///nix/store/16s6s6gbs6bxf3x75xpna03ygn755wig-ghc-9.2.3-doc/share/doc/ghc/html/libraries/ghc-prim-0.8.0/src/GHC.Classes.html#Eq"><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Eq</span></a></span></span></span><span class="hs-special">,</span><span>
+</span><span id="line-91"></span><span>      </span><span class="hs-comment">-- | @since 0.1</span><span>
+</span><span id="line-92"></span><span>      </span><span class="annot"><span class="annottext">(forall x. IpType -&gt; Rep IpType x)
+-&gt; (forall x. Rep IpType x -&gt; IpType) -&gt; Generic IpType
+forall x. Rep IpType x -&gt; IpType
+forall x. IpType -&gt; Rep IpType x
+forall a.
+(forall x. a -&gt; Rep a x) -&gt; (forall x. Rep a x -&gt; a) -&gt; Generic a
+$cto :: forall x. Rep IpType x -&gt; IpType
+$cfrom :: forall x. IpType -&gt; Rep IpType x
+</span><a href="file:///nix/store/16s6s6gbs6bxf3x75xpna03ygn755wig-ghc-9.2.3-doc/share/doc/ghc/html/libraries/base-4.16.2.0/src/GHC.Generics.html#Generic"><span class="hs-identifier hs-var hs-var hs-var hs-var">Generic</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-93"></span><span>      </span><span class="hs-comment">-- | @since 0.1</span><span>
+</span><span id="line-94"></span><span>      </span><span id="local-6989586621679267587"><span id="local-6989586621679267589"><span id="local-6989586621679267591"><span class="annot"><span class="annottext">Int -&gt; IpType -&gt; ShowS
+[IpType] -&gt; ShowS
+IpType -&gt; String
+(Int -&gt; IpType -&gt; ShowS)
+-&gt; (IpType -&gt; String) -&gt; ([IpType] -&gt; ShowS) -&gt; Show IpType
+forall a.
+(Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; String) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+showList :: [IpType] -&gt; ShowS
+$cshowList :: [IpType] -&gt; ShowS
+show :: IpType -&gt; String
+$cshow :: IpType -&gt; String
+showsPrec :: Int -&gt; IpType -&gt; ShowS
+$cshowsPrec :: Int -&gt; IpType -&gt; ShowS
+</span><a href="file:///nix/store/16s6s6gbs6bxf3x75xpna03ygn755wig-ghc-9.2.3-doc/share/doc/ghc/html/libraries/base-4.16.2.0/src/GHC.Show.html#Show"><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Show</span></a></span></span></span></span><span>
+</span><span id="line-95"></span><span>    </span><span class="hs-special">)</span><span>
+</span><span id="line-96"></span><span>  </span><span class="hs-keyword">deriving</span><span> </span><span class="annot"><span class="hs-keyword">anyclass</span></span><span>
+</span><span id="line-97"></span><span>    </span><span class="hs-special">(</span><span> </span><span class="hs-comment">-- | @since 0.1</span><span>
+</span><span id="line-98"></span><span>      </span><span id="local-6989586621679267585"><span class="annot"><span class="annottext">IpType -&gt; ()
+(IpType -&gt; ()) -&gt; NFData IpType
+forall a. (a -&gt; ()) -&gt; NFData a
+rnf :: IpType -&gt; ()
+$crnf :: IpType -&gt; ()
+</span><a href="#local-6989586621679267585"><span class="hs-identifier hs-var hs-var hs-var hs-var">NFData</span></a></span></span><span>
+</span><span id="line-99"></span><span>    </span><span class="hs-special">)</span><span>
+</span><span id="line-100"></span><span>
+</span><span id="line-101"></span><span class="hs-comment">-- | @since 0.1</span><span>
+</span><span id="line-102"></span><span id="_Ipv6"><span id="_Ipv4"><span class="hs-identifier">makePrisms</span><span> </span><span class="hs-special">''</span><span class="hs-identifier">IpType</span></span></span><span>
+</span><span id="line-103"></span><span>
+</span><span id="line-104"></span><span class="hs-comment">-- | Maps 'IpType' to its 'Text' refinement.</span><span>
+</span><span id="line-105"></span><span class="hs-comment">--</span><span>
+</span><span id="line-106"></span><span class="hs-comment">-- @since 0.1</span><span>
+</span><span id="line-107"></span><span class="hs-keyword">type</span><span> </span><span class="annot"><a href="Pythia.Services.Types.Network.html#IpRefinement"><span class="hs-identifier hs-type">IpRefinement</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Pythia.Services.Types.Network.html#IpType"><span class="hs-identifier hs-type">IpType</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="file:///nix/store/16s6s6gbs6bxf3x75xpna03ygn755wig-ghc-9.2.3-doc/share/doc/ghc/html/libraries/ghc-prim-0.8.0/src/GHC.Types.html#Type"><span class="hs-identifier hs-type">Type</span></a></span><span>
+</span><span id="line-108"></span><span class="hs-keyword">type</span><span> </span><span class="hs-keyword">family</span><span> </span><span id="IpRefinement"><span class="annot"><a href="Pythia.Services.Types.Network.html#IpRefinement"><span class="hs-identifier hs-var">IpRefinement</span></a></span></span><span> </span><span id="local-6989586621679267581"><span class="annot"><a href="#local-6989586621679267581"><span class="hs-identifier hs-type">a</span></a></span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-109"></span><span>  </span><span id="IpRefinement"><span class="annot"><a href="Pythia.Services.Types.Network.html#IpRefinement"><span class="hs-identifier hs-var">IpRefinement</span></a></span></span><span> </span><span class="hs-special">'</span><span class="annot"><a href="Pythia.Services.Types.Network.html#Ipv4"><span class="hs-identifier hs-type">Ipv4</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><a href="Pythia.Services.Types.Network.html#Ipv4Refinement"><span class="hs-identifier hs-type">Ipv4Refinement</span></a></span><span>
+</span><span id="line-110"></span><span>  </span><span id="IpRefinement"><span class="annot"><a href="Pythia.Services.Types.Network.html#IpRefinement"><span class="hs-identifier hs-var">IpRefinement</span></a></span></span><span> </span><span class="hs-special">'</span><span class="annot"><a href="Pythia.Services.Types.Network.html#Ipv6"><span class="hs-identifier hs-type">Ipv6</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><a href="Pythia.Services.Types.Network.html#Ipv6Refinement"><span class="hs-identifier hs-type">Ipv6Refinement</span></a></span><span>
+</span><span id="line-111"></span><span>
+</span><span id="line-112"></span><span class="hs-comment">-- | IPv4 Refinement. We implement a custom type here so we get better error</span><span>
+</span><span id="line-113"></span><span class="hs-comment">-- messages. 'Text' must satisfy:</span><span>
+</span><span id="line-114"></span><span class="hs-comment">--</span><span>
+</span><span id="line-115"></span><span class="hs-comment">-- * Length in @(0, 16)@.</span><span>
+</span><span id="line-116"></span><span class="hs-comment">-- * Chars are all decimal digits or dots.</span><span>
+</span><span id="line-117"></span><span class="hs-comment">--</span><span>
+</span><span id="line-118"></span><span class="hs-comment">-- ==== __Examples__</span><span>
+</span><span id="line-119"></span><span class="hs-comment">-- &gt;&gt;&gt; R.refine @Ipv4Refinement @Text &quot;192.168.1.2&quot;</span><span>
+</span><span id="line-120"></span><span class="hs-comment">-- Right (Refined &quot;192.168.1.2&quot;)</span><span>
+</span><span id="line-121"></span><span class="hs-comment">--</span><span>
+</span><span id="line-122"></span><span class="hs-comment">-- &gt;&gt;&gt; trim $ R.refine @Ipv4Refinement @Text &quot;&quot;</span><span>
+</span><span id="line-123"></span><span class="hs-comment">-- &quot;Left   The predicate (Ipv4Refinement) failed with the message: Expected IPv4 with length (0, 16). Received empty.&quot;</span><span>
+</span><span id="line-124"></span><span class="hs-comment">--</span><span>
+</span><span id="line-125"></span><span class="hs-comment">-- &gt;&gt;&gt; trim $ R.refine @Ipv4Refinement @Text &quot;192.168.111.222.7&quot;</span><span>
+</span><span id="line-126"></span><span class="hs-comment">-- &quot;Left   The predicate (Ipv4Refinement) failed with the message: Expected IPv4 address with length (0, 16). Received '192.168.111.222.7' of length 17&quot;</span><span>
+</span><span id="line-127"></span><span class="hs-comment">--</span><span>
+</span><span id="line-128"></span><span class="hs-comment">-- &gt;&gt;&gt; trim $ R.refine @Ipv4Refinement @Text &quot;192.168x1.2&quot;</span><span>
+</span><span id="line-129"></span><span class="hs-comment">-- &quot;Left   The predicate (Ipv4Refinement) failed with the message: IPv4 address should only contain decimal digits or dots. Received invalid: 192.168x1.2&quot;</span><span>
+</span><span id="line-130"></span><span class="hs-comment">--</span><span>
+</span><span id="line-131"></span><span class="hs-comment">-- @since 0.1</span><span>
+</span><span id="line-132"></span><span class="hs-keyword">type</span><span> </span><span class="annot"><a href="Pythia.Services.Types.Network.html#Ipv4Refinement"><span class="hs-identifier hs-type">Ipv4Refinement</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="file:///nix/store/16s6s6gbs6bxf3x75xpna03ygn755wig-ghc-9.2.3-doc/share/doc/ghc/html/libraries/ghc-prim-0.8.0/src/GHC.Types.html#Type"><span class="hs-identifier hs-type">Type</span></a></span><span>
+</span><span id="line-133"></span><span class="hs-keyword">data</span><span> </span><span id="Ipv4Refinement"><span class="annot"><a href="Pythia.Services.Types.Network.html#Ipv4Refinement"><span class="hs-identifier hs-var">Ipv4Refinement</span></a></span></span><span>
+</span><span id="line-134"></span><span>
+</span><span id="line-135"></span><span class="hs-comment">-- | @since 0.1</span><span>
+</span><span id="line-136"></span><span class="hs-keyword">instance</span><span> </span><span class="annot"><a href="file:///nix/store/mxfd5xc68bb63djk8wihq9rn8aspa4fb-refined-0.6.3-doc/share/doc/refined-0.6.3/html/src/Refined.html#Predicate"><span class="hs-identifier hs-type">Predicate</span></a></span><span> </span><span class="annot"><a href="Pythia.Services.Types.Network.html#Ipv4Refinement"><span class="hs-identifier hs-type">Ipv4Refinement</span></a></span><span> </span><span class="annot"><a href="file:///nix/store/16s6s6gbs6bxf3x75xpna03ygn755wig-ghc-9.2.3-doc/share/doc/ghc/html/libraries/text-1.2.5.0/src/Data.Text.Internal.html#Text"><span class="hs-identifier hs-type">Text</span></a></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-137"></span><span>  </span><span id="local-6989586621679267552"><span class="annot"><span class="annottext">validate :: Proxy Ipv4Refinement -&gt; Text -&gt; Maybe RefineException
+</span><a href="file:///nix/store/mxfd5xc68bb63djk8wihq9rn8aspa4fb-refined-0.6.3-doc/share/doc/refined-0.6.3/html/src/Refined.html#validate"><span class="hs-identifier hs-var hs-var hs-var hs-var">validate</span></a></span></span><span> </span><span id="local-6989586621679267550"><span class="annot"><span class="annottext">Proxy Ipv4Refinement
+</span><a href="#local-6989586621679267550"><span class="hs-identifier hs-var">p</span></a></span></span><span> </span><span id="local-6989586621679267549"><span class="annot"><span class="annottext">Text
+</span><a href="#local-6989586621679267549"><span class="hs-identifier hs-var">txt</span></a></span></span><span>
+</span><span id="line-138"></span><span>    </span><span class="hs-glyph">|</span><span> </span><span class="annot"><span class="annottext">Bool -&gt; Bool
+</span><a href="file:///nix/store/16s6s6gbs6bxf3x75xpna03ygn755wig-ghc-9.2.3-doc/share/doc/ghc/html/libraries/ghc-prim-0.8.0/src/GHC.Classes.html#not"><span class="hs-identifier hs-var">not</span></a></span><span> </span><span class="annot"><span class="annottext">Bool
+</span><a href="#local-6989586621679267547"><span class="hs-identifier hs-var">validLen</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">TypeRep -&gt; Text -&gt; Maybe RefineException
+</span><a href="file:///nix/store/mxfd5xc68bb63djk8wihq9rn8aspa4fb-refined-0.6.3-doc/share/doc/refined-0.6.3/html/src/Refined.html#throwRefineOtherException"><span class="hs-identifier hs-var">R.throwRefineOtherException</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Proxy Ipv4Refinement -&gt; TypeRep
+forall {k} (proxy :: k -&gt; Type) (a :: k).
+Typeable a =&gt;
+proxy a -&gt; TypeRep
+</span><a href="file:///nix/store/16s6s6gbs6bxf3x75xpna03ygn755wig-ghc-9.2.3-doc/share/doc/ghc/html/libraries/base-4.16.2.0/src/Data.Typeable.html#typeRep"><span class="hs-identifier hs-var">typeRep</span></a></span><span> </span><span class="annot"><span class="annottext">Proxy Ipv4Refinement
+</span><a href="#local-6989586621679267550"><span class="hs-identifier hs-var">p</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">Text
+</span><a href="#local-6989586621679267545"><span class="hs-identifier hs-var">errLen</span></a></span><span>
+</span><span id="line-139"></span><span>    </span><span class="hs-glyph">|</span><span> </span><span class="annot"><span class="annottext">Bool -&gt; Bool
+</span><a href="file:///nix/store/16s6s6gbs6bxf3x75xpna03ygn755wig-ghc-9.2.3-doc/share/doc/ghc/html/libraries/ghc-prim-0.8.0/src/GHC.Classes.html#not"><span class="hs-identifier hs-var">not</span></a></span><span> </span><span class="annot"><span class="annottext">Bool
+</span><a href="#local-6989586621679267544"><span class="hs-identifier hs-var">validChars</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">TypeRep -&gt; Text -&gt; Maybe RefineException
+</span><a href="file:///nix/store/mxfd5xc68bb63djk8wihq9rn8aspa4fb-refined-0.6.3-doc/share/doc/refined-0.6.3/html/src/Refined.html#throwRefineOtherException"><span class="hs-identifier hs-var">R.throwRefineOtherException</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Proxy Ipv4Refinement -&gt; TypeRep
+forall {k} (proxy :: k -&gt; Type) (a :: k).
+Typeable a =&gt;
+proxy a -&gt; TypeRep
+</span><a href="file:///nix/store/16s6s6gbs6bxf3x75xpna03ygn755wig-ghc-9.2.3-doc/share/doc/ghc/html/libraries/base-4.16.2.0/src/Data.Typeable.html#typeRep"><span class="hs-identifier hs-var">typeRep</span></a></span><span> </span><span class="annot"><span class="annottext">Proxy Ipv4Refinement
+</span><a href="#local-6989586621679267550"><span class="hs-identifier hs-var">p</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">Text
+</span><a href="#local-6989586621679267543"><span class="hs-identifier hs-var">errChars</span></a></span><span>
+</span><span id="line-140"></span><span>    </span><span class="hs-glyph">|</span><span> </span><span class="annot"><span class="annottext">Bool
+</span><a href="file:///nix/store/16s6s6gbs6bxf3x75xpna03ygn755wig-ghc-9.2.3-doc/share/doc/ghc/html/libraries/base-4.16.2.0/src/GHC.Base.html#otherwise"><span class="hs-identifier hs-var">otherwise</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Maybe RefineException
+forall a. Maybe a
+</span><a href="file:///nix/store/16s6s6gbs6bxf3x75xpna03ygn755wig-ghc-9.2.3-doc/share/doc/ghc/html/libraries/base-4.16.2.0/src/GHC.Maybe.html#Nothing"><span class="hs-identifier hs-var">Nothing</span></a></span><span>
+</span><span id="line-141"></span><span>    </span><span class="hs-keyword">where</span><span>
+</span><span id="line-142"></span><span>      </span><span id="local-6989586621679267542"><span class="annot"><span class="annottext">len :: Int
+</span><a href="#local-6989586621679267542"><span class="hs-identifier hs-var hs-var">len</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Text -&gt; Int
+</span><a href="file:///nix/store/16s6s6gbs6bxf3x75xpna03ygn755wig-ghc-9.2.3-doc/share/doc/ghc/html/libraries/text-1.2.5.0/src/Data.Text.html#length"><span class="hs-identifier hs-var">T.length</span></a></span><span> </span><span class="annot"><span class="annottext">Text
+</span><a href="#local-6989586621679267549"><span class="hs-identifier hs-var">txt</span></a></span><span>
+</span><span id="line-143"></span><span>      </span><span id="local-6989586621679267547"><span class="annot"><span class="annottext">validLen :: Bool
+</span><a href="#local-6989586621679267547"><span class="hs-identifier hs-var hs-var">validLen</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679267542"><span class="hs-identifier hs-var">len</span></a></span><span> </span><span class="annot"><span class="annottext">Int -&gt; Int -&gt; Bool
+forall a. Ord a =&gt; a -&gt; a -&gt; Bool
+</span><a href="file:///nix/store/16s6s6gbs6bxf3x75xpna03ygn755wig-ghc-9.2.3-doc/share/doc/ghc/html/libraries/ghc-prim-0.8.0/src/GHC.Classes.html#%3E"><span class="hs-operator hs-var">&gt;</span></a></span><span> </span><span class="annot"><span class="annottext">Int
+</span><span class="hs-number">0</span></span><span> </span><span class="annot"><span class="annottext">Bool -&gt; Bool -&gt; Bool
+</span><a href="file:///nix/store/16s6s6gbs6bxf3x75xpna03ygn755wig-ghc-9.2.3-doc/share/doc/ghc/html/libraries/ghc-prim-0.8.0/src/GHC.Classes.html#%26%26"><span class="hs-operator hs-var">&amp;&amp;</span></a></span><span> </span><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679267542"><span class="hs-identifier hs-var">len</span></a></span><span> </span><span class="annot"><span class="annottext">Int -&gt; Int -&gt; Bool
+forall a. Ord a =&gt; a -&gt; a -&gt; Bool
+</span><a href="file:///nix/store/16s6s6gbs6bxf3x75xpna03ygn755wig-ghc-9.2.3-doc/share/doc/ghc/html/libraries/ghc-prim-0.8.0/src/GHC.Classes.html#%3C"><span class="hs-operator hs-var">&lt;</span></a></span><span> </span><span class="annot"><span class="annottext">Int
+</span><span class="hs-number">16</span></span><span>
+</span><span id="line-144"></span><span>      </span><span id="local-6989586621679267544"><span class="annot"><span class="annottext">validChars :: Bool
+</span><a href="#local-6989586621679267544"><span class="hs-identifier hs-var hs-var">validChars</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">(Char -&gt; Bool) -&gt; Text -&gt; Bool
+</span><a href="file:///nix/store/16s6s6gbs6bxf3x75xpna03ygn755wig-ghc-9.2.3-doc/share/doc/ghc/html/libraries/text-1.2.5.0/src/Data.Text.html#all"><span class="hs-identifier hs-var">T.all</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">\</span><span id="local-6989586621679267536"><span class="annot"><span class="annottext">Char
+</span><a href="#local-6989586621679267536"><span class="hs-identifier hs-var">c</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Char -&gt; Bool
+</span><a href="file:///nix/store/16s6s6gbs6bxf3x75xpna03ygn755wig-ghc-9.2.3-doc/share/doc/ghc/html/libraries/base-4.16.2.0/src/GHC.Unicode.html#isDigit"><span class="hs-identifier hs-var">Char.isDigit</span></a></span><span> </span><span class="annot"><span class="annottext">Char
+</span><a href="#local-6989586621679267536"><span class="hs-identifier hs-var">c</span></a></span><span> </span><span class="annot"><span class="annottext">Bool -&gt; Bool -&gt; Bool
+</span><a href="file:///nix/store/16s6s6gbs6bxf3x75xpna03ygn755wig-ghc-9.2.3-doc/share/doc/ghc/html/libraries/ghc-prim-0.8.0/src/GHC.Classes.html#%7C%7C"><span class="hs-operator hs-var">||</span></a></span><span> </span><span class="annot"><span class="annottext">Char
+</span><a href="#local-6989586621679267536"><span class="hs-identifier hs-var">c</span></a></span><span> </span><span class="annot"><span class="annottext">Char -&gt; Char -&gt; Bool
+forall a. Eq a =&gt; a -&gt; a -&gt; Bool
+</span><a href="file:///nix/store/16s6s6gbs6bxf3x75xpna03ygn755wig-ghc-9.2.3-doc/share/doc/ghc/html/libraries/ghc-prim-0.8.0/src/GHC.Classes.html#%3D%3D"><span class="hs-operator hs-var">==</span></a></span><span> </span><span class="annot"><span class="annottext">Char
+</span><span class="hs-char">'.'</span></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">Text
+</span><a href="#local-6989586621679267549"><span class="hs-identifier hs-var">txt</span></a></span><span>
+</span><span id="line-145"></span><span>      </span><span id="local-6989586621679267545"><span class="annot"><span class="annottext">errLen :: Text
+</span><a href="#local-6989586621679267545"><span class="hs-identifier hs-var hs-var">errLen</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-146"></span><span>        </span><span class="hs-keyword">if</span><span> </span><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679267542"><span class="hs-identifier hs-var">len</span></a></span><span> </span><span class="annot"><span class="annottext">Int -&gt; Int -&gt; Bool
+forall a. Eq a =&gt; a -&gt; a -&gt; Bool
+</span><a href="file:///nix/store/16s6s6gbs6bxf3x75xpna03ygn755wig-ghc-9.2.3-doc/share/doc/ghc/html/libraries/ghc-prim-0.8.0/src/GHC.Classes.html#%3D%3D"><span class="hs-operator hs-var">==</span></a></span><span> </span><span class="annot"><span class="annottext">Int
+</span><span class="hs-number">0</span></span><span>
+</span><span id="line-147"></span><span>          </span><span class="hs-keyword">then</span><span> </span><span class="annot"><span class="annottext">Text
+</span><span class="hs-string">&quot;Expected IPv4 with length (0, 16). Received empty.&quot;</span></span><span>
+</span><span id="line-148"></span><span>          </span><span class="hs-keyword">else</span><span>
+</span><span id="line-149"></span><span>            </span><span class="annot"><span class="annottext">Text
+</span><span class="hs-string">&quot;Expected IPv4 address with length (0, 16). Received '&quot;</span></span><span>
+</span><span id="line-150"></span><span>              </span><span class="annot"><span class="annottext">Text -&gt; Text -&gt; Text
+forall a. Semigroup a =&gt; a -&gt; a -&gt; a
+</span><a href="file:///nix/store/16s6s6gbs6bxf3x75xpna03ygn755wig-ghc-9.2.3-doc/share/doc/ghc/html/libraries/base-4.16.2.0/src/GHC.Base.html#%3C%3E"><span class="hs-operator hs-var">&lt;&gt;</span></a></span><span> </span><span class="annot"><span class="annottext">Text
+</span><a href="#local-6989586621679267549"><span class="hs-identifier hs-var">txt</span></a></span><span>
+</span><span id="line-151"></span><span>              </span><span class="annot"><span class="annottext">Text -&gt; Text -&gt; Text
+forall a. Semigroup a =&gt; a -&gt; a -&gt; a
+</span><a href="file:///nix/store/16s6s6gbs6bxf3x75xpna03ygn755wig-ghc-9.2.3-doc/share/doc/ghc/html/libraries/base-4.16.2.0/src/GHC.Base.html#%3C%3E"><span class="hs-operator hs-var">&lt;&gt;</span></a></span><span> </span><span class="annot"><span class="annottext">Text
+</span><span class="hs-string">&quot;' of length &quot;</span></span><span>
+</span><span id="line-152"></span><span>              </span><span class="annot"><span class="annottext">Text -&gt; Text -&gt; Text
+forall a. Semigroup a =&gt; a -&gt; a -&gt; a
+</span><a href="file:///nix/store/16s6s6gbs6bxf3x75xpna03ygn755wig-ghc-9.2.3-doc/share/doc/ghc/html/libraries/base-4.16.2.0/src/GHC.Base.html#%3C%3E"><span class="hs-operator hs-var">&lt;&gt;</span></a></span><span> </span><span class="annot"><span class="annottext">Int -&gt; Text
+forall a. Show a =&gt; a -&gt; Text
+</span><a href="Pythia.Prelude.html#showt"><span class="hs-identifier hs-var">showt</span></a></span><span> </span><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679267542"><span class="hs-identifier hs-var">len</span></a></span><span>
+</span><span id="line-153"></span><span>      </span><span id="local-6989586621679267543"><span class="annot"><span class="annottext">errChars :: Text
+</span><a href="#local-6989586621679267543"><span class="hs-identifier hs-var hs-var">errChars</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-154"></span><span>        </span><span class="annot"><span class="annottext">Text
+</span><span class="hs-string">&quot;IPv4 address should only contain decimal digits or dots. Received invalid: &quot;</span></span><span>
+</span><span id="line-155"></span><span>          </span><span class="annot"><span class="annottext">Text -&gt; Text -&gt; Text
+forall a. Semigroup a =&gt; a -&gt; a -&gt; a
+</span><a href="file:///nix/store/16s6s6gbs6bxf3x75xpna03ygn755wig-ghc-9.2.3-doc/share/doc/ghc/html/libraries/base-4.16.2.0/src/GHC.Base.html#%3C%3E"><span class="hs-operator hs-var">&lt;&gt;</span></a></span><span> </span><span class="annot"><span class="annottext">Text
+</span><a href="#local-6989586621679267549"><span class="hs-identifier hs-var">txt</span></a></span><span>
+</span><span id="line-156"></span><span>  </span><span class="hs-pragma">{-# INLINEABLE</span><span> </span><span class="annot"><a href="file:///nix/store/mxfd5xc68bb63djk8wihq9rn8aspa4fb-refined-0.6.3-doc/share/doc/refined-0.6.3/html/src/Refined.html#validate"><span class="hs-pragma hs-type">validate</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-157"></span><span>
+</span><span id="line-158"></span><span class="hs-comment">-- | IPv6 Refinement. We implement a custom type here so we get better error</span><span>
+</span><span id="line-159"></span><span class="hs-comment">-- messages. 'Text' must satisfy:</span><span>
+</span><span id="line-160"></span><span class="hs-comment">--</span><span>
+</span><span id="line-161"></span><span class="hs-comment">-- * Length in @(0, 40)@.</span><span>
+</span><span id="line-162"></span><span class="hs-comment">-- * Chars are all hex digits or colons.</span><span>
+</span><span id="line-163"></span><span class="hs-comment">--</span><span>
+</span><span id="line-164"></span><span class="hs-comment">-- ==== __Examples__</span><span>
+</span><span id="line-165"></span><span class="hs-comment">-- &gt;&gt;&gt; R.refine @Ipv6Refinement @Text &quot;fe80::a328:482:5263:10b8&quot;</span><span>
+</span><span id="line-166"></span><span class="hs-comment">-- Right (Refined &quot;fe80::a328:482:5263:10b8&quot;)</span><span>
+</span><span id="line-167"></span><span class="hs-comment">--</span><span>
+</span><span id="line-168"></span><span class="hs-comment">-- &gt;&gt;&gt; trim $ R.refine @Ipv6Refinement @Text &quot;&quot;</span><span>
+</span><span id="line-169"></span><span class="hs-comment">-- &quot;Left   The predicate (Ipv6Refinement) failed with the message: Expected IPv6 of length (0, 40). Received empty.&quot;</span><span>
+</span><span id="line-170"></span><span class="hs-comment">--</span><span>
+</span><span id="line-171"></span><span class="hs-comment">-- &gt;&gt;&gt; trim $ R.refine @Ipv6Refinement @Text &quot;fe80:a328:4822:5263:10b8:4062:10d3:16ac:&quot;</span><span>
+</span><span id="line-172"></span><span class="hs-comment">-- &quot;Left   The predicate (Ipv6Refinement) failed with the message: Expected IPv6 with length (0, 40). Received 'fe80:a328:4822:5263:10b8:4062:10d3:16ac:' of length 40&quot;</span><span>
+</span><span id="line-173"></span><span class="hs-comment">--</span><span>
+</span><span id="line-174"></span><span class="hs-comment">-- &gt;&gt;&gt; trim $ R.refine @Ipv6Refinement @Text &quot;fe80::a328:482:5263:10b8x&quot;</span><span>
+</span><span id="line-175"></span><span class="hs-comment">-- &quot;Left   The predicate (Ipv6Refinement) failed with the message: IPv6 address should only contain hex digits or colons. Received invalid: fe80::a328:482:5263:10b8x&quot;</span><span>
+</span><span id="line-176"></span><span class="hs-comment">--</span><span>
+</span><span id="line-177"></span><span class="hs-comment">-- @since 0.1</span><span>
+</span><span id="line-178"></span><span class="hs-keyword">type</span><span> </span><span class="annot"><a href="Pythia.Services.Types.Network.html#Ipv6Refinement"><span class="hs-identifier hs-type">Ipv6Refinement</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="file:///nix/store/16s6s6gbs6bxf3x75xpna03ygn755wig-ghc-9.2.3-doc/share/doc/ghc/html/libraries/ghc-prim-0.8.0/src/GHC.Types.html#Type"><span class="hs-identifier hs-type">Type</span></a></span><span>
+</span><span id="line-179"></span><span class="hs-keyword">data</span><span> </span><span id="Ipv6Refinement"><span class="annot"><a href="Pythia.Services.Types.Network.html#Ipv6Refinement"><span class="hs-identifier hs-var">Ipv6Refinement</span></a></span></span><span>
+</span><span id="line-180"></span><span>
+</span><span id="line-181"></span><span class="hs-comment">-- | @since 0.1</span><span>
+</span><span id="line-182"></span><span class="hs-keyword">instance</span><span> </span><span class="annot"><a href="file:///nix/store/mxfd5xc68bb63djk8wihq9rn8aspa4fb-refined-0.6.3-doc/share/doc/refined-0.6.3/html/src/Refined.html#Predicate"><span class="hs-identifier hs-type">Predicate</span></a></span><span> </span><span class="annot"><a href="Pythia.Services.Types.Network.html#Ipv6Refinement"><span class="hs-identifier hs-type">Ipv6Refinement</span></a></span><span> </span><span class="annot"><a href="file:///nix/store/16s6s6gbs6bxf3x75xpna03ygn755wig-ghc-9.2.3-doc/share/doc/ghc/html/libraries/text-1.2.5.0/src/Data.Text.Internal.html#Text"><span class="hs-identifier hs-type">Text</span></a></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-183"></span><span>  </span><span id="local-6989586621679267510"><span class="annot"><span class="annottext">validate :: Proxy Ipv6Refinement -&gt; Text -&gt; Maybe RefineException
+</span><a href="#local-6989586621679267510"><span class="hs-identifier hs-var hs-var hs-var hs-var">validate</span></a></span></span><span> </span><span id="local-6989586621679267509"><span class="annot"><span class="annottext">Proxy Ipv6Refinement
+</span><a href="#local-6989586621679267509"><span class="hs-identifier hs-var">p</span></a></span></span><span> </span><span id="local-6989586621679267508"><span class="annot"><span class="annottext">Text
+</span><a href="#local-6989586621679267508"><span class="hs-identifier hs-var">txt</span></a></span></span><span>
+</span><span id="line-184"></span><span>    </span><span class="hs-glyph">|</span><span> </span><span class="annot"><span class="annottext">Bool -&gt; Bool
+</span><a href="file:///nix/store/16s6s6gbs6bxf3x75xpna03ygn755wig-ghc-9.2.3-doc/share/doc/ghc/html/libraries/ghc-prim-0.8.0/src/GHC.Classes.html#not"><span class="hs-identifier hs-var">not</span></a></span><span> </span><span class="annot"><span class="annottext">Bool
+</span><a href="#local-6989586621679267507"><span class="hs-identifier hs-var">validLen</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">TypeRep -&gt; Text -&gt; Maybe RefineException
+</span><a href="file:///nix/store/mxfd5xc68bb63djk8wihq9rn8aspa4fb-refined-0.6.3-doc/share/doc/refined-0.6.3/html/src/Refined.html#throwRefineOtherException"><span class="hs-identifier hs-var">R.throwRefineOtherException</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Proxy Ipv6Refinement -&gt; TypeRep
+forall {k} (proxy :: k -&gt; Type) (a :: k).
+Typeable a =&gt;
+proxy a -&gt; TypeRep
+</span><a href="file:///nix/store/16s6s6gbs6bxf3x75xpna03ygn755wig-ghc-9.2.3-doc/share/doc/ghc/html/libraries/base-4.16.2.0/src/Data.Typeable.html#typeRep"><span class="hs-identifier hs-var">typeRep</span></a></span><span> </span><span class="annot"><span class="annottext">Proxy Ipv6Refinement
+</span><a href="#local-6989586621679267509"><span class="hs-identifier hs-var">p</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">Text
+</span><a href="#local-6989586621679267506"><span class="hs-identifier hs-var">errLen</span></a></span><span>
+</span><span id="line-185"></span><span>    </span><span class="hs-glyph">|</span><span> </span><span class="annot"><span class="annottext">Bool -&gt; Bool
+</span><a href="file:///nix/store/16s6s6gbs6bxf3x75xpna03ygn755wig-ghc-9.2.3-doc/share/doc/ghc/html/libraries/ghc-prim-0.8.0/src/GHC.Classes.html#not"><span class="hs-identifier hs-var">not</span></a></span><span> </span><span class="annot"><span class="annottext">Bool
+</span><a href="#local-6989586621679267505"><span class="hs-identifier hs-var">validChars</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">TypeRep -&gt; Text -&gt; Maybe RefineException
+</span><a href="file:///nix/store/mxfd5xc68bb63djk8wihq9rn8aspa4fb-refined-0.6.3-doc/share/doc/refined-0.6.3/html/src/Refined.html#throwRefineOtherException"><span class="hs-identifier hs-var">R.throwRefineOtherException</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Proxy Ipv6Refinement -&gt; TypeRep
+forall {k} (proxy :: k -&gt; Type) (a :: k).
+Typeable a =&gt;
+proxy a -&gt; TypeRep
+</span><a href="file:///nix/store/16s6s6gbs6bxf3x75xpna03ygn755wig-ghc-9.2.3-doc/share/doc/ghc/html/libraries/base-4.16.2.0/src/Data.Typeable.html#typeRep"><span class="hs-identifier hs-var">typeRep</span></a></span><span> </span><span class="annot"><span class="annottext">Proxy Ipv6Refinement
+</span><a href="#local-6989586621679267509"><span class="hs-identifier hs-var">p</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">Text
+</span><a href="#local-6989586621679267504"><span class="hs-identifier hs-var">errChars</span></a></span><span>
+</span><span id="line-186"></span><span>    </span><span class="hs-glyph">|</span><span> </span><span class="annot"><span class="annottext">Bool
+</span><a href="file:///nix/store/16s6s6gbs6bxf3x75xpna03ygn755wig-ghc-9.2.3-doc/share/doc/ghc/html/libraries/base-4.16.2.0/src/GHC.Base.html#otherwise"><span class="hs-identifier hs-var">otherwise</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Maybe RefineException
+forall a. Maybe a
+</span><a href="file:///nix/store/16s6s6gbs6bxf3x75xpna03ygn755wig-ghc-9.2.3-doc/share/doc/ghc/html/libraries/base-4.16.2.0/src/GHC.Maybe.html#Nothing"><span class="hs-identifier hs-var">Nothing</span></a></span><span>
+</span><span id="line-187"></span><span>    </span><span class="hs-keyword">where</span><span>
+</span><span id="line-188"></span><span>      </span><span id="local-6989586621679267503"><span class="annot"><span class="annottext">len :: Int
+</span><a href="#local-6989586621679267503"><span class="hs-identifier hs-var hs-var">len</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Text -&gt; Int
+</span><a href="file:///nix/store/16s6s6gbs6bxf3x75xpna03ygn755wig-ghc-9.2.3-doc/share/doc/ghc/html/libraries/text-1.2.5.0/src/Data.Text.html#length"><span class="hs-identifier hs-var">T.length</span></a></span><span> </span><span class="annot"><span class="annottext">Text
+</span><a href="#local-6989586621679267508"><span class="hs-identifier hs-var">txt</span></a></span><span>
+</span><span id="line-189"></span><span>      </span><span id="local-6989586621679267507"><span class="annot"><span class="annottext">validLen :: Bool
+</span><a href="#local-6989586621679267507"><span class="hs-identifier hs-var hs-var">validLen</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679267503"><span class="hs-identifier hs-var">len</span></a></span><span> </span><span class="annot"><span class="annottext">Int -&gt; Int -&gt; Bool
+forall a. Ord a =&gt; a -&gt; a -&gt; Bool
+</span><a href="file:///nix/store/16s6s6gbs6bxf3x75xpna03ygn755wig-ghc-9.2.3-doc/share/doc/ghc/html/libraries/ghc-prim-0.8.0/src/GHC.Classes.html#%3E"><span class="hs-operator hs-var">&gt;</span></a></span><span> </span><span class="annot"><span class="annottext">Int
+</span><span class="hs-number">0</span></span><span> </span><span class="annot"><span class="annottext">Bool -&gt; Bool -&gt; Bool
+</span><a href="file:///nix/store/16s6s6gbs6bxf3x75xpna03ygn755wig-ghc-9.2.3-doc/share/doc/ghc/html/libraries/ghc-prim-0.8.0/src/GHC.Classes.html#%26%26"><span class="hs-operator hs-var">&amp;&amp;</span></a></span><span> </span><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679267503"><span class="hs-identifier hs-var">len</span></a></span><span> </span><span class="annot"><span class="annottext">Int -&gt; Int -&gt; Bool
+forall a. Ord a =&gt; a -&gt; a -&gt; Bool
+</span><a href="file:///nix/store/16s6s6gbs6bxf3x75xpna03ygn755wig-ghc-9.2.3-doc/share/doc/ghc/html/libraries/ghc-prim-0.8.0/src/GHC.Classes.html#%3C"><span class="hs-operator hs-var">&lt;</span></a></span><span> </span><span class="annot"><span class="annottext">Int
+</span><span class="hs-number">40</span></span><span>
+</span><span id="line-190"></span><span>      </span><span id="local-6989586621679267505"><span class="annot"><span class="annottext">validChars :: Bool
+</span><a href="#local-6989586621679267505"><span class="hs-identifier hs-var hs-var">validChars</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">(Char -&gt; Bool) -&gt; Text -&gt; Bool
+</span><a href="file:///nix/store/16s6s6gbs6bxf3x75xpna03ygn755wig-ghc-9.2.3-doc/share/doc/ghc/html/libraries/text-1.2.5.0/src/Data.Text.html#all"><span class="hs-identifier hs-var">T.all</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">\</span><span id="local-6989586621679267502"><span class="annot"><span class="annottext">Char
+</span><a href="#local-6989586621679267502"><span class="hs-identifier hs-var">c</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Char -&gt; Bool
+</span><a href="file:///nix/store/16s6s6gbs6bxf3x75xpna03ygn755wig-ghc-9.2.3-doc/share/doc/ghc/html/libraries/base-4.16.2.0/src/GHC.Unicode.html#isHexDigit"><span class="hs-identifier hs-var">Char.isHexDigit</span></a></span><span> </span><span class="annot"><span class="annottext">Char
+</span><a href="#local-6989586621679267502"><span class="hs-identifier hs-var">c</span></a></span><span> </span><span class="annot"><span class="annottext">Bool -&gt; Bool -&gt; Bool
+</span><a href="file:///nix/store/16s6s6gbs6bxf3x75xpna03ygn755wig-ghc-9.2.3-doc/share/doc/ghc/html/libraries/ghc-prim-0.8.0/src/GHC.Classes.html#%7C%7C"><span class="hs-operator hs-var">||</span></a></span><span> </span><span class="annot"><span class="annottext">Char
+</span><a href="#local-6989586621679267502"><span class="hs-identifier hs-var">c</span></a></span><span> </span><span class="annot"><span class="annottext">Char -&gt; Char -&gt; Bool
+forall a. Eq a =&gt; a -&gt; a -&gt; Bool
+</span><a href="file:///nix/store/16s6s6gbs6bxf3x75xpna03ygn755wig-ghc-9.2.3-doc/share/doc/ghc/html/libraries/ghc-prim-0.8.0/src/GHC.Classes.html#%3D%3D"><span class="hs-operator hs-var">==</span></a></span><span> </span><span class="annot"><span class="annottext">Char
+</span><span class="hs-char">':'</span></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">Text
+</span><a href="#local-6989586621679267508"><span class="hs-identifier hs-var">txt</span></a></span><span>
+</span><span id="line-191"></span><span>      </span><span id="local-6989586621679267506"><span class="annot"><span class="annottext">errLen :: Text
+</span><a href="#local-6989586621679267506"><span class="hs-identifier hs-var hs-var">errLen</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-192"></span><span>        </span><span class="hs-keyword">if</span><span> </span><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679267503"><span class="hs-identifier hs-var">len</span></a></span><span> </span><span class="annot"><span class="annottext">Int -&gt; Int -&gt; Bool
+forall a. Eq a =&gt; a -&gt; a -&gt; Bool
+</span><a href="file:///nix/store/16s6s6gbs6bxf3x75xpna03ygn755wig-ghc-9.2.3-doc/share/doc/ghc/html/libraries/ghc-prim-0.8.0/src/GHC.Classes.html#%3D%3D"><span class="hs-operator hs-var">==</span></a></span><span> </span><span class="annot"><span class="annottext">Int
+</span><span class="hs-number">0</span></span><span>
+</span><span id="line-193"></span><span>          </span><span class="hs-keyword">then</span><span> </span><span class="annot"><span class="annottext">Text
+</span><span class="hs-string">&quot;Expected IPv6 of length (0, 40). Received empty.&quot;</span></span><span>
+</span><span id="line-194"></span><span>          </span><span class="hs-keyword">else</span><span>
+</span><span id="line-195"></span><span>            </span><span class="annot"><span class="annottext">Text
+</span><span class="hs-string">&quot;Expected IPv6 with length (0, 40). Received '&quot;</span></span><span>
+</span><span id="line-196"></span><span>              </span><span class="annot"><span class="annottext">Text -&gt; Text -&gt; Text
+forall a. Semigroup a =&gt; a -&gt; a -&gt; a
+</span><a href="file:///nix/store/16s6s6gbs6bxf3x75xpna03ygn755wig-ghc-9.2.3-doc/share/doc/ghc/html/libraries/base-4.16.2.0/src/GHC.Base.html#%3C%3E"><span class="hs-operator hs-var">&lt;&gt;</span></a></span><span> </span><span class="annot"><span class="annottext">Text
+</span><a href="#local-6989586621679267508"><span class="hs-identifier hs-var">txt</span></a></span><span>
+</span><span id="line-197"></span><span>              </span><span class="annot"><span class="annottext">Text -&gt; Text -&gt; Text
+forall a. Semigroup a =&gt; a -&gt; a -&gt; a
+</span><a href="file:///nix/store/16s6s6gbs6bxf3x75xpna03ygn755wig-ghc-9.2.3-doc/share/doc/ghc/html/libraries/base-4.16.2.0/src/GHC.Base.html#%3C%3E"><span class="hs-operator hs-var">&lt;&gt;</span></a></span><span> </span><span class="annot"><span class="annottext">Text
+</span><span class="hs-string">&quot;' of length &quot;</span></span><span>
+</span><span id="line-198"></span><span>              </span><span class="annot"><span class="annottext">Text -&gt; Text -&gt; Text
+forall a. Semigroup a =&gt; a -&gt; a -&gt; a
+</span><a href="file:///nix/store/16s6s6gbs6bxf3x75xpna03ygn755wig-ghc-9.2.3-doc/share/doc/ghc/html/libraries/base-4.16.2.0/src/GHC.Base.html#%3C%3E"><span class="hs-operator hs-var">&lt;&gt;</span></a></span><span> </span><span class="annot"><span class="annottext">Int -&gt; Text
+forall a. Show a =&gt; a -&gt; Text
+</span><a href="Pythia.Prelude.html#showt"><span class="hs-identifier hs-var">showt</span></a></span><span> </span><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679267503"><span class="hs-identifier hs-var">len</span></a></span><span>
+</span><span id="line-199"></span><span>      </span><span id="local-6989586621679267504"><span class="annot"><span class="annottext">errChars :: Text
+</span><a href="#local-6989586621679267504"><span class="hs-identifier hs-var hs-var">errChars</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-200"></span><span>        </span><span class="annot"><span class="annottext">Text
+</span><span class="hs-string">&quot;IPv6 address should only contain hex digits or colons. Received invalid: &quot;</span></span><span>
+</span><span id="line-201"></span><span>          </span><span class="annot"><span class="annottext">Text -&gt; Text -&gt; Text
+forall a. Semigroup a =&gt; a -&gt; a -&gt; a
+</span><a href="file:///nix/store/16s6s6gbs6bxf3x75xpna03ygn755wig-ghc-9.2.3-doc/share/doc/ghc/html/libraries/base-4.16.2.0/src/GHC.Base.html#%3C%3E"><span class="hs-operator hs-var">&lt;&gt;</span></a></span><span> </span><span class="annot"><span class="annottext">Text
+</span><a href="#local-6989586621679267508"><span class="hs-identifier hs-var">txt</span></a></span><span>
+</span><span id="line-202"></span><span>  </span><span class="hs-pragma">{-# INLINEABLE</span><span> </span><span class="annot"><a href="file:///nix/store/mxfd5xc68bb63djk8wihq9rn8aspa4fb-refined-0.6.3-doc/share/doc/refined-0.6.3/html/src/Refined.html#validate"><span class="hs-pragma hs-type">validate</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-203"></span><span>
+</span><span id="line-204"></span><span class="hs-comment">-- | Type for an IP address. The type family 'IpRefinement' refines the</span><span>
+</span><span id="line-205"></span><span class="hs-comment">-- underlying 'Text' according to the spec.</span><span>
+</span><span id="line-206"></span><span class="hs-comment">--</span><span>
+</span><span id="line-207"></span><span class="hs-comment">-- * 'Ipv4': All characters are digits or dots, and the length is</span><span>
+</span><span id="line-208"></span><span class="hs-comment">--           @0 &lt; l &lt; 16@.</span><span>
+</span><span id="line-209"></span><span class="hs-comment">-- * 'Ipv6': All characters are hex digits or colons, and the length is</span><span>
+</span><span id="line-210"></span><span class="hs-comment">--           @0 &lt; l &lt; 40@.</span><span>
+</span><span id="line-211"></span><span class="hs-comment">--</span><span>
+</span><span id="line-212"></span><span class="hs-comment">-- @since 0.1</span><span>
+</span><span id="line-213"></span><span class="hs-keyword">type</span><span> </span><span class="annot"><a href="Pythia.Services.Types.Network.html#IpAddress"><span class="hs-identifier hs-type">IpAddress</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Pythia.Services.Types.Network.html#IpType"><span class="hs-identifier hs-type">IpType</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="file:///nix/store/16s6s6gbs6bxf3x75xpna03ygn755wig-ghc-9.2.3-doc/share/doc/ghc/html/libraries/ghc-prim-0.8.0/src/GHC.Types.html#Type"><span class="hs-identifier hs-type">Type</span></a></span><span>
+</span><span id="line-214"></span><span id="local-6989586621679267499"><span id="local-6989586621679267500"></span></span><span class="hs-keyword">newtype</span><span> </span><span id="IpAddress"><span class="annot"><a href="Pythia.Services.Types.Network.html#IpAddress"><span class="hs-identifier hs-var">IpAddress</span></a></span></span><span> </span><span id="local-6989586621679267946"><span class="annot"><a href="#local-6989586621679267946"><span class="hs-identifier hs-type">a</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span id="MkIpAddress"><span class="annot"><a href="Pythia.Services.Types.Network.html#MkIpAddress"><span class="hs-identifier hs-var">MkIpAddress</span></a></span></span><span>
+</span><span id="line-215"></span><span>  </span><span class="hs-special">{</span><span> </span><span class="hs-comment">-- | @since 0.1</span><span>
+</span><span id="line-216"></span><span>    </span><span id="%24sel%3AunIpAddress%3AMkIpAddress"><span class="annot"><span class="annottext">forall (a :: IpType). IpAddress a -&gt; Refined (IpRefinement a) Text
+</span><a href="Pythia.Services.Types.Network.html#%24sel%3AunIpAddress%3AMkIpAddress"><span class="hs-identifier hs-var hs-var">unIpAddress</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="file:///nix/store/mxfd5xc68bb63djk8wihq9rn8aspa4fb-refined-0.6.3-doc/share/doc/refined-0.6.3/html/src/Refined.Unsafe.Type.html#Refined"><span class="hs-identifier hs-type">Refined</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Pythia.Services.Types.Network.html#IpRefinement"><span class="hs-identifier hs-type">IpRefinement</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679267946"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><a href="file:///nix/store/16s6s6gbs6bxf3x75xpna03ygn755wig-ghc-9.2.3-doc/share/doc/ghc/html/libraries/text-1.2.5.0/src/Data.Text.Internal.html#Text"><span class="hs-identifier hs-type">Text</span></a></span><span>
+</span><span id="line-217"></span><span>  </span><span class="hs-special">}</span><span>
+</span><span id="line-218"></span><span>  </span><span class="hs-keyword">deriving</span><span> </span><span class="annot"><span class="hs-keyword">stock</span></span><span>
+</span><span id="line-219"></span><span>    </span><span class="hs-special">(</span><span> </span><span class="hs-comment">-- | @since 0.1</span><span>
+</span><span id="line-220"></span><span>      </span><span id="local-6989586621679267490"><span id="local-6989586621679267495"><span class="annot"><span class="annottext">IpAddress a -&gt; IpAddress a -&gt; Bool
+(IpAddress a -&gt; IpAddress a -&gt; Bool)
+-&gt; (IpAddress a -&gt; IpAddress a -&gt; Bool) -&gt; Eq (IpAddress a)
+forall a. (a -&gt; a -&gt; Bool) -&gt; (a -&gt; a -&gt; Bool) -&gt; Eq a
+forall (a :: IpType). IpAddress a -&gt; IpAddress a -&gt; Bool
+/= :: IpAddress a -&gt; IpAddress a -&gt; Bool
+$c/= :: forall (a :: IpType). IpAddress a -&gt; IpAddress a -&gt; Bool
+== :: IpAddress a -&gt; IpAddress a -&gt; Bool
+$c== :: forall (a :: IpType). IpAddress a -&gt; IpAddress a -&gt; Bool
+</span><a href="file:///nix/store/16s6s6gbs6bxf3x75xpna03ygn755wig-ghc-9.2.3-doc/share/doc/ghc/html/libraries/ghc-prim-0.8.0/src/GHC.Classes.html#Eq"><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Eq</span></a></span></span></span><span class="hs-special">,</span><span>
+</span><span id="line-221"></span><span>      </span><span class="hs-comment">-- | @since 0.1</span><span>
+</span><span id="line-222"></span><span>      </span><span class="annot"><span class="annottext">(forall x. IpAddress a -&gt; Rep (IpAddress a) x)
+-&gt; (forall x. Rep (IpAddress a) x -&gt; IpAddress a)
+-&gt; Generic (IpAddress a)
+forall x. Rep (IpAddress a) x -&gt; IpAddress a
+forall x. IpAddress a -&gt; Rep (IpAddress a) x
+forall a.
+(forall x. a -&gt; Rep a x) -&gt; (forall x. Rep a x -&gt; a) -&gt; Generic a
+forall (a :: IpType) x. Rep (IpAddress a) x -&gt; IpAddress a
+forall (a :: IpType) x. IpAddress a -&gt; Rep (IpAddress a) x
+$cto :: forall (a :: IpType) x. Rep (IpAddress a) x -&gt; IpAddress a
+$cfrom :: forall (a :: IpType) x. IpAddress a -&gt; Rep (IpAddress a) x
+</span><a href="file:///nix/store/16s6s6gbs6bxf3x75xpna03ygn755wig-ghc-9.2.3-doc/share/doc/ghc/html/libraries/base-4.16.2.0/src/GHC.Generics.html#Generic"><span class="hs-identifier hs-var hs-var hs-var hs-var">Generic</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-223"></span><span>      </span><span class="hs-comment">-- | @since 0.1</span><span>
+</span><span id="line-224"></span><span>      </span><span id="local-6989586621679267464"><span id="local-6989586621679267466"><span id="local-6989586621679267469"><span id="local-6989586621679267472"><span id="local-6989586621679267475"><span id="local-6989586621679267479"><span id="local-6989586621679267484"><span class="annot"><span class="annottext">Eq (IpAddress a)
+Eq (IpAddress a)
+-&gt; (IpAddress a -&gt; IpAddress a -&gt; Ordering)
+-&gt; (IpAddress a -&gt; IpAddress a -&gt; Bool)
+-&gt; (IpAddress a -&gt; IpAddress a -&gt; Bool)
+-&gt; (IpAddress a -&gt; IpAddress a -&gt; Bool)
+-&gt; (IpAddress a -&gt; IpAddress a -&gt; Bool)
+-&gt; (IpAddress a -&gt; IpAddress a -&gt; IpAddress a)
+-&gt; (IpAddress a -&gt; IpAddress a -&gt; IpAddress a)
+-&gt; Ord (IpAddress a)
+IpAddress a -&gt; IpAddress a -&gt; Bool
+IpAddress a -&gt; IpAddress a -&gt; Ordering
+IpAddress a -&gt; IpAddress a -&gt; IpAddress a
+forall a.
+Eq a
+-&gt; (a -&gt; a -&gt; Ordering)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; a)
+-&gt; (a -&gt; a -&gt; a)
+-&gt; Ord a
+forall (a :: IpType). Eq (IpAddress a)
+forall (a :: IpType). IpAddress a -&gt; IpAddress a -&gt; Bool
+forall (a :: IpType). IpAddress a -&gt; IpAddress a -&gt; Ordering
+forall (a :: IpType). IpAddress a -&gt; IpAddress a -&gt; IpAddress a
+min :: IpAddress a -&gt; IpAddress a -&gt; IpAddress a
+$cmin :: forall (a :: IpType). IpAddress a -&gt; IpAddress a -&gt; IpAddress a
+max :: IpAddress a -&gt; IpAddress a -&gt; IpAddress a
+$cmax :: forall (a :: IpType). IpAddress a -&gt; IpAddress a -&gt; IpAddress a
+&gt;= :: IpAddress a -&gt; IpAddress a -&gt; Bool
+$c&gt;= :: forall (a :: IpType). IpAddress a -&gt; IpAddress a -&gt; Bool
+&gt; :: IpAddress a -&gt; IpAddress a -&gt; Bool
+$c&gt; :: forall (a :: IpType). IpAddress a -&gt; IpAddress a -&gt; Bool
+&lt;= :: IpAddress a -&gt; IpAddress a -&gt; Bool
+$c&lt;= :: forall (a :: IpType). IpAddress a -&gt; IpAddress a -&gt; Bool
+&lt; :: IpAddress a -&gt; IpAddress a -&gt; Bool
+$c&lt; :: forall (a :: IpType). IpAddress a -&gt; IpAddress a -&gt; Bool
+compare :: IpAddress a -&gt; IpAddress a -&gt; Ordering
+$ccompare :: forall (a :: IpType). IpAddress a -&gt; IpAddress a -&gt; Ordering
+</span><a href="file:///nix/store/16s6s6gbs6bxf3x75xpna03ygn755wig-ghc-9.2.3-doc/share/doc/ghc/html/libraries/ghc-prim-0.8.0/src/GHC.Classes.html#Ord"><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Ord</span></a></span></span></span></span></span></span></span></span><span class="hs-special">,</span><span>
+</span><span id="line-225"></span><span>      </span><span class="hs-comment">-- | @since 0.1</span><span>
+</span><span id="line-226"></span><span>      </span><span id="local-6989586621679267454"><span id="local-6989586621679267456"><span id="local-6989586621679267462"><span class="annot"><span class="annottext">Int -&gt; IpAddress a -&gt; ShowS
+[IpAddress a] -&gt; ShowS
+IpAddress a -&gt; String
+(Int -&gt; IpAddress a -&gt; ShowS)
+-&gt; (IpAddress a -&gt; String)
+-&gt; ([IpAddress a] -&gt; ShowS)
+-&gt; Show (IpAddress a)
+forall a.
+(Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; String) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+forall (a :: IpType). Int -&gt; IpAddress a -&gt; ShowS
+forall (a :: IpType). [IpAddress a] -&gt; ShowS
+forall (a :: IpType). IpAddress a -&gt; String
+showList :: [IpAddress a] -&gt; ShowS
+$cshowList :: forall (a :: IpType). [IpAddress a] -&gt; ShowS
+show :: IpAddress a -&gt; String
+$cshow :: forall (a :: IpType). IpAddress a -&gt; String
+showsPrec :: Int -&gt; IpAddress a -&gt; ShowS
+$cshowsPrec :: forall (a :: IpType). Int -&gt; IpAddress a -&gt; ShowS
+</span><a href="file:///nix/store/16s6s6gbs6bxf3x75xpna03ygn755wig-ghc-9.2.3-doc/share/doc/ghc/html/libraries/base-4.16.2.0/src/GHC.Show.html#Show"><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Show</span></a></span></span></span></span><span>
+</span><span id="line-227"></span><span>    </span><span class="hs-special">)</span><span>
+</span><span id="line-228"></span><span>  </span><span class="hs-keyword">deriving</span><span> </span><span class="annot"><span class="hs-keyword">anyclass</span></span><span>
+</span><span id="line-229"></span><span>    </span><span class="hs-special">(</span><span> </span><span class="hs-comment">-- | @since 0.1</span><span>
+</span><span id="line-230"></span><span>      </span><span id="local-6989586621679267452"><span class="annot"><span class="annottext">IpAddress a -&gt; ()
+(IpAddress a -&gt; ()) -&gt; NFData (IpAddress a)
+forall a. (a -&gt; ()) -&gt; NFData a
+forall (a :: IpType). IpAddress a -&gt; ()
+rnf :: IpAddress a -&gt; ()
+$crnf :: forall (a :: IpType). IpAddress a -&gt; ()
+</span><a href="#local-6989586621679267452"><span class="hs-identifier hs-var hs-var hs-var hs-var">NFData</span></a></span></span><span>
+</span><span id="line-231"></span><span>    </span><span class="hs-special">)</span><span>
+</span><span id="line-232"></span><span>
+</span><span id="line-233"></span><span class="hs-comment">-- | @since 0.1</span><span>
+</span><span id="line-234"></span><span id="_MkIpAddress"><span id="local-6989586621679267938"><span id="local-6989586621679267946"><span class="hs-identifier">makePrisms</span><span> </span><span class="hs-special">''</span><span class="hs-identifier">IpAddress</span></span></span></span><span>
+</span><span id="line-235"></span><span>
+</span><span id="line-236"></span><span class="hs-comment">-- | @since 0.1</span><span>
+</span><span id="line-237"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621679267447"><span id="local-6989586621679267935"><span class="annot"><a href="file:///nix/store/76qzbp4abnrjkr3xal2a7k80s020g8pv-prettyprinter-1.7.1-doc/share/doc/prettyprinter-1.7.1/html/src/Prettyprinter.Internal.html#Pretty"><span class="hs-identifier hs-type">Pretty</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Pythia.Services.Types.Network.html#IpAddress"><span class="hs-identifier hs-type">IpAddress</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679267935"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">)</span></span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-238"></span><span>  </span><span id="local-6989586621679267445"><span class="annot"><span class="annottext">pretty :: forall ann. IpAddress a -&gt; Doc ann
+</span><a href="file:///nix/store/76qzbp4abnrjkr3xal2a7k80s020g8pv-prettyprinter-1.7.1-doc/share/doc/prettyprinter-1.7.1/html/src/Prettyprinter.Internal.html#pretty"><span class="hs-identifier hs-var hs-var hs-var hs-var">pretty</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Text -&gt; Doc ann
+forall a ann. Pretty a =&gt; a -&gt; Doc ann
+</span><a href="file:///nix/store/76qzbp4abnrjkr3xal2a7k80s020g8pv-prettyprinter-1.7.1-doc/share/doc/prettyprinter-1.7.1/html/src/Prettyprinter.Internal.html#pretty"><span class="hs-identifier hs-var">pretty</span></a></span><span> </span><span class="annot"><span class="annottext">(Text -&gt; Doc ann)
+-&gt; (IpAddress a -&gt; Text) -&gt; IpAddress a -&gt; Doc ann
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><a href="file:///nix/store/16s6s6gbs6bxf3x75xpna03ygn755wig-ghc-9.2.3-doc/share/doc/ghc/html/libraries/base-4.16.2.0/src/GHC.Base.html#."><span class="hs-operator hs-var">.</span></a></span><span> </span><span class="annot"><span class="annottext">Refined (IpRefinement a) Text -&gt; Text
+forall p x. Refined p x -&gt; x
+</span><a href="file:///nix/store/mxfd5xc68bb63djk8wihq9rn8aspa4fb-refined-0.6.3-doc/share/doc/refined-0.6.3/html/src/Refined.html#unrefine"><span class="hs-identifier hs-var">R.unrefine</span></a></span><span> </span><span class="annot"><span class="annottext">(Refined (IpRefinement a) Text -&gt; Text)
+-&gt; (IpAddress a -&gt; Refined (IpRefinement a) Text)
+-&gt; IpAddress a
+-&gt; Text
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><a href="file:///nix/store/16s6s6gbs6bxf3x75xpna03ygn755wig-ghc-9.2.3-doc/share/doc/ghc/html/libraries/base-4.16.2.0/src/GHC.Base.html#."><span class="hs-operator hs-var">.</span></a></span><span> </span><span class="annot"><span class="annottext">IpAddress a -&gt; Refined (IpRefinement a) Text
+forall (a :: IpType). IpAddress a -&gt; Refined (IpRefinement a) Text
+</span><a href="Pythia.Services.Types.Network.html#%24sel%3AunIpAddress%3AMkIpAddress"><span class="hs-identifier hs-var">unIpAddress</span></a></span><span>
+</span><span id="line-239"></span><span>  </span><span class="hs-pragma">{-# INLINEABLE</span><span> </span><span class="annot"><a href="file:///nix/store/76qzbp4abnrjkr3xal2a7k80s020g8pv-prettyprinter-1.7.1-doc/share/doc/prettyprinter-1.7.1/html/src/Prettyprinter.Internal.html#pretty"><span class="hs-pragma hs-type">pretty</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-240"></span><span>
+</span><span id="line-241"></span><span class="hs-comment">-- | @since 0.1</span><span>
+</span><span id="line-242"></span><span class="hs-keyword">type</span><span> </span><span class="annot"><a href="Pythia.Services.Types.Network.html#IpAddresses"><span class="hs-identifier hs-type">IpAddresses</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Pythia.Services.Types.Network.html#IpType"><span class="hs-identifier hs-type">IpType</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="file:///nix/store/16s6s6gbs6bxf3x75xpna03ygn755wig-ghc-9.2.3-doc/share/doc/ghc/html/libraries/ghc-prim-0.8.0/src/GHC.Types.html#Type"><span class="hs-identifier hs-type">Type</span></a></span><span>
+</span><span id="line-243"></span><span id="local-6989586621679267440"><span id="local-6989586621679267441"></span></span><span class="hs-keyword">newtype</span><span> </span><span id="IpAddresses"><span class="annot"><a href="Pythia.Services.Types.Network.html#IpAddresses"><span class="hs-identifier hs-var">IpAddresses</span></a></span></span><span> </span><span id="local-6989586621679267927"><span class="annot"><a href="#local-6989586621679267927"><span class="hs-identifier hs-type">a</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span id="MkIpAddresses"><span class="annot"><a href="Pythia.Services.Types.Network.html#MkIpAddresses"><span class="hs-identifier hs-var">MkIpAddresses</span></a></span></span><span>
+</span><span id="line-244"></span><span>  </span><span class="hs-special">{</span><span> </span><span class="hs-comment">-- | @since 0.1</span><span>
+</span><span id="line-245"></span><span>    </span><span id="%24sel%3AunIpAddresses%3AMkIpAddresses"><span class="annot"><span class="annottext">forall (a :: IpType). IpAddresses a -&gt; [IpAddress a]
+</span><a href="Pythia.Services.Types.Network.html#%24sel%3AunIpAddresses%3AMkIpAddresses"><span class="hs-identifier hs-var hs-var">unIpAddresses</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">[</span><span class="annot"><a href="Pythia.Services.Types.Network.html#IpAddress"><span class="hs-identifier hs-type">IpAddress</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679267927"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">]</span><span>
+</span><span id="line-246"></span><span>  </span><span class="hs-special">}</span><span>
+</span><span id="line-247"></span><span>  </span><span class="hs-keyword">deriving</span><span> </span><span class="annot"><span class="hs-keyword">stock</span></span><span>
+</span><span id="line-248"></span><span>    </span><span class="hs-special">(</span><span> </span><span class="hs-comment">-- | @since 0.1</span><span>
+</span><span id="line-249"></span><span>      </span><span id="local-6989586621679267431"><span id="local-6989586621679267436"><span class="annot"><span class="annottext">IpAddresses a -&gt; IpAddresses a -&gt; Bool
+(IpAddresses a -&gt; IpAddresses a -&gt; Bool)
+-&gt; (IpAddresses a -&gt; IpAddresses a -&gt; Bool) -&gt; Eq (IpAddresses a)
+forall a. (a -&gt; a -&gt; Bool) -&gt; (a -&gt; a -&gt; Bool) -&gt; Eq a
+forall (a :: IpType). IpAddresses a -&gt; IpAddresses a -&gt; Bool
+/= :: IpAddresses a -&gt; IpAddresses a -&gt; Bool
+$c/= :: forall (a :: IpType). IpAddresses a -&gt; IpAddresses a -&gt; Bool
+== :: IpAddresses a -&gt; IpAddresses a -&gt; Bool
+$c== :: forall (a :: IpType). IpAddresses a -&gt; IpAddresses a -&gt; Bool
+</span><a href="file:///nix/store/16s6s6gbs6bxf3x75xpna03ygn755wig-ghc-9.2.3-doc/share/doc/ghc/html/libraries/ghc-prim-0.8.0/src/GHC.Classes.html#Eq"><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Eq</span></a></span></span></span><span class="hs-special">,</span><span>
+</span><span id="line-250"></span><span>      </span><span class="hs-comment">-- | @since 0.1</span><span>
+</span><span id="line-251"></span><span>      </span><span class="annot"><span class="annottext">(forall x. IpAddresses a -&gt; Rep (IpAddresses a) x)
+-&gt; (forall x. Rep (IpAddresses a) x -&gt; IpAddresses a)
+-&gt; Generic (IpAddresses a)
+forall x. Rep (IpAddresses a) x -&gt; IpAddresses a
+forall x. IpAddresses a -&gt; Rep (IpAddresses a) x
+forall a.
+(forall x. a -&gt; Rep a x) -&gt; (forall x. Rep a x -&gt; a) -&gt; Generic a
+forall (a :: IpType) x. Rep (IpAddresses a) x -&gt; IpAddresses a
+forall (a :: IpType) x. IpAddresses a -&gt; Rep (IpAddresses a) x
+$cto :: forall (a :: IpType) x. Rep (IpAddresses a) x -&gt; IpAddresses a
+$cfrom :: forall (a :: IpType) x. IpAddresses a -&gt; Rep (IpAddresses a) x
+</span><a href="file:///nix/store/16s6s6gbs6bxf3x75xpna03ygn755wig-ghc-9.2.3-doc/share/doc/ghc/html/libraries/base-4.16.2.0/src/GHC.Generics.html#Generic"><span class="hs-identifier hs-var hs-var hs-var hs-var">Generic</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-252"></span><span>      </span><span class="hs-comment">-- | @since 0.1</span><span>
+</span><span id="line-253"></span><span>      </span><span id="local-6989586621679267405"><span id="local-6989586621679267407"><span id="local-6989586621679267410"><span id="local-6989586621679267413"><span id="local-6989586621679267416"><span id="local-6989586621679267420"><span id="local-6989586621679267425"><span class="annot"><span class="annottext">Eq (IpAddresses a)
+Eq (IpAddresses a)
+-&gt; (IpAddresses a -&gt; IpAddresses a -&gt; Ordering)
+-&gt; (IpAddresses a -&gt; IpAddresses a -&gt; Bool)
+-&gt; (IpAddresses a -&gt; IpAddresses a -&gt; Bool)
+-&gt; (IpAddresses a -&gt; IpAddresses a -&gt; Bool)
+-&gt; (IpAddresses a -&gt; IpAddresses a -&gt; Bool)
+-&gt; (IpAddresses a -&gt; IpAddresses a -&gt; IpAddresses a)
+-&gt; (IpAddresses a -&gt; IpAddresses a -&gt; IpAddresses a)
+-&gt; Ord (IpAddresses a)
+IpAddresses a -&gt; IpAddresses a -&gt; Bool
+IpAddresses a -&gt; IpAddresses a -&gt; Ordering
+IpAddresses a -&gt; IpAddresses a -&gt; IpAddresses a
+forall a.
+Eq a
+-&gt; (a -&gt; a -&gt; Ordering)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; a)
+-&gt; (a -&gt; a -&gt; a)
+-&gt; Ord a
+forall (a :: IpType). Eq (IpAddresses a)
+forall (a :: IpType). IpAddresses a -&gt; IpAddresses a -&gt; Bool
+forall (a :: IpType). IpAddresses a -&gt; IpAddresses a -&gt; Ordering
+forall (a :: IpType).
+IpAddresses a -&gt; IpAddresses a -&gt; IpAddresses a
+min :: IpAddresses a -&gt; IpAddresses a -&gt; IpAddresses a
+$cmin :: forall (a :: IpType).
+IpAddresses a -&gt; IpAddresses a -&gt; IpAddresses a
+max :: IpAddresses a -&gt; IpAddresses a -&gt; IpAddresses a
+$cmax :: forall (a :: IpType).
+IpAddresses a -&gt; IpAddresses a -&gt; IpAddresses a
+&gt;= :: IpAddresses a -&gt; IpAddresses a -&gt; Bool
+$c&gt;= :: forall (a :: IpType). IpAddresses a -&gt; IpAddresses a -&gt; Bool
+&gt; :: IpAddresses a -&gt; IpAddresses a -&gt; Bool
+$c&gt; :: forall (a :: IpType). IpAddresses a -&gt; IpAddresses a -&gt; Bool
+&lt;= :: IpAddresses a -&gt; IpAddresses a -&gt; Bool
+$c&lt;= :: forall (a :: IpType). IpAddresses a -&gt; IpAddresses a -&gt; Bool
+&lt; :: IpAddresses a -&gt; IpAddresses a -&gt; Bool
+$c&lt; :: forall (a :: IpType). IpAddresses a -&gt; IpAddresses a -&gt; Bool
+compare :: IpAddresses a -&gt; IpAddresses a -&gt; Ordering
+$ccompare :: forall (a :: IpType). IpAddresses a -&gt; IpAddresses a -&gt; Ordering
+</span><a href="file:///nix/store/16s6s6gbs6bxf3x75xpna03ygn755wig-ghc-9.2.3-doc/share/doc/ghc/html/libraries/ghc-prim-0.8.0/src/GHC.Classes.html#Ord"><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Ord</span></a></span></span></span></span></span></span></span></span><span class="hs-special">,</span><span>
+</span><span id="line-254"></span><span>      </span><span class="hs-comment">-- | @since 0.1</span><span>
+</span><span id="line-255"></span><span>      </span><span id="local-6989586621679267395"><span id="local-6989586621679267397"><span id="local-6989586621679267403"><span class="annot"><span class="annottext">Int -&gt; IpAddresses a -&gt; ShowS
+[IpAddresses a] -&gt; ShowS
+IpAddresses a -&gt; String
+(Int -&gt; IpAddresses a -&gt; ShowS)
+-&gt; (IpAddresses a -&gt; String)
+-&gt; ([IpAddresses a] -&gt; ShowS)
+-&gt; Show (IpAddresses a)
+forall a.
+(Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; String) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+forall (a :: IpType). Int -&gt; IpAddresses a -&gt; ShowS
+forall (a :: IpType). [IpAddresses a] -&gt; ShowS
+forall (a :: IpType). IpAddresses a -&gt; String
+showList :: [IpAddresses a] -&gt; ShowS
+$cshowList :: forall (a :: IpType). [IpAddresses a] -&gt; ShowS
+show :: IpAddresses a -&gt; String
+$cshow :: forall (a :: IpType). IpAddresses a -&gt; String
+showsPrec :: Int -&gt; IpAddresses a -&gt; ShowS
+$cshowsPrec :: forall (a :: IpType). Int -&gt; IpAddresses a -&gt; ShowS
+</span><a href="file:///nix/store/16s6s6gbs6bxf3x75xpna03ygn755wig-ghc-9.2.3-doc/share/doc/ghc/html/libraries/base-4.16.2.0/src/GHC.Show.html#Show"><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Show</span></a></span></span></span></span><span>
+</span><span id="line-256"></span><span>    </span><span class="hs-special">)</span><span>
+</span><span id="line-257"></span><span>  </span><span class="hs-keyword">deriving</span><span> </span><span class="annot"><span class="hs-keyword">anyclass</span></span><span>
+</span><span id="line-258"></span><span>    </span><span class="hs-special">(</span><span> </span><span class="hs-comment">-- | @since 0.1</span><span>
+</span><span id="line-259"></span><span>      </span><span id="local-6989586621679267393"><span class="annot"><span class="annottext">IpAddresses a -&gt; ()
+(IpAddresses a -&gt; ()) -&gt; NFData (IpAddresses a)
+forall a. (a -&gt; ()) -&gt; NFData a
+forall (a :: IpType). IpAddresses a -&gt; ()
+rnf :: IpAddresses a -&gt; ()
+$crnf :: forall (a :: IpType). IpAddresses a -&gt; ()
+</span><a href="#local-6989586621679267393"><span class="hs-identifier hs-var hs-var hs-var hs-var">NFData</span></a></span></span><span>
+</span><span id="line-260"></span><span>    </span><span class="hs-special">)</span><span>
+</span><span id="line-261"></span><span>
+</span><span id="line-262"></span><span class="hs-comment">-- | @since 0.1</span><span>
+</span><span id="line-263"></span><span id="_MkIpAddresses"><span id="local-6989586621679267922"><span id="local-6989586621679267927"><span class="hs-identifier">makePrisms</span><span> </span><span class="hs-special">''</span><span class="hs-identifier">IpAddresses</span></span></span></span><span>
+</span><span id="line-264"></span><span>
+</span><span id="line-265"></span><span class="hs-comment">-- | @since 0.1</span><span>
+</span><span id="line-266"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621679267386"><span id="local-6989586621679267388"><span id="local-6989586621679267918"><span class="annot"><a href="file:///nix/store/16s6s6gbs6bxf3x75xpna03ygn755wig-ghc-9.2.3-doc/share/doc/ghc/html/libraries/base-4.16.2.0/src/GHC.Base.html#Semigroup"><span class="hs-identifier hs-type">Semigroup</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Pythia.Services.Types.Network.html#IpAddresses"><span class="hs-identifier hs-type">IpAddresses</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679267918"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">)</span></span></span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-267"></span><span>  </span><span class="annot"><a href="Pythia.Services.Types.Network.html#MkIpAddresses"><span class="hs-identifier hs-type">MkIpAddresses</span></a></span><span> </span><span id="local-6989586621679267382"><span class="annot"><span class="annottext">[IpAddress a]
+</span><a href="#local-6989586621679267382"><span class="hs-identifier hs-var">xs</span></a></span></span><span> </span><span id="local-6989586621679267381"><span class="annot"><span class="annottext">&lt;&gt; :: IpAddresses a -&gt; IpAddresses a -&gt; IpAddresses a
+</span><a href="file:///nix/store/16s6s6gbs6bxf3x75xpna03ygn755wig-ghc-9.2.3-doc/share/doc/ghc/html/libraries/base-4.16.2.0/src/GHC.Base.html#%3C%3E"><span class="hs-operator hs-var hs-var hs-var hs-var">&lt;&gt;</span></a></span></span><span> </span><span class="annot"><a href="Pythia.Services.Types.Network.html#MkIpAddresses"><span class="hs-identifier hs-type">MkIpAddresses</span></a></span><span> </span><span id="local-6989586621679267380"><span class="annot"><span class="annottext">[IpAddress a]
+</span><a href="#local-6989586621679267380"><span class="hs-identifier hs-var">ys</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">[IpAddress a] -&gt; IpAddresses a
+forall (a :: IpType). [IpAddress a] -&gt; IpAddresses a
+</span><a href="Pythia.Services.Types.Network.html#MkIpAddresses"><span class="hs-identifier hs-var">MkIpAddresses</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">[IpAddress a]
+</span><a href="#local-6989586621679267382"><span class="hs-identifier hs-var">xs</span></a></span><span> </span><span class="annot"><span class="annottext">[IpAddress a] -&gt; [IpAddress a] -&gt; [IpAddress a]
+forall a. Semigroup a =&gt; a -&gt; a -&gt; a
+</span><a href="file:///nix/store/16s6s6gbs6bxf3x75xpna03ygn755wig-ghc-9.2.3-doc/share/doc/ghc/html/libraries/base-4.16.2.0/src/GHC.Base.html#%3C%3E"><span class="hs-operator hs-var">&lt;&gt;</span></a></span><span> </span><span class="annot"><span class="annottext">[IpAddress a]
+</span><a href="#local-6989586621679267380"><span class="hs-identifier hs-var">ys</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-268"></span><span>  </span><span class="hs-pragma">{-# INLINEABLE</span><span> </span><span class="hs-pragma">(</span><span class="hs-pragma">&lt;&gt;</span><span class="hs-pragma">)</span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-269"></span><span>
+</span><span id="line-270"></span><span class="hs-comment">-- | @since 0.1</span><span>
+</span><span id="line-271"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621679267373"><span id="local-6989586621679267375"><span id="local-6989586621679267915"><span class="annot"><a href="file:///nix/store/16s6s6gbs6bxf3x75xpna03ygn755wig-ghc-9.2.3-doc/share/doc/ghc/html/libraries/base-4.16.2.0/src/GHC.Base.html#Monoid"><span class="hs-identifier hs-type">Monoid</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Pythia.Services.Types.Network.html#IpAddresses"><span class="hs-identifier hs-type">IpAddresses</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679267915"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">)</span></span></span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-272"></span><span>  </span><span id="local-6989586621679267371"><span class="annot"><span class="annottext">mempty :: IpAddresses a
+</span><a href="file:///nix/store/16s6s6gbs6bxf3x75xpna03ygn755wig-ghc-9.2.3-doc/share/doc/ghc/html/libraries/base-4.16.2.0/src/GHC.Base.html#mempty"><span class="hs-identifier hs-var hs-var hs-var hs-var">mempty</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">[IpAddress a] -&gt; IpAddresses a
+forall (a :: IpType). [IpAddress a] -&gt; IpAddresses a
+</span><a href="Pythia.Services.Types.Network.html#MkIpAddresses"><span class="hs-identifier hs-var">MkIpAddresses</span></a></span><span> </span><span class="hs-special">[</span><span class="hs-special">]</span><span>
+</span><span id="line-273"></span><span>  </span><span class="hs-pragma">{-# INLINEABLE</span><span> </span><span class="annot"><a href="file:///nix/store/16s6s6gbs6bxf3x75xpna03ygn755wig-ghc-9.2.3-doc/share/doc/ghc/html/libraries/base-4.16.2.0/src/GHC.Base.html#mempty"><span class="hs-pragma hs-type">mempty</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-274"></span><span>
+</span><span id="line-275"></span><span class="hs-comment">-- | @since 0.1</span><span>
+</span><span id="line-276"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621679267368"><span id="local-6989586621679267914"><span class="annot"><a href="file:///nix/store/76qzbp4abnrjkr3xal2a7k80s020g8pv-prettyprinter-1.7.1-doc/share/doc/prettyprinter-1.7.1/html/src/Prettyprinter.Internal.html#Pretty"><span class="hs-identifier hs-type">Pretty</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Pythia.Services.Types.Network.html#IpAddresses"><span class="hs-identifier hs-type">IpAddresses</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679267914"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">)</span></span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-277"></span><span>  </span><span id="local-6989586621679267320"><span class="annot"><span class="annottext">pretty :: forall ann. IpAddresses a -&gt; Doc ann
+</span><a href="#local-6989586621679267320"><span class="hs-identifier hs-var hs-var hs-var hs-var">pretty</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">[Doc ann] -&gt; Doc ann
+forall ann. [Doc ann] -&gt; Doc ann
+</span><a href="file:///nix/store/76qzbp4abnrjkr3xal2a7k80s020g8pv-prettyprinter-1.7.1-doc/share/doc/prettyprinter-1.7.1/html/src/Prettyprinter.Internal.html#hsep"><span class="hs-identifier hs-var">U.hsep</span></a></span><span> </span><span class="annot"><span class="annottext">([Doc ann] -&gt; Doc ann)
+-&gt; (IpAddresses a -&gt; [Doc ann]) -&gt; IpAddresses a -&gt; Doc ann
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><a href="file:///nix/store/16s6s6gbs6bxf3x75xpna03ygn755wig-ghc-9.2.3-doc/share/doc/ghc/html/libraries/base-4.16.2.0/src/GHC.Base.html#."><span class="hs-operator hs-var">.</span></a></span><span> </span><span class="annot"><span class="annottext">Doc ann -&gt; [Doc ann] -&gt; [Doc ann]
+forall ann. Doc ann -&gt; [Doc ann] -&gt; [Doc ann]
+</span><a href="file:///nix/store/76qzbp4abnrjkr3xal2a7k80s020g8pv-prettyprinter-1.7.1-doc/share/doc/prettyprinter-1.7.1/html/src/Prettyprinter.Internal.html#punctuate"><span class="hs-identifier hs-var">U.punctuate</span></a></span><span> </span><span class="annot"><span class="annottext">Doc ann
+forall ann. Doc ann
+</span><a href="file:///nix/store/76qzbp4abnrjkr3xal2a7k80s020g8pv-prettyprinter-1.7.1-doc/share/doc/prettyprinter-1.7.1/html/src/Prettyprinter.Symbols.Ascii.html#comma"><span class="hs-identifier hs-var">U.comma</span></a></span><span> </span><span class="annot"><span class="annottext">([Doc ann] -&gt; [Doc ann])
+-&gt; (IpAddresses a -&gt; [Doc ann]) -&gt; IpAddresses a -&gt; [Doc ann]
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><a href="file:///nix/store/16s6s6gbs6bxf3x75xpna03ygn755wig-ghc-9.2.3-doc/share/doc/ghc/html/libraries/base-4.16.2.0/src/GHC.Base.html#."><span class="hs-operator hs-var">.</span></a></span><span> </span><span class="annot"><span class="annottext">(IpAddress a -&gt; Doc ann) -&gt; [IpAddress a] -&gt; [Doc ann]
+forall (f :: Type -&gt; Type) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span><a href="file:///nix/store/16s6s6gbs6bxf3x75xpna03ygn755wig-ghc-9.2.3-doc/share/doc/ghc/html/libraries/base-4.16.2.0/src/GHC.Base.html#fmap"><span class="hs-identifier hs-var">fmap</span></a></span><span> </span><span class="annot"><span class="annottext">IpAddress a -&gt; Doc ann
+forall a ann. Pretty a =&gt; a -&gt; Doc ann
+</span><a href="file:///nix/store/76qzbp4abnrjkr3xal2a7k80s020g8pv-prettyprinter-1.7.1-doc/share/doc/prettyprinter-1.7.1/html/src/Prettyprinter.Internal.html#pretty"><span class="hs-identifier hs-var">pretty</span></a></span><span> </span><span class="annot"><span class="annottext">([IpAddress a] -&gt; [Doc ann])
+-&gt; (IpAddresses a -&gt; [IpAddress a]) -&gt; IpAddresses a -&gt; [Doc ann]
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><a href="file:///nix/store/16s6s6gbs6bxf3x75xpna03ygn755wig-ghc-9.2.3-doc/share/doc/ghc/html/libraries/base-4.16.2.0/src/GHC.Base.html#."><span class="hs-operator hs-var">.</span></a></span><span> </span><span class="annot"><span class="annottext">Optic' A_Lens NoIx (IpAddresses a) [IpAddress a]
+-&gt; IpAddresses a -&gt; [IpAddress a]
+forall k (is :: IxList) s a.
+Is k A_Getter =&gt;
+Optic' k is s a -&gt; s -&gt; a
+</span><a href="file:///nix/store/wnx39jjxjr7ivk5xmark8v1f1fl8cmvb-optics-core-0.4.1-doc/share/doc/optics-core-0.4.1/html/src/Optics.Getter.html#view"><span class="hs-identifier hs-var">view</span></a></span><span> </span><span class="annot"><span class="annottext">Optic' A_Lens NoIx (IpAddresses a) [IpAddress a]
+</span><span class="">#unIpAddresses</span></span><span>
+</span><span id="line-278"></span><span>  </span><span class="hs-pragma">{-# INLINEABLE</span><span> </span><span class="annot"><a href="file:///nix/store/76qzbp4abnrjkr3xal2a7k80s020g8pv-prettyprinter-1.7.1-doc/share/doc/prettyprinter-1.7.1/html/src/Prettyprinter.Internal.html#pretty"><span class="hs-pragma hs-type">pretty</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-279"></span></pre></body></html>

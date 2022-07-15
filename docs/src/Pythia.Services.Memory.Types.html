@@ -1,0 +1,534 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><link rel="stylesheet" type="text/css" href="style.css" /><script type="text/javascript" src="highlight.js"></script></head><body><pre><span id="local-6989586621679269932"><span id="local-6989586621679269933"></span></span><span class="hs-pragma">{-# LANGUAGE TemplateHaskell #-}</span><span>
+</span><span id="line-2"></span><span class="hs-pragma">{-# LANGUAGE UndecidableInstances #-}</span><span>
+</span><span id="line-3"></span><span>
+</span><span id="line-4"></span><span class="hs-comment">-- | This module provides the core types describing the memory.</span><span>
+</span><span id="line-5"></span><span class="hs-comment">--</span><span>
+</span><span id="line-6"></span><span class="hs-comment">-- @since 0.1</span><span>
+</span><span id="line-7"></span><span class="hs-keyword">module</span><span> </span><span class="hs-identifier">Pythia.Services.Memory.Types</span><span>
+</span><span id="line-8"></span><span>  </span><span class="hs-special">(</span><span> </span><span class="annot"><a href="Pythia.Services.Memory.Types.html#MemoryApp"><span class="hs-identifier">MemoryApp</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span class="hs-special">,</span><span>
+</span><span id="line-9"></span><span>    </span><span class="annot"><a href="Pythia.Services.Memory.Types.html#MemoryConfig"><span class="hs-identifier">MemoryConfig</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span class="hs-special">,</span><span>
+</span><span id="line-10"></span><span>    </span><span class="annot"><a href="Pythia.Services.Memory.Types.html#_MkMemoryConfig"><span class="hs-identifier">_MkMemoryConfig</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-11"></span><span>    </span><span class="annot"><a href="Pythia.Services.Memory.Types.html#Memory"><span class="hs-identifier">Memory</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span class="hs-special">,</span><span>
+</span><span id="line-12"></span><span>    </span><span class="annot"><a href="Pythia.Services.Memory.Types.html#_MkMemory"><span class="hs-identifier">_MkMemory</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-13"></span><span>    </span><span class="annot"><a href="Pythia.Services.Memory.Types.html#SystemMemory"><span class="hs-identifier">SystemMemory</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span class="hs-special">,</span><span>
+</span><span id="line-14"></span><span>  </span><span class="hs-special">)</span><span>
+</span><span id="line-15"></span><span class="hs-keyword">where</span><span>
+</span><span id="line-16"></span><span>
+</span><span id="line-17"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Data.Bytes</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">Bytes</span></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier">Size</span></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span class="hs-special">)</span><span>
+</span><span id="line-18"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Data.Bytes</span></span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="hs-keyword">as</span><span> </span><span class="annot"><span class="hs-identifier">Bytes</span></span><span>
+</span><span id="line-19"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Numeric.Algebra</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">MGroup</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier">Normed</span></span><span class="hs-special">)</span><span>
+</span><span id="line-20"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Numeric.Class.Literal</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">NumLiteral</span></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span class="hs-special">)</span><span>
+</span><span id="line-21"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Numeric.Data.NonNegative</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">NonNegative</span></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier">unNonNegative</span></span><span class="hs-special">)</span><span>
+</span><span id="line-22"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Numeric.Data.Positive</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">Positive</span></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier">unPositive</span></span><span class="hs-special">)</span><span>
+</span><span id="line-23"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Pythia.Data.RunApp.html"><span class="hs-identifier">Pythia.Data.RunApp</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Pythia.Data.RunApp.html#RunApp"><span class="hs-identifier">RunApp</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-24"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Pythia.Data.Supremum.html"><span class="hs-identifier">Pythia.Data.Supremum</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Pythia.Data.Supremum.html#Supremum"><span class="hs-identifier">Supremum</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span class="hs-special">)</span><span>
+</span><span id="line-25"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Pythia.Prelude.html"><span class="hs-identifier">Pythia.Prelude</span></a></span><span>
+</span><span id="line-26"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Pythia.Utils.html"><span class="hs-identifier">Pythia.Utils</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="file:///nix/store/76qzbp4abnrjkr3xal2a7k80s020g8pv-prettyprinter-1.7.1-doc/share/doc/prettyprinter-1.7.1/html/src/Prettyprinter.Internal.html#Doc"><span class="hs-identifier">Doc</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="file:///nix/store/76qzbp4abnrjkr3xal2a7k80s020g8pv-prettyprinter-1.7.1-doc/share/doc/prettyprinter-1.7.1/html/src/Prettyprinter.Internal.html#Pretty"><span class="hs-identifier">Pretty</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span class="hs-special">,</span><span> </span><span class="annot"><a href="file:///nix/store/76qzbp4abnrjkr3xal2a7k80s020g8pv-prettyprinter-1.7.1-doc/share/doc/prettyprinter-1.7.1/html/src/Prettyprinter.Internal.html#%3C%2B%3E"><span class="hs-operator">(&lt;+&gt;)</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-27"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="file:///nix/store/16s6s6gbs6bxf3x75xpna03ygn755wig-ghc-9.2.3-doc/share/doc/ghc/html/libraries/base-4.16.2.0/src/Text.Printf.html"><span class="hs-identifier">Text.Printf</span></a></span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="hs-keyword">as</span><span> </span><span class="annot"><span class="hs-identifier">Pf</span></span><span>
+</span><span id="line-28"></span><span>
+</span><span id="line-29"></span><span class="hs-comment">-- | Determines how we should query the system for memory usage.</span><span>
+</span><span id="line-30"></span><span class="hs-comment">--</span><span>
+</span><span id="line-31"></span><span class="hs-comment">-- @since 0.1</span><span>
+</span><span id="line-32"></span><span class="hs-keyword">type</span><span> </span><span class="annot"><a href="Pythia.Services.Memory.Types.html#MemoryApp"><span class="hs-identifier hs-type">MemoryApp</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="file:///nix/store/16s6s6gbs6bxf3x75xpna03ygn755wig-ghc-9.2.3-doc/share/doc/ghc/html/libraries/ghc-prim-0.8.0/src/GHC.Types.html#Type"><span class="hs-identifier hs-type">Type</span></a></span><span>
+</span><span id="line-33"></span><span id="local-6989586621679269923"><span id="local-6989586621679269924"></span></span><span class="hs-keyword">data</span><span> </span><span id="MemoryApp"><span class="annot"><a href="Pythia.Services.Memory.Types.html#MemoryApp"><span class="hs-identifier hs-var">MemoryApp</span></a></span></span><span>
+</span><span id="line-34"></span><span>  </span><span class="hs-glyph">=</span><span> </span><span class="hs-comment">-- | Uses the free utility.</span><span>
+</span><span id="line-35"></span><span>    </span><span class="hs-comment">--</span><span>
+</span><span id="line-36"></span><span>    </span><span class="hs-comment">-- @since 0.1</span><span>
+</span><span id="line-37"></span><span>    </span><span id="MemoryAppFree"><span class="annot"><a href="Pythia.Services.Memory.Types.html#MemoryAppFree"><span class="hs-identifier hs-var">MemoryAppFree</span></a></span></span><span>
+</span><span id="line-38"></span><span>  </span><span class="hs-keyword">deriving</span><span> </span><span class="annot"><span class="hs-keyword">stock</span></span><span>
+</span><span id="line-39"></span><span>    </span><span class="hs-special">(</span><span> </span><span class="hs-comment">-- | @since 0.1</span><span>
+</span><span id="line-40"></span><span>      </span><span id="local-6989586621679269918"><span id="local-6989586621679269920"><span class="annot"><span class="annottext">MemoryApp
+MemoryApp -&gt; MemoryApp -&gt; Bounded MemoryApp
+forall a. a -&gt; a -&gt; Bounded a
+maxBound :: MemoryApp
+$cmaxBound :: MemoryApp
+minBound :: MemoryApp
+$cminBound :: MemoryApp
+</span><a href="file:///nix/store/16s6s6gbs6bxf3x75xpna03ygn755wig-ghc-9.2.3-doc/share/doc/ghc/html/libraries/base-4.16.2.0/src/GHC.Enum.html#Bounded"><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Bounded</span></a></span></span></span><span class="hs-special">,</span><span>
+</span><span id="line-41"></span><span>      </span><span class="hs-comment">-- | @since 0.1</span><span>
+</span><span id="line-42"></span><span>      </span><span id="local-6989586621679269874"><span id="local-6989586621679269876"><span id="local-6989586621679269880"><span id="local-6989586621679269884"><span id="local-6989586621679269886"><span id="local-6989586621679269900"><span id="local-6989586621679269906"><span id="local-6989586621679269914"><span class="annot"><span class="annottext">Int -&gt; MemoryApp
+MemoryApp -&gt; Int
+MemoryApp -&gt; [MemoryApp]
+MemoryApp -&gt; MemoryApp
+MemoryApp -&gt; MemoryApp -&gt; [MemoryApp]
+MemoryApp -&gt; MemoryApp -&gt; MemoryApp -&gt; [MemoryApp]
+(MemoryApp -&gt; MemoryApp)
+-&gt; (MemoryApp -&gt; MemoryApp)
+-&gt; (Int -&gt; MemoryApp)
+-&gt; (MemoryApp -&gt; Int)
+-&gt; (MemoryApp -&gt; [MemoryApp])
+-&gt; (MemoryApp -&gt; MemoryApp -&gt; [MemoryApp])
+-&gt; (MemoryApp -&gt; MemoryApp -&gt; [MemoryApp])
+-&gt; (MemoryApp -&gt; MemoryApp -&gt; MemoryApp -&gt; [MemoryApp])
+-&gt; Enum MemoryApp
+forall a.
+(a -&gt; a)
+-&gt; (a -&gt; a)
+-&gt; (Int -&gt; a)
+-&gt; (a -&gt; Int)
+-&gt; (a -&gt; [a])
+-&gt; (a -&gt; a -&gt; [a])
+-&gt; (a -&gt; a -&gt; [a])
+-&gt; (a -&gt; a -&gt; a -&gt; [a])
+-&gt; Enum a
+enumFromThenTo :: MemoryApp -&gt; MemoryApp -&gt; MemoryApp -&gt; [MemoryApp]
+$cenumFromThenTo :: MemoryApp -&gt; MemoryApp -&gt; MemoryApp -&gt; [MemoryApp]
+enumFromTo :: MemoryApp -&gt; MemoryApp -&gt; [MemoryApp]
+$cenumFromTo :: MemoryApp -&gt; MemoryApp -&gt; [MemoryApp]
+enumFromThen :: MemoryApp -&gt; MemoryApp -&gt; [MemoryApp]
+$cenumFromThen :: MemoryApp -&gt; MemoryApp -&gt; [MemoryApp]
+enumFrom :: MemoryApp -&gt; [MemoryApp]
+$cenumFrom :: MemoryApp -&gt; [MemoryApp]
+fromEnum :: MemoryApp -&gt; Int
+$cfromEnum :: MemoryApp -&gt; Int
+toEnum :: Int -&gt; MemoryApp
+$ctoEnum :: Int -&gt; MemoryApp
+pred :: MemoryApp -&gt; MemoryApp
+$cpred :: MemoryApp -&gt; MemoryApp
+succ :: MemoryApp -&gt; MemoryApp
+$csucc :: MemoryApp -&gt; MemoryApp
+</span><a href="file:///nix/store/16s6s6gbs6bxf3x75xpna03ygn755wig-ghc-9.2.3-doc/share/doc/ghc/html/libraries/base-4.16.2.0/src/GHC.Enum.html#Enum"><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Enum</span></a></span></span></span></span></span></span></span></span></span><span class="hs-special">,</span><span>
+</span><span id="line-43"></span><span>      </span><span class="hs-comment">-- | @since 0.1</span><span>
+</span><span id="line-44"></span><span>      </span><span id="local-6989586621679269869"><span id="local-6989586621679269871"><span class="annot"><span class="annottext">MemoryApp -&gt; MemoryApp -&gt; Bool
+(MemoryApp -&gt; MemoryApp -&gt; Bool)
+-&gt; (MemoryApp -&gt; MemoryApp -&gt; Bool) -&gt; Eq MemoryApp
+forall a. (a -&gt; a -&gt; Bool) -&gt; (a -&gt; a -&gt; Bool) -&gt; Eq a
+/= :: MemoryApp -&gt; MemoryApp -&gt; Bool
+$c/= :: MemoryApp -&gt; MemoryApp -&gt; Bool
+== :: MemoryApp -&gt; MemoryApp -&gt; Bool
+$c== :: MemoryApp -&gt; MemoryApp -&gt; Bool
+</span><a href="file:///nix/store/16s6s6gbs6bxf3x75xpna03ygn755wig-ghc-9.2.3-doc/share/doc/ghc/html/libraries/ghc-prim-0.8.0/src/GHC.Classes.html#Eq"><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Eq</span></a></span></span></span><span class="hs-special">,</span><span>
+</span><span id="line-45"></span><span>      </span><span class="hs-comment">-- | @since 0.1</span><span>
+</span><span id="line-46"></span><span>      </span><span class="annot"><span class="annottext">(forall x. MemoryApp -&gt; Rep MemoryApp x)
+-&gt; (forall x. Rep MemoryApp x -&gt; MemoryApp) -&gt; Generic MemoryApp
+forall x. Rep MemoryApp x -&gt; MemoryApp
+forall x. MemoryApp -&gt; Rep MemoryApp x
+forall a.
+(forall x. a -&gt; Rep a x) -&gt; (forall x. Rep a x -&gt; a) -&gt; Generic a
+$cto :: forall x. Rep MemoryApp x -&gt; MemoryApp
+$cfrom :: forall x. MemoryApp -&gt; Rep MemoryApp x
+</span><a href="file:///nix/store/16s6s6gbs6bxf3x75xpna03ygn755wig-ghc-9.2.3-doc/share/doc/ghc/html/libraries/base-4.16.2.0/src/GHC.Generics.html#Generic"><span class="hs-identifier hs-var hs-var hs-var hs-var">Generic</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-47"></span><span>      </span><span class="hs-comment">-- | @since 0.1</span><span>
+</span><span id="line-48"></span><span>      </span><span id="local-6989586621679269846"><span id="local-6989586621679269848"><span id="local-6989586621679269851"><span id="local-6989586621679269854"><span id="local-6989586621679269857"><span id="local-6989586621679269859"><span id="local-6989586621679269861"><span class="annot"><span class="annottext">Eq MemoryApp
+Eq MemoryApp
+-&gt; (MemoryApp -&gt; MemoryApp -&gt; Ordering)
+-&gt; (MemoryApp -&gt; MemoryApp -&gt; Bool)
+-&gt; (MemoryApp -&gt; MemoryApp -&gt; Bool)
+-&gt; (MemoryApp -&gt; MemoryApp -&gt; Bool)
+-&gt; (MemoryApp -&gt; MemoryApp -&gt; Bool)
+-&gt; (MemoryApp -&gt; MemoryApp -&gt; MemoryApp)
+-&gt; (MemoryApp -&gt; MemoryApp -&gt; MemoryApp)
+-&gt; Ord MemoryApp
+MemoryApp -&gt; MemoryApp -&gt; Bool
+MemoryApp -&gt; MemoryApp -&gt; Ordering
+MemoryApp -&gt; MemoryApp -&gt; MemoryApp
+forall a.
+Eq a
+-&gt; (a -&gt; a -&gt; Ordering)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; a)
+-&gt; (a -&gt; a -&gt; a)
+-&gt; Ord a
+min :: MemoryApp -&gt; MemoryApp -&gt; MemoryApp
+$cmin :: MemoryApp -&gt; MemoryApp -&gt; MemoryApp
+max :: MemoryApp -&gt; MemoryApp -&gt; MemoryApp
+$cmax :: MemoryApp -&gt; MemoryApp -&gt; MemoryApp
+&gt;= :: MemoryApp -&gt; MemoryApp -&gt; Bool
+$c&gt;= :: MemoryApp -&gt; MemoryApp -&gt; Bool
+&gt; :: MemoryApp -&gt; MemoryApp -&gt; Bool
+$c&gt; :: MemoryApp -&gt; MemoryApp -&gt; Bool
+&lt;= :: MemoryApp -&gt; MemoryApp -&gt; Bool
+$c&lt;= :: MemoryApp -&gt; MemoryApp -&gt; Bool
+&lt; :: MemoryApp -&gt; MemoryApp -&gt; Bool
+$c&lt; :: MemoryApp -&gt; MemoryApp -&gt; Bool
+compare :: MemoryApp -&gt; MemoryApp -&gt; Ordering
+$ccompare :: MemoryApp -&gt; MemoryApp -&gt; Ordering
+</span><a href="file:///nix/store/16s6s6gbs6bxf3x75xpna03ygn755wig-ghc-9.2.3-doc/share/doc/ghc/html/libraries/ghc-prim-0.8.0/src/GHC.Classes.html#Ord"><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Ord</span></a></span></span></span></span></span></span></span></span><span class="hs-special">,</span><span>
+</span><span id="line-49"></span><span>      </span><span class="hs-comment">-- | @since 0.1</span><span>
+</span><span id="line-50"></span><span>      </span><span id="local-6989586621679269839"><span id="local-6989586621679269841"><span id="local-6989586621679269843"><span class="annot"><span class="annottext">Int -&gt; MemoryApp -&gt; ShowS
+[MemoryApp] -&gt; ShowS
+MemoryApp -&gt; [Char]
+(Int -&gt; MemoryApp -&gt; ShowS)
+-&gt; (MemoryApp -&gt; [Char])
+-&gt; ([MemoryApp] -&gt; ShowS)
+-&gt; Show MemoryApp
+forall a.
+(Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; [Char]) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+showList :: [MemoryApp] -&gt; ShowS
+$cshowList :: [MemoryApp] -&gt; ShowS
+show :: MemoryApp -&gt; [Char]
+$cshow :: MemoryApp -&gt; [Char]
+showsPrec :: Int -&gt; MemoryApp -&gt; ShowS
+$cshowsPrec :: Int -&gt; MemoryApp -&gt; ShowS
+</span><a href="file:///nix/store/16s6s6gbs6bxf3x75xpna03ygn755wig-ghc-9.2.3-doc/share/doc/ghc/html/libraries/base-4.16.2.0/src/GHC.Show.html#Show"><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Show</span></a></span></span></span></span><span>
+</span><span id="line-51"></span><span>    </span><span class="hs-special">)</span><span>
+</span><span id="line-52"></span><span>  </span><span class="hs-keyword">deriving</span><span>
+</span><span id="line-53"></span><span>    </span><span class="hs-special">(</span><span> </span><span class="hs-comment">-- | @since 0.1</span><span>
+</span><span id="line-54"></span><span>      </span><span id="local-6989586621679269820"><span id="local-6989586621679269826"><span id="local-6989586621679269833"><span class="annot"><span class="annottext">Semigroup MemoryApp
+MemoryApp
+Semigroup MemoryApp
+-&gt; MemoryApp
+-&gt; (MemoryApp -&gt; MemoryApp -&gt; MemoryApp)
+-&gt; ([MemoryApp] -&gt; MemoryApp)
+-&gt; Monoid MemoryApp
+[MemoryApp] -&gt; MemoryApp
+MemoryApp -&gt; MemoryApp -&gt; MemoryApp
+forall a.
+Semigroup a -&gt; a -&gt; (a -&gt; a -&gt; a) -&gt; ([a] -&gt; a) -&gt; Monoid a
+mconcat :: [MemoryApp] -&gt; MemoryApp
+$cmconcat :: [MemoryApp] -&gt; MemoryApp
+mappend :: MemoryApp -&gt; MemoryApp -&gt; MemoryApp
+$cmappend :: MemoryApp -&gt; MemoryApp -&gt; MemoryApp
+mempty :: MemoryApp
+$cmempty :: MemoryApp
+</span><a href="file:///nix/store/16s6s6gbs6bxf3x75xpna03ygn755wig-ghc-9.2.3-doc/share/doc/ghc/html/libraries/base-4.16.2.0/src/GHC.Base.html#Monoid"><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Monoid</span></a></span></span></span></span><span class="hs-special">,</span><span>
+</span><span id="line-55"></span><span>      </span><span class="hs-comment">-- | @since 0.1</span><span>
+</span><span id="line-56"></span><span>      </span><span id="local-6989586621679269799"><span id="local-6989586621679269806"><span id="local-6989586621679269812"><span class="annot"><span class="annottext">NonEmpty MemoryApp -&gt; MemoryApp
+MemoryApp -&gt; MemoryApp -&gt; MemoryApp
+(MemoryApp -&gt; MemoryApp -&gt; MemoryApp)
+-&gt; (NonEmpty MemoryApp -&gt; MemoryApp)
+-&gt; (forall b. Integral b =&gt; b -&gt; MemoryApp -&gt; MemoryApp)
+-&gt; Semigroup MemoryApp
+forall b. Integral b =&gt; b -&gt; MemoryApp -&gt; MemoryApp
+forall a.
+(a -&gt; a -&gt; a)
+-&gt; (NonEmpty a -&gt; a)
+-&gt; (forall b. Integral b =&gt; b -&gt; a -&gt; a)
+-&gt; Semigroup a
+stimes :: forall b. Integral b =&gt; b -&gt; MemoryApp -&gt; MemoryApp
+$cstimes :: forall b. Integral b =&gt; b -&gt; MemoryApp -&gt; MemoryApp
+sconcat :: NonEmpty MemoryApp -&gt; MemoryApp
+$csconcat :: NonEmpty MemoryApp -&gt; MemoryApp
+&lt;&gt; :: MemoryApp -&gt; MemoryApp -&gt; MemoryApp
+$c&lt;&gt; :: MemoryApp -&gt; MemoryApp -&gt; MemoryApp
+</span><a href="file:///nix/store/16s6s6gbs6bxf3x75xpna03ygn755wig-ghc-9.2.3-doc/share/doc/ghc/html/libraries/base-4.16.2.0/src/GHC.Base.html#Semigroup"><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Semigroup</span></a></span></span></span></span><span>
+</span><span id="line-57"></span><span>    </span><span class="hs-special">)</span><span>
+</span><span id="line-58"></span><span>    </span><span class="hs-keyword">via</span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Pythia.Data.Supremum.html#Supremum"><span class="hs-identifier hs-type">Supremum</span></a></span><span> </span><span class="annot"><a href="Pythia.Services.Memory.Types.html#MemoryApp"><span class="hs-identifier hs-type">MemoryApp</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-59"></span><span>  </span><span class="hs-keyword">deriving</span><span> </span><span class="annot"><span class="hs-keyword">anyclass</span></span><span>
+</span><span id="line-60"></span><span>    </span><span class="hs-special">(</span><span> </span><span class="hs-comment">-- | @since 0.1.0.0</span><span>
+</span><span id="line-61"></span><span>      </span><span id="local-6989586621679269791"><span class="annot"><span class="annottext">MemoryApp -&gt; ()
+(MemoryApp -&gt; ()) -&gt; NFData MemoryApp
+forall a. (a -&gt; ()) -&gt; NFData a
+rnf :: MemoryApp -&gt; ()
+$crnf :: MemoryApp -&gt; ()
+</span><a href="file:///nix/store/16s6s6gbs6bxf3x75xpna03ygn755wig-ghc-9.2.3-doc/share/doc/ghc/html/libraries/deepseq-1.4.6.1/src/Control.DeepSeq.html#C%3ANFData"><span class="hs-identifier hs-var hs-var hs-var hs-var">NFData</span></a></span></span><span>
+</span><span id="line-62"></span><span>    </span><span class="hs-special">)</span><span>
+</span><span id="line-63"></span><span>
+</span><span id="line-64"></span><span class="hs-comment">-- | Memory configuration.</span><span>
+</span><span id="line-65"></span><span class="hs-comment">--</span><span>
+</span><span id="line-66"></span><span class="hs-comment">-- &gt;&gt;&gt; mempty @MemoryConfig</span><span>
+</span><span id="line-67"></span><span class="hs-comment">-- MkMemoryConfig {app = Many}</span><span>
+</span><span id="line-68"></span><span class="hs-comment">--</span><span>
+</span><span id="line-69"></span><span class="hs-comment">-- @since 0.1</span><span>
+</span><span id="line-70"></span><span class="hs-keyword">type</span><span> </span><span class="annot"><a href="Pythia.Services.Memory.Types.html#MemoryConfig"><span class="hs-identifier hs-type">MemoryConfig</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="file:///nix/store/16s6s6gbs6bxf3x75xpna03ygn755wig-ghc-9.2.3-doc/share/doc/ghc/html/libraries/ghc-prim-0.8.0/src/GHC.Types.html#Type"><span class="hs-identifier hs-type">Type</span></a></span><span>
+</span><span id="line-71"></span><span id="local-6989586621679269788"><span id="local-6989586621679269789"></span></span><span class="hs-keyword">newtype</span><span> </span><span id="MemoryConfig"><span class="annot"><a href="Pythia.Services.Memory.Types.html#MemoryConfig"><span class="hs-identifier hs-var">MemoryConfig</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span id="MkMemoryConfig"><span class="annot"><a href="Pythia.Services.Memory.Types.html#MkMemoryConfig"><span class="hs-identifier hs-var">MkMemoryConfig</span></a></span></span><span>
+</span><span id="line-72"></span><span>  </span><span class="hs-special">{</span><span> </span><span class="hs-comment">-- | @since 0.1</span><span>
+</span><span id="line-73"></span><span>    </span><span id="%24sel%3Aapp%3AMkMemoryConfig"><span class="annot"><span class="annottext">MemoryConfig -&gt; RunApp MemoryApp
+</span><a href="Pythia.Services.Memory.Types.html#%24sel%3Aapp%3AMkMemoryConfig"><span class="hs-identifier hs-var hs-var">app</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Pythia.Data.RunApp.html#RunApp"><span class="hs-identifier hs-type">RunApp</span></a></span><span> </span><span class="annot"><a href="Pythia.Services.Memory.Types.html#MemoryApp"><span class="hs-identifier hs-type">MemoryApp</span></a></span><span>
+</span><span id="line-74"></span><span>  </span><span class="hs-special">}</span><span>
+</span><span id="line-75"></span><span>  </span><span class="hs-keyword">deriving</span><span> </span><span class="annot"><span class="hs-keyword">stock</span></span><span>
+</span><span id="line-76"></span><span>    </span><span class="hs-special">(</span><span> </span><span class="hs-comment">-- | @since 0.1</span><span>
+</span><span id="line-77"></span><span>      </span><span id="local-6989586621679269779"><span id="local-6989586621679269784"><span class="annot"><span class="annottext">MemoryConfig -&gt; MemoryConfig -&gt; Bool
+(MemoryConfig -&gt; MemoryConfig -&gt; Bool)
+-&gt; (MemoryConfig -&gt; MemoryConfig -&gt; Bool) -&gt; Eq MemoryConfig
+forall a. (a -&gt; a -&gt; Bool) -&gt; (a -&gt; a -&gt; Bool) -&gt; Eq a
+/= :: MemoryConfig -&gt; MemoryConfig -&gt; Bool
+$c/= :: MemoryConfig -&gt; MemoryConfig -&gt; Bool
+== :: MemoryConfig -&gt; MemoryConfig -&gt; Bool
+$c== :: MemoryConfig -&gt; MemoryConfig -&gt; Bool
+</span><a href="file:///nix/store/16s6s6gbs6bxf3x75xpna03ygn755wig-ghc-9.2.3-doc/share/doc/ghc/html/libraries/ghc-prim-0.8.0/src/GHC.Classes.html#Eq"><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Eq</span></a></span></span></span><span class="hs-special">,</span><span>
+</span><span id="line-78"></span><span>      </span><span class="hs-comment">-- | @since 0.1</span><span>
+</span><span id="line-79"></span><span>      </span><span class="annot"><span class="annottext">(forall x. MemoryConfig -&gt; Rep MemoryConfig x)
+-&gt; (forall x. Rep MemoryConfig x -&gt; MemoryConfig)
+-&gt; Generic MemoryConfig
+forall x. Rep MemoryConfig x -&gt; MemoryConfig
+forall x. MemoryConfig -&gt; Rep MemoryConfig x
+forall a.
+(forall x. a -&gt; Rep a x) -&gt; (forall x. Rep a x -&gt; a) -&gt; Generic a
+$cto :: forall x. Rep MemoryConfig x -&gt; MemoryConfig
+$cfrom :: forall x. MemoryConfig -&gt; Rep MemoryConfig x
+</span><a href="file:///nix/store/16s6s6gbs6bxf3x75xpna03ygn755wig-ghc-9.2.3-doc/share/doc/ghc/html/libraries/base-4.16.2.0/src/GHC.Generics.html#Generic"><span class="hs-identifier hs-var hs-var hs-var hs-var">Generic</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-80"></span><span>      </span><span class="hs-comment">-- | @since 0.1</span><span>
+</span><span id="line-81"></span><span>      </span><span id="local-6989586621679269767"><span id="local-6989586621679269769"><span id="local-6989586621679269775"><span class="annot"><span class="annottext">Int -&gt; MemoryConfig -&gt; ShowS
+[MemoryConfig] -&gt; ShowS
+MemoryConfig -&gt; [Char]
+(Int -&gt; MemoryConfig -&gt; ShowS)
+-&gt; (MemoryConfig -&gt; [Char])
+-&gt; ([MemoryConfig] -&gt; ShowS)
+-&gt; Show MemoryConfig
+forall a.
+(Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; [Char]) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+showList :: [MemoryConfig] -&gt; ShowS
+$cshowList :: [MemoryConfig] -&gt; ShowS
+show :: MemoryConfig -&gt; [Char]
+$cshow :: MemoryConfig -&gt; [Char]
+showsPrec :: Int -&gt; MemoryConfig -&gt; ShowS
+$cshowsPrec :: Int -&gt; MemoryConfig -&gt; ShowS
+</span><a href="file:///nix/store/16s6s6gbs6bxf3x75xpna03ygn755wig-ghc-9.2.3-doc/share/doc/ghc/html/libraries/base-4.16.2.0/src/GHC.Show.html#Show"><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Show</span></a></span></span></span></span><span>
+</span><span id="line-82"></span><span>    </span><span class="hs-special">)</span><span>
+</span><span id="line-83"></span><span>  </span><span class="hs-keyword">deriving</span><span> </span><span class="annot"><span class="hs-keyword">anyclass</span></span><span>
+</span><span id="line-84"></span><span>    </span><span class="hs-special">(</span><span> </span><span class="hs-comment">-- | @since 0.1</span><span>
+</span><span id="line-85"></span><span>      </span><span id="local-6989586621679269765"><span class="annot"><span class="annottext">MemoryConfig -&gt; ()
+(MemoryConfig -&gt; ()) -&gt; NFData MemoryConfig
+forall a. (a -&gt; ()) -&gt; NFData a
+rnf :: MemoryConfig -&gt; ()
+$crnf :: MemoryConfig -&gt; ()
+</span><a href="#local-6989586621679269765"><span class="hs-identifier hs-var hs-var hs-var hs-var">NFData</span></a></span></span><span>
+</span><span id="line-86"></span><span>    </span><span class="hs-special">)</span><span>
+</span><span id="line-87"></span><span>
+</span><span id="line-88"></span><span class="hs-comment">-- | @since 0.1</span><span>
+</span><span id="line-89"></span><span id="_MkMemoryConfig"><span class="hs-identifier">makePrisms</span><span> </span><span class="hs-special">''</span><span class="hs-identifier">MemoryConfig</span></span><span>
+</span><span id="line-90"></span><span>
+</span><span id="line-91"></span><span class="hs-comment">-- | @since 0.1</span><span>
+</span><span id="line-92"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621679269759"><span id="local-6989586621679269761"><span class="annot"><a href="file:///nix/store/16s6s6gbs6bxf3x75xpna03ygn755wig-ghc-9.2.3-doc/share/doc/ghc/html/libraries/base-4.16.2.0/src/GHC.Base.html#Semigroup"><span class="hs-identifier hs-type">Semigroup</span></a></span><span> </span><span class="annot"><a href="Pythia.Services.Memory.Types.html#MemoryConfig"><span class="hs-identifier hs-type">MemoryConfig</span></a></span></span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-93"></span><span>  </span><span class="annot"><a href="Pythia.Services.Memory.Types.html#MkMemoryConfig"><span class="hs-identifier hs-type">MkMemoryConfig</span></a></span><span> </span><span id="local-6989586621679269755"><span class="annot"><span class="annottext">RunApp MemoryApp
+</span><a href="#local-6989586621679269755"><span class="hs-identifier hs-var">l</span></a></span></span><span> </span><span id="local-6989586621679269754"><span class="annot"><span class="annottext">&lt;&gt; :: MemoryConfig -&gt; MemoryConfig -&gt; MemoryConfig
+</span><a href="file:///nix/store/16s6s6gbs6bxf3x75xpna03ygn755wig-ghc-9.2.3-doc/share/doc/ghc/html/libraries/base-4.16.2.0/src/GHC.Base.html#%3C%3E"><span class="hs-operator hs-var hs-var hs-var hs-var">&lt;&gt;</span></a></span></span><span> </span><span class="annot"><a href="Pythia.Services.Memory.Types.html#MkMemoryConfig"><span class="hs-identifier hs-type">MkMemoryConfig</span></a></span><span> </span><span id="local-6989586621679269753"><span class="annot"><span class="annottext">RunApp MemoryApp
+</span><a href="#local-6989586621679269753"><span class="hs-identifier hs-var">r</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">RunApp MemoryApp -&gt; MemoryConfig
+</span><a href="Pythia.Services.Memory.Types.html#MkMemoryConfig"><span class="hs-identifier hs-var">MkMemoryConfig</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">RunApp MemoryApp
+</span><a href="#local-6989586621679269755"><span class="hs-identifier hs-var">l</span></a></span><span> </span><span class="annot"><span class="annottext">RunApp MemoryApp -&gt; RunApp MemoryApp -&gt; RunApp MemoryApp
+forall a. Semigroup a =&gt; a -&gt; a -&gt; a
+</span><a href="file:///nix/store/16s6s6gbs6bxf3x75xpna03ygn755wig-ghc-9.2.3-doc/share/doc/ghc/html/libraries/base-4.16.2.0/src/GHC.Base.html#%3C%3E"><span class="hs-operator hs-var">&lt;&gt;</span></a></span><span> </span><span class="annot"><span class="annottext">RunApp MemoryApp
+</span><a href="#local-6989586621679269753"><span class="hs-identifier hs-var">r</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-94"></span><span>  </span><span class="hs-pragma">{-# INLINEABLE</span><span> </span><span class="hs-pragma">(</span><span class="hs-pragma">&lt;&gt;</span><span class="hs-pragma">)</span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-95"></span><span>
+</span><span id="line-96"></span><span class="hs-comment">-- | @since 0.1</span><span>
+</span><span id="line-97"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621679269746"><span id="local-6989586621679269748"><span class="annot"><a href="file:///nix/store/16s6s6gbs6bxf3x75xpna03ygn755wig-ghc-9.2.3-doc/share/doc/ghc/html/libraries/base-4.16.2.0/src/GHC.Base.html#Monoid"><span class="hs-identifier hs-type">Monoid</span></a></span><span> </span><span class="annot"><a href="Pythia.Services.Memory.Types.html#MemoryConfig"><span class="hs-identifier hs-type">MemoryConfig</span></a></span></span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-98"></span><span>  </span><span id="local-6989586621679269742"><span class="annot"><span class="annottext">mempty :: MemoryConfig
+</span><a href="file:///nix/store/16s6s6gbs6bxf3x75xpna03ygn755wig-ghc-9.2.3-doc/share/doc/ghc/html/libraries/base-4.16.2.0/src/GHC.Base.html#mempty"><span class="hs-identifier hs-var hs-var hs-var hs-var">mempty</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">RunApp MemoryApp -&gt; MemoryConfig
+</span><a href="Pythia.Services.Memory.Types.html#MkMemoryConfig"><span class="hs-identifier hs-var">MkMemoryConfig</span></a></span><span> </span><span class="annot"><span class="annottext">RunApp MemoryApp
+forall a. Monoid a =&gt; a
+</span><a href="file:///nix/store/16s6s6gbs6bxf3x75xpna03ygn755wig-ghc-9.2.3-doc/share/doc/ghc/html/libraries/base-4.16.2.0/src/GHC.Base.html#mempty"><span class="hs-identifier hs-var">mempty</span></a></span><span>
+</span><span id="line-99"></span><span>  </span><span class="hs-pragma">{-# INLINEABLE</span><span> </span><span class="annot"><a href="file:///nix/store/16s6s6gbs6bxf3x75xpna03ygn755wig-ghc-9.2.3-doc/share/doc/ghc/html/libraries/base-4.16.2.0/src/GHC.Base.html#mempty"><span class="hs-pragma hs-type">mempty</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-100"></span><span>
+</span><span id="line-101"></span><span class="hs-comment">-- | Represents the current memory usage. The type parameter is some wrapper</span><span>
+</span><span id="line-102"></span><span class="hs-comment">-- around the memory intended to enforce an invariant e.g. non-negative.</span><span>
+</span><span id="line-103"></span><span class="hs-comment">--</span><span>
+</span><span id="line-104"></span><span class="hs-comment">-- @since 0.1</span><span>
+</span><span id="line-105"></span><span class="hs-keyword">type</span><span> </span><span class="annot"><a href="Pythia.Services.Memory.Types.html#Memory"><span class="hs-identifier hs-type">Memory</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">(</span><span class="annot"><a href="file:///nix/store/16s6s6gbs6bxf3x75xpna03ygn755wig-ghc-9.2.3-doc/share/doc/ghc/html/libraries/ghc-prim-0.8.0/src/GHC.Types.html#Type"><span class="hs-identifier hs-type">Type</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="file:///nix/store/16s6s6gbs6bxf3x75xpna03ygn755wig-ghc-9.2.3-doc/share/doc/ghc/html/libraries/ghc-prim-0.8.0/src/GHC.Types.html#Type"><span class="hs-identifier hs-type">Type</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="file:///nix/store/16s6s6gbs6bxf3x75xpna03ygn755wig-ghc-9.2.3-doc/share/doc/ghc/html/libraries/ghc-prim-0.8.0/src/GHC.Types.html#Type"><span class="hs-identifier hs-type">Type</span></a></span><span>
+</span><span id="line-106"></span><span id="local-6989586621679269740"><span id="local-6989586621679269741"></span></span><span class="hs-keyword">newtype</span><span> </span><span id="Memory"><span class="annot"><a href="Pythia.Services.Memory.Types.html#Memory"><span class="hs-identifier hs-var">Memory</span></a></span></span><span> </span><span class="hs-special">(</span><span id="local-6989586621679270244"><span class="annot"><a href="#local-6989586621679270244"><span class="hs-identifier hs-type">f</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="file:///nix/store/16s6s6gbs6bxf3x75xpna03ygn755wig-ghc-9.2.3-doc/share/doc/ghc/html/libraries/ghc-prim-0.8.0/src/GHC.Types.html#Type"><span class="hs-identifier hs-type">Type</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="file:///nix/store/16s6s6gbs6bxf3x75xpna03ygn755wig-ghc-9.2.3-doc/share/doc/ghc/html/libraries/ghc-prim-0.8.0/src/GHC.Types.html#Type"><span class="hs-identifier hs-type">Type</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span id="MkMemory"><span class="annot"><a href="Pythia.Services.Memory.Types.html#MkMemory"><span class="hs-identifier hs-var">MkMemory</span></a></span></span><span>
+</span><span id="line-107"></span><span>  </span><span class="hs-special">{</span><span> </span><span class="hs-comment">-- | @since 0.1</span><span>
+</span><span id="line-108"></span><span>    </span><span id="%24sel%3AunMemory%3AMkMemory"><span class="annot"><span class="annottext">forall (f :: Type -&gt; Type). Memory f -&gt; Bytes 'B (f Double)
+</span><a href="Pythia.Services.Memory.Types.html#%24sel%3AunMemory%3AMkMemory"><span class="hs-identifier hs-var hs-var">unMemory</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Bytes</span></span><span> </span><span class="hs-special">'</span><span class="annot"><span class="hs-identifier hs-type">B</span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="#local-6989586621679270244"><span class="hs-identifier hs-type">f</span></a></span><span> </span><span class="annot"><a href="file:///nix/store/16s6s6gbs6bxf3x75xpna03ygn755wig-ghc-9.2.3-doc/share/doc/ghc/html/libraries/ghc-prim-0.8.0/src/GHC.Types.html#Double"><span class="hs-identifier hs-type">Double</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-109"></span><span>  </span><span class="hs-special">}</span><span>
+</span><span id="line-110"></span><span>  </span><span class="hs-keyword">deriving</span><span> </span><span class="annot"><span class="hs-keyword">stock</span></span><span>
+</span><span id="line-111"></span><span>    </span><span class="hs-special">(</span><span> </span><span class="hs-comment">-- | @since 0.1</span><span>
+</span><span id="line-112"></span><span>      </span><span class="annot"><span class="annottext">(forall x. Memory f -&gt; Rep (Memory f) x)
+-&gt; (forall x. Rep (Memory f) x -&gt; Memory f) -&gt; Generic (Memory f)
+forall x. Rep (Memory f) x -&gt; Memory f
+forall x. Memory f -&gt; Rep (Memory f) x
+forall a.
+(forall x. a -&gt; Rep a x) -&gt; (forall x. Rep a x -&gt; a) -&gt; Generic a
+forall (f :: Type -&gt; Type) x. Rep (Memory f) x -&gt; Memory f
+forall (f :: Type -&gt; Type) x. Memory f -&gt; Rep (Memory f) x
+$cto :: forall (f :: Type -&gt; Type) x. Rep (Memory f) x -&gt; Memory f
+$cfrom :: forall (f :: Type -&gt; Type) x. Memory f -&gt; Rep (Memory f) x
+</span><a href="file:///nix/store/16s6s6gbs6bxf3x75xpna03ygn755wig-ghc-9.2.3-doc/share/doc/ghc/html/libraries/base-4.16.2.0/src/GHC.Generics.html#Generic"><span class="hs-identifier hs-var hs-var hs-var hs-var">Generic</span></a></span><span>
+</span><span id="line-113"></span><span>    </span><span class="hs-special">)</span><span>
+</span><span id="line-114"></span><span>
+</span><span id="line-115"></span><span class="hs-comment">-- | @since 0.1</span><span>
+</span><span id="line-116"></span><span id="_MkMemory"><span id="local-6989586621679270242"><span id="local-6989586621679270244"><span class="hs-identifier">makePrisms</span><span> </span><span class="hs-special">''</span><span class="hs-identifier">Memory</span></span></span></span><span>
+</span><span id="line-117"></span><span>
+</span><span id="line-118"></span><span class="hs-comment">-- | @since 0.1</span><span>
+</span><span id="line-119"></span><span id="local-6989586621679269728"><span id="local-6989586621679269732"><span class="hs-keyword">deriving</span><span> </span><span id="local-6989586621679270236"><span class="annot"><a href="#local-6989586621679270236"><span class="hs-keyword hs-type">stock</span></a></span></span><span> </span><span class="hs-keyword">instance</span><span> </span><span class="annot"><a href="file:///nix/store/16s6s6gbs6bxf3x75xpna03ygn755wig-ghc-9.2.3-doc/share/doc/ghc/html/libraries/ghc-prim-0.8.0/src/GHC.Classes.html#Eq"><span class="hs-identifier hs-type">Eq</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="#local-6989586621679270236"><span class="hs-identifier hs-type">f</span></a></span><span> </span><span class="annot"><a href="file:///nix/store/16s6s6gbs6bxf3x75xpna03ygn755wig-ghc-9.2.3-doc/share/doc/ghc/html/libraries/ghc-prim-0.8.0/src/GHC.Types.html#Double"><span class="hs-identifier hs-type">Double</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><a href="file:///nix/store/16s6s6gbs6bxf3x75xpna03ygn755wig-ghc-9.2.3-doc/share/doc/ghc/html/libraries/ghc-prim-0.8.0/src/GHC.Classes.html#Eq"><span class="hs-identifier hs-type">Eq</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Pythia.Services.Memory.Types.html#Memory"><span class="hs-identifier hs-type">Memory</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679270236"><span class="hs-identifier hs-type">f</span></a></span><span class="hs-special">)</span></span></span><span>
+</span><span id="line-120"></span><span>
+</span><span id="line-121"></span><span class="hs-comment">-- | @since 0.1</span><span>
+</span><span id="line-122"></span><span id="local-6989586621679269719"><span id="local-6989586621679269721"><span id="local-6989586621679269726"><span class="hs-keyword">deriving</span><span> </span><span id="local-6989586621679270233"><span class="annot"><a href="#local-6989586621679270233"><span class="hs-keyword hs-type">stock</span></a></span></span><span> </span><span class="hs-keyword">instance</span><span> </span><span class="annot"><a href="file:///nix/store/16s6s6gbs6bxf3x75xpna03ygn755wig-ghc-9.2.3-doc/share/doc/ghc/html/libraries/base-4.16.2.0/src/GHC.Show.html#Show"><span class="hs-identifier hs-type">Show</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="#local-6989586621679270233"><span class="hs-identifier hs-type">f</span></a></span><span> </span><span class="annot"><a href="file:///nix/store/16s6s6gbs6bxf3x75xpna03ygn755wig-ghc-9.2.3-doc/share/doc/ghc/html/libraries/ghc-prim-0.8.0/src/GHC.Types.html#Double"><span class="hs-identifier hs-type">Double</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><a href="file:///nix/store/16s6s6gbs6bxf3x75xpna03ygn755wig-ghc-9.2.3-doc/share/doc/ghc/html/libraries/base-4.16.2.0/src/GHC.Show.html#Show"><span class="hs-identifier hs-type">Show</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Pythia.Services.Memory.Types.html#Memory"><span class="hs-identifier hs-type">Memory</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679270233"><span class="hs-identifier hs-type">f</span></a></span><span class="hs-special">)</span></span></span></span><span>
+</span><span id="line-123"></span><span>
+</span><span id="line-124"></span><span class="hs-comment">-- | @since 0.1</span><span>
+</span><span id="line-125"></span><span id="local-6989586621679269717"><span class="hs-keyword">deriving</span><span> </span><span id="local-6989586621679270232"><span class="annot"><a href="#local-6989586621679270232"><span class="hs-keyword hs-type">anyclass</span></a></span></span><span> </span><span class="hs-keyword">instance</span><span> </span><span class="annot"><a href="file:///nix/store/16s6s6gbs6bxf3x75xpna03ygn755wig-ghc-9.2.3-doc/share/doc/ghc/html/libraries/deepseq-1.4.6.1/src/Control.DeepSeq.html#NFData"><span class="hs-identifier hs-type">NFData</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="#local-6989586621679270232"><span class="hs-identifier hs-type">f</span></a></span><span> </span><span class="annot"><a href="file:///nix/store/16s6s6gbs6bxf3x75xpna03ygn755wig-ghc-9.2.3-doc/share/doc/ghc/html/libraries/ghc-prim-0.8.0/src/GHC.Types.html#Double"><span class="hs-identifier hs-type">Double</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><a href="file:///nix/store/16s6s6gbs6bxf3x75xpna03ygn755wig-ghc-9.2.3-doc/share/doc/ghc/html/libraries/deepseq-1.4.6.1/src/Control.DeepSeq.html#NFData"><span class="hs-identifier hs-type">NFData</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Pythia.Services.Memory.Types.html#Memory"><span class="hs-identifier hs-type">Memory</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679270232"><span class="hs-identifier hs-type">f</span></a></span><span class="hs-special">)</span></span><span>
+</span><span id="line-126"></span><span>
+</span><span id="line-127"></span><span class="hs-comment">-- | @since 0.1</span><span>
+</span><span id="line-128"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621679269714"><span class="annot"><a href="file:///nix/store/76qzbp4abnrjkr3xal2a7k80s020g8pv-prettyprinter-1.7.1-doc/share/doc/prettyprinter-1.7.1/html/src/Prettyprinter.Internal.html#Pretty"><span class="hs-identifier hs-type">Pretty</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Pythia.Services.Memory.Types.html#Memory"><span class="hs-identifier hs-type">Memory</span></a></span><span> </span><span class="annot"><span class="hs-identifier hs-type">NonNegative</span></span><span class="hs-special">)</span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-129"></span><span>  </span><span id="local-6989586621679269696"><span class="annot"><span class="annottext">pretty :: forall ann. Memory NonNegative -&gt; Doc ann
+</span><a href="file:///nix/store/76qzbp4abnrjkr3xal2a7k80s020g8pv-prettyprinter-1.7.1-doc/share/doc/prettyprinter-1.7.1/html/src/Prettyprinter.Internal.html#pretty"><span class="hs-identifier hs-var hs-var hs-var hs-var">pretty</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">(NonNegative Double -&gt; Double) -&gt; Memory NonNegative -&gt; Doc ann
+forall (f :: Type -&gt; Type) ann.
+(MGroup (f Double), Ord (f Double), Normed (f Double),
+ NumLiteral (f Double)) =&gt;
+(f Double -&gt; Double) -&gt; Memory f -&gt; Doc ann
+</span><a href="Pythia.Services.Memory.Types.html#prettyMemory"><span class="hs-identifier hs-var">prettyMemory</span></a></span><span> </span><span class="annot"><span class="annottext">NonNegative Double -&gt; Double
+forall a. NonNegative a -&gt; a
+</span><span class="hs-identifier hs-var">unNonNegative</span></span><span>
+</span><span id="line-130"></span><span>  </span><span class="hs-pragma">{-# INLINEABLE</span><span> </span><span class="annot"><a href="file:///nix/store/76qzbp4abnrjkr3xal2a7k80s020g8pv-prettyprinter-1.7.1-doc/share/doc/prettyprinter-1.7.1/html/src/Prettyprinter.Internal.html#pretty"><span class="hs-pragma hs-type">pretty</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-131"></span><span>
+</span><span id="line-132"></span><span class="hs-comment">-- | @since 0.1</span><span>
+</span><span id="line-133"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621679269691"><span class="annot"><a href="file:///nix/store/76qzbp4abnrjkr3xal2a7k80s020g8pv-prettyprinter-1.7.1-doc/share/doc/prettyprinter-1.7.1/html/src/Prettyprinter.Internal.html#Pretty"><span class="hs-identifier hs-type">Pretty</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Pythia.Services.Memory.Types.html#Memory"><span class="hs-identifier hs-type">Memory</span></a></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Positive</span></span><span class="hs-special">)</span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-134"></span><span>  </span><span id="local-6989586621679269678"><span class="annot"><span class="annottext">pretty :: forall ann. Memory Positive -&gt; Doc ann
+</span><a href="#local-6989586621679269678"><span class="hs-identifier hs-var hs-var hs-var hs-var">pretty</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">(Positive Double -&gt; Double) -&gt; Memory Positive -&gt; Doc ann
+forall (f :: Type -&gt; Type) ann.
+(MGroup (f Double), Ord (f Double), Normed (f Double),
+ NumLiteral (f Double)) =&gt;
+(f Double -&gt; Double) -&gt; Memory f -&gt; Doc ann
+</span><a href="Pythia.Services.Memory.Types.html#prettyMemory"><span class="hs-identifier hs-var">prettyMemory</span></a></span><span> </span><span class="annot"><span class="annottext">Positive Double -&gt; Double
+forall a. Positive a -&gt; a
+</span><span class="hs-identifier hs-var">unPositive</span></span><span>
+</span><span id="line-135"></span><span>  </span><span class="hs-pragma">{-# INLINEABLE</span><span> </span><span class="annot"><a href="file:///nix/store/76qzbp4abnrjkr3xal2a7k80s020g8pv-prettyprinter-1.7.1-doc/share/doc/prettyprinter-1.7.1/html/src/Prettyprinter.Internal.html#pretty"><span class="hs-pragma hs-type">pretty</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-136"></span><span>
+</span><span id="line-137"></span><span id="local-6989586621679270217"><span id="local-6989586621679270218"><span class="annot"><a href="Pythia.Services.Memory.Types.html#prettyMemory"><span class="hs-identifier hs-type">prettyMemory</span></a></span><span> </span><span class="hs-glyph">::</span><span>
+</span><span id="line-138"></span><span>  </span><span class="hs-special">(</span><span> </span><span class="annot"><span class="hs-identifier hs-type">MGroup</span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="#local-6989586621679270218"><span class="hs-identifier hs-type">f</span></a></span><span> </span><span class="annot"><a href="file:///nix/store/16s6s6gbs6bxf3x75xpna03ygn755wig-ghc-9.2.3-doc/share/doc/ghc/html/libraries/ghc-prim-0.8.0/src/GHC.Types.html#Double"><span class="hs-identifier hs-type">Double</span></a></span><span class="hs-special">)</span><span class="hs-special">,</span><span>
+</span><span id="line-139"></span><span>    </span><span class="annot"><a href="file:///nix/store/16s6s6gbs6bxf3x75xpna03ygn755wig-ghc-9.2.3-doc/share/doc/ghc/html/libraries/ghc-prim-0.8.0/src/GHC.Classes.html#Ord"><span class="hs-identifier hs-type">Ord</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="#local-6989586621679270218"><span class="hs-identifier hs-type">f</span></a></span><span> </span><span class="annot"><a href="file:///nix/store/16s6s6gbs6bxf3x75xpna03ygn755wig-ghc-9.2.3-doc/share/doc/ghc/html/libraries/ghc-prim-0.8.0/src/GHC.Types.html#Double"><span class="hs-identifier hs-type">Double</span></a></span><span class="hs-special">)</span><span class="hs-special">,</span><span>
+</span><span id="line-140"></span><span>    </span><span class="annot"><span class="hs-identifier hs-type">Normed</span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="#local-6989586621679270218"><span class="hs-identifier hs-type">f</span></a></span><span> </span><span class="annot"><a href="file:///nix/store/16s6s6gbs6bxf3x75xpna03ygn755wig-ghc-9.2.3-doc/share/doc/ghc/html/libraries/ghc-prim-0.8.0/src/GHC.Types.html#Double"><span class="hs-identifier hs-type">Double</span></a></span><span class="hs-special">)</span><span class="hs-special">,</span><span>
+</span><span id="line-141"></span><span>    </span><span class="annot"><span class="hs-identifier hs-type">NumLiteral</span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="#local-6989586621679270218"><span class="hs-identifier hs-type">f</span></a></span><span> </span><span class="annot"><a href="file:///nix/store/16s6s6gbs6bxf3x75xpna03ygn755wig-ghc-9.2.3-doc/share/doc/ghc/html/libraries/ghc-prim-0.8.0/src/GHC.Types.html#Double"><span class="hs-identifier hs-type">Double</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-142"></span><span>  </span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span>
+</span><span id="line-143"></span><span>  </span><span class="hs-special">(</span><span class="annot"><a href="#local-6989586621679270218"><span class="hs-identifier hs-type">f</span></a></span><span> </span><span class="annot"><a href="file:///nix/store/16s6s6gbs6bxf3x75xpna03ygn755wig-ghc-9.2.3-doc/share/doc/ghc/html/libraries/ghc-prim-0.8.0/src/GHC.Types.html#Double"><span class="hs-identifier hs-type">Double</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="file:///nix/store/16s6s6gbs6bxf3x75xpna03ygn755wig-ghc-9.2.3-doc/share/doc/ghc/html/libraries/ghc-prim-0.8.0/src/GHC.Types.html#Double"><span class="hs-identifier hs-type">Double</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span>
+</span><span id="line-144"></span><span>  </span><span class="annot"><a href="Pythia.Services.Memory.Types.html#Memory"><span class="hs-identifier hs-type">Memory</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679270218"><span class="hs-identifier hs-type">f</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span>
+</span><span id="line-145"></span><span>  </span><span class="annot"><a href="file:///nix/store/76qzbp4abnrjkr3xal2a7k80s020g8pv-prettyprinter-1.7.1-doc/share/doc/prettyprinter-1.7.1/html/src/Prettyprinter.Internal.html#Doc"><span class="hs-identifier hs-type">Doc</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679270217"><span class="hs-identifier hs-type">ann</span></a></span></span></span><span>
+</span><span id="line-146"></span><span id="prettyMemory"><span class="annot"><span class="annottext">prettyMemory :: forall (f :: Type -&gt; Type) ann.
+(MGroup (f Double), Ord (f Double), Normed (f Double),
+ NumLiteral (f Double)) =&gt;
+(f Double -&gt; Double) -&gt; Memory f -&gt; Doc ann
+</span><a href="Pythia.Services.Memory.Types.html#prettyMemory"><span class="hs-identifier hs-var hs-var">prettyMemory</span></a></span></span><span> </span><span id="local-6989586621679269654"><span class="annot"><span class="annottext">f Double -&gt; Double
+</span><a href="#local-6989586621679269654"><span class="hs-identifier hs-var">unwrap</span></a></span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Pythia.Services.Memory.Types.html#MkMemory"><span class="hs-identifier hs-type">MkMemory</span></a></span><span> </span><span id="local-6989586621679269653"><span class="annot"><span class="annottext">Bytes 'B (f Double)
+</span><a href="#local-6989586621679269653"><span class="hs-identifier hs-var">bytes</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Doc ann
+</span><a href="#local-6989586621679269652"><span class="hs-identifier hs-var">rounded</span></a></span><span> </span><span class="annot"><span class="annottext">Doc ann -&gt; Doc ann -&gt; Doc ann
+forall ann. Doc ann -&gt; Doc ann -&gt; Doc ann
+</span><a href="file:///nix/store/76qzbp4abnrjkr3xal2a7k80s020g8pv-prettyprinter-1.7.1-doc/share/doc/prettyprinter-1.7.1/html/src/Prettyprinter.Internal.html#%3C%2B%3E"><span class="hs-operator hs-var">&lt;+&gt;</span></a></span><span> </span><span class="annot"><span class="annottext">[Char] -&gt; Doc ann
+forall a ann. Pretty a =&gt; a -&gt; Doc ann
+</span><a href="file:///nix/store/76qzbp4abnrjkr3xal2a7k80s020g8pv-prettyprinter-1.7.1-doc/share/doc/prettyprinter-1.7.1/html/src/Prettyprinter.Internal.html#pretty"><span class="hs-identifier hs-var">pretty</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Size -&gt; [Char]
+forall a. Show a =&gt; a -&gt; [Char]
+</span><a href="file:///nix/store/16s6s6gbs6bxf3x75xpna03ygn755wig-ghc-9.2.3-doc/share/doc/ghc/html/libraries/base-4.16.2.0/src/GHC.Show.html#show"><span class="hs-identifier hs-var">show</span></a></span><span> </span><span class="annot"><span class="annottext">Size
+</span><a href="#local-6989586621679269650"><span class="hs-identifier hs-var">sz</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-147"></span><span>  </span><span class="hs-keyword">where</span><span>
+</span><span id="line-148"></span><span>    </span><span id="local-6989586621679269649"><span class="annot"><span class="annottext">bytes' :: Norm (Bytes 'B (f Double))
+</span><a href="#local-6989586621679269649"><span class="hs-identifier hs-var hs-var">bytes'</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Bytes 'B (f Double) -&gt; Norm (Bytes 'B (f Double))
+forall a. Normalize a =&gt; a -&gt; Norm a
+</span><span class="hs-identifier hs-var">Bytes.normalize</span></span><span> </span><span class="annot"><span class="annottext">Bytes 'B (f Double)
+</span><a href="#local-6989586621679269653"><span class="hs-identifier hs-var">bytes</span></a></span><span>
+</span><span id="line-149"></span><span>    </span><span id="local-6989586621679269650"><span class="annot"><span class="annottext">sz :: Size
+</span><a href="#local-6989586621679269650"><span class="hs-identifier hs-var hs-var">sz</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">SomeSize (f Double) -&gt; Size
+forall n. SomeSize n -&gt; Size
+</span><span class="hs-identifier hs-var">Bytes.someSizeToSize</span></span><span> </span><span class="annot"><span class="annottext">Norm (Bytes 'B (f Double))
+SomeSize (f Double)
+</span><a href="#local-6989586621679269649"><span class="hs-identifier hs-var">bytes'</span></a></span><span>
+</span><span id="line-150"></span><span>    </span><span id="local-6989586621679269646"><span class="annot"><span class="annottext">x :: Double
+</span><a href="#local-6989586621679269646"><span class="hs-identifier hs-var hs-var">x</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">f Double -&gt; Double
+</span><a href="#local-6989586621679269654"><span class="hs-identifier hs-var">unwrap</span></a></span><span> </span><span class="annot"><span class="annottext">(f Double -&gt; Double) -&gt; f Double -&gt; Double
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><a href="file:///nix/store/16s6s6gbs6bxf3x75xpna03ygn755wig-ghc-9.2.3-doc/share/doc/ghc/html/libraries/base-4.16.2.0/src/GHC.Base.html#%24"><span class="hs-operator hs-var">$</span></a></span><span> </span><span class="annot"><span class="annottext">SomeSize (f Double) -&gt; f Double
+forall n. SomeSize n -&gt; n
+</span><span class="hs-identifier hs-var">Bytes.unSomeSize</span></span><span> </span><span class="annot"><span class="annottext">Norm (Bytes 'B (f Double))
+SomeSize (f Double)
+</span><a href="#local-6989586621679269649"><span class="hs-identifier hs-var">bytes'</span></a></span><span>
+</span><span id="line-151"></span><span>    </span><span id="local-6989586621679269652"><span class="annot"><span class="annottext">rounded :: Doc ann
+</span><a href="#local-6989586621679269652"><span class="hs-identifier hs-var hs-var">rounded</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">[Char] -&gt; Doc ann
+forall a ann. Pretty a =&gt; a -&gt; Doc ann
+</span><a href="file:///nix/store/76qzbp4abnrjkr3xal2a7k80s020g8pv-prettyprinter-1.7.1-doc/share/doc/prettyprinter-1.7.1/html/src/Prettyprinter.Internal.html#pretty"><span class="hs-identifier hs-var">pretty</span></a></span><span> </span><span class="annot"><span class="annottext">([Char] -&gt; Doc ann) -&gt; [Char] -&gt; Doc ann
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><a href="file:///nix/store/16s6s6gbs6bxf3x75xpna03ygn755wig-ghc-9.2.3-doc/share/doc/ghc/html/libraries/base-4.16.2.0/src/GHC.Base.html#%24"><span class="hs-operator hs-var">$</span></a></span><span> </span><span class="annot"><span class="annottext">forall r. PrintfType r =&gt; [Char] -&gt; r
+</span><a href="file:///nix/store/16s6s6gbs6bxf3x75xpna03ygn755wig-ghc-9.2.3-doc/share/doc/ghc/html/libraries/base-4.16.2.0/src/Text.Printf.html#printf"><span class="hs-identifier hs-var">Pf.printf</span></a></span><span> </span><span class="hs-glyph">@</span><span class="hs-special">(</span><span class="annot"><a href="file:///nix/store/16s6s6gbs6bxf3x75xpna03ygn755wig-ghc-9.2.3-doc/share/doc/ghc/html/libraries/ghc-prim-0.8.0/src/GHC.Types.html#Double"><span class="hs-identifier hs-type">Double</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="file:///nix/store/16s6s6gbs6bxf3x75xpna03ygn755wig-ghc-9.2.3-doc/share/doc/ghc/html/libraries/base-4.16.2.0/src/GHC.Base.html#String"><span class="hs-identifier hs-type">String</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">[Char]
+</span><span class="hs-string">&quot;%.2f&quot;</span></span><span> </span><span class="annot"><span class="annottext">Double
+</span><a href="#local-6989586621679269646"><span class="hs-identifier hs-var">x</span></a></span><span>
+</span><span id="line-152"></span><span class="hs-pragma">{-# INLINEABLE</span><span> </span><span class="annot"><a href="Pythia.Services.Memory.Types.html#prettyMemory"><span class="hs-pragma hs-type">prettyMemory</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-153"></span><span>
+</span><span id="line-154"></span><span class="hs-comment">-- | Represents the current memory usage.</span><span>
+</span><span id="line-155"></span><span class="hs-comment">--</span><span>
+</span><span id="line-156"></span><span class="hs-comment">-- @since 0.1</span><span>
+</span><span id="line-157"></span><span class="hs-keyword">type</span><span> </span><span class="annot"><a href="Pythia.Services.Memory.Types.html#SystemMemory"><span class="hs-identifier hs-type">SystemMemory</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="file:///nix/store/16s6s6gbs6bxf3x75xpna03ygn755wig-ghc-9.2.3-doc/share/doc/ghc/html/libraries/ghc-prim-0.8.0/src/GHC.Types.html#Type"><span class="hs-identifier hs-type">Type</span></a></span><span>
+</span><span id="line-158"></span><span id="local-6989586621679269642"><span id="local-6989586621679269643"></span></span><span class="hs-keyword">data</span><span> </span><span id="SystemMemory"><span class="annot"><a href="Pythia.Services.Memory.Types.html#SystemMemory"><span class="hs-identifier hs-var">SystemMemory</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span id="MkSystemMemory"><span class="annot"><a href="Pythia.Services.Memory.Types.html#MkSystemMemory"><span class="hs-identifier hs-var">MkSystemMemory</span></a></span></span><span>
+</span><span id="line-159"></span><span>  </span><span class="hs-special">{</span><span> </span><span class="hs-comment">-- | The total memory on this system.</span><span>
+</span><span id="line-160"></span><span>    </span><span class="hs-comment">--</span><span>
+</span><span id="line-161"></span><span>    </span><span class="hs-comment">-- @since 0.1</span><span>
+</span><span id="line-162"></span><span>    </span><span id="%24sel%3Atotal%3AMkSystemMemory"><span class="annot"><span class="annottext">SystemMemory -&gt; Memory Positive
+</span><a href="Pythia.Services.Memory.Types.html#%24sel%3Atotal%3AMkSystemMemory"><span class="hs-identifier hs-var hs-var">total</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-glyph">!</span><span class="hs-special">(</span><span class="annot"><a href="Pythia.Services.Memory.Types.html#Memory"><span class="hs-identifier hs-type">Memory</span></a></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Positive</span></span><span class="hs-special">)</span><span class="hs-special">,</span><span>
+</span><span id="line-163"></span><span>    </span><span class="hs-comment">-- | The memory currently in use. This does not include the</span><span>
+</span><span id="line-164"></span><span>    </span><span class="hs-comment">-- cache.</span><span>
+</span><span id="line-165"></span><span>    </span><span class="hs-comment">--</span><span>
+</span><span id="line-166"></span><span>    </span><span class="hs-comment">-- @since 0.1</span><span>
+</span><span id="line-167"></span><span>    </span><span id="%24sel%3Aused%3AMkSystemMemory"><span class="annot"><span class="annottext">SystemMemory -&gt; Memory NonNegative
+</span><a href="Pythia.Services.Memory.Types.html#%24sel%3Aused%3AMkSystemMemory"><span class="hs-identifier hs-var hs-var">used</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-glyph">!</span><span class="hs-special">(</span><span class="annot"><a href="Pythia.Services.Memory.Types.html#Memory"><span class="hs-identifier hs-type">Memory</span></a></span><span> </span><span class="annot"><span class="hs-identifier hs-type">NonNegative</span></span><span class="hs-special">)</span><span>
+</span><span id="line-168"></span><span>  </span><span class="hs-special">}</span><span>
+</span><span id="line-169"></span><span>  </span><span class="hs-keyword">deriving</span><span> </span><span class="annot"><span class="hs-keyword">stock</span></span><span>
+</span><span id="line-170"></span><span>    </span><span class="hs-special">(</span><span> </span><span class="hs-comment">-- | @since 0.1</span><span>
+</span><span id="line-171"></span><span>      </span><span id="local-6989586621679269631"><span id="local-6989586621679269637"><span class="annot"><span class="annottext">SystemMemory -&gt; SystemMemory -&gt; Bool
+(SystemMemory -&gt; SystemMemory -&gt; Bool)
+-&gt; (SystemMemory -&gt; SystemMemory -&gt; Bool) -&gt; Eq SystemMemory
+forall a. (a -&gt; a -&gt; Bool) -&gt; (a -&gt; a -&gt; Bool) -&gt; Eq a
+/= :: SystemMemory -&gt; SystemMemory -&gt; Bool
+$c/= :: SystemMemory -&gt; SystemMemory -&gt; Bool
+== :: SystemMemory -&gt; SystemMemory -&gt; Bool
+$c== :: SystemMemory -&gt; SystemMemory -&gt; Bool
+</span><a href="file:///nix/store/16s6s6gbs6bxf3x75xpna03ygn755wig-ghc-9.2.3-doc/share/doc/ghc/html/libraries/ghc-prim-0.8.0/src/GHC.Classes.html#Eq"><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Eq</span></a></span></span></span><span class="hs-special">,</span><span>
+</span><span id="line-172"></span><span>      </span><span class="hs-comment">-- | @since 0.1</span><span>
+</span><span id="line-173"></span><span>      </span><span class="annot"><span class="annottext">(forall x. SystemMemory -&gt; Rep SystemMemory x)
+-&gt; (forall x. Rep SystemMemory x -&gt; SystemMemory)
+-&gt; Generic SystemMemory
+forall x. Rep SystemMemory x -&gt; SystemMemory
+forall x. SystemMemory -&gt; Rep SystemMemory x
+forall a.
+(forall x. a -&gt; Rep a x) -&gt; (forall x. Rep a x -&gt; a) -&gt; Generic a
+$cto :: forall x. Rep SystemMemory x -&gt; SystemMemory
+$cfrom :: forall x. SystemMemory -&gt; Rep SystemMemory x
+</span><a href="file:///nix/store/16s6s6gbs6bxf3x75xpna03ygn755wig-ghc-9.2.3-doc/share/doc/ghc/html/libraries/base-4.16.2.0/src/GHC.Generics.html#Generic"><span class="hs-identifier hs-var hs-var hs-var hs-var">Generic</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-174"></span><span>      </span><span class="hs-comment">-- | @since 0.1</span><span>
+</span><span id="line-175"></span><span>      </span><span id="local-6989586621679269614"><span id="local-6989586621679269616"><span id="local-6989586621679269623"><span class="annot"><span class="annottext">Int -&gt; SystemMemory -&gt; ShowS
+[SystemMemory] -&gt; ShowS
+SystemMemory -&gt; [Char]
+(Int -&gt; SystemMemory -&gt; ShowS)
+-&gt; (SystemMemory -&gt; [Char])
+-&gt; ([SystemMemory] -&gt; ShowS)
+-&gt; Show SystemMemory
+forall a.
+(Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; [Char]) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+showList :: [SystemMemory] -&gt; ShowS
+$cshowList :: [SystemMemory] -&gt; ShowS
+show :: SystemMemory -&gt; [Char]
+$cshow :: SystemMemory -&gt; [Char]
+showsPrec :: Int -&gt; SystemMemory -&gt; ShowS
+$cshowsPrec :: Int -&gt; SystemMemory -&gt; ShowS
+</span><a href="file:///nix/store/16s6s6gbs6bxf3x75xpna03ygn755wig-ghc-9.2.3-doc/share/doc/ghc/html/libraries/base-4.16.2.0/src/GHC.Show.html#Show"><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Show</span></a></span></span></span></span><span>
+</span><span id="line-176"></span><span>    </span><span class="hs-special">)</span><span>
+</span><span id="line-177"></span><span>  </span><span class="hs-keyword">deriving</span><span> </span><span class="annot"><span class="hs-keyword">anyclass</span></span><span>
+</span><span id="line-178"></span><span>    </span><span class="hs-special">(</span><span> </span><span class="hs-comment">-- | @since 0.1</span><span>
+</span><span id="line-179"></span><span>      </span><span id="local-6989586621679269609"><span class="annot"><span class="annottext">SystemMemory -&gt; ()
+(SystemMemory -&gt; ()) -&gt; NFData SystemMemory
+forall a. (a -&gt; ()) -&gt; NFData a
+rnf :: SystemMemory -&gt; ()
+$crnf :: SystemMemory -&gt; ()
+</span><a href="#local-6989586621679269609"><span class="hs-identifier hs-var hs-var hs-var hs-var">NFData</span></a></span></span><span>
+</span><span id="line-180"></span><span>    </span><span class="hs-special">)</span><span>
+</span><span id="line-181"></span><span>
+</span><span id="line-182"></span><span class="hs-comment">-- | @since 0.1</span><span>
+</span><span id="line-183"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621679269606"><span class="annot"><a href="file:///nix/store/76qzbp4abnrjkr3xal2a7k80s020g8pv-prettyprinter-1.7.1-doc/share/doc/prettyprinter-1.7.1/html/src/Prettyprinter.Internal.html#Pretty"><span class="hs-identifier hs-type">Pretty</span></a></span><span> </span><span class="annot"><a href="Pythia.Services.Memory.Types.html#SystemMemory"><span class="hs-identifier hs-type">SystemMemory</span></a></span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-184"></span><span>  </span><span id="local-6989586621679269532"><span class="annot"><span class="annottext">pretty :: forall ann. SystemMemory -&gt; Doc ann
+</span><a href="#local-6989586621679269532"><span class="hs-identifier hs-var hs-var hs-var hs-var">pretty</span></a></span></span><span> </span><span id="local-6989586621679269531"><span class="annot"><span class="annottext">SystemMemory
+</span><a href="#local-6989586621679269531"><span class="hs-identifier hs-var">mem</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Memory NonNegative -&gt; Doc ann
+forall a ann. Pretty a =&gt; a -&gt; Doc ann
+</span><a href="file:///nix/store/76qzbp4abnrjkr3xal2a7k80s020g8pv-prettyprinter-1.7.1-doc/share/doc/prettyprinter-1.7.1/html/src/Prettyprinter.Internal.html#pretty"><span class="hs-identifier hs-var">pretty</span></a></span><span> </span><span class="annot"><span class="annottext">Memory NonNegative
+</span><a href="#local-6989586621679269530"><span class="hs-identifier hs-var">u</span></a></span><span> </span><span class="annot"><span class="annottext">Doc ann -&gt; Doc ann -&gt; Doc ann
+forall ann. Doc ann -&gt; Doc ann -&gt; Doc ann
+</span><a href="file:///nix/store/76qzbp4abnrjkr3xal2a7k80s020g8pv-prettyprinter-1.7.1-doc/share/doc/prettyprinter-1.7.1/html/src/Prettyprinter.Internal.html#%3C%2B%3E"><span class="hs-operator hs-var">&lt;+&gt;</span></a></span><span> </span><span class="annot"><span class="annottext">Doc ann
+</span><span class="hs-string">&quot;/&quot;</span></span><span> </span><span class="annot"><span class="annottext">Doc ann -&gt; Doc ann -&gt; Doc ann
+forall ann. Doc ann -&gt; Doc ann -&gt; Doc ann
+</span><a href="file:///nix/store/76qzbp4abnrjkr3xal2a7k80s020g8pv-prettyprinter-1.7.1-doc/share/doc/prettyprinter-1.7.1/html/src/Prettyprinter.Internal.html#%3C%2B%3E"><span class="hs-operator hs-var">&lt;+&gt;</span></a></span><span> </span><span class="annot"><span class="annottext">Memory Positive -&gt; Doc ann
+forall a ann. Pretty a =&gt; a -&gt; Doc ann
+</span><a href="file:///nix/store/76qzbp4abnrjkr3xal2a7k80s020g8pv-prettyprinter-1.7.1-doc/share/doc/prettyprinter-1.7.1/html/src/Prettyprinter.Internal.html#pretty"><span class="hs-identifier hs-var">pretty</span></a></span><span> </span><span class="annot"><span class="annottext">Memory Positive
+</span><a href="#local-6989586621679269529"><span class="hs-identifier hs-var">t</span></a></span><span>
+</span><span id="line-185"></span><span>    </span><span class="hs-keyword">where</span><span>
+</span><span id="line-186"></span><span>      </span><span id="local-6989586621679269529"><span class="annot"><span class="annottext">t :: Memory Positive
+</span><a href="#local-6989586621679269529"><span class="hs-identifier hs-var hs-var">t</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">SystemMemory
+</span><a href="#local-6989586621679269531"><span class="hs-identifier hs-var">mem</span></a></span><span> </span><span class="annot"><span class="annottext">SystemMemory
+-&gt; Optic' A_Lens NoIx SystemMemory (Memory Positive)
+-&gt; Memory Positive
+forall k s (is :: IxList) a.
+Is k A_Getter =&gt;
+s -&gt; Optic' k is s a -&gt; a
+</span><a href="file:///nix/store/wnx39jjxjr7ivk5xmark8v1f1fl8cmvb-optics-core-0.4.1-doc/share/doc/optics-core-0.4.1/html/src/Optics.Operators.html#%5E."><span class="hs-operator hs-var">^.</span></a></span><span> </span><span class="annot"><span class="annottext">Optic' A_Lens NoIx SystemMemory (Memory Positive)
+</span><span class="">#total</span></span><span>
+</span><span id="line-187"></span><span>      </span><span id="local-6989586621679269530"><span class="annot"><span class="annottext">u :: Memory NonNegative
+</span><a href="#local-6989586621679269530"><span class="hs-identifier hs-var hs-var">u</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">SystemMemory
+</span><a href="#local-6989586621679269531"><span class="hs-identifier hs-var">mem</span></a></span><span> </span><span class="annot"><span class="annottext">SystemMemory
+-&gt; Optic' A_Lens NoIx SystemMemory (Memory NonNegative)
+-&gt; Memory NonNegative
+forall k s (is :: IxList) a.
+Is k A_Getter =&gt;
+s -&gt; Optic' k is s a -&gt; a
+</span><a href="file:///nix/store/wnx39jjxjr7ivk5xmark8v1f1fl8cmvb-optics-core-0.4.1-doc/share/doc/optics-core-0.4.1/html/src/Optics.Operators.html#%5E."><span class="hs-operator hs-var">^.</span></a></span><span> </span><span class="annot"><span class="annottext">Optic' A_Lens NoIx SystemMemory (Memory NonNegative)
+</span><span class="">#used</span></span><span>
+</span><span id="line-188"></span><span>  </span><span class="hs-pragma">{-# INLINEABLE</span><span> </span><span class="annot"><a href="file:///nix/store/76qzbp4abnrjkr3xal2a7k80s020g8pv-prettyprinter-1.7.1-doc/share/doc/prettyprinter-1.7.1/html/src/Prettyprinter.Internal.html#pretty"><span class="hs-pragma hs-type">pretty</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-189"></span><span>
+</span><span id="line-190"></span><span class="hs-comment">-- | @since 0.1</span><span>
+</span><span id="line-191"></span><span id="local-6989586621679269518"><span id="local-6989586621679269523"><span id="local-6989586621679270043"><span id="local-6989586621679270044"><span id="local-6989586621679270045"><span id="local-6989586621679270046"><span id="local-6989586621679270047"><span id="local-6989586621679270048"><span class="hs-identifier">makeFieldLabelsNoPrefix</span><span> </span><span class="hs-special">''</span><span class="hs-identifier">SystemMemory</span></span></span></span></span></span></span></span></span><span>
+</span><span id="line-192"></span></pre></body></html>

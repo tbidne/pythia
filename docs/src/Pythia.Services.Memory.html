@@ -1,0 +1,422 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><link rel="stylesheet" type="text/css" href="style.css" /><script type="text/javascript" src="highlight.js"></script></head><body><pre><span class="hs-comment">-- | This module exports memory related services.</span><span>
+</span><span id="line-2"></span><span class="hs-comment">--</span><span>
+</span><span id="line-3"></span><span class="hs-comment">-- @since 0.1</span><span>
+</span><span id="line-4"></span><span class="hs-keyword">module</span><span> </span><span class="hs-identifier">Pythia.Services.Memory</span><span>
+</span><span id="line-5"></span><span>  </span><span class="hs-special">(</span><span> </span><span class="annot"><span class="hs-comment">-- * Queries</span></span><span>
+</span><span id="line-6"></span><span>    </span><span class="annot"><a href="Pythia.Services.Memory.html#queryMemory"><span class="hs-identifier">queryMemory</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-7"></span><span>
+</span><span id="line-8"></span><span>    </span><span class="annot"><span class="hs-comment">-- * Functions</span></span><span>
+</span><span id="line-9"></span><span>    </span><span class="annot"><a href="Pythia.Services.Memory.html#freeMemory"><span class="hs-identifier">freeMemory</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-10"></span><span>    </span><span class="annot"><a href="Pythia.Services.Memory.html#percentageUsed"><span class="hs-identifier">percentageUsed</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-11"></span><span>    </span><span class="annot"><a href="Pythia.Services.Memory.html#percentageFree"><span class="hs-identifier">percentageFree</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-12"></span><span>
+</span><span id="line-13"></span><span>    </span><span class="annot"><span class="hs-comment">-- * Types</span></span><span>
+</span><span id="line-14"></span><span>    </span><span class="annot"><a href="Pythia.Services.Memory.Types.html#Memory"><span class="hs-identifier">Memory</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span class="hs-special">,</span><span>
+</span><span id="line-15"></span><span>    </span><span class="annot"><a href="Pythia.Services.Memory.Types.html#SystemMemory"><span class="hs-identifier">SystemMemory</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span class="hs-special">,</span><span>
+</span><span id="line-16"></span><span>
+</span><span id="line-17"></span><span>    </span><span class="annot"><span class="hs-comment">-- ** Configuration</span></span><span>
+</span><span id="line-18"></span><span>    </span><span class="annot"><a href="Pythia.Services.Memory.Types.html#MemoryConfig"><span class="hs-identifier">MemoryConfig</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span class="hs-special">,</span><span>
+</span><span id="line-19"></span><span>    </span><span class="annot"><a href="Pythia.Services.Memory.Types.html#MemoryApp"><span class="hs-identifier">MemoryApp</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span class="hs-special">,</span><span>
+</span><span id="line-20"></span><span>    </span><span class="annot"><a href="Pythia.Data.RunApp.html#RunApp"><span class="hs-identifier">RunApp</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span class="hs-special">,</span><span>
+</span><span id="line-21"></span><span>
+</span><span id="line-22"></span><span>    </span><span class="annot"><span class="hs-comment">-- ** Errors</span></span><span>
+</span><span id="line-23"></span><span>    </span><span class="annot"><a href="Pythia.Services.Memory.Free.html#FreeParseError"><span class="hs-identifier">FreeParseError</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span class="hs-special">,</span><span>
+</span><span id="line-24"></span><span>
+</span><span id="line-25"></span><span>    </span><span class="annot"><span class="hs-comment">-- * Optics</span></span><span>
+</span><span id="line-26"></span><span>
+</span><span id="line-27"></span><span>    </span><span class="annot"><span class="hs-comment">-- ** Types</span></span><span>
+</span><span id="line-28"></span><span>    </span><span class="annot"><a href="Pythia.Services.Memory.Types.html#_MkMemory"><span class="hs-identifier">_MkMemory</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-29"></span><span>
+</span><span id="line-30"></span><span>    </span><span class="annot"><span class="hs-comment">-- ** Configuration</span></span><span>
+</span><span id="line-31"></span><span>    </span><span class="annot"><a href="Pythia.Services.Memory.Types.html#_MkMemoryConfig"><span class="hs-identifier">_MkMemoryConfig</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-32"></span><span>
+</span><span id="line-33"></span><span>    </span><span class="annot"><span class="hs-comment">-- ** Errors</span></span><span>
+</span><span id="line-34"></span><span>    </span><span class="annot"><a href="Pythia.Services.Memory.Free.html#_MkFreeParseError"><span class="hs-identifier">_MkFreeParseError</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-35"></span><span>  </span><span class="hs-special">)</span><span>
+</span><span id="line-36"></span><span class="hs-keyword">where</span><span>
+</span><span id="line-37"></span><span>
+</span><span id="line-38"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Data.Bytes</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">Bytes</span></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span class="hs-special">)</span><span>
+</span><span id="line-39"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Numeric.Data.Interval</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">LRInterval</span></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span class="hs-special">)</span><span>
+</span><span id="line-40"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Numeric.Data.Interval</span></span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="hs-keyword">as</span><span> </span><span class="annot"><span class="hs-identifier">Interval</span></span><span>
+</span><span id="line-41"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Numeric.Data.NonNegative</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">NonNegative</span></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span class="hs-special">)</span><span>
+</span><span id="line-42"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Numeric.Data.NonNegative</span></span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="hs-keyword">as</span><span> </span><span class="annot"><span class="hs-identifier">NN</span></span><span>
+</span><span id="line-43"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Numeric.Data.Positive</span></span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="hs-keyword">as</span><span> </span><span class="annot"><span class="hs-identifier">Pos</span></span><span>
+</span><span id="line-44"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Pythia.Data.Percentage.html"><span class="hs-identifier">Pythia.Data.Percentage</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Pythia.Data.Percentage.html#Percentage"><span class="hs-identifier">Percentage</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span class="hs-special">)</span><span>
+</span><span id="line-45"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Pythia.Data.RunApp.html"><span class="hs-identifier">Pythia.Data.RunApp</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Pythia.Data.RunApp.html#RunApp"><span class="hs-identifier">RunApp</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span class="hs-special">)</span><span>
+</span><span id="line-46"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Pythia.Internal.ShellApp.html"><span class="hs-identifier">Pythia.Internal.ShellApp</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Pythia.Internal.ShellApp.html#AppAction"><span class="hs-identifier">AppAction</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span class="hs-special">)</span><span>
+</span><span id="line-47"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Pythia.Internal.ShellApp.html"><span class="hs-identifier">Pythia.Internal.ShellApp</span></a></span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="hs-keyword">as</span><span> </span><span class="annot"><span class="hs-identifier">ShellApp</span></span><span>
+</span><span id="line-48"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Pythia.Prelude.html"><span class="hs-identifier">Pythia.Prelude</span></a></span><span>
+</span><span id="line-49"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Pythia.Services.Memory.Free.html"><span class="hs-identifier">Pythia.Services.Memory.Free</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Pythia.Services.Memory.Free.html#FreeParseError"><span class="hs-identifier">FreeParseError</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Pythia.Services.Memory.Free.html#_MkFreeParseError"><span class="hs-identifier">_MkFreeParseError</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-50"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Pythia.Services.Memory.Free.html"><span class="hs-identifier">Pythia.Services.Memory.Free</span></a></span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="hs-keyword">as</span><span> </span><span class="annot"><span class="hs-identifier">Free</span></span><span>
+</span><span id="line-51"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Pythia.Services.Memory.Types.html"><span class="hs-identifier">Pythia.Services.Memory.Types</span></a></span><span>
+</span><span id="line-52"></span><span>  </span><span class="hs-special">(</span><span> </span><span class="annot"><a href="Pythia.Services.Memory.Types.html#Memory"><span class="hs-identifier">Memory</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span class="hs-special">,</span><span>
+</span><span id="line-53"></span><span>    </span><span class="annot"><a href="Pythia.Services.Memory.Types.html#MemoryApp"><span class="hs-identifier">MemoryApp</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span class="hs-special">,</span><span>
+</span><span id="line-54"></span><span>    </span><span class="annot"><a href="Pythia.Services.Memory.Types.html#MemoryConfig"><span class="hs-identifier">MemoryConfig</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span class="hs-special">,</span><span>
+</span><span id="line-55"></span><span>    </span><span class="annot"><a href="Pythia.Services.Memory.Types.html#SystemMemory"><span class="hs-identifier">SystemMemory</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span class="hs-special">,</span><span>
+</span><span id="line-56"></span><span>    </span><span class="annot"><a href="Pythia.Services.Memory.Types.html#_MkMemory"><span class="hs-identifier">_MkMemory</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-57"></span><span>    </span><span class="annot"><a href="Pythia.Services.Memory.Types.html#_MkMemoryConfig"><span class="hs-identifier">_MkMemoryConfig</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-58"></span><span>  </span><span class="hs-special">)</span><span>
+</span><span id="line-59"></span><span>
+</span><span id="line-60"></span><span class="hs-comment">-- | Queries the memory based on the configuration. If 'app' is</span><span>
+</span><span id="line-61"></span><span class="hs-comment">-- 'Many' then we try supported apps in the following order:</span><span>
+</span><span id="line-62"></span><span class="hs-comment">--</span><span>
+</span><span id="line-63"></span><span class="hs-comment">-- @</span><span>
+</span><span id="line-64"></span><span class="hs-comment">-- ['MemoryFree']</span><span>
+</span><span id="line-65"></span><span class="hs-comment">-- @</span><span>
+</span><span id="line-66"></span><span class="hs-comment">--</span><span>
+</span><span id="line-67"></span><span class="hs-comment">-- __Throws:__</span><span>
+</span><span id="line-68"></span><span class="hs-comment">--</span><span>
+</span><span id="line-69"></span><span class="hs-comment">-- * 'FreeParseError'</span><span>
+</span><span id="line-70"></span><span class="hs-comment">-- * 'Pythia.Control.Exception.CommandException'</span><span>
+</span><span id="line-71"></span><span class="hs-comment">--</span><span>
+</span><span id="line-72"></span><span class="hs-comment">-- @since 0.1</span><span>
+</span><span id="line-73"></span><span class="annot"><a href="Pythia.Services.Memory.html#queryMemory"><span class="hs-identifier hs-type">queryMemory</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Pythia.Services.Memory.Types.html#MemoryConfig"><span class="hs-identifier hs-type">MemoryConfig</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="file:///nix/store/16s6s6gbs6bxf3x75xpna03ygn755wig-ghc-9.2.3-doc/share/doc/ghc/html/libraries/ghc-prim-0.8.0/src/GHC.Types.html#IO"><span class="hs-identifier hs-type">IO</span></a></span><span> </span><span class="annot"><a href="Pythia.Services.Memory.Types.html#SystemMemory"><span class="hs-identifier hs-type">SystemMemory</span></a></span><span>
+</span><span id="line-74"></span><span id="queryMemory"><span class="annot"><span class="annottext">queryMemory :: MemoryConfig -&gt; IO SystemMemory
+</span><a href="Pythia.Services.Memory.html#queryMemory"><span class="hs-identifier hs-var hs-var">queryMemory</span></a></span></span><span> </span><span id="local-6989586621679275047"><span class="annot"><span class="annottext">MemoryConfig
+</span><a href="#local-6989586621679275047"><span class="hs-identifier hs-var">config</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-75"></span><span>  </span><span class="hs-keyword">case</span><span> </span><span class="annot"><span class="annottext">MemoryConfig
+</span><a href="#local-6989586621679275047"><span class="hs-identifier hs-var">config</span></a></span><span> </span><span class="annot"><span class="annottext">MemoryConfig
+-&gt; Optic' A_Lens NoIx MemoryConfig (RunApp MemoryApp)
+-&gt; RunApp MemoryApp
+forall (k :: OpticKind) (s :: OpticKind) (is :: IxList)
+       (a :: OpticKind).
+Is k A_Getter =&gt;
+s -&gt; Optic' k is s a -&gt; a
+</span><a href="file:///nix/store/wnx39jjxjr7ivk5xmark8v1f1fl8cmvb-optics-core-0.4.1-doc/share/doc/optics-core-0.4.1/html/src/Optics.Operators.html#%5E."><span class="hs-operator hs-var">^.</span></a></span><span> </span><span class="annot"><span class="annottext">Optic' A_Lens NoIx MemoryConfig (RunApp MemoryApp)
+</span><span class="">#app</span></span><span> </span><span class="hs-keyword">of</span><span>
+</span><span id="line-76"></span><span>    </span><span class="annot"><span class="annottext">RunApp MemoryApp
+</span><a href="Pythia.Data.RunApp.html#Many"><span class="hs-identifier hs-var">Many</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">[AppAction IO SystemMemory] -&gt; IO SystemMemory
+forall (result :: OpticKind). [AppAction IO result] -&gt; IO result
+</span><a href="Pythia.Internal.ShellApp.html#tryAppActions"><span class="hs-identifier hs-var">ShellApp.tryAppActions</span></a></span><span> </span><span class="annot"><span class="annottext">[AppAction IO SystemMemory]
+</span><a href="#local-6989586621679275043"><span class="hs-identifier hs-var">allApps</span></a></span><span>
+</span><span id="line-77"></span><span>    </span><span class="annot"><a href="Pythia.Data.RunApp.html#Single"><span class="hs-identifier hs-type">Single</span></a></span><span> </span><span id="local-6989586621679275041"><span class="annot"><span class="annottext">MemoryApp
+</span><a href="#local-6989586621679275041"><span class="hs-identifier hs-var">app</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">MemoryApp -&gt; IO SystemMemory
+</span><a href="Pythia.Services.Memory.html#toShellApp"><span class="hs-identifier hs-var">toShellApp</span></a></span><span> </span><span class="annot"><span class="annottext">MemoryApp
+</span><a href="#local-6989586621679275041"><span class="hs-identifier hs-var">app</span></a></span><span>
+</span><span id="line-78"></span><span>  </span><span class="hs-keyword">where</span><span>
+</span><span id="line-79"></span><span>    </span><span id="local-6989586621679275043"><span class="annot"><span class="annottext">allApps :: [AppAction IO SystemMemory]
+</span><a href="#local-6989586621679275043"><span class="hs-identifier hs-var hs-var">allApps</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-80"></span><span>      </span><span class="hs-special">[</span><span> </span><span class="annot"><span class="annottext">IO SystemMemory -&gt; IO Bool -&gt; Text -&gt; AppAction IO SystemMemory
+forall (m :: OpticKind -&gt; OpticKind) (r :: OpticKind).
+m r -&gt; m Bool -&gt; Text -&gt; AppAction m r
+</span><a href="Pythia.Internal.ShellApp.html#MkAppAction"><span class="hs-identifier hs-var">MkAppAction</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">MemoryApp -&gt; IO SystemMemory
+</span><a href="Pythia.Services.Memory.html#toShellApp"><span class="hs-identifier hs-var">toShellApp</span></a></span><span> </span><span class="annot"><span class="annottext">MemoryApp
+</span><a href="Pythia.Services.Memory.Types.html#MemoryAppFree"><span class="hs-identifier hs-var">MemoryAppFree</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">IO Bool
+</span><a href="Pythia.Services.Memory.Free.html#supported"><span class="hs-identifier hs-var">Free.supported</span></a></span><span> </span><span class="annot"><span class="annottext">Text
+</span><span class="hs-string">&quot;free&quot;</span></span><span>
+</span><span id="line-81"></span><span>      </span><span class="hs-special">]</span><span>
+</span><span id="line-82"></span><span class="hs-pragma">{-# INLINEABLE</span><span> </span><span class="annot"><a href="Pythia.Services.Memory.html#queryMemory"><span class="hs-pragma hs-type">queryMemory</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-83"></span><span>
+</span><span id="line-84"></span><span class="annot"><a href="Pythia.Services.Memory.html#toShellApp"><span class="hs-identifier hs-type">toShellApp</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Pythia.Services.Memory.Types.html#MemoryApp"><span class="hs-identifier hs-type">MemoryApp</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="file:///nix/store/16s6s6gbs6bxf3x75xpna03ygn755wig-ghc-9.2.3-doc/share/doc/ghc/html/libraries/ghc-prim-0.8.0/src/GHC.Types.html#IO"><span class="hs-identifier hs-type">IO</span></a></span><span> </span><span class="annot"><a href="Pythia.Services.Memory.Types.html#SystemMemory"><span class="hs-identifier hs-type">SystemMemory</span></a></span><span>
+</span><span id="line-85"></span><span id="toShellApp"><span class="annot"><span class="annottext">toShellApp :: MemoryApp -&gt; IO SystemMemory
+</span><a href="Pythia.Services.Memory.html#toShellApp"><span class="hs-identifier hs-var hs-var">toShellApp</span></a></span></span><span> </span><span class="annot"><span class="annottext">MemoryApp
+</span><a href="Pythia.Services.Memory.Types.html#MemoryAppFree"><span class="hs-identifier hs-var">MemoryAppFree</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">IO SystemMemory
+</span><a href="Pythia.Services.Memory.Free.html#memoryShellApp"><span class="hs-identifier hs-var">Free.memoryShellApp</span></a></span><span>
+</span><span id="line-86"></span><span class="hs-pragma">{-# INLINEABLE</span><span> </span><span class="annot"><a href="Pythia.Services.Memory.html#toShellApp"><span class="hs-pragma hs-type">toShellApp</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-87"></span><span>
+</span><span id="line-88"></span><span class="hs-comment">-- | Returns the amount of free memory.</span><span>
+</span><span id="line-89"></span><span class="hs-comment">--</span><span>
+</span><span id="line-90"></span><span class="hs-comment">-- @since 0.1</span><span>
+</span><span id="line-91"></span><span class="annot"><a href="Pythia.Services.Memory.html#freeMemory"><span class="hs-identifier hs-type">freeMemory</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Pythia.Services.Memory.Types.html#SystemMemory"><span class="hs-identifier hs-type">SystemMemory</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Pythia.Services.Memory.Types.html#Memory"><span class="hs-identifier hs-type">Memory</span></a></span><span> </span><span class="annot"><span class="hs-identifier hs-type">NonNegative</span></span><span>
+</span><span id="line-92"></span><span id="freeMemory"><span class="annot"><span class="annottext">freeMemory :: SystemMemory -&gt; Memory NonNegative
+</span><a href="Pythia.Services.Memory.html#freeMemory"><span class="hs-identifier hs-var hs-var">freeMemory</span></a></span></span><span> </span><span id="local-6989586621679275033"><span class="annot"><span class="annottext">SystemMemory
+</span><a href="#local-6989586621679275033"><span class="hs-identifier hs-var">sysMem</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Memory NonNegative
+</span><a href="#local-6989586621679275032"><span class="hs-identifier hs-var">free</span></a></span><span>
+</span><span id="line-93"></span><span>  </span><span class="hs-keyword">where</span><span>
+</span><span id="line-94"></span><span>    </span><span id="local-6989586621679275031"><span class="annot"><span class="annottext">t :: Double
+</span><a href="#local-6989586621679275031"><span class="hs-identifier hs-var hs-var">t</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Positive Double -&gt; Double
+forall (a :: OpticKind). Positive a -&gt; a
+</span><span class="hs-identifier hs-var">Pos.unPositive</span></span><span> </span><span class="annot"><span class="annottext">(Positive Double -&gt; Double)
+-&gt; (Memory Positive -&gt; Positive Double)
+-&gt; Memory Positive
+-&gt; Double
+forall (b :: OpticKind) (c :: OpticKind) (a :: OpticKind).
+(b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><a href="file:///nix/store/16s6s6gbs6bxf3x75xpna03ygn755wig-ghc-9.2.3-doc/share/doc/ghc/html/libraries/base-4.16.2.0/src/GHC.Base.html#."><span class="hs-operator hs-var">.</span></a></span><span> </span><span class="annot"><span class="annottext">Bytes 'B (Positive Double) -&gt; Positive Double
+forall (s :: Size) (n :: OpticKind). Bytes s n -&gt; n
+</span><span class="hs-identifier hs-var">unBytes</span></span><span> </span><span class="annot"><span class="annottext">(Bytes 'B (Positive Double) -&gt; Positive Double)
+-&gt; (Memory Positive -&gt; Bytes 'B (Positive Double))
+-&gt; Memory Positive
+-&gt; Positive Double
+forall (b :: OpticKind) (c :: OpticKind) (a :: OpticKind).
+(b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><a href="file:///nix/store/16s6s6gbs6bxf3x75xpna03ygn755wig-ghc-9.2.3-doc/share/doc/ghc/html/libraries/base-4.16.2.0/src/GHC.Base.html#."><span class="hs-operator hs-var">.</span></a></span><span> </span><span class="annot"><span class="annottext">Memory Positive -&gt; Bytes 'B (Positive Double)
+forall (f :: OpticKind -&gt; OpticKind).
+Memory f -&gt; Bytes 'B (f Double)
+</span><a href="Pythia.Services.Memory.Types.html#%24sel%3AunMemory%3AMkMemory"><span class="hs-identifier hs-var">unMemory</span></a></span><span> </span><span class="annot"><span class="annottext">(Memory Positive -&gt; Double) -&gt; Memory Positive -&gt; Double
+forall (a :: OpticKind) b. (a -&gt; b) -&gt; a -&gt; b
+</span><a href="file:///nix/store/16s6s6gbs6bxf3x75xpna03ygn755wig-ghc-9.2.3-doc/share/doc/ghc/html/libraries/base-4.16.2.0/src/GHC.Base.html#%24"><span class="hs-operator hs-var">$</span></a></span><span> </span><span class="annot"><span class="annottext">SystemMemory
+</span><a href="#local-6989586621679275033"><span class="hs-identifier hs-var">sysMem</span></a></span><span> </span><span class="annot"><span class="annottext">SystemMemory
+-&gt; Optic
+     A_Lens
+     NoIx
+     SystemMemory
+     SystemMemory
+     (Memory Positive)
+     (Memory Positive)
+-&gt; Memory Positive
+forall (k :: OpticKind) (s :: OpticKind) (is :: IxList)
+       (a :: OpticKind).
+Is k A_Getter =&gt;
+s -&gt; Optic' k is s a -&gt; a
+</span><a href="file:///nix/store/wnx39jjxjr7ivk5xmark8v1f1fl8cmvb-optics-core-0.4.1-doc/share/doc/optics-core-0.4.1/html/src/Optics.Operators.html#%5E."><span class="hs-operator hs-var">^.</span></a></span><span> </span><span class="annot"><span class="annottext">Optic
+  A_Lens
+  NoIx
+  SystemMemory
+  SystemMemory
+  (Memory Positive)
+  (Memory Positive)
+</span><span class="">#total</span></span><span>
+</span><span id="line-95"></span><span>    </span><span id="local-6989586621679275026"><span class="annot"><span class="annottext">u :: Double
+</span><a href="#local-6989586621679275026"><span class="hs-identifier hs-var hs-var">u</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">NonNegative Double -&gt; Double
+forall (a :: OpticKind). NonNegative a -&gt; a
+</span><span class="hs-identifier hs-var">NN.unNonNegative</span></span><span> </span><span class="annot"><span class="annottext">(NonNegative Double -&gt; Double)
+-&gt; (Memory NonNegative -&gt; NonNegative Double)
+-&gt; Memory NonNegative
+-&gt; Double
+forall (b :: OpticKind) (c :: OpticKind) (a :: OpticKind).
+(b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><a href="file:///nix/store/16s6s6gbs6bxf3x75xpna03ygn755wig-ghc-9.2.3-doc/share/doc/ghc/html/libraries/base-4.16.2.0/src/GHC.Base.html#."><span class="hs-operator hs-var">.</span></a></span><span> </span><span class="annot"><span class="annottext">Bytes 'B (NonNegative Double) -&gt; NonNegative Double
+forall (s :: Size) (n :: OpticKind). Bytes s n -&gt; n
+</span><span class="hs-identifier hs-var">unBytes</span></span><span> </span><span class="annot"><span class="annottext">(Bytes 'B (NonNegative Double) -&gt; NonNegative Double)
+-&gt; (Memory NonNegative -&gt; Bytes 'B (NonNegative Double))
+-&gt; Memory NonNegative
+-&gt; NonNegative Double
+forall (b :: OpticKind) (c :: OpticKind) (a :: OpticKind).
+(b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><a href="file:///nix/store/16s6s6gbs6bxf3x75xpna03ygn755wig-ghc-9.2.3-doc/share/doc/ghc/html/libraries/base-4.16.2.0/src/GHC.Base.html#."><span class="hs-operator hs-var">.</span></a></span><span> </span><span class="annot"><span class="annottext">Memory NonNegative -&gt; Bytes 'B (NonNegative Double)
+forall (f :: OpticKind -&gt; OpticKind).
+Memory f -&gt; Bytes 'B (f Double)
+</span><a href="Pythia.Services.Memory.Types.html#%24sel%3AunMemory%3AMkMemory"><span class="hs-identifier hs-var">unMemory</span></a></span><span> </span><span class="annot"><span class="annottext">(Memory NonNegative -&gt; Double) -&gt; Memory NonNegative -&gt; Double
+forall (a :: OpticKind) b. (a -&gt; b) -&gt; a -&gt; b
+</span><a href="file:///nix/store/16s6s6gbs6bxf3x75xpna03ygn755wig-ghc-9.2.3-doc/share/doc/ghc/html/libraries/base-4.16.2.0/src/GHC.Base.html#%24"><span class="hs-operator hs-var">$</span></a></span><span> </span><span class="annot"><span class="annottext">SystemMemory
+</span><a href="#local-6989586621679275033"><span class="hs-identifier hs-var">sysMem</span></a></span><span> </span><span class="annot"><span class="annottext">SystemMemory
+-&gt; Optic
+     A_Lens
+     NoIx
+     SystemMemory
+     SystemMemory
+     (Memory NonNegative)
+     (Memory NonNegative)
+-&gt; Memory NonNegative
+forall (k :: OpticKind) (s :: OpticKind) (is :: IxList)
+       (a :: OpticKind).
+Is k A_Getter =&gt;
+s -&gt; Optic' k is s a -&gt; a
+</span><a href="file:///nix/store/wnx39jjxjr7ivk5xmark8v1f1fl8cmvb-optics-core-0.4.1-doc/share/doc/optics-core-0.4.1/html/src/Optics.Operators.html#%5E."><span class="hs-operator hs-var">^.</span></a></span><span> </span><span class="annot"><span class="annottext">Optic
+  A_Lens
+  NoIx
+  SystemMemory
+  SystemMemory
+  (Memory NonNegative)
+  (Memory NonNegative)
+</span><span class="">#used</span></span><span>
+</span><span id="line-96"></span><span>    </span><span id="local-6989586621679275032"><span class="annot"><span class="annottext">free :: Memory NonNegative
+</span><a href="#local-6989586621679275032"><span class="hs-identifier hs-var hs-var">free</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Bytes 'B (NonNegative Double) -&gt; Memory NonNegative
+forall (f :: OpticKind -&gt; OpticKind).
+Bytes 'B (f Double) -&gt; Memory f
+</span><a href="Pythia.Services.Memory.Types.html#MkMemory"><span class="hs-identifier hs-var">MkMemory</span></a></span><span> </span><span class="annot"><span class="annottext">(Bytes 'B (NonNegative Double) -&gt; Memory NonNegative)
+-&gt; Bytes 'B (NonNegative Double) -&gt; Memory NonNegative
+forall (a :: OpticKind) b. (a -&gt; b) -&gt; a -&gt; b
+</span><a href="file:///nix/store/16s6s6gbs6bxf3x75xpna03ygn755wig-ghc-9.2.3-doc/share/doc/ghc/html/libraries/base-4.16.2.0/src/GHC.Base.html#%24"><span class="hs-operator hs-var">$</span></a></span><span> </span><span class="annot"><span class="annottext">NonNegative Double -&gt; Bytes 'B (NonNegative Double)
+forall (s :: Size) (n :: OpticKind). n -&gt; Bytes s n
+</span><span class="hs-identifier hs-var">MkBytes</span></span><span> </span><span class="annot"><span class="annottext">(NonNegative Double -&gt; Bytes 'B (NonNegative Double))
+-&gt; NonNegative Double -&gt; Bytes 'B (NonNegative Double)
+forall (a :: OpticKind) b. (a -&gt; b) -&gt; a -&gt; b
+</span><a href="file:///nix/store/16s6s6gbs6bxf3x75xpna03ygn755wig-ghc-9.2.3-doc/share/doc/ghc/html/libraries/base-4.16.2.0/src/GHC.Base.html#%24"><span class="hs-operator hs-var">$</span></a></span><span> </span><span class="annot"><span class="annottext">Double -&gt; NonNegative Double
+forall (a :: OpticKind).
+(HasCallStack, Num a, Ord a, Show a) =&gt;
+a -&gt; NonNegative a
+</span><span class="hs-identifier hs-var">NN.unsafeNonNegative</span></span><span> </span><span class="annot"><span class="annottext">(Double -&gt; NonNegative Double) -&gt; Double -&gt; NonNegative Double
+forall (a :: OpticKind) b. (a -&gt; b) -&gt; a -&gt; b
+</span><a href="file:///nix/store/16s6s6gbs6bxf3x75xpna03ygn755wig-ghc-9.2.3-doc/share/doc/ghc/html/libraries/base-4.16.2.0/src/GHC.Base.html#%24"><span class="hs-operator hs-var">$</span></a></span><span> </span><span class="annot"><span class="annottext">Double
+</span><a href="#local-6989586621679275031"><span class="hs-identifier hs-var">t</span></a></span><span> </span><span class="annot"><span class="annottext">Double -&gt; Double -&gt; Double
+forall (a :: OpticKind). Num a =&gt; a -&gt; a -&gt; a
+</span><a href="file:///nix/store/16s6s6gbs6bxf3x75xpna03ygn755wig-ghc-9.2.3-doc/share/doc/ghc/html/libraries/base-4.16.2.0/src/GHC.Num.html#-"><span class="hs-glyph hs-var">-</span></a></span><span> </span><span class="annot"><span class="annottext">Double
+</span><a href="#local-6989586621679275026"><span class="hs-identifier hs-var">u</span></a></span><span>
+</span><span id="line-97"></span><span class="hs-pragma">{-# INLINEABLE</span><span> </span><span class="annot"><a href="Pythia.Services.Memory.html#freeMemory"><span class="hs-pragma hs-type">freeMemory</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-98"></span><span>
+</span><span id="line-99"></span><span class="hs-comment">-- | Returns the used memory as a percentage.</span><span>
+</span><span id="line-100"></span><span class="hs-comment">--</span><span>
+</span><span id="line-101"></span><span class="hs-comment">-- @since 0.1</span><span>
+</span><span id="line-102"></span><span class="annot"><a href="Pythia.Services.Memory.html#percentageUsed"><span class="hs-identifier hs-type">percentageUsed</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Pythia.Services.Memory.Types.html#SystemMemory"><span class="hs-identifier hs-type">SystemMemory</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Pythia.Data.Percentage.html#Percentage"><span class="hs-identifier hs-type">Percentage</span></a></span><span>
+</span><span id="line-103"></span><span id="percentageUsed"><span class="annot"><span class="annottext">percentageUsed :: SystemMemory -&gt; Percentage
+</span><a href="Pythia.Services.Memory.html#percentageUsed"><span class="hs-identifier hs-var hs-var">percentageUsed</span></a></span></span><span> </span><span id="local-6989586621679275021"><span class="annot"><span class="annottext">SystemMemory
+</span><a href="#local-6989586621679275021"><span class="hs-identifier hs-var">sysMem</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">LRInterval 0 100 Word8 -&gt; Percentage
+</span><a href="Pythia.Data.Percentage.html#MkPercentage"><span class="hs-identifier hs-var">MkPercentage</span></a></span><span> </span><span class="annot"><span class="annottext">LRInterval 0 100 Word8
+</span><a href="#local-6989586621679275019"><span class="hs-identifier hs-var">p</span></a></span><span>
+</span><span id="line-104"></span><span>  </span><span class="hs-keyword">where</span><span>
+</span><span id="line-105"></span><span>    </span><span id="local-6989586621679275018"><span class="annot"><span class="annottext">t :: Double
+</span><a href="#local-6989586621679275018"><span class="hs-identifier hs-var hs-var">t</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Positive Double -&gt; Double
+forall (a :: OpticKind). Positive a -&gt; a
+</span><span class="hs-identifier hs-var">Pos.unPositive</span></span><span> </span><span class="annot"><span class="annottext">(Positive Double -&gt; Double)
+-&gt; (Bytes 'B (Positive Double) -&gt; Positive Double)
+-&gt; Bytes 'B (Positive Double)
+-&gt; Double
+forall (b :: OpticKind) (c :: OpticKind) (a :: OpticKind).
+(b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><a href="file:///nix/store/16s6s6gbs6bxf3x75xpna03ygn755wig-ghc-9.2.3-doc/share/doc/ghc/html/libraries/base-4.16.2.0/src/GHC.Base.html#."><span class="hs-operator hs-var">.</span></a></span><span> </span><span class="annot"><span class="annottext">Bytes 'B (Positive Double) -&gt; Positive Double
+forall (s :: Size) (n :: OpticKind). Bytes s n -&gt; n
+</span><span class="hs-identifier hs-var">unBytes</span></span><span> </span><span class="annot"><span class="annottext">(Bytes 'B (Positive Double) -&gt; Double)
+-&gt; Bytes 'B (Positive Double) -&gt; Double
+forall (a :: OpticKind) b. (a -&gt; b) -&gt; a -&gt; b
+</span><a href="file:///nix/store/16s6s6gbs6bxf3x75xpna03ygn755wig-ghc-9.2.3-doc/share/doc/ghc/html/libraries/base-4.16.2.0/src/GHC.Base.html#%24"><span class="hs-operator hs-var">$</span></a></span><span> </span><span class="annot"><span class="annottext">SystemMemory
+</span><a href="#local-6989586621679275021"><span class="hs-identifier hs-var">sysMem</span></a></span><span> </span><span class="annot"><span class="annottext">SystemMemory
+-&gt; Optic' A_Lens NoIx SystemMemory (Bytes 'B (Positive Double))
+-&gt; Bytes 'B (Positive Double)
+forall (k :: OpticKind) (s :: OpticKind) (is :: IxList)
+       (a :: OpticKind).
+Is k A_Getter =&gt;
+s -&gt; Optic' k is s a -&gt; a
+</span><a href="file:///nix/store/wnx39jjxjr7ivk5xmark8v1f1fl8cmvb-optics-core-0.4.1-doc/share/doc/optics-core-0.4.1/html/src/Optics.Operators.html#%5E."><span class="hs-operator hs-var">^.</span></a></span><span> </span><span class="annot"><span class="annottext">Optic
+  A_Lens
+  NoIx
+  SystemMemory
+  SystemMemory
+  (Memory Positive)
+  (Memory Positive)
+</span><span class="">#total</span></span><span> </span><span class="annot"><span class="annottext">Optic
+  A_Lens
+  NoIx
+  SystemMemory
+  SystemMemory
+  (Memory Positive)
+  (Memory Positive)
+-&gt; Optic
+     A_Lens
+     NoIx
+     (Memory Positive)
+     (Memory Positive)
+     (Bytes 'B (Positive Double))
+     (Bytes 'B (Positive Double))
+-&gt; Optic' A_Lens NoIx SystemMemory (Bytes 'B (Positive Double))
+forall (k :: OpticKind) (l :: OpticKind) (m :: OpticKind)
+       (is :: IxList) (js :: IxList) (ks :: IxList) (s :: OpticKind)
+       (t :: OpticKind) (u :: OpticKind) (v :: OpticKind) (a :: OpticKind)
+       (b :: OpticKind).
+(JoinKinds k l m, AppendIndices is js ks) =&gt;
+Optic k is s t u v -&gt; Optic l js u v a b -&gt; Optic m ks s t a b
+</span><a href="file:///nix/store/wnx39jjxjr7ivk5xmark8v1f1fl8cmvb-optics-core-0.4.1-doc/share/doc/optics-core-0.4.1/html/src/Optics.Internal.Optic.html#%25"><span class="hs-operator hs-var">%</span></a></span><span> </span><span class="annot"><span class="annottext">Optic
+  A_Lens
+  NoIx
+  (Memory Positive)
+  (Memory Positive)
+  (Bytes 'B (Positive Double))
+  (Bytes 'B (Positive Double))
+</span><span class="">#unMemory</span></span><span>
+</span><span id="line-106"></span><span>    </span><span id="local-6989586621679275016"><span class="annot"><span class="annottext">u :: Double
+</span><a href="#local-6989586621679275016"><span class="hs-identifier hs-var hs-var">u</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">NonNegative Double -&gt; Double
+forall (a :: OpticKind). NonNegative a -&gt; a
+</span><span class="hs-identifier hs-var">NN.unNonNegative</span></span><span> </span><span class="annot"><span class="annottext">(NonNegative Double -&gt; Double)
+-&gt; (Bytes 'B (NonNegative Double) -&gt; NonNegative Double)
+-&gt; Bytes 'B (NonNegative Double)
+-&gt; Double
+forall (b :: OpticKind) (c :: OpticKind) (a :: OpticKind).
+(b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><a href="file:///nix/store/16s6s6gbs6bxf3x75xpna03ygn755wig-ghc-9.2.3-doc/share/doc/ghc/html/libraries/base-4.16.2.0/src/GHC.Base.html#."><span class="hs-operator hs-var">.</span></a></span><span> </span><span class="annot"><span class="annottext">Bytes 'B (NonNegative Double) -&gt; NonNegative Double
+forall (s :: Size) (n :: OpticKind). Bytes s n -&gt; n
+</span><span class="hs-identifier hs-var">unBytes</span></span><span> </span><span class="annot"><span class="annottext">(Bytes 'B (NonNegative Double) -&gt; Double)
+-&gt; Bytes 'B (NonNegative Double) -&gt; Double
+forall (a :: OpticKind) b. (a -&gt; b) -&gt; a -&gt; b
+</span><a href="file:///nix/store/16s6s6gbs6bxf3x75xpna03ygn755wig-ghc-9.2.3-doc/share/doc/ghc/html/libraries/base-4.16.2.0/src/GHC.Base.html#%24"><span class="hs-operator hs-var">$</span></a></span><span> </span><span class="annot"><span class="annottext">SystemMemory
+</span><a href="#local-6989586621679275021"><span class="hs-identifier hs-var">sysMem</span></a></span><span> </span><span class="annot"><span class="annottext">SystemMemory
+-&gt; Optic' A_Lens NoIx SystemMemory (Bytes 'B (NonNegative Double))
+-&gt; Bytes 'B (NonNegative Double)
+forall (k :: OpticKind) (s :: OpticKind) (is :: IxList)
+       (a :: OpticKind).
+Is k A_Getter =&gt;
+s -&gt; Optic' k is s a -&gt; a
+</span><a href="file:///nix/store/wnx39jjxjr7ivk5xmark8v1f1fl8cmvb-optics-core-0.4.1-doc/share/doc/optics-core-0.4.1/html/src/Optics.Operators.html#%5E."><span class="hs-operator hs-var">^.</span></a></span><span> </span><span class="annot"><span class="annottext">Optic
+  A_Lens
+  NoIx
+  SystemMemory
+  SystemMemory
+  (Memory NonNegative)
+  (Memory NonNegative)
+</span><span class="">#used</span></span><span> </span><span class="annot"><span class="annottext">Optic
+  A_Lens
+  NoIx
+  SystemMemory
+  SystemMemory
+  (Memory NonNegative)
+  (Memory NonNegative)
+-&gt; Optic
+     A_Lens
+     NoIx
+     (Memory NonNegative)
+     (Memory NonNegative)
+     (Bytes 'B (NonNegative Double))
+     (Bytes 'B (NonNegative Double))
+-&gt; Optic' A_Lens NoIx SystemMemory (Bytes 'B (NonNegative Double))
+forall (k :: OpticKind) (l :: OpticKind) (m :: OpticKind)
+       (is :: IxList) (js :: IxList) (ks :: IxList) (s :: OpticKind)
+       (t :: OpticKind) (u :: OpticKind) (v :: OpticKind) (a :: OpticKind)
+       (b :: OpticKind).
+(JoinKinds k l m, AppendIndices is js ks) =&gt;
+Optic k is s t u v -&gt; Optic l js u v a b -&gt; Optic m ks s t a b
+</span><a href="file:///nix/store/wnx39jjxjr7ivk5xmark8v1f1fl8cmvb-optics-core-0.4.1-doc/share/doc/optics-core-0.4.1/html/src/Optics.Internal.Optic.html#%25"><span class="hs-operator hs-var">%</span></a></span><span> </span><span class="annot"><span class="annottext">Optic
+  A_Lens
+  NoIx
+  (Memory NonNegative)
+  (Memory NonNegative)
+  (Bytes 'B (NonNegative Double))
+  (Bytes 'B (NonNegative Double))
+</span><span class="">#unMemory</span></span><span>
+</span><span id="line-107"></span><span>    </span><span id="local-6989586621679275019"><span class="annot"><span class="annottext">p :: LRInterval 0 100 Word8
+</span><a href="#local-6989586621679275019"><span class="hs-identifier hs-var hs-var">p</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Word8 -&gt; LRInterval 0 100 Word8
+forall (l :: Nat) (r :: Nat) (a :: OpticKind).
+(HasCallStack, KnownNat l, KnownNat r, Num a, Ord a, Show a) =&gt;
+a -&gt; LRInterval l r a
+</span><span class="hs-identifier hs-var">Interval.unsafeLRInterval</span></span><span> </span><span class="annot"><span class="annottext">(Word8 -&gt; LRInterval 0 100 Word8)
+-&gt; Word8 -&gt; LRInterval 0 100 Word8
+forall (a :: OpticKind) b. (a -&gt; b) -&gt; a -&gt; b
+</span><a href="file:///nix/store/16s6s6gbs6bxf3x75xpna03ygn755wig-ghc-9.2.3-doc/share/doc/ghc/html/libraries/base-4.16.2.0/src/GHC.Base.html#%24"><span class="hs-operator hs-var">$</span></a></span><span> </span><span class="annot"><span class="annottext">Double -&gt; Word8
+</span><a href="#local-6989586621679275014"><span class="hs-identifier hs-var">doubleToWord8</span></a></span><span> </span><span class="annot"><span class="annottext">(Double -&gt; Word8) -&gt; Double -&gt; Word8
+forall (a :: OpticKind) b. (a -&gt; b) -&gt; a -&gt; b
+</span><a href="file:///nix/store/16s6s6gbs6bxf3x75xpna03ygn755wig-ghc-9.2.3-doc/share/doc/ghc/html/libraries/base-4.16.2.0/src/GHC.Base.html#%24"><span class="hs-operator hs-var">$</span></a></span><span> </span><span class="annot"><span class="annottext">Double
+</span><a href="#local-6989586621679275016"><span class="hs-identifier hs-var">u</span></a></span><span> </span><span class="annot"><span class="annottext">Double -&gt; Double -&gt; Double
+forall (a :: OpticKind). Fractional a =&gt; a -&gt; a -&gt; a
+</span><a href="file:///nix/store/16s6s6gbs6bxf3x75xpna03ygn755wig-ghc-9.2.3-doc/share/doc/ghc/html/libraries/base-4.16.2.0/src/GHC.Real.html#%2F"><span class="hs-operator hs-var">/</span></a></span><span> </span><span class="annot"><span class="annottext">Double
+</span><a href="#local-6989586621679275018"><span class="hs-identifier hs-var">t</span></a></span><span>
+</span><span id="line-108"></span><span>
+</span><span id="line-109"></span><span>    </span><span class="annot"><a href="#local-6989586621679275014"><span class="hs-identifier hs-type">doubleToWord8</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="file:///nix/store/16s6s6gbs6bxf3x75xpna03ygn755wig-ghc-9.2.3-doc/share/doc/ghc/html/libraries/ghc-prim-0.8.0/src/GHC.Types.html#Double"><span class="hs-identifier hs-type">Double</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="file:///nix/store/16s6s6gbs6bxf3x75xpna03ygn755wig-ghc-9.2.3-doc/share/doc/ghc/html/libraries/base-4.16.2.0/src/GHC.Word.html#Word8"><span class="hs-identifier hs-type">Word8</span></a></span><span>
+</span><span id="line-110"></span><span>    </span><span id="local-6989586621679275014"><span class="annot"><span class="annottext">doubleToWord8 :: Double -&gt; Word8
+</span><a href="#local-6989586621679275014"><span class="hs-identifier hs-var hs-var">doubleToWord8</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Double -&gt; Word8
+forall (a :: OpticKind) (b :: OpticKind).
+(RealFrac a, Integral b) =&gt;
+a -&gt; b
+</span><a href="file:///nix/store/16s6s6gbs6bxf3x75xpna03ygn755wig-ghc-9.2.3-doc/share/doc/ghc/html/libraries/base-4.16.2.0/src/GHC.Real.html#floor"><span class="hs-identifier hs-var">floor</span></a></span><span> </span><span class="annot"><span class="annottext">(Double -&gt; Word8) -&gt; (Double -&gt; Double) -&gt; Double -&gt; Word8
+forall (b :: OpticKind) (c :: OpticKind) (a :: OpticKind).
+(b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><a href="file:///nix/store/16s6s6gbs6bxf3x75xpna03ygn755wig-ghc-9.2.3-doc/share/doc/ghc/html/libraries/base-4.16.2.0/src/GHC.Base.html#."><span class="hs-operator hs-var">.</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Double -&gt; Double -&gt; Double
+forall (a :: OpticKind). Num a =&gt; a -&gt; a -&gt; a
+</span><a href="file:///nix/store/16s6s6gbs6bxf3x75xpna03ygn755wig-ghc-9.2.3-doc/share/doc/ghc/html/libraries/base-4.16.2.0/src/GHC.Num.html#%2A"><span class="hs-operator hs-var">*</span></a></span><span> </span><span class="annot"><span class="annottext">Double
+</span><span class="hs-number">100</span></span><span class="hs-special">)</span><span>
+</span><span id="line-111"></span><span class="hs-pragma">{-# INLINEABLE</span><span> </span><span class="annot"><a href="Pythia.Services.Memory.html#percentageUsed"><span class="hs-pragma hs-type">percentageUsed</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-112"></span><span>
+</span><span id="line-113"></span><span class="hs-comment">-- | Returns the free memory as a percentage.</span><span>
+</span><span id="line-114"></span><span class="hs-comment">--</span><span>
+</span><span id="line-115"></span><span class="hs-comment">-- @since 0.1</span><span>
+</span><span id="line-116"></span><span class="annot"><a href="Pythia.Services.Memory.html#percentageFree"><span class="hs-identifier hs-type">percentageFree</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Pythia.Services.Memory.Types.html#SystemMemory"><span class="hs-identifier hs-type">SystemMemory</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Pythia.Data.Percentage.html#Percentage"><span class="hs-identifier hs-type">Percentage</span></a></span><span>
+</span><span id="line-117"></span><span id="percentageFree"><span class="annot"><span class="annottext">percentageFree :: SystemMemory -&gt; Percentage
+</span><a href="Pythia.Services.Memory.html#percentageFree"><span class="hs-identifier hs-var hs-var">percentageFree</span></a></span></span><span> </span><span id="local-6989586621679275010"><span class="annot"><span class="annottext">SystemMemory
+</span><a href="#local-6989586621679275010"><span class="hs-identifier hs-var">sysMem</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">LRInterval 0 100 Word8 -&gt; Percentage
+</span><a href="Pythia.Data.Percentage.html#MkPercentage"><span class="hs-identifier hs-var">MkPercentage</span></a></span><span> </span><span class="annot"><span class="annottext">(LRInterval 0 100 Word8 -&gt; Percentage)
+-&gt; LRInterval 0 100 Word8 -&gt; Percentage
+forall (a :: OpticKind) b. (a -&gt; b) -&gt; a -&gt; b
+</span><a href="file:///nix/store/16s6s6gbs6bxf3x75xpna03ygn755wig-ghc-9.2.3-doc/share/doc/ghc/html/libraries/base-4.16.2.0/src/GHC.Base.html#%24"><span class="hs-operator hs-var">$</span></a></span><span> </span><span class="annot"><span class="annottext">Word8 -&gt; LRInterval 0 100 Word8
+forall (l :: Nat) (r :: Nat) (a :: OpticKind).
+(HasCallStack, KnownNat l, KnownNat r, Num a, Ord a, Show a) =&gt;
+a -&gt; LRInterval l r a
+</span><span class="hs-identifier hs-var">Interval.unsafeLRInterval</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Word8
+</span><span class="hs-number">100</span></span><span> </span><span class="annot"><span class="annottext">Word8 -&gt; Word8 -&gt; Word8
+forall (a :: OpticKind). Num a =&gt; a -&gt; a -&gt; a
+</span><a href="file:///nix/store/16s6s6gbs6bxf3x75xpna03ygn755wig-ghc-9.2.3-doc/share/doc/ghc/html/libraries/base-4.16.2.0/src/GHC.Num.html#-"><span class="hs-glyph hs-var">-</span></a></span><span> </span><span class="annot"><span class="annottext">Word8
+</span><a href="#local-6989586621679275009"><span class="hs-identifier hs-var">usedPercent</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-118"></span><span>  </span><span class="hs-keyword">where</span><span>
+</span><span id="line-119"></span><span>    </span><span class="hs-special">(</span><span class="annot"><a href="Pythia.Data.Percentage.html#MkPercentage"><span class="hs-identifier hs-type">MkPercentage</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">MkLRInterval</span></span><span> </span><span id="local-6989586621679275009"><span class="annot"><span class="annottext">Word8
+</span><a href="#local-6989586621679275009"><span class="hs-identifier hs-var">usedPercent</span></a></span></span><span class="hs-special">)</span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">SystemMemory -&gt; Percentage
+</span><a href="Pythia.Services.Memory.html#percentageUsed"><span class="hs-identifier hs-var">percentageUsed</span></a></span><span> </span><span class="annot"><span class="annottext">SystemMemory
+</span><a href="#local-6989586621679275010"><span class="hs-identifier hs-var">sysMem</span></a></span><span>
+</span><span id="line-120"></span><span class="hs-pragma">{-# INLINEABLE</span><span> </span><span class="annot"><a href="Pythia.Services.Memory.html#percentageFree"><span class="hs-pragma hs-type">percentageFree</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-121"></span></pre></body></html>

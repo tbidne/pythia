@@ -1,0 +1,121 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><link rel="stylesheet" type="text/css" href="style.css" /><script type="text/javascript" src="highlight.js"></script></head><body><pre><span class="hs-comment">-- | Provides the 'Supremum' type.</span><span>
+</span><span id="line-2"></span><span class="hs-comment">--</span><span>
+</span><span id="line-3"></span><span class="hs-comment">-- @since 0.1</span><span>
+</span><span id="line-4"></span><span class="hs-keyword">module</span><span> </span><span class="hs-identifier">Pythia.Data.Supremum</span><span>
+</span><span id="line-5"></span><span>  </span><span class="hs-special">(</span><span> </span><span class="annot"><a href="Pythia.Data.Supremum.html#Supremum"><span class="hs-identifier">Supremum</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span class="hs-special">,</span><span>
+</span><span id="line-6"></span><span>  </span><span class="hs-special">)</span><span>
+</span><span id="line-7"></span><span class="hs-keyword">where</span><span>
+</span><span id="line-8"></span><span>
+</span><span id="line-9"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Pythia.Prelude.html"><span class="hs-identifier">Pythia.Prelude</span></a></span><span>
+</span><span id="line-10"></span><span>
+</span><span id="line-11"></span><span class="hs-comment">-- | Newtype wrapper for easily deriving 'Semigroup' and 'Monoid' instances.</span><span>
+</span><span id="line-12"></span><span class="hs-comment">--</span><span>
+</span><span id="line-13"></span><span class="hs-comment">-- @since 0.1</span><span>
+</span><span id="line-14"></span><span class="hs-keyword">type</span><span> </span><span class="annot"><a href="Pythia.Data.Supremum.html#Supremum"><span class="hs-identifier hs-type">Supremum</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="file:///nix/store/16s6s6gbs6bxf3x75xpna03ygn755wig-ghc-9.2.3-doc/share/doc/ghc/html/libraries/ghc-prim-0.8.0/src/GHC.Types.html#Type"><span class="hs-identifier hs-type">Type</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="file:///nix/store/16s6s6gbs6bxf3x75xpna03ygn755wig-ghc-9.2.3-doc/share/doc/ghc/html/libraries/ghc-prim-0.8.0/src/GHC.Types.html#Type"><span class="hs-identifier hs-type">Type</span></a></span><span>
+</span><span id="line-15"></span><span id="local-6989586621679266853"><span id="local-6989586621679266854"></span></span><span class="hs-keyword">newtype</span><span> </span><span id="Supremum"><span class="annot"><a href="Pythia.Data.Supremum.html#Supremum"><span class="hs-identifier hs-var">Supremum</span></a></span></span><span> </span><span id="local-6989586621679266896"><span class="annot"><a href="#local-6989586621679266896"><span class="hs-identifier hs-type">a</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span id="MkSupremum"><span class="annot"><a href="Pythia.Data.Supremum.html#MkSupremum"><span class="hs-identifier hs-var">MkSupremum</span></a></span></span><span> </span><span class="annot"><a href="#local-6989586621679266896"><span class="hs-identifier hs-type">a</span></a></span><span>
+</span><span id="line-16"></span><span>  </span><span class="hs-keyword">deriving</span><span> </span><span class="annot"><span class="hs-keyword">stock</span></span><span>
+</span><span id="line-17"></span><span>    </span><span class="hs-special">(</span><span> </span><span class="hs-comment">-- | @since 0.1</span><span>
+</span><span id="line-18"></span><span>      </span><span id="local-6989586621679266846"><span id="local-6989586621679266849"><span class="annot"><span class="annottext">Supremum a
+Supremum a -&gt; Supremum a -&gt; Bounded (Supremum a)
+forall a. a -&gt; a -&gt; Bounded a
+forall a. Bounded a =&gt; Supremum a
+maxBound :: Supremum a
+$cmaxBound :: forall a. Bounded a =&gt; Supremum a
+minBound :: Supremum a
+$cminBound :: forall a. Bounded a =&gt; Supremum a
+</span><a href="file:///nix/store/16s6s6gbs6bxf3x75xpna03ygn755wig-ghc-9.2.3-doc/share/doc/ghc/html/libraries/base-4.16.2.0/src/GHC.Enum.html#Bounded"><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Bounded</span></a></span></span></span><span class="hs-special">,</span><span>
+</span><span id="line-19"></span><span>      </span><span class="hs-comment">-- | @since 0.1</span><span>
+</span><span id="line-20"></span><span>      </span><span id="local-6989586621679266838"><span id="local-6989586621679266841"><span class="annot"><span class="annottext">Supremum a -&gt; Supremum a -&gt; Bool
+(Supremum a -&gt; Supremum a -&gt; Bool)
+-&gt; (Supremum a -&gt; Supremum a -&gt; Bool) -&gt; Eq (Supremum a)
+forall a. Eq a =&gt; Supremum a -&gt; Supremum a -&gt; Bool
+forall a. (a -&gt; a -&gt; Bool) -&gt; (a -&gt; a -&gt; Bool) -&gt; Eq a
+/= :: Supremum a -&gt; Supremum a -&gt; Bool
+$c/= :: forall a. Eq a =&gt; Supremum a -&gt; Supremum a -&gt; Bool
+== :: Supremum a -&gt; Supremum a -&gt; Bool
+$c== :: forall a. Eq a =&gt; Supremum a -&gt; Supremum a -&gt; Bool
+</span><a href="file:///nix/store/16s6s6gbs6bxf3x75xpna03ygn755wig-ghc-9.2.3-doc/share/doc/ghc/html/libraries/ghc-prim-0.8.0/src/GHC.Classes.html#Eq"><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Eq</span></a></span></span></span><span class="hs-special">,</span><span>
+</span><span id="line-21"></span><span>      </span><span class="hs-comment">-- | @since 0.1</span><span>
+</span><span id="line-22"></span><span>      </span><span class="annot"><span class="annottext">(forall x. Supremum a -&gt; Rep (Supremum a) x)
+-&gt; (forall x. Rep (Supremum a) x -&gt; Supremum a)
+-&gt; Generic (Supremum a)
+forall x. Rep (Supremum a) x -&gt; Supremum a
+forall x. Supremum a -&gt; Rep (Supremum a) x
+forall a.
+(forall x. a -&gt; Rep a x) -&gt; (forall x. Rep a x -&gt; a) -&gt; Generic a
+forall a x. Rep (Supremum a) x -&gt; Supremum a
+forall a x. Supremum a -&gt; Rep (Supremum a) x
+$cto :: forall a x. Rep (Supremum a) x -&gt; Supremum a
+$cfrom :: forall a x. Supremum a -&gt; Rep (Supremum a) x
+</span><a href="file:///nix/store/16s6s6gbs6bxf3x75xpna03ygn755wig-ghc-9.2.3-doc/share/doc/ghc/html/libraries/base-4.16.2.0/src/GHC.Generics.html#Generic"><span class="hs-identifier hs-var hs-var hs-var hs-var">Generic</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-23"></span><span>      </span><span class="hs-comment">-- | @since 0.1</span><span>
+</span><span id="line-24"></span><span>      </span><span id="local-6989586621679266813"><span id="local-6989586621679266815"><span id="local-6989586621679266818"><span id="local-6989586621679266821"><span id="local-6989586621679266824"><span id="local-6989586621679266827"><span id="local-6989586621679266830"><span class="annot"><span class="annottext">Eq (Supremum a)
+Eq (Supremum a)
+-&gt; (Supremum a -&gt; Supremum a -&gt; Ordering)
+-&gt; (Supremum a -&gt; Supremum a -&gt; Bool)
+-&gt; (Supremum a -&gt; Supremum a -&gt; Bool)
+-&gt; (Supremum a -&gt; Supremum a -&gt; Bool)
+-&gt; (Supremum a -&gt; Supremum a -&gt; Bool)
+-&gt; (Supremum a -&gt; Supremum a -&gt; Supremum a)
+-&gt; (Supremum a -&gt; Supremum a -&gt; Supremum a)
+-&gt; Ord (Supremum a)
+Supremum a -&gt; Supremum a -&gt; Bool
+Supremum a -&gt; Supremum a -&gt; Ordering
+Supremum a -&gt; Supremum a -&gt; Supremum a
+forall a.
+Eq a
+-&gt; (a -&gt; a -&gt; Ordering)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; a)
+-&gt; (a -&gt; a -&gt; a)
+-&gt; Ord a
+forall {a}. Ord a =&gt; Eq (Supremum a)
+forall a. Ord a =&gt; Supremum a -&gt; Supremum a -&gt; Bool
+forall a. Ord a =&gt; Supremum a -&gt; Supremum a -&gt; Ordering
+forall a. Ord a =&gt; Supremum a -&gt; Supremum a -&gt; Supremum a
+min :: Supremum a -&gt; Supremum a -&gt; Supremum a
+$cmin :: forall a. Ord a =&gt; Supremum a -&gt; Supremum a -&gt; Supremum a
+max :: Supremum a -&gt; Supremum a -&gt; Supremum a
+$cmax :: forall a. Ord a =&gt; Supremum a -&gt; Supremum a -&gt; Supremum a
+&gt;= :: Supremum a -&gt; Supremum a -&gt; Bool
+$c&gt;= :: forall a. Ord a =&gt; Supremum a -&gt; Supremum a -&gt; Bool
+&gt; :: Supremum a -&gt; Supremum a -&gt; Bool
+$c&gt; :: forall a. Ord a =&gt; Supremum a -&gt; Supremum a -&gt; Bool
+&lt;= :: Supremum a -&gt; Supremum a -&gt; Bool
+$c&lt;= :: forall a. Ord a =&gt; Supremum a -&gt; Supremum a -&gt; Bool
+&lt; :: Supremum a -&gt; Supremum a -&gt; Bool
+$c&lt; :: forall a. Ord a =&gt; Supremum a -&gt; Supremum a -&gt; Bool
+compare :: Supremum a -&gt; Supremum a -&gt; Ordering
+$ccompare :: forall a. Ord a =&gt; Supremum a -&gt; Supremum a -&gt; Ordering
+</span><a href="file:///nix/store/16s6s6gbs6bxf3x75xpna03ygn755wig-ghc-9.2.3-doc/share/doc/ghc/html/libraries/ghc-prim-0.8.0/src/GHC.Classes.html#Ord"><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Ord</span></a></span></span></span></span></span></span></span></span><span>
+</span><span id="line-25"></span><span>    </span><span class="hs-special">)</span><span>
+</span><span id="line-26"></span><span>  </span><span class="hs-keyword">deriving</span><span> </span><span class="annot"><span class="hs-keyword">anyclass</span></span><span>
+</span><span id="line-27"></span><span>    </span><span class="hs-special">(</span><span> </span><span class="hs-comment">-- | @since 0.1</span><span>
+</span><span id="line-28"></span><span>      </span><span id="local-6989586621679266810"><span class="annot"><span class="annottext">Supremum a -&gt; ()
+(Supremum a -&gt; ()) -&gt; NFData (Supremum a)
+forall a. NFData a =&gt; Supremum a -&gt; ()
+forall a. (a -&gt; ()) -&gt; NFData a
+rnf :: Supremum a -&gt; ()
+$crnf :: forall a. NFData a =&gt; Supremum a -&gt; ()
+</span><a href="file:///nix/store/16s6s6gbs6bxf3x75xpna03ygn755wig-ghc-9.2.3-doc/share/doc/ghc/html/libraries/deepseq-1.4.6.1/src/Control.DeepSeq.html#C%3ANFData"><span class="hs-identifier hs-var hs-var hs-var hs-var">NFData</span></a></span></span><span>
+</span><span id="line-29"></span><span>    </span><span class="hs-special">)</span><span>
+</span><span id="line-30"></span><span>
+</span><span id="line-31"></span><span class="hs-comment">-- | @since 0.1</span><span>
+</span><span id="line-32"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621679266804"><span id="local-6989586621679266806"><span id="local-6989586621679266889"><span class="annot"><a href="file:///nix/store/16s6s6gbs6bxf3x75xpna03ygn755wig-ghc-9.2.3-doc/share/doc/ghc/html/libraries/ghc-prim-0.8.0/src/GHC.Classes.html#Ord"><span class="hs-identifier hs-type">Ord</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679266889"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><a href="file:///nix/store/16s6s6gbs6bxf3x75xpna03ygn755wig-ghc-9.2.3-doc/share/doc/ghc/html/libraries/base-4.16.2.0/src/GHC.Base.html#Semigroup"><span class="hs-identifier hs-type">Semigroup</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Pythia.Data.Supremum.html#Supremum"><span class="hs-identifier hs-type">Supremum</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679266889"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">)</span></span></span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-33"></span><span>  </span><span id="local-6989586621679266801"><span class="annot"><span class="annottext">&lt;&gt; :: Supremum a -&gt; Supremum a -&gt; Supremum a
+</span><a href="file:///nix/store/16s6s6gbs6bxf3x75xpna03ygn755wig-ghc-9.2.3-doc/share/doc/ghc/html/libraries/base-4.16.2.0/src/GHC.Base.html#%3C%3E"><span class="hs-operator hs-var hs-var hs-var hs-var">(&lt;&gt;)</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Supremum a -&gt; Supremum a -&gt; Supremum a
+forall a. Ord a =&gt; a -&gt; a -&gt; a
+</span><a href="file:///nix/store/16s6s6gbs6bxf3x75xpna03ygn755wig-ghc-9.2.3-doc/share/doc/ghc/html/libraries/ghc-prim-0.8.0/src/GHC.Classes.html#max"><span class="hs-identifier hs-var">max</span></a></span><span>
+</span><span id="line-34"></span><span>  </span><span class="hs-pragma">{-# INLINEABLE</span><span> </span><span class="hs-pragma">(</span><span class="hs-pragma">&lt;&gt;</span><span class="hs-pragma">)</span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-35"></span><span>
+</span><span id="line-36"></span><span class="hs-comment">-- | @since 0.1</span><span>
+</span><span id="line-37"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621679266793"><span id="local-6989586621679266795"><span id="local-6989586621679266887"><span class="hs-special">(</span><span class="annot"><a href="file:///nix/store/16s6s6gbs6bxf3x75xpna03ygn755wig-ghc-9.2.3-doc/share/doc/ghc/html/libraries/base-4.16.2.0/src/GHC.Enum.html#Bounded"><span class="hs-identifier hs-type">Bounded</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679266887"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="file:///nix/store/16s6s6gbs6bxf3x75xpna03ygn755wig-ghc-9.2.3-doc/share/doc/ghc/html/libraries/ghc-prim-0.8.0/src/GHC.Classes.html#Ord"><span class="hs-identifier hs-type">Ord</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679266887"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><a href="file:///nix/store/16s6s6gbs6bxf3x75xpna03ygn755wig-ghc-9.2.3-doc/share/doc/ghc/html/libraries/base-4.16.2.0/src/GHC.Base.html#Monoid"><span class="hs-identifier hs-type">Monoid</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Pythia.Data.Supremum.html#Supremum"><span class="hs-identifier hs-type">Supremum</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679266887"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">)</span></span></span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-38"></span><span>  </span><span id="local-6989586621679266790"><span class="annot"><span class="annottext">mempty :: Supremum a
+</span><a href="file:///nix/store/16s6s6gbs6bxf3x75xpna03ygn755wig-ghc-9.2.3-doc/share/doc/ghc/html/libraries/base-4.16.2.0/src/GHC.Base.html#mempty"><span class="hs-identifier hs-var hs-var hs-var hs-var">mempty</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Supremum a
+forall a. Bounded a =&gt; a
+</span><a href="file:///nix/store/16s6s6gbs6bxf3x75xpna03ygn755wig-ghc-9.2.3-doc/share/doc/ghc/html/libraries/base-4.16.2.0/src/GHC.Enum.html#minBound"><span class="hs-identifier hs-var">minBound</span></a></span><span>
+</span><span id="line-39"></span><span>  </span><span class="hs-pragma">{-# INLINEABLE</span><span> </span><span class="annot"><a href="file:///nix/store/16s6s6gbs6bxf3x75xpna03ygn755wig-ghc-9.2.3-doc/share/doc/ghc/html/libraries/base-4.16.2.0/src/GHC.Base.html#mempty"><span class="hs-pragma hs-type">mempty</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-40"></span></pre></body></html>

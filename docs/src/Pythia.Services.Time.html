@@ -1,0 +1,177 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><link rel="stylesheet" type="text/css" href="style.css" /><script type="text/javascript" src="highlight.js"></script></head><body><pre><span class="hs-comment">-- | This module exports time related services.</span><span>
+</span><span id="line-2"></span><span class="hs-comment">--</span><span>
+</span><span id="line-3"></span><span class="hs-comment">-- @since 0.1</span><span>
+</span><span id="line-4"></span><span class="hs-keyword">module</span><span> </span><span class="hs-identifier">Pythia.Services.Time</span><span>
+</span><span id="line-5"></span><span>  </span><span class="hs-special">(</span><span> </span><span class="annot"><span class="hs-comment">-- * Queries</span></span><span>
+</span><span id="line-6"></span><span>    </span><span class="annot"><a href="Pythia.Services.Time.html#queryLocalTime"><span class="hs-identifier">queryLocalTime</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-7"></span><span>    </span><span class="annot"><a href="Pythia.Services.Time.html#queryUTC"><span class="hs-identifier">queryUTC</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-8"></span><span>    </span><span class="annot"><a href="Pythia.Services.Time.html#queryTimeZone"><span class="hs-identifier">queryTimeZone</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-9"></span><span>    </span><span class="annot"><a href="Pythia.Services.Time.html#queryTimeZoneLabel"><span class="hs-identifier">queryTimeZoneLabel</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-10"></span><span>
+</span><span id="line-11"></span><span>    </span><span class="annot"><span class="hs-comment">-- * Types</span></span><span>
+</span><span id="line-12"></span><span>    </span><span class="annot"><a href="file:///nix/store/16s6s6gbs6bxf3x75xpna03ygn755wig-ghc-9.2.3-doc/share/doc/ghc/html/libraries/time-1.11.1.1/src/Data.Time.LocalTime.Internal.ZonedTime.html#ZonedTime"><span class="hs-identifier">ZonedTime</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span class="hs-special">,</span><span>
+</span><span id="line-13"></span><span>    </span><span class="annot"><a href="file:///nix/store/16s6s6gbs6bxf3x75xpna03ygn755wig-ghc-9.2.3-doc/share/doc/ghc/html/libraries/time-1.11.1.1/src/Data.Time.Clock.Internal.UTCTime.html#UTCTime"><span class="hs-identifier">UTCTime</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span class="hs-special">,</span><span>
+</span><span id="line-14"></span><span>    </span><span class="annot"><a href="file:///nix/store/iyzpjn3kj1w0v3rmgizv0dc48hm94w6w-tzdata-0.2.20220315.0-doc/share/doc/tzdata-0.2.20220315.0/html/src/Data.Time.Zones.DB.html#TZLabel"><span class="hs-identifier">TZLabel</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span class="hs-special">,</span><span>
+</span><span id="line-15"></span><span>  </span><span class="hs-special">)</span><span>
+</span><span id="line-16"></span><span class="hs-keyword">where</span><span>
+</span><span id="line-17"></span><span>
+</span><span id="line-18"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="file:///nix/store/16s6s6gbs6bxf3x75xpna03ygn755wig-ghc-9.2.3-doc/share/doc/ghc/html/libraries/time-1.11.1.1/src/Data.Time.Clock.html"><span class="hs-identifier">Data.Time.Clock</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="file:///nix/store/16s6s6gbs6bxf3x75xpna03ygn755wig-ghc-9.2.3-doc/share/doc/ghc/html/libraries/time-1.11.1.1/src/Data.Time.Clock.Internal.UTCTime.html#UTCTime"><span class="hs-identifier">UTCTime</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span class="hs-special">)</span><span>
+</span><span id="line-19"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="file:///nix/store/16s6s6gbs6bxf3x75xpna03ygn755wig-ghc-9.2.3-doc/share/doc/ghc/html/libraries/time-1.11.1.1/src/Data.Time.Clock.html"><span class="hs-identifier">Data.Time.Clock</span></a></span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="hs-keyword">as</span><span> </span><span class="annot"><span class="hs-identifier">Clock</span></span><span>
+</span><span id="line-20"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Data.Time.Conversion</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">TZDatabase</span></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span class="hs-special">,</span><span> </span><span class="annot"><a href="file:///nix/store/iyzpjn3kj1w0v3rmgizv0dc48hm94w6w-tzdata-0.2.20220315.0-doc/share/doc/tzdata-0.2.20220315.0/html/src/Data.Time.Zones.DB.html#TZLabel"><span class="hs-identifier">TZLabel</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span class="hs-special">,</span><span> </span><span class="annot"><a href="file:///nix/store/16s6s6gbs6bxf3x75xpna03ygn755wig-ghc-9.2.3-doc/share/doc/ghc/html/libraries/time-1.11.1.1/src/Data.Time.LocalTime.Internal.ZonedTime.html#ZonedTime"><span class="hs-identifier">ZonedTime</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span class="hs-special">)</span><span>
+</span><span id="line-21"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Data.Time.Conversion</span></span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="hs-keyword">as</span><span> </span><span class="annot"><span class="hs-identifier">TimeConv</span></span><span>
+</span><span id="line-22"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Pythia.Control.Exception.html"><span class="hs-identifier">Pythia.Control.Exception</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Pythia.Control.Exception.html#PythiaException"><span class="hs-identifier">PythiaException</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span class="hs-special">)</span><span>
+</span><span id="line-23"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Pythia.Prelude.html"><span class="hs-identifier">Pythia.Prelude</span></a></span><span>
+</span><span id="line-24"></span><span>
+</span><span id="line-25"></span><span class="hs-comment">-- | Queries current local time.</span><span>
+</span><span id="line-26"></span><span class="hs-comment">--</span><span>
+</span><span id="line-27"></span><span class="hs-comment">-- @since 0.1</span><span>
+</span><span id="line-28"></span><span class="annot"><a href="Pythia.Services.Time.html#queryLocalTime"><span class="hs-identifier hs-type">queryLocalTime</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="file:///nix/store/16s6s6gbs6bxf3x75xpna03ygn755wig-ghc-9.2.3-doc/share/doc/ghc/html/libraries/ghc-prim-0.8.0/src/GHC.Types.html#IO"><span class="hs-identifier hs-type">IO</span></a></span><span> </span><span class="annot"><a href="file:///nix/store/16s6s6gbs6bxf3x75xpna03ygn755wig-ghc-9.2.3-doc/share/doc/ghc/html/libraries/time-1.11.1.1/src/Data.Time.LocalTime.Internal.ZonedTime.html#ZonedTime"><span class="hs-identifier hs-type">ZonedTime</span></a></span><span>
+</span><span id="line-29"></span><span id="queryLocalTime"><span class="annot"><span class="annottext">queryLocalTime :: IO ZonedTime
+</span><a href="Pythia.Services.Time.html#queryLocalTime"><span class="hs-identifier hs-var hs-var">queryLocalTime</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Maybe TimeReader -&gt; IO ZonedTime
+</span><span class="hs-identifier hs-var">TimeConv.readTime</span></span><span> </span><span class="annot"><span class="annottext">Maybe TimeReader
+forall a. Maybe a
+</span><a href="file:///nix/store/16s6s6gbs6bxf3x75xpna03ygn755wig-ghc-9.2.3-doc/share/doc/ghc/html/libraries/base-4.16.2.0/src/GHC.Maybe.html#Nothing"><span class="hs-identifier hs-var">Nothing</span></a></span><span> </span><span class="annot"><span class="annottext">IO ZonedTime -&gt; (SomeException -&gt; IO ZonedTime) -&gt; IO ZonedTime
+forall (m :: Type -&gt; Type) a.
+MonadCatch m =&gt;
+m a -&gt; (SomeException -&gt; m a) -&gt; m a
+</span><a href="file:///nix/store/vc86m9v0n79sk1j1m97fjgz8d4zvab3l-safe-exceptions-0.1.7.3-doc/share/doc/safe-exceptions-0.1.7.3/html/src/Control.Exception.Safe.html#catchAny"><span class="hs-operator hs-var">`catchAny`</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">PythiaException -&gt; IO ZonedTime
+forall (m :: Type -&gt; Type) e a.
+(MonadThrow m, Exception e) =&gt;
+e -&gt; m a
+</span><a href="file:///nix/store/vc86m9v0n79sk1j1m97fjgz8d4zvab3l-safe-exceptions-0.1.7.3-doc/share/doc/safe-exceptions-0.1.7.3/html/src/Control.Exception.Safe.html#throwIO"><span class="hs-identifier hs-var">throwIO</span></a></span><span> </span><span class="annot"><span class="annottext">(PythiaException -&gt; IO ZonedTime)
+-&gt; (SomeException -&gt; PythiaException)
+-&gt; SomeException
+-&gt; IO ZonedTime
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><a href="file:///nix/store/16s6s6gbs6bxf3x75xpna03ygn755wig-ghc-9.2.3-doc/share/doc/ghc/html/libraries/base-4.16.2.0/src/GHC.Base.html#."><span class="hs-operator hs-var">.</span></a></span><span> </span><span class="annot"><span class="annottext">SomeException -&gt; PythiaException
+forall e. Exception e =&gt; e -&gt; PythiaException
+</span><a href="Pythia.Control.Exception.html#MkPythiaException"><span class="hs-identifier hs-var">MkPythiaException</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-30"></span><span class="hs-pragma">{-# INLINEABLE</span><span> </span><span class="annot"><a href="Pythia.Services.Time.html#queryLocalTime"><span class="hs-pragma hs-type">queryLocalTime</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-31"></span><span>
+</span><span id="line-32"></span><span class="hs-comment">-- | Queries current UTC time.</span><span>
+</span><span id="line-33"></span><span class="hs-comment">--</span><span>
+</span><span id="line-34"></span><span class="hs-comment">-- __Throws:__</span><span>
+</span><span id="line-35"></span><span class="hs-comment">--</span><span>
+</span><span id="line-36"></span><span class="hs-comment">-- * 'Pythia.Control.Exception.PythiaException': if an error is</span><span>
+</span><span id="line-37"></span><span class="hs-comment">-- encountered (e.g. running a command or parse error).</span><span>
+</span><span id="line-38"></span><span class="hs-comment">--</span><span>
+</span><span id="line-39"></span><span class="hs-comment">-- @since 0.1</span><span>
+</span><span id="line-40"></span><span class="annot"><a href="Pythia.Services.Time.html#queryUTC"><span class="hs-identifier hs-type">queryUTC</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="file:///nix/store/16s6s6gbs6bxf3x75xpna03ygn755wig-ghc-9.2.3-doc/share/doc/ghc/html/libraries/ghc-prim-0.8.0/src/GHC.Types.html#IO"><span class="hs-identifier hs-type">IO</span></a></span><span> </span><span class="annot"><a href="file:///nix/store/16s6s6gbs6bxf3x75xpna03ygn755wig-ghc-9.2.3-doc/share/doc/ghc/html/libraries/time-1.11.1.1/src/Data.Time.Clock.Internal.UTCTime.html#UTCTime"><span class="hs-identifier hs-type">UTCTime</span></a></span><span>
+</span><span id="line-41"></span><span id="queryUTC"><span class="annot"><span class="annottext">queryUTC :: IO UTCTime
+</span><a href="Pythia.Services.Time.html#queryUTC"><span class="hs-identifier hs-var hs-var">queryUTC</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">IO UTCTime
+</span><a href="file:///nix/store/16s6s6gbs6bxf3x75xpna03ygn755wig-ghc-9.2.3-doc/share/doc/ghc/html/libraries/time-1.11.1.1/src/Data.Time.Clock.POSIX.html#getCurrentTime"><span class="hs-identifier hs-var">Clock.getCurrentTime</span></a></span><span> </span><span class="annot"><span class="annottext">IO UTCTime -&gt; (SomeException -&gt; IO UTCTime) -&gt; IO UTCTime
+forall (m :: Type -&gt; Type) a.
+MonadCatch m =&gt;
+m a -&gt; (SomeException -&gt; m a) -&gt; m a
+</span><a href="file:///nix/store/vc86m9v0n79sk1j1m97fjgz8d4zvab3l-safe-exceptions-0.1.7.3-doc/share/doc/safe-exceptions-0.1.7.3/html/src/Control.Exception.Safe.html#catchAny"><span class="hs-operator hs-var">`catchAny`</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">PythiaException -&gt; IO UTCTime
+forall (m :: Type -&gt; Type) e a.
+(MonadThrow m, Exception e) =&gt;
+e -&gt; m a
+</span><a href="file:///nix/store/vc86m9v0n79sk1j1m97fjgz8d4zvab3l-safe-exceptions-0.1.7.3-doc/share/doc/safe-exceptions-0.1.7.3/html/src/Control.Exception.Safe.html#throwIO"><span class="hs-identifier hs-var">throwIO</span></a></span><span> </span><span class="annot"><span class="annottext">(PythiaException -&gt; IO UTCTime)
+-&gt; (SomeException -&gt; PythiaException)
+-&gt; SomeException
+-&gt; IO UTCTime
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><a href="file:///nix/store/16s6s6gbs6bxf3x75xpna03ygn755wig-ghc-9.2.3-doc/share/doc/ghc/html/libraries/base-4.16.2.0/src/GHC.Base.html#."><span class="hs-operator hs-var">.</span></a></span><span> </span><span class="annot"><span class="annottext">SomeException -&gt; PythiaException
+forall e. Exception e =&gt; e -&gt; PythiaException
+</span><a href="Pythia.Control.Exception.html#MkPythiaException"><span class="hs-identifier hs-var">MkPythiaException</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-42"></span><span class="hs-pragma">{-# INLINEABLE</span><span> </span><span class="annot"><a href="Pythia.Services.Time.html#queryUTC"><span class="hs-pragma hs-type">queryUTC</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-43"></span><span>
+</span><span id="line-44"></span><span class="hs-comment">-- | Queries current time in the given timezone.</span><span>
+</span><span id="line-45"></span><span class="hs-comment">--</span><span>
+</span><span id="line-46"></span><span class="hs-comment">-- @</span><span>
+</span><span id="line-47"></span><span class="hs-comment">-- queryTimeZone &quot;America/New_York&quot;</span><span>
+</span><span id="line-48"></span><span class="hs-comment">-- @</span><span>
+</span><span id="line-49"></span><span class="hs-comment">--</span><span>
+</span><span id="line-50"></span><span class="hs-comment">-- __Throws:__</span><span>
+</span><span id="line-51"></span><span class="hs-comment">--</span><span>
+</span><span id="line-52"></span><span class="hs-comment">-- * 'Pythia.Control.Exception.PythiaException': if an error is</span><span>
+</span><span id="line-53"></span><span class="hs-comment">-- encountered (e.g. running a command or parse error).</span><span>
+</span><span id="line-54"></span><span class="hs-comment">--</span><span>
+</span><span id="line-55"></span><span class="hs-comment">-- @since 0.1</span><span>
+</span><span id="line-56"></span><span class="annot"><a href="Pythia.Services.Time.html#queryTimeZone"><span class="hs-identifier hs-type">queryTimeZone</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="file:///nix/store/16s6s6gbs6bxf3x75xpna03ygn755wig-ghc-9.2.3-doc/share/doc/ghc/html/libraries/text-1.2.5.0/src/Data.Text.Internal.html#Text"><span class="hs-identifier hs-type">Text</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="file:///nix/store/16s6s6gbs6bxf3x75xpna03ygn755wig-ghc-9.2.3-doc/share/doc/ghc/html/libraries/ghc-prim-0.8.0/src/GHC.Types.html#IO"><span class="hs-identifier hs-type">IO</span></a></span><span> </span><span class="annot"><a href="file:///nix/store/16s6s6gbs6bxf3x75xpna03ygn755wig-ghc-9.2.3-doc/share/doc/ghc/html/libraries/time-1.11.1.1/src/Data.Time.LocalTime.Internal.ZonedTime.html#ZonedTime"><span class="hs-identifier hs-type">ZonedTime</span></a></span><span>
+</span><span id="line-57"></span><span id="queryTimeZone"><span class="annot"><span class="annottext">queryTimeZone :: Text -&gt; IO ZonedTime
+</span><a href="Pythia.Services.Time.html#queryTimeZone"><span class="hs-identifier hs-var hs-var">queryTimeZone</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-58"></span><span>  </span><span class="annot"><span class="annottext">(SomeException -&gt; IO ZonedTime) -&gt; IO ZonedTime -&gt; IO ZonedTime
+forall (m :: Type -&gt; Type) a.
+MonadCatch m =&gt;
+(SomeException -&gt; m a) -&gt; m a -&gt; m a
+</span><a href="file:///nix/store/vc86m9v0n79sk1j1m97fjgz8d4zvab3l-safe-exceptions-0.1.7.3-doc/share/doc/safe-exceptions-0.1.7.3/html/src/Control.Exception.Safe.html#handleAny"><span class="hs-identifier hs-var">handleAny</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">PythiaException -&gt; IO ZonedTime
+forall (m :: Type -&gt; Type) e a.
+(MonadThrow m, Exception e) =&gt;
+e -&gt; m a
+</span><a href="file:///nix/store/vc86m9v0n79sk1j1m97fjgz8d4zvab3l-safe-exceptions-0.1.7.3-doc/share/doc/safe-exceptions-0.1.7.3/html/src/Control.Exception.Safe.html#throwIO"><span class="hs-identifier hs-var">throwIO</span></a></span><span> </span><span class="annot"><span class="annottext">(PythiaException -&gt; IO ZonedTime)
+-&gt; (SomeException -&gt; PythiaException)
+-&gt; SomeException
+-&gt; IO ZonedTime
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><a href="file:///nix/store/16s6s6gbs6bxf3x75xpna03ygn755wig-ghc-9.2.3-doc/share/doc/ghc/html/libraries/base-4.16.2.0/src/GHC.Base.html#."><span class="hs-operator hs-var">.</span></a></span><span> </span><span class="annot"><span class="annottext">SomeException -&gt; PythiaException
+forall e. Exception e =&gt; e -&gt; PythiaException
+</span><a href="Pythia.Control.Exception.html#MkPythiaException"><span class="hs-identifier hs-var">MkPythiaException</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-59"></span><span>    </span><span class="annot"><span class="annottext">(IO ZonedTime -&gt; IO ZonedTime)
+-&gt; (Text -&gt; IO ZonedTime) -&gt; Text -&gt; IO ZonedTime
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><a href="file:///nix/store/16s6s6gbs6bxf3x75xpna03ygn755wig-ghc-9.2.3-doc/share/doc/ghc/html/libraries/base-4.16.2.0/src/GHC.Base.html#."><span class="hs-operator hs-var">.</span></a></span><span> </span><span class="annot"><span class="annottext">Maybe TimeReader -&gt; Maybe TZDatabase -&gt; IO ZonedTime
+</span><span class="hs-identifier hs-var">TimeConv.readConvertTime</span></span><span> </span><span class="annot"><span class="annottext">Maybe TimeReader
+forall a. Maybe a
+</span><a href="file:///nix/store/16s6s6gbs6bxf3x75xpna03ygn755wig-ghc-9.2.3-doc/share/doc/ghc/html/libraries/base-4.16.2.0/src/GHC.Maybe.html#Nothing"><span class="hs-identifier hs-var">Nothing</span></a></span><span>
+</span><span id="line-60"></span><span>    </span><span class="annot"><span class="annottext">(Maybe TZDatabase -&gt; IO ZonedTime)
+-&gt; (Text -&gt; Maybe TZDatabase) -&gt; Text -&gt; IO ZonedTime
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><a href="file:///nix/store/16s6s6gbs6bxf3x75xpna03ygn755wig-ghc-9.2.3-doc/share/doc/ghc/html/libraries/base-4.16.2.0/src/GHC.Base.html#."><span class="hs-operator hs-var">.</span></a></span><span> </span><span class="annot"><span class="annottext">TZDatabase -&gt; Maybe TZDatabase
+forall a. a -&gt; Maybe a
+</span><a href="file:///nix/store/16s6s6gbs6bxf3x75xpna03ygn755wig-ghc-9.2.3-doc/share/doc/ghc/html/libraries/base-4.16.2.0/src/GHC.Maybe.html#Just"><span class="hs-identifier hs-var">Just</span></a></span><span>
+</span><span id="line-61"></span><span>    </span><span class="annot"><span class="annottext">(TZDatabase -&gt; Maybe TZDatabase)
+-&gt; (Text -&gt; TZDatabase) -&gt; Text -&gt; Maybe TZDatabase
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><a href="file:///nix/store/16s6s6gbs6bxf3x75xpna03ygn755wig-ghc-9.2.3-doc/share/doc/ghc/html/libraries/base-4.16.2.0/src/GHC.Base.html#."><span class="hs-operator hs-var">.</span></a></span><span> </span><span class="annot"><span class="annottext">Text -&gt; TZDatabase
+</span><span class="hs-identifier hs-var">TZDatabaseText</span></span><span>
+</span><span id="line-62"></span><span class="hs-pragma">{-# INLINEABLE</span><span> </span><span class="annot"><a href="Pythia.Services.Time.html#queryTimeZone"><span class="hs-pragma hs-type">queryTimeZone</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-63"></span><span>
+</span><span id="line-64"></span><span class="hs-comment">-- | Queries current time in the given timezone.</span><span>
+</span><span id="line-65"></span><span class="hs-comment">--</span><span>
+</span><span id="line-66"></span><span class="hs-comment">-- __Throws:__</span><span>
+</span><span id="line-67"></span><span class="hs-comment">--</span><span>
+</span><span id="line-68"></span><span class="hs-comment">-- * 'Pythia.Control.Exception.PythiaException': if an error is</span><span>
+</span><span id="line-69"></span><span class="hs-comment">-- encountered (e.g. running a command or parse error).</span><span>
+</span><span id="line-70"></span><span class="hs-comment">--</span><span>
+</span><span id="line-71"></span><span class="hs-comment">-- @since 0.1</span><span>
+</span><span id="line-72"></span><span class="annot"><a href="Pythia.Services.Time.html#queryTimeZoneLabel"><span class="hs-identifier hs-type">queryTimeZoneLabel</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="file:///nix/store/iyzpjn3kj1w0v3rmgizv0dc48hm94w6w-tzdata-0.2.20220315.0-doc/share/doc/tzdata-0.2.20220315.0/html/src/Data.Time.Zones.DB.html#TZLabel"><span class="hs-identifier hs-type">TZLabel</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="file:///nix/store/16s6s6gbs6bxf3x75xpna03ygn755wig-ghc-9.2.3-doc/share/doc/ghc/html/libraries/ghc-prim-0.8.0/src/GHC.Types.html#IO"><span class="hs-identifier hs-type">IO</span></a></span><span> </span><span class="annot"><a href="file:///nix/store/16s6s6gbs6bxf3x75xpna03ygn755wig-ghc-9.2.3-doc/share/doc/ghc/html/libraries/time-1.11.1.1/src/Data.Time.LocalTime.Internal.ZonedTime.html#ZonedTime"><span class="hs-identifier hs-type">ZonedTime</span></a></span><span>
+</span><span id="line-73"></span><span id="queryTimeZoneLabel"><span class="annot"><span class="annottext">queryTimeZoneLabel :: TZLabel -&gt; IO ZonedTime
+</span><a href="Pythia.Services.Time.html#queryTimeZoneLabel"><span class="hs-identifier hs-var hs-var">queryTimeZoneLabel</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-74"></span><span>  </span><span class="annot"><span class="annottext">(SomeException -&gt; IO ZonedTime) -&gt; IO ZonedTime -&gt; IO ZonedTime
+forall (m :: Type -&gt; Type) a.
+MonadCatch m =&gt;
+(SomeException -&gt; m a) -&gt; m a -&gt; m a
+</span><a href="file:///nix/store/vc86m9v0n79sk1j1m97fjgz8d4zvab3l-safe-exceptions-0.1.7.3-doc/share/doc/safe-exceptions-0.1.7.3/html/src/Control.Exception.Safe.html#handleAny"><span class="hs-identifier hs-var">handleAny</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">PythiaException -&gt; IO ZonedTime
+forall (m :: Type -&gt; Type) e a.
+(MonadThrow m, Exception e) =&gt;
+e -&gt; m a
+</span><a href="file:///nix/store/vc86m9v0n79sk1j1m97fjgz8d4zvab3l-safe-exceptions-0.1.7.3-doc/share/doc/safe-exceptions-0.1.7.3/html/src/Control.Exception.Safe.html#throwIO"><span class="hs-identifier hs-var">throwIO</span></a></span><span> </span><span class="annot"><span class="annottext">(PythiaException -&gt; IO ZonedTime)
+-&gt; (SomeException -&gt; PythiaException)
+-&gt; SomeException
+-&gt; IO ZonedTime
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><a href="file:///nix/store/16s6s6gbs6bxf3x75xpna03ygn755wig-ghc-9.2.3-doc/share/doc/ghc/html/libraries/base-4.16.2.0/src/GHC.Base.html#."><span class="hs-operator hs-var">.</span></a></span><span> </span><span class="annot"><span class="annottext">SomeException -&gt; PythiaException
+forall e. Exception e =&gt; e -&gt; PythiaException
+</span><a href="Pythia.Control.Exception.html#MkPythiaException"><span class="hs-identifier hs-var">MkPythiaException</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-75"></span><span>    </span><span class="annot"><span class="annottext">(IO ZonedTime -&gt; IO ZonedTime)
+-&gt; (TZLabel -&gt; IO ZonedTime) -&gt; TZLabel -&gt; IO ZonedTime
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><a href="file:///nix/store/16s6s6gbs6bxf3x75xpna03ygn755wig-ghc-9.2.3-doc/share/doc/ghc/html/libraries/base-4.16.2.0/src/GHC.Base.html#."><span class="hs-operator hs-var">.</span></a></span><span> </span><span class="annot"><span class="annottext">Maybe TimeReader -&gt; Maybe TZDatabase -&gt; IO ZonedTime
+</span><span class="hs-identifier hs-var">TimeConv.readConvertTime</span></span><span> </span><span class="annot"><span class="annottext">Maybe TimeReader
+forall a. Maybe a
+</span><a href="file:///nix/store/16s6s6gbs6bxf3x75xpna03ygn755wig-ghc-9.2.3-doc/share/doc/ghc/html/libraries/base-4.16.2.0/src/GHC.Maybe.html#Nothing"><span class="hs-identifier hs-var">Nothing</span></a></span><span>
+</span><span id="line-76"></span><span>    </span><span class="annot"><span class="annottext">(Maybe TZDatabase -&gt; IO ZonedTime)
+-&gt; (TZLabel -&gt; Maybe TZDatabase) -&gt; TZLabel -&gt; IO ZonedTime
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><a href="file:///nix/store/16s6s6gbs6bxf3x75xpna03ygn755wig-ghc-9.2.3-doc/share/doc/ghc/html/libraries/base-4.16.2.0/src/GHC.Base.html#."><span class="hs-operator hs-var">.</span></a></span><span> </span><span class="annot"><span class="annottext">TZDatabase -&gt; Maybe TZDatabase
+forall a. a -&gt; Maybe a
+</span><a href="file:///nix/store/16s6s6gbs6bxf3x75xpna03ygn755wig-ghc-9.2.3-doc/share/doc/ghc/html/libraries/base-4.16.2.0/src/GHC.Maybe.html#Just"><span class="hs-identifier hs-var">Just</span></a></span><span>
+</span><span id="line-77"></span><span>    </span><span class="annot"><span class="annottext">(TZDatabase -&gt; Maybe TZDatabase)
+-&gt; (TZLabel -&gt; TZDatabase) -&gt; TZLabel -&gt; Maybe TZDatabase
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><a href="file:///nix/store/16s6s6gbs6bxf3x75xpna03ygn755wig-ghc-9.2.3-doc/share/doc/ghc/html/libraries/base-4.16.2.0/src/GHC.Base.html#."><span class="hs-operator hs-var">.</span></a></span><span> </span><span class="annot"><span class="annottext">TZLabel -&gt; TZDatabase
+</span><span class="hs-identifier hs-var">TZDatabaseLabel</span></span><span>
+</span><span id="line-78"></span><span class="hs-pragma">{-# INLINEABLE</span><span> </span><span class="annot"><a href="Pythia.Services.Time.html#queryTimeZoneLabel"><span class="hs-pragma hs-type">queryTimeZoneLabel</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-79"></span></pre></body></html>
