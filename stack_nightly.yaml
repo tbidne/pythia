@@ -22,5 +22,3 @@ flags:
   refined:
     aeson: false
     quickcheck: false
-nix:
-  shell-file: nix/stack_nightly.nix
