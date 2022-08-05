@@ -16,15 +16,19 @@ where
 
 import Data.Bytes (Bytes (..), Size (..))
 import Data.Bytes qualified as Bytes
+import Data.Bytes.Formatting
+  ( FloatingFormatter (..),
+    formatSized,
+    sizedFormatterUnix,
+  )
 import Numeric.Algebra (MGroup, Normed)
-import Numeric.Class.Literal (NumLiteral (..))
 import Numeric.Data.NonNegative (NonNegative (..), unNonNegative)
 import Numeric.Data.Positive (Positive (..), unPositive)
+import Numeric.Literal.Integer (FromInteger (..))
 import Pythia.Data.RunApp (RunApp)
 import Pythia.Data.Supremum (Supremum (..))
 import Pythia.Prelude
 import Pythia.Utils (Doc, Pretty (..), (<+>))
-import Text.Printf qualified as Pf
 
 -- | Determines how we should query the system for memory usage.
 --
@@ -135,20 +139,19 @@ instance Pretty (Memory Positive) where
   {-# INLINEABLE pretty #-}
 
 prettyMemory ::
-  ( MGroup (f Double),
+  ( FromInteger (f Double),
+    MGroup (f Double),
     Ord (f Double),
-    Normed (f Double),
-    NumLiteral (f Double)
+    Normed (f Double)
   ) =>
   (f Double -> Double) ->
   Memory f ->
   Doc ann
-prettyMemory unwrap (MkMemory bytes) = rounded <+> pretty (show sz)
+prettyMemory unwrapper (MkMemory bytes) = pretty formatted
   where
     bytes' = Bytes.normalize bytes
-    sz = Bytes.someSizeToSize bytes'
-    x = unwrap $ Bytes.unSomeSize bytes'
-    rounded = pretty $ Pf.printf @(Double -> String) "%.2f" x
+    unwrapped = fmap unwrapper bytes'
+    formatted = formatSized (MkFloatingFormatter (Just 2)) sizedFormatterUnix unwrapped
 {-# INLINEABLE prettyMemory #-}
 
 -- | Represents the current memory usage.

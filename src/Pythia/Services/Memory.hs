@@ -38,9 +38,9 @@ where
 import Data.Bytes (Bytes (..))
 import Numeric.Data.Interval (LRInterval (..))
 import Numeric.Data.Interval qualified as Interval
-import Numeric.Data.NonNegative (NonNegative (..))
+import Numeric.Data.NonNegative (NonNegative (..), _MkNonNegative)
 import Numeric.Data.NonNegative qualified as NN
-import Numeric.Data.Positive qualified as Pos
+import Numeric.Data.Positive (_MkPositive)
 import Pythia.Data.Percentage (Percentage (..))
 import Pythia.Data.RunApp (RunApp (..))
 import Pythia.Internal.ShellApp (AppAction (..))
@@ -91,8 +91,8 @@ toShellApp MemoryAppFree = Free.memoryShellApp
 freeMemory :: SystemMemory -> Memory NonNegative
 freeMemory sysMem = free
   where
-    t = Pos.unPositive . unBytes . unMemory $ sysMem ^. #total
-    u = NN.unNonNegative . unBytes . unMemory $ sysMem ^. #used
+    t = sysMem ^. (#total % #unMemory % #unBytes % _MkPositive)
+    u = sysMem ^. (#used % #unMemory % #unBytes % _MkNonNegative)
     free = MkMemory $ MkBytes $ NN.unsafeNonNegative $ t - u
 {-# INLINEABLE freeMemory #-}
 
@@ -102,8 +102,8 @@ freeMemory sysMem = free
 percentageUsed :: SystemMemory -> Percentage
 percentageUsed sysMem = MkPercentage p
   where
-    t = Pos.unPositive . unBytes $ sysMem ^. #total % #unMemory
-    u = NN.unNonNegative . unBytes $ sysMem ^. #used % #unMemory
+    t = sysMem ^. (#total % #unMemory % #unBytes % _MkPositive)
+    u = sysMem ^. (#used % #unMemory % #unBytes % _MkNonNegative)
     p = Interval.unsafeLRInterval $ doubleToWord8 $ u / t
 
     doubleToWord8 :: Double -> Word8

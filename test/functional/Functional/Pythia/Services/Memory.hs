@@ -129,13 +129,12 @@ parsePercentageNum = do
 parseMemWithUnit :: MParser (Float, Char)
 parseMemWithUnit = do
   m <- parseMem
-  MPC.space1
   u <- parseUnit
   pure (m, u)
 
 parseMem :: MParser Float
 parseMem = do
-  result <- MP.takeWhileP Nothing (not . Char.isSpace)
+  result <- MP.takeWhileP Nothing (\c -> Char.isDigit c || c == '.')
   maybe empty pure (TR.readMaybe $ T.unpack result)
 
 parseUnit :: MParser Char
