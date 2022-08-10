@@ -18,9 +18,9 @@ module Pythia.Control.Exception
 
     -- * Optics
     _MkPythiaException,
+    _MkCommandException,
     _MkSomeExceptions,
     _MkNotSupportedException,
-    _MkNoActionsRunException,
   )
 where
 
@@ -82,16 +82,7 @@ fromExceptionViaPythia x = do
 --
 -- @since 0.1
 type CommandException :: Type
-data CommandException = MkCommandException
-  { -- | The command that was run.
-    --
-    -- @since 0.1
-    command :: Command,
-    -- | The error message received.
-    --
-    -- @since 0.1
-    errMsg :: Text
-  }
+data CommandException = MkCommandException Command Text
   deriving stock
     ( -- | @since 0.1
       Eq,
@@ -106,7 +97,7 @@ data CommandException = MkCommandException
     )
 
 -- | @since 0.1
-makeFieldLabelsNoPrefix ''CommandException
+makePrisms ''CommandException
 
 -- | @since 0.1
 instance Exception CommandException where
@@ -139,10 +130,7 @@ instance Pretty CommandException where
 --
 -- @since 0.1
 type SomeExceptions :: Type
-newtype SomeExceptions = MkSomeExceptions
-  { -- | @since 0.1
-    unSomeExceptions :: NonEmpty SomeException
-  }
+newtype SomeExceptions = MkSomeExceptions (NonEmpty SomeException)
   deriving stock
     ( -- | @since 0.1
       Generic,
@@ -183,10 +171,7 @@ instance Semigroup SomeExceptions where
 --
 -- @since 0.1
 type NotSupportedException :: Type
-newtype NotSupportedException = MkNotSupportedException
-  { -- | @since 0.1
-    unNotSupportedException :: Text
-  }
+newtype NotSupportedException = MkNotSupportedException Text
   deriving stock
     ( -- | @since 0.1
       Eq,
@@ -241,9 +226,6 @@ data NoActionsRunException = MkNoActionsRunException
     ( -- | @since 0.1
       NFData
     )
-
--- | @since 0.1
-makePrisms ''NoActionsRunException
 
 -- | @since 0.1
 instance Pretty NoActionsRunException where

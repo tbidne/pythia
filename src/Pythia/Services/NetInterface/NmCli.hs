@@ -52,10 +52,7 @@ import Text.Megaparsec.Char qualified as MPC
 --
 -- @since 0.1
 type NmCliParseError :: Type
-newtype NmCliParseError = MkNmCliParseError
-  { -- | @since 0.1
-    unNmCliParseError :: Text
-  }
+newtype NmCliParseError = MkNmCliParseError Text
   deriving stock
     ( -- | @since 0.1
       Eq,

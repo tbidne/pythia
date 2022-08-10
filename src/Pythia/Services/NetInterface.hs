@@ -135,7 +135,7 @@ instance Exception DeviceNotFound where
 --
 -- @since 0.1
 queryNetInterfaces :: NetInterfaceConfig -> IO NetInterfaces
-queryNetInterfaces cfg = case cfg ^. #app of
+queryNetInterfaces cfg = case cfg ^. _MkNetInterfaceConfig of
   Many -> runMultipleQueries
   Single app -> toSingleShellApp app
 {-# INLINEABLE queryNetInterfaces #-}
@@ -155,7 +155,7 @@ queryNetInterface d = queryNetInterfaces >=> findDevice d
 {-# INLINEABLE queryNetInterface #-}
 
 findDevice :: Device -> NetInterfaces -> IO NetInterface
-findDevice device = throwMaybe e . headMaybe . unNetInterfaces . filterDevice device
+findDevice device = throwMaybe e . headMaybe . view _MkNetInterfaces . filterDevice device
   where
     e = MkDeviceNotFound device
 {-# INLINEABLE findDevice #-}
@@ -182,7 +182,7 @@ findDevice device = throwMaybe e . headMaybe . unNetInterfaces . filterDevice de
 --
 -- @since 0.1
 findUp :: NetInterfaces -> Maybe NetInterface
-findUp = headMaybe . (sortType . filterUp) . unNetInterfaces
+findUp = headMaybe . (sortType . filterUp) . view _MkNetInterfaces
   where
     sortType = OL.sortOn (view #ntype)
     filterUp = filter ((== NetStateUp) . view #state)

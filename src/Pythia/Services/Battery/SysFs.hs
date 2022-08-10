@@ -129,10 +129,7 @@ instance Exception SysFsBatteryDirNotFound where
 --
 -- @since 0.1
 type SysFsFileNotFound :: Type
-newtype SysFsFileNotFound = MkSysFsFileNotFound
-  { -- | @since 0.1
-    unSysFsFileNotFound :: Text
-  }
+newtype SysFsFileNotFound = MkSysFsFileNotFound Text
   deriving stock
     ( -- | @since 0.1
       Eq,
@@ -173,10 +170,7 @@ instance Exception SysFsFileNotFound where
 --
 -- @since 0.1
 type SysFsBatteryParseError :: Type
-newtype SysFsBatteryParseError = MkSysFsBatteryParseError
-  { -- | @since 0.1
-    unSysFsBatteryParseError :: Text
-  }
+newtype SysFsBatteryParseError = MkSysFsBatteryParseError Text
   deriving stock
     ( -- | @since 0.1
       Eq,

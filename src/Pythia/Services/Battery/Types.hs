@@ -80,14 +80,11 @@ makePrisms ''BatteryApp
 -- | Battery configuration.
 --
 -- >>> mempty @BatteryConfig
--- MkBatteryConfig {app = Many}
+-- MkBatteryConfig Many
 --
 -- @since 0.1
 type BatteryConfig :: Type
-newtype BatteryConfig = MkBatteryConfig
-  { -- | @since 0.1
-    app :: RunApp BatteryApp
-  }
+newtype BatteryConfig = MkBatteryConfig (RunApp BatteryApp)
   deriving stock
     ( -- | @since 0.1
       Eq,

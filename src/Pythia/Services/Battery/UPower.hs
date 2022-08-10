@@ -119,16 +119,16 @@ supported = U.exeSupported "upower"
 -- ==== __Examples__
 --
 -- >>> parseBattery "state: fully-charged\npercentage: 100%"
--- Right (MkBattery {percentage = MkPercentage {unPercentage = UnsafeLRInterval {unLRInterval = 100}}, status = Full})
+-- Right (MkBattery {percentage = MkPercentage (UnsafeLRInterval 100), status = Full})
 --
 -- >>> parseBattery "state: discharging\npercentage: 70%"
--- Right (MkBattery {percentage = MkPercentage {unPercentage = UnsafeLRInterval {unLRInterval = 70}}, status = Discharging})
+-- Right (MkBattery {percentage = MkPercentage (UnsafeLRInterval 70), status = Discharging})
 --
 -- >>> parseBattery "state: charging\npercentage: 40%"
--- Right (MkBattery {percentage = MkPercentage {unPercentage = UnsafeLRInterval {unLRInterval = 40}}, status = Charging})
+-- Right (MkBattery {percentage = MkPercentage (UnsafeLRInterval 40), status = Charging})
 --
 -- >>> parseBattery "state: pending-charge\npercentage: 40%"
--- Right (MkBattery {percentage = MkPercentage {unPercentage = UnsafeLRInterval {unLRInterval = 40}}, status = Pending})
+-- Right (MkBattery {percentage = MkPercentage (UnsafeLRInterval 40), status = Pending})
 --
 -- >>> parseBattery "state: bad\npercentage: 40%"
 -- Left (UPowerParseErrorStatus "state: bad\npercentage: 40%")

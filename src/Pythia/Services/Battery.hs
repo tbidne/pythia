@@ -103,7 +103,7 @@ import Pythia.Services.Battery.UPower qualified as UPower
 -- @since 0.1
 queryBattery :: BatteryConfig -> IO Battery
 queryBattery config =
-  case config ^. #app of
+  case config ^. _MkBatteryConfig of
     Many -> ShellApp.tryAppActions allApps
     Single app -> toShellApp app
   where

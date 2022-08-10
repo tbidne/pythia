@@ -87,14 +87,11 @@ makePrisms ''NetInterfaceApp
 -- | Complete configuration for querying network interfaces.
 --
 -- >>> mempty @NetInterfaceConfig
--- MkNetInterfaceConfig {app = Many}
+-- MkNetInterfaceConfig Many
 --
 -- @since 0.1
 type NetInterfaceConfig :: Type
-newtype NetInterfaceConfig = MkNetInterfaceConfig
-  { -- | @since 0.1
-    app :: RunApp NetInterfaceApp
-  }
+newtype NetInterfaceConfig = MkNetInterfaceConfig (RunApp NetInterfaceApp)
   deriving stock
     ( -- | @since 0.1
       Eq,
@@ -252,10 +249,7 @@ instance Pretty NetInterface where
 
 -- | @since 0.1
 type NetInterfaces :: Type
-newtype NetInterfaces = MkNetInterfaces
-  { -- | @since 0.1
-    unNetInterfaces :: [NetInterface]
-  }
+newtype NetInterfaces = MkNetInterfaces [NetInterface]
   deriving stock
     ( -- | @since 0.1
       Eq,
@@ -276,5 +270,5 @@ makePrisms ''NetInterfaces
 
 -- | @since 0.1
 instance Pretty NetInterfaces where
-  pretty = U.vsep . U.punctuate (U.pretty @Text "\n") . fmap pretty . unNetInterfaces
+  pretty = U.vsep . U.punctuate (U.pretty @Text "\n") . fmap pretty . view _MkNetInterfaces
   {-# INLINEABLE pretty #-}

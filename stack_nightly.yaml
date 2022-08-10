@@ -13,11 +13,11 @@ extra-deps:
 - git: https://github.com/tbidne/algebra-simple.git
   commit: 5d9288b1e2149a1bb6db28d694c5528c0aef3cbd
 - git: https://github.com/tbidne/byte-types.git
-  commit: da898995e2a96d6993c5771883a04894c5455f4d
+  commit: 4374876dc1c9d53d810d46531268fbb26c341f74
 - git: https://github.com/tbidne/smart-math.git
   commit: 91de961c2606c72fdd2cec3ad76372448b28ee50
 - git: https://github.com/tbidne/time-conv.git
-  commit: 12bff1c3aede0783a56d1b04590a13ee60437c98
+  commit: be46a94e01dcad5e841ad5217deb45bd79e02f07
 flags:
   refined:
     aeson: false

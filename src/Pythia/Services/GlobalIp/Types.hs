@@ -85,10 +85,7 @@ makePrisms ''GlobalIpApp
 --
 -- @since 0.1
 type UrlSource :: IpType -> Type
-newtype UrlSource a = MkUrlSource
-  { -- | @since 0.1
-    unUrlSource :: Text
-  }
+newtype UrlSource a = MkUrlSource Text
   deriving stock
     ( -- | @since 0.1
       Eq,

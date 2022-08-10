@@ -42,10 +42,7 @@ import Text.Read qualified as TR
 --
 -- @since 0.1
 type FreeParseError :: Type
-newtype FreeParseError = MkFreeParseError
-  { -- | @since 0.1
-    unFreeParseError :: Text
-  }
+newtype FreeParseError = MkFreeParseError Text
   deriving stock
     ( -- | @since 0.1
       Eq,

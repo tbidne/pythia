@@ -30,7 +30,7 @@ import Pythia.Control.Exception
     NotSupportedException (..),
     SomeExceptions (..),
   )
-import Pythia.Data.Command (Command (..))
+import Pythia.Data.Command (Command (..), _MkCommand)
 import Pythia.Prelude
 import System.Process.Typed qualified as TP
 
@@ -92,7 +92,7 @@ runCommand command = do
     ExitFailure _ ->
       throwIO $ MkCommandException command $ T.pack $ show $ LBS.toStrict err
   where
-    cmdStr = command ^. #unCommand
+    cmdStr = command ^. _MkCommand
 {-# INLINEABLE runCommand #-}
 
 -- | Represents some IO app to retrieve a result @r@. Includes a string

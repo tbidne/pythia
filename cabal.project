@@ -21,7 +21,7 @@ source-repository-package
 source-repository-package
     type: git
     location: https://github.com/tbidne/byte-types.git
-    tag: da898995e2a96d6993c5771883a04894c5455f4d
+    tag: 4374876dc1c9d53d810d46531268fbb26c341f74
 
 source-repository-package
     type: git
@@ -31,4 +31,4 @@ source-repository-package
 source-repository-package
     type: git
     location: https://github.com/tbidne/time-conv.git
-    tag: 12bff1c3aede0783a56d1b04590a13ee60437c98
+    tag: be46a94e01dcad5e841ad5217deb45bd79e02f07

@@ -51,10 +51,7 @@ import Text.Megaparsec.Char qualified as MPC
 --
 -- @since 0.1
 type IpParseError :: Type
-newtype IpParseError = MkIpParseError
-  { -- | @since 0.1
-    unIpParseError :: Text
-  }
+newtype IpParseError = MkIpParseError Text
   deriving stock
     ( -- | @since 0.1
       Eq,

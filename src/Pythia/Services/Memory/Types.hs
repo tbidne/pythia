@@ -68,14 +68,11 @@ data MemoryApp
 -- | Memory configuration.
 --
 -- >>> mempty @MemoryConfig
--- MkMemoryConfig {app = Many}
+-- MkMemoryConfig Many
 --
 -- @since 0.1
 type MemoryConfig :: Type
-newtype MemoryConfig = MkMemoryConfig
-  { -- | @since 0.1
-    app :: RunApp MemoryApp
-  }
+newtype MemoryConfig = MkMemoryConfig (RunApp MemoryApp)
   deriving stock
     ( -- | @since 0.1
       Eq,
@@ -107,10 +104,7 @@ instance Monoid MemoryConfig where
 --
 -- @since 0.1
 type Memory :: (Type -> Type) -> Type
-newtype Memory (f :: Type -> Type) = MkMemory
-  { -- | @since 0.1
-    unMemory :: Bytes 'B (f Double)
-  }
+newtype Memory (f :: Type -> Type) = MkMemory (Bytes 'B (f Double))
   deriving stock
     ( -- | @since 0.1
       Generic

@@ -32,13 +32,13 @@ packages:
 - completed:
     name: byte-types
     pantry-tree:
-      sha256: 6943d0107f38711e07745147b35139f70e991e5260931938c41dcd08448923ef
-      size: 3458
-    commit: da898995e2a96d6993c5771883a04894c5455f4d
+      sha256: 62b5805d1649fe17680cfdd15961d66c4b8b98544f6c02daa440664c1a6e2ecb
+      size: 3157
+    commit: 4374876dc1c9d53d810d46531268fbb26c341f74
     git: https://github.com/tbidne/byte-types.git
     version: '0.1'
   original:
-    commit: da898995e2a96d6993c5771883a04894c5455f4d
+    commit: 4374876dc1c9d53d810d46531268fbb26c341f74
     git: https://github.com/tbidne/byte-types.git
 - completed:
     name: smart-math
@@ -54,13 +54,13 @@ packages:
 - completed:
     name: time-conv
     pantry-tree:
-      sha256: 41fd26ae1551977ea80c953397445aaf23aeacc36f556a806511ac945d655e90
-      size: 1637
-    commit: 12bff1c3aede0783a56d1b04590a13ee60437c98
+      sha256: cdb1a89ebbc55bf504671ee1f05108c9374b35ee9e2fe0437b21745555705eb9
+      size: 1994
+    commit: be46a94e01dcad5e841ad5217deb45bd79e02f07
     git: https://github.com/tbidne/time-conv.git
     version: '0.1'
   original:
-    commit: 12bff1c3aede0783a56d1b04590a13ee60437c98
+    commit: be46a94e01dcad5e841ad5217deb45bd79e02f07
     git: https://github.com/tbidne/time-conv.git
 snapshots:
 - completed:

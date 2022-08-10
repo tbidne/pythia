@@ -15,10 +15,7 @@ import Pythia.Prelude
 --
 -- @since 0.1
 type Command :: Type
-newtype Command = MkCommand
-  { -- | @since 0.1
-    unCommand :: Text
-  }
+newtype Command = MkCommand Text
   deriving stock
     ( -- | @since 0.1
       Eq,

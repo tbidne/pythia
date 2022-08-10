@@ -22,6 +22,7 @@ import Pythia
     NetInterfaces (..),
     SystemMemory (..),
     UrlSource (..),
+    _MkNetInterfaces,
   )
 import Pythia qualified
 import Pythia.Args
@@ -109,7 +110,7 @@ handleNetInterface handler cfg mdevice field = do
           docToText
             . U.vsep
             . fmap (toField field)
-            . view #unNetInterfaces
+            . view _MkNetInterfaces
 
     interfaceToText :: NetInterface -> Text
     interfaceToText = docToText . toField field
