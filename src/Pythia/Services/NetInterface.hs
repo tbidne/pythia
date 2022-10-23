@@ -61,7 +61,6 @@ where
 
 import Data.Text qualified as T
 import GHC.OldList qualified as OL
-import Pythia.Control.Exception (fromExceptionViaPythia, toExceptionViaPythia)
 import Pythia.Data.RunApp (RunApp (..))
 import Pythia.Internal.ShellApp (AppAction (..))
 import Pythia.Internal.ShellApp qualified as ShellApp
@@ -119,10 +118,6 @@ instance Pretty DeviceNotFound where
 instance Exception DeviceNotFound where
   displayException = T.unpack . U.prettyToText
   {-# INLINEABLE displayException #-}
-  toException = toExceptionViaPythia
-  {-# INLINEABLE toException #-}
-  fromException = fromExceptionViaPythia
-  {-# INLINEABLE fromException #-}
 
 -- | Queries for all network interface data. If the 'NetInterfaceConfig'\'s app
 -- is 'Many' then we try all 'NetInterfaceApp's supported by this system, in

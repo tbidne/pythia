@@ -5,19 +5,13 @@
 --
 -- @since 0.1
 module Pythia.Control.Exception
-  ( -- * Exception Hierarchy Root
-    PythiaException (..),
-    toExceptionViaPythia,
-    fromExceptionViaPythia,
-
-    -- * Miscellaneous Exceptions
+  ( -- * Miscellaneous Exceptions
     CommandException (..),
     SomeExceptions (..),
     NotSupportedException (..),
     NoActionsRunException (..),
 
     -- * Optics
-    _MkPythiaException,
     _MkCommandException,
     _MkSomeExceptions,
     _MkNotSupportedException,
@@ -27,7 +21,6 @@ where
 import Data.List.NonEmpty (NonEmpty (..))
 import Data.List.NonEmpty qualified as NE
 import Data.Text qualified as T
-import Data.Typeable (cast)
 import Pythia.Data.Command (Command (..))
 import Pythia.Prelude
 import Pythia.Utils (Pretty (..), (<+>))
@@ -36,47 +29,6 @@ import Pythia.Utils qualified as U
 -- $setup
 -- >>> import Data.List.NonEmpty (NonEmpty ((:|)))
 -- >>> import Pythia.Prelude
-
--- | All specific exceptions thrown by pythia are subtypes of
--- 'PythiaException'.
---
--- @since 0.1
-type PythiaException :: Type
-data PythiaException = forall e. Exception e => MkPythiaException e
-
--- | @since 0.1
-makePrisms ''PythiaException
-
--- | @since 0.1
-deriving stock instance Show PythiaException
-
--- | @since 0.1
-instance Exception PythiaException where
-  displayException (MkPythiaException e) = displayException e
-  {-# INLINEABLE displayException #-}
-
--- | @since 0.1
-instance Pretty PythiaException where
-  pretty = pretty . displayException
-  {-# INLINEABLE pretty #-}
-
--- | 'toException' via 'PythiaException'. Used for defining an exception
--- as a subtype of 'PythiaException'.
---
--- @since 0.1
-toExceptionViaPythia :: Exception e => e -> SomeException
-toExceptionViaPythia = toException . MkPythiaException
-{-# INLINEABLE toExceptionViaPythia #-}
-
--- | 'fromException' via 'PythiaException'. Used for defining an exception
--- as a subtype of 'PythiaException'.
---
--- @since 0.1
-fromExceptionViaPythia :: Exception e => SomeException -> Maybe e
-fromExceptionViaPythia x = do
-  MkPythiaException e <- fromException x
-  cast e
-{-# INLINEABLE fromExceptionViaPythia #-}
 
 -- | Exceptions encountered while running a shell command.
 --
@@ -91,13 +43,7 @@ data CommandException = MkCommandException Command Text
     ( -- | @since 0.1
       Eq,
       -- | @since 0.1
-      Generic,
-      -- | @since 0.1
       Show
-    )
-  deriving anyclass
-    ( -- | @since 0.1
-      NFData
     )
 
 -- | @since 0.1
@@ -105,22 +51,15 @@ makePrisms ''CommandException
 
 -- | @since 0.1
 instance Exception CommandException where
-  displayException = T.unpack . U.prettyToText
-  {-# INLINEABLE displayException #-}
-  toException = toExceptionViaPythia
-  {-# INLINEABLE toException #-}
-  fromException = fromExceptionViaPythia
-  {-# INLINEABLE fromException #-}
-
--- | @since 0.1
-instance Pretty CommandException where
-  pretty (MkCommandException (MkCommand c) s) =
-    pretty @String "Command exception. Command: <"
-      <> pretty c
-      <> pretty @String ">. Error: <"
-      <> pretty s
-      <> pretty @String ">"
-  {-# INLINEABLE pretty #-}
+  displayException e =
+    mconcat
+      [ "Command Exception. Command <",
+        T.unpack $ e' ^. _1 % #unCommand,
+        ">. Error: <",
+        T.unpack $ e' ^. _2
+      ]
+    where
+      e' = e ^. _MkCommandException
 
 -- | Collects 1 or more exceptions.
 --
@@ -137,8 +76,6 @@ type SomeExceptions :: Type
 newtype SomeExceptions = MkSomeExceptions (NonEmpty SomeException)
   deriving stock
     ( -- | @since 0.1
-      Generic,
-      -- | @since 0.1
       Show
     )
 
@@ -148,11 +85,6 @@ makePrisms ''SomeExceptions
 -- | @since 0.1
 instance Exception SomeExceptions where
   displayException = T.unpack . U.prettyToText
-  {-# INLINEABLE displayException #-}
-  toException = toExceptionViaPythia
-  {-# INLINEABLE toException #-}
-  fromException = fromExceptionViaPythia
-  {-# INLINEABLE fromException #-}
 
 -- | @since 0.1
 instance Pretty SomeExceptions where
@@ -160,12 +92,10 @@ instance Pretty SomeExceptions where
     where
       header = pretty @Text "Found" <+> pretty (showt $ length xs) <+> pretty @Text "exception(s)"
       exes = NE.toList $ fmap ((pretty @Text "-" <+>) . pretty . displayException) xs
-  {-# INLINEABLE pretty #-}
 
 -- | @since 0.1
 instance Semigroup SomeExceptions where
   MkSomeExceptions l <> MkSomeExceptions r = MkSomeExceptions $ l <> r
-  {-# INLINEABLE (<>) #-}
 
 -- | Error for when the current app is not supported.
 --
@@ -180,13 +110,7 @@ newtype NotSupportedException = MkNotSupportedException Text
     ( -- | @since 0.1
       Eq,
       -- | @since 0.1
-      Generic,
-      -- | @since 0.1
       Show
-    )
-  deriving anyclass
-    ( -- | @since 0.1
-      NFData
     )
 
 -- | @since 0.1
@@ -194,20 +118,12 @@ makePrisms ''NotSupportedException
 
 -- | @since 0.1
 instance Exception NotSupportedException where
-  displayException = T.unpack . U.prettyToText
-  {-# INLINEABLE displayException #-}
-  toException = toExceptionViaPythia
-  {-# INLINEABLE toException #-}
-  fromException = fromExceptionViaPythia
-  {-# INLINEABLE fromException #-}
-
--- | @since 0.1
-instance Pretty NotSupportedException where
-  pretty (MkNotSupportedException s) =
-    pretty @Text "App not supported: <"
-      <> pretty @Text s
-      <> pretty @Text ">"
-  {-# INLINEABLE pretty #-}
+  displayException e =
+    mconcat
+      [ "App not supported: <",
+        T.unpack (e ^. _MkNotSupportedException),
+        ">"
+      ]
 
 -- | Error for when no actions are run.
 --
@@ -222,25 +138,9 @@ data NoActionsRunException = MkNoActionsRunException
     ( -- | @since 0.1
       Eq,
       -- | @since 0.1
-      Generic,
-      -- | @since 0.1
       Show
     )
-  deriving anyclass
-    ( -- | @since 0.1
-      NFData
-    )
-
--- | @since 0.1
-instance Pretty NoActionsRunException where
-  pretty MkNoActionsRunException = "No actions run"
-  {-# INLINEABLE pretty #-}
 
 -- | @since 0.1
 instance Exception NoActionsRunException where
-  displayException = T.unpack . U.prettyToText
-  {-# INLINEABLE displayException #-}
-  toException = toExceptionViaPythia
-  {-# INLINEABLE toException #-}
-  fromException = fromExceptionViaPythia
-  {-# INLINEABLE fromException #-}
+  displayException _ = "No actions run"

@@ -35,5 +35,4 @@ import Pythia.Services.Time
 -- Pythia's error handling is defined in terms of @safe-exceptions@.
 -- "Pythia.Control.Exception" defines general exceptions that can be thrown
 -- from 'GHC.IO.IO'; Additionally, services can also throw specific exceptions (e.g.
--- 'AcpiException' from "Pythia.Services.Battery.Acpi"). All exceptions are
--- unified under the supertype 'PythiaException'.
+-- 'AcpiException' from "Pythia.Services.Battery.Acpi").

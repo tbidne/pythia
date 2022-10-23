@@ -33,11 +33,10 @@ repl:
 	fi
 
 watch:
-	ghcid --command "cabal repl $(ARGS)"
 	if [ -z "$(ARGS)" ]; then \
-		ghcid --command "cabal repl pythia" \
+		ghcid --command "cabal repl pythia"; \
 	else \
-		ghcid --command "cabal repl $(ARGS)" \
+		ghcid --command "cabal repl $(ARGS)"; \
 	fi
 
 # ci

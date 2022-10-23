@@ -25,7 +25,7 @@ where
 
 import Data.Char qualified as Char
 import Data.Text qualified as T
-import Pythia.Data.Command (Command, _MkCommand)
+import Pythia.Data.Command (Command)
 import Pythia.Data.RunApp (RunApp (..))
 import Pythia.Internal.ShellApp (AppAction (..))
 import Pythia.Internal.ShellApp qualified as ShellApp
@@ -189,7 +189,7 @@ digDefaults = (ipv4s, ipv6s)
 {-# INLINEABLE digDefaults #-}
 
 getIpFromSources :: Predicate (IpRefinement a) Text => [UrlSource a] -> IO (IpAddress a)
-getIpFromSources = fmap MkIpAddress . getIp (_MkUrlSource % re _MkCommand)
+getIpFromSources = fmap MkIpAddress . getIp (_MkUrlSource % re #unCommand)
 {-# INLINEABLE getIpFromSources #-}
 
 getIp ::

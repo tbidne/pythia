@@ -1,11 +1,11 @@
 {-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE UndecidableInstances #-}
 
 -- | This module provides the 'Command' type.
 --
 -- @since 0.1
 module Pythia.Data.Command
   ( Command (..),
-    _MkCommand,
   )
 where
 
@@ -15,7 +15,9 @@ import Pythia.Prelude
 --
 -- @since 0.1
 type Command :: Type
-newtype Command = MkCommand Text
+newtype Command = MkCommand
+  { unCommand :: Text
+  }
   deriving stock
     ( -- | @since 0.1
       Eq,
@@ -37,4 +39,4 @@ newtype Command = MkCommand Text
     )
 
 -- | @since 0.1
-makePrisms ''Command
+makeFieldLabelsNoPrefix ''Command

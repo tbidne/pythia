@@ -21,12 +21,10 @@ import Data.Text qualified as T
 import Numeric.Algebra (ASemigroup (..))
 import Numeric.Data.NonNegative qualified as NN
 import Numeric.Data.Positive qualified as Pos
-import Pythia.Control.Exception (fromExceptionViaPythia, toExceptionViaPythia)
 import Pythia.Internal.ShellApp (SimpleShell (..))
 import Pythia.Internal.ShellApp qualified as ShellApp
 import Pythia.Prelude
 import Pythia.Services.Memory.Types (Memory (..), SystemMemory (..))
-import Pythia.Utils (Pretty (..))
 import Pythia.Utils qualified as U
 import Text.Megaparsec (Parsec)
 import Text.Megaparsec qualified as MP
@@ -51,32 +49,18 @@ newtype FreeParseError = MkFreeParseError Text
     ( -- | @since 0.1
       Eq,
       -- | @since 0.1
-      Generic,
-      -- | @since 0.1
       Show
-    )
-  deriving anyclass
-    ( -- | @since 0.1
-      NFData
     )
 
 -- | @since 0.1
 makePrisms ''FreeParseError
 
 -- | @since 0.1
-instance Pretty FreeParseError where
-  pretty (MkFreeParseError s) =
-    pretty @Text "Could not parse memory from: " <> pretty s
-  {-# INLINEABLE pretty #-}
-
--- | @since 0.1
 instance Exception FreeParseError where
-  displayException = T.unpack . U.prettyToText
-  {-# INLINEABLE displayException #-}
-  toException = toExceptionViaPythia
-  {-# INLINEABLE toException #-}
-  fromException = fromExceptionViaPythia
-  {-# INLINEABLE fromException #-}
+  displayException =
+    ("Could not parse memory from: " <>)
+      . T.unpack
+      . view _MkFreeParseError
 
 -- | Free query for 'Memory'.
 --

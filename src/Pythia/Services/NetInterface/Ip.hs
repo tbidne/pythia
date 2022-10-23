@@ -19,7 +19,6 @@ where
 import Data.Char qualified as Char
 import Data.Set qualified as Set
 import Data.Text qualified as T
-import Pythia.Control.Exception (fromExceptionViaPythia, toExceptionViaPythia)
 import Pythia.Internal.ShellApp (SimpleShell (..))
 import Pythia.Internal.ShellApp qualified as ShellApp
 import Pythia.Prelude
@@ -34,7 +33,6 @@ import Pythia.Services.Types.Network
     IpAddresses (..),
     IpType (..),
   )
-import Pythia.Utils (Pretty (..))
 import Pythia.Utils qualified as U
 import Refined (Predicate, Refined)
 import Refined qualified as R
@@ -60,32 +58,18 @@ newtype IpParseError = MkIpParseError Text
     ( -- | @since 0.1
       Eq,
       -- | @since 0.1
-      Generic,
-      -- | @since 0.1
       Show
-    )
-  deriving anyclass
-    ( -- | @since 0.1
-      NFData
     )
 
 -- | @since 0.1
 makePrisms ''IpParseError
 
 -- | @since 0.1
-instance Pretty IpParseError where
-  pretty (MkIpParseError s) =
-    pretty @Text "Ip parse error: " <> pretty s
-  {-# INLINEABLE pretty #-}
-
--- | @since 0.1
 instance Exception IpParseError where
-  displayException = T.unpack . U.prettyToText
-  {-# INLINEABLE displayException #-}
-  toException = toExceptionViaPythia
-  {-# INLINEABLE toException #-}
-  fromException = fromExceptionViaPythia
-  {-# INLINEABLE fromException #-}
+  displayException =
+    ("Ip parse error: " <>)
+      . T.unpack
+      . view _MkIpParseError
 
 -- | Ip query for 'NetInterface'.
 --

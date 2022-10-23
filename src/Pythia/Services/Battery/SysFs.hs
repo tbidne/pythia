@@ -21,12 +21,9 @@ where
 
 import Data.Text qualified as T
 import Numeric.Data.Interval qualified as Interval
-import Pythia.Control.Exception (PythiaException (..), fromExceptionViaPythia, toExceptionViaPythia)
 import Pythia.Data.Percentage (Percentage (..))
 import Pythia.Prelude
 import Pythia.Services.Battery.Types (Battery (..), BatteryStatus (..))
-import Pythia.Utils (Pretty (..))
-import Pythia.Utils qualified as U
 import System.Directory qualified as Dir
 import System.FilePath ((</>))
 import Text.Read qualified as TR
@@ -57,32 +54,18 @@ data SysFsDirNotFound = MkSysFsDirNotFound
     ( -- | @since 0.1
       Eq,
       -- | @since 0.1
-      Generic,
-      -- | @since 0.1
       Show
     )
-  deriving anyclass
-    ( -- | @since 0.1
-      NFData
-    )
-
--- | @since 0.1
-instance Pretty SysFsDirNotFound where
-  pretty MkSysFsDirNotFound =
-    pretty @Text "Could not find either sysfs dirs: "
-      <> pretty sysDir
-      <> pretty @Text ", "
-      <> pretty sysfsDir
-  {-# INLINEABLE pretty #-}
 
 -- | @since 0.1
 instance Exception SysFsDirNotFound where
-  displayException = T.unpack . U.prettyToText
-  {-# INLINEABLE displayException #-}
-  toException = toExceptionViaPythia
-  {-# INLINEABLE toException #-}
-  fromException = fromExceptionViaPythia
-  {-# INLINEABLE fromException #-}
+  displayException _ =
+    mconcat
+      [ "Could not find either sysfs dirs: ",
+        sysDir,
+        ", ",
+        sysfsDir
+      ]
 
 -- | Sysfs battery dir not found.
 --
@@ -98,31 +81,16 @@ data SysFsBatteryDirNotFound = MkSysFsBatteryDirNotFound
     ( -- | @since 0.1
       Eq,
       -- | @since 0.1
-      Generic,
-      -- | @since 0.1
       Show
     )
-  deriving anyclass
-    ( -- | @since 0.1
-      NFData
-    )
-
--- | @since 0.1
-instance Pretty SysFsBatteryDirNotFound where
-  pretty MkSysFsBatteryDirNotFound =
-    pretty @Text $
-      "Could not find BAT[0-5]? subdirectory under"
-        <> " /sys(fs)/class/power_supply"
-  {-# INLINEABLE pretty #-}
 
 -- | @since 0.1
 instance Exception SysFsBatteryDirNotFound where
-  displayException = T.unpack . U.prettyToText
-  {-# INLINEABLE displayException #-}
-  toException = toExceptionViaPythia
-  {-# INLINEABLE toException #-}
-  fromException = fromExceptionViaPythia
-  {-# INLINEABLE fromException #-}
+  displayException _ =
+    mconcat
+      [ "Could not find BAT[0-5]? subdirectory under ",
+        "/sys(fs)/class/power_supply"
+      ]
 
 -- | Sysfs file not found.
 --
@@ -138,32 +106,18 @@ newtype SysFsFileNotFound = MkSysFsFileNotFound Text
     ( -- | @since 0.1
       Eq,
       -- | @since 0.1
-      Generic,
-      -- | @since 0.1
       Show
-    )
-  deriving anyclass
-    ( -- | @since 0.1
-      NFData
     )
 
 -- | @since 0.1
 makePrisms ''SysFsFileNotFound
 
 -- | @since 0.1
-instance Pretty SysFsFileNotFound where
-  pretty (MkSysFsFileNotFound f) =
-    pretty @Text "Could not find sysfs file: " <> pretty f
-  {-# INLINEABLE pretty #-}
-
--- | @since 0.1
 instance Exception SysFsFileNotFound where
-  displayException = T.unpack . U.prettyToText
-  {-# INLINEABLE displayException #-}
-  toException = toExceptionViaPythia
-  {-# INLINEABLE toException #-}
-  fromException = fromExceptionViaPythia
-  {-# INLINEABLE fromException #-}
+  displayException =
+    ("Could not find sysfs file: " <>)
+      . T.unpack
+      . view _MkSysFsFileNotFound
 
 -- | Sysfs battery parse error.
 --
@@ -179,32 +133,18 @@ newtype SysFsBatteryParseError = MkSysFsBatteryParseError Text
     ( -- | @since 0.1
       Eq,
       -- | @since 0.1
-      Generic,
-      -- | @since 0.1
       Show
-    )
-  deriving anyclass
-    ( -- | @since 0.1
-      NFData
     )
 
 -- | @since 0.1
 makePrisms ''SysFsBatteryParseError
 
 -- | @since 0.1
-instance Pretty SysFsBatteryParseError where
-  pretty (MkSysFsBatteryParseError e) =
-    pretty @Text "SysFs parse error: " <> pretty e
-  {-# INLINEABLE pretty #-}
-
--- | @since 0.1
 instance Exception SysFsBatteryParseError where
-  displayException = T.unpack . U.prettyToText
-  {-# INLINEABLE displayException #-}
-  toException = toExceptionViaPythia
-  {-# INLINEABLE toException #-}
-  fromException = fromExceptionViaPythia
-  {-# INLINEABLE fromException #-}
+  displayException =
+    ("SysFs parse error: " <>)
+      . T.unpack
+      . view _MkSysFsBatteryParseError
 
 -- | @\/sys\/class@ query for 'Battery'.
 --
@@ -308,7 +248,7 @@ parseStatus fp = do
     T.toLower
       . T.strip
       <$> readFileUtf8Lenient fp
-      `catchAny` \e -> throwIO $ MkPythiaException e
+      `catchAny` \e -> throwIO e
   case statusTxt of
     "charging" -> pure Charging
     "discharging" -> pure Discharging
@@ -321,7 +261,7 @@ parsePercentage :: FilePath -> IO Percentage
 parsePercentage fp = do
   percentTxt <-
     readFileUtf8Lenient fp
-      `catchAny` \e -> throwIO $ MkPythiaException e
+      `catchAny` \e -> throwIO e
   case readInterval percentTxt of
     Nothing -> throwIO $ MkSysFsBatteryParseError percentTxt
     Just bs -> pure $ MkPercentage bs

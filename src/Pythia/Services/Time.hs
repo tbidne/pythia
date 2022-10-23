@@ -19,14 +19,13 @@ import Data.Time.Clock (UTCTime (..))
 import Data.Time.Clock qualified as Clock
 import Data.Time.Conversion (TZDatabase (..), TZLabel (..), ZonedTime (..))
 import Data.Time.Conversion qualified as TimeConv
-import Pythia.Control.Exception (PythiaException (..))
 import Pythia.Prelude
 
 -- | Queries current local time.
 --
 -- @since 0.1
 queryLocalTime :: IO ZonedTime
-queryLocalTime = TimeConv.readTime Nothing `catchAny` (throwIO . MkPythiaException)
+queryLocalTime = TimeConv.readTime Nothing `catchAny` throwIO
 {-# INLINEABLE queryLocalTime #-}
 
 -- | Queries current UTC time.
@@ -38,7 +37,7 @@ queryLocalTime = TimeConv.readTime Nothing `catchAny` (throwIO . MkPythiaExcepti
 --
 -- @since 0.1
 queryUTC :: IO UTCTime
-queryUTC = Clock.getCurrentTime `catchAny` (throwIO . MkPythiaException)
+queryUTC = Clock.getCurrentTime `catchAny` throwIO
 {-# INLINEABLE queryUTC #-}
 
 -- | Queries current time in the given timezone.
@@ -55,7 +54,7 @@ queryUTC = Clock.getCurrentTime `catchAny` (throwIO . MkPythiaException)
 -- @since 0.1
 queryTimeZone :: Text -> IO ZonedTime
 queryTimeZone =
-  handleAny (throwIO . MkPythiaException)
+  handleAny throwIO
     . TimeConv.readConvertTime Nothing
     . Just
     . TZDatabaseText
@@ -71,7 +70,7 @@ queryTimeZone =
 -- @since 0.1
 queryTimeZoneLabel :: TZLabel -> IO ZonedTime
 queryTimeZoneLabel =
-  handleAny (throwIO . MkPythiaException)
+  handleAny throwIO
     . TimeConv.readConvertTime Nothing
     . Just
     . TZDatabaseLabel

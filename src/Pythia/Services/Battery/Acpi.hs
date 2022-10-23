@@ -20,13 +20,11 @@ import Data.Char qualified as Char
 import Data.Set qualified as Set
 import Data.Text qualified as T
 import Numeric.Data.Interval qualified as Interval
-import Pythia.Control.Exception (fromExceptionViaPythia, toExceptionViaPythia)
 import Pythia.Data.Percentage (Percentage (..))
 import Pythia.Internal.ShellApp (SimpleShell (..))
 import Pythia.Internal.ShellApp qualified as ShellApp
 import Pythia.Prelude
 import Pythia.Services.Battery.Types (Battery (..), BatteryStatus (..))
-import Pythia.Utils (Pretty (..))
 import Pythia.Utils qualified as U
 import Text.Megaparsec (ErrorFancy (..), Parsec, (<?>))
 import Text.Megaparsec qualified as MP
@@ -52,32 +50,18 @@ newtype AcpiParseError = MkAcpiParseError Text
     ( -- | @since 0.1
       Eq,
       -- | @since 0.1
-      Generic,
-      -- | @since 0.1
       Show
-    )
-  deriving anyclass
-    ( -- | @since 0.1
-      NFData
     )
 
 -- | @since 0.1
 makePrisms ''AcpiParseError
 
 -- | @since 0.1
-instance Pretty AcpiParseError where
-  pretty (MkAcpiParseError s) =
-    pretty @Text "Acpi parse error: " <> pretty s
-  {-# INLINEABLE pretty #-}
-
--- | @since 0.1
 instance Exception AcpiParseError where
-  displayException = T.unpack . U.prettyToText
-  {-# INLINEABLE displayException #-}
-  toException = toExceptionViaPythia
-  {-# INLINEABLE toException #-}
-  fromException = fromExceptionViaPythia
-  {-# INLINEABLE fromException #-}
+  displayException =
+    ("Acpi parse error: " <>)
+      . T.unpack
+      . view _MkAcpiParseError
 
 -- | ACPI query for 'Battery'.
 --

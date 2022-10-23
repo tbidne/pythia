@@ -21,13 +21,11 @@ import Data.Char qualified as Char
 import Data.Set qualified as Set
 import Data.Text qualified as T
 import Numeric.Data.Interval qualified as Interval
-import Pythia.Control.Exception (fromExceptionViaPythia, toExceptionViaPythia)
 import Pythia.Data.Percentage (Percentage (..))
 import Pythia.Internal.ShellApp (SimpleShell (..))
 import Pythia.Internal.ShellApp qualified as ShellApp
 import Pythia.Prelude
 import Pythia.Services.Battery.Types (Battery (..), BatteryStatus (..))
-import Pythia.Utils (Pretty (..))
 import Pythia.Utils qualified as U
 import Text.Megaparsec (ErrorFancy (..), Parsec)
 import Text.Megaparsec qualified as MP
@@ -63,34 +61,18 @@ data UPowerParseError
     ( -- | @since 0.1
       Eq,
       -- | @since 0.1
-      Generic,
-      -- | @since 0.1
       Show
-    )
-  deriving anyclass
-    ( -- | @since 0.1
-      NFData
     )
 
 -- | @since 0.1
 makePrisms ''UPowerParseError
 
 -- | @since 0.1
-instance Pretty UPowerParseError where
-  pretty (UPowerParseErrorPercentage s) =
-    pretty @Text "No percentage found in upower output: " <> pretty s
-  pretty (UPowerParseErrorStatus s) =
-    pretty @Text "No status found in upower output: " <> pretty s
-  {-# INLINEABLE pretty #-}
-
--- | @since 0.1
 instance Exception UPowerParseError where
-  displayException = T.unpack . U.prettyToText
-  {-# INLINEABLE displayException #-}
-  toException = toExceptionViaPythia
-  {-# INLINEABLE toException #-}
-  fromException = fromExceptionViaPythia
-  {-# INLINEABLE fromException #-}
+  displayException (UPowerParseErrorPercentage s) =
+    "No percentage found in upower output: " <> T.unpack s
+  displayException (UPowerParseErrorStatus s) =
+    "No status found in upower output: " <> T.unpack s
 
 -- | UPower query for 'Battery'.
 --

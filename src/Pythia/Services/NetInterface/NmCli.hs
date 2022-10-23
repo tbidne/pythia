@@ -19,7 +19,6 @@ where
 import Data.Char qualified as Char
 import Data.Set qualified as Set
 import Data.Text qualified as T
-import Pythia.Control.Exception (fromExceptionViaPythia, toExceptionViaPythia)
 import Pythia.Internal.ShellApp (SimpleShell (..))
 import Pythia.Internal.ShellApp qualified as ShellApp
 import Pythia.Prelude
@@ -35,7 +34,6 @@ import Pythia.Services.Types.Network
     IpAddresses (..),
     IpType (..),
   )
-import Pythia.Utils (Pretty (..))
 import Pythia.Utils qualified as U
 import Refined (Predicate, Refined)
 import Refined qualified as R
@@ -61,32 +59,18 @@ newtype NmCliParseError = MkNmCliParseError Text
     ( -- | @since 0.1
       Eq,
       -- | @since 0.1
-      Generic,
-      -- | @since 0.1
       Show
-    )
-  deriving anyclass
-    ( -- | @since 0.1
-      NFData
     )
 
 -- | @since 0.1
 makePrisms ''NmCliParseError
 
 -- | @since 0.1
-instance Pretty NmCliParseError where
-  pretty (MkNmCliParseError s) =
-    pretty @Text "NmCli parse error: " <> pretty s
-  {-# INLINEABLE pretty #-}
-
--- | @since 0.1
 instance Exception NmCliParseError where
-  displayException = T.unpack . U.prettyToText
-  {-# INLINEABLE displayException #-}
-  toException = toExceptionViaPythia
-  {-# INLINEABLE toException #-}
-  fromException = fromExceptionViaPythia
-  {-# INLINEABLE fromException #-}
+  displayException =
+    ("NmCli parse error: " <>)
+      . T.unpack
+      . view _MkNmCliParseError
 
 -- | NmCli query for 'NetInterfaces'.
 --
