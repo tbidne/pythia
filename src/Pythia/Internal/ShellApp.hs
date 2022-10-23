@@ -11,8 +11,6 @@ module Pythia.Internal.ShellApp
     runSimple,
 
     -- * Trying Multiple IO
-    AppAction (..),
-    tryAppActions,
     tryIOs,
 
     -- * Utilities
@@ -104,25 +102,6 @@ runCommand command = do
     cmdStr = command ^. #unCommand
 {-# INLINEABLE runCommand #-}
 
--- | Represents some IO app to retrieve a result @r@. Includes a string
--- name and support query for determining if this action is supported by the
--- current system. Intended for when we want to try multiple actions
--- i.e. 'tryAppActions'.
---
--- @since 0.1
-type AppAction :: (Type -> Type) -> Type -> Type
-data AppAction m r = MkAppAction
-  { -- | @since 0.1
-    action :: m r,
-    -- | @since 0.1
-    supported :: m Bool,
-    -- | @since 0.1
-    name :: Text
-  }
-
--- | @since 0.1
-makeFieldLabelsNoPrefix ''AppAction
-
 -- Three possible results when running actions:
 --
 -- 1. None are given/supported, so none are run.
@@ -148,38 +127,6 @@ instance Semigroup (ActionsResult r) where
 instance Monoid (ActionsResult r) where
   mempty = NoRuns
   {-# INLINEABLE mempty #-}
-
--- | Queries for information via multiple apps. Returns the first success.
--- If any errors are encountered or no actions are run (either because the
--- list is empty or none are supported), an exception is thrown.
---
--- __Throws:__
---
--- * 'NoActionsRunException': if no actions are run (i.e. the list is empty
---       or none are supported).
---
--- * 'SomeExceptions': if at least one command is run yet there were no
---       successes.
---
--- @since 0.1
-tryAppActions :: [AppAction IO result] -> IO result
-tryAppActions apps =
-  foldr tryAppAction (pure mempty) apps >>= \case
-    Success result -> pure result
-    Errs errs -> throwIO $ MkSomeExceptions errs
-    NoRuns -> throwIO MkNoActionsRunException
-{-# INLINEABLE tryAppActions #-}
-
-tryAppAction ::
-  AppAction IO result -> IO (ActionsResult result) -> IO (ActionsResult result)
-tryAppAction appAction acc = do
-  isSupported <- appAction ^. #supported
-  if isSupported
-    then tryIO (appAction ^. #action) acc
-    else appendEx appUnsupportedEx <$> acc
-  where
-    appUnsupportedEx = toException $ MkNotSupportedException $ appAction ^. #name
-{-# INLINEABLE tryAppAction #-}
 
 -- | Generalized 'tryAppActions' to any 'IO'. Has the same semantics
 -- (i.e. returns the first success or throws an exception if none

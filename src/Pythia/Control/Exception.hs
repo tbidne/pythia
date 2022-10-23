@@ -18,12 +18,9 @@ module Pythia.Control.Exception
   )
 where
 
-import Data.List.NonEmpty qualified as NE
 import Data.Text qualified as T
 import Pythia.Data.Command (Command (..))
 import Pythia.Prelude
-import Pythia.Utils (Pretty (..), (<+>))
-import Pythia.Utils qualified as U
 
 -- $setup
 -- >>> import Data.List.NonEmpty (NonEmpty ((:|)))
@@ -84,14 +81,15 @@ makePrisms ''SomeExceptions
 
 -- | @since 0.1
 instance Exception SomeExceptions where
-  displayException = T.unpack . U.prettyToText
-
--- | @since 0.1
-instance Pretty SomeExceptions where
-  pretty (MkSomeExceptions xs) = U.vsep (header : exes)
+  displayException (MkSomeExceptions xs) =
+    mconcat
+      [ "Encountered ",
+        show $ length xs,
+        " exception(s):",
+        foldl' foldExs "" xs
+      ]
     where
-      header = pretty @Text "Found" <+> pretty (showt $ length xs) <+> pretty @Text "exception(s)"
-      exes = NE.toList $ fmap ((pretty @Text "-" <+>) . pretty . displayException) xs
+      foldExs acc ex = ("\n\n- " <> displayException ex) <> acc
 
 -- | @since 0.1
 instance Semigroup SomeExceptions where
