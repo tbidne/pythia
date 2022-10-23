@@ -23,22 +23,18 @@ queryInterfacesTests =
   testGroup
     "Queries for all interfaces"
     [ queryInterfacesNmcli,
-      queryInterfacesIp,
-      queryInterfacesMany
+      queryInterfacesIp
     ]
 
 queryInterfacesNmcli :: TestTree
-queryInterfacesNmcli = queryInterfaces (Just "nmcli") "nmcli"
+queryInterfacesNmcli = queryInterfaces "nmcli" "nmcli"
 
 queryInterfacesIp :: TestTree
-queryInterfacesIp = queryInterfaces (Just "ip") "ip"
+queryInterfacesIp = queryInterfaces "ip" "ip"
 
-queryInterfacesMany :: TestTree
-queryInterfacesMany = queryInterfaces Nothing "many"
-
-queryInterfaces :: Maybe String -> String -> TestTree
+queryInterfaces :: String -> String -> TestTree
 queryInterfaces appCmd desc = testCase desc $ do
-  let argList = ["net-if"] <> maybe [] (\s -> ["--app", s]) appCmd
+  let argList = ["net-if", "--app", appCmd]
   capturePythia argList >>= assertNonEmpty
 
 queryInterfaceTests :: TestTree
@@ -46,25 +42,18 @@ queryInterfaceTests =
   testGroup
     "Queries for single interface"
     [ queryInterfaceNmcli,
-      queryInterfaceIp,
-      queryInterfaceMany
+      queryInterfaceIp
     ]
 
 queryInterfaceNmcli :: TestTree
-queryInterfaceNmcli = queryInterface (Just "nmcli") "wlp0s20f3" "nmcli"
+queryInterfaceNmcli = queryInterface "nmcli" "wlp0s20f3" "nmcli"
 
 queryInterfaceIp :: TestTree
-queryInterfaceIp = queryInterface (Just "ip") "wlp0s20f3" "ip"
+queryInterfaceIp = queryInterface "ip" "wlp0s20f3" "ip"
 
-queryInterfaceMany :: TestTree
-queryInterfaceMany = queryInterface Nothing "wlp0s20f3" "many"
-
-queryInterface :: Maybe String -> String -> String -> TestTree
+queryInterface :: String -> String -> String -> TestTree
 queryInterface appCmd device desc = testCase desc $ do
-  let argList =
-        ["net-if"]
-          <> maybe [] (\s -> ["--app", s]) appCmd
-          <> ["--device", device]
+  let argList = ["net-if", "--app", appCmd, "--device", device]
   capturePythia argList >>= assertNonEmpty
 
 testFields :: TestTree
@@ -78,5 +67,5 @@ testFields =
 
 runsField :: String -> TestTree
 runsField field = testCase field $ do
-  let argList = ["net-if", "--field", field]
+  let argList = ["net-if", "--field", field, "--app", "nmcli"]
   capturePythia argList >>= assertNonEmpty

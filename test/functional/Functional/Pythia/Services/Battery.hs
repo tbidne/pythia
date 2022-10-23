@@ -24,32 +24,28 @@ testApps :: TestTree
 testApps =
   testGroup
     "Tests Apps"
-    [ runsMany,
-      runsAcpi,
+    [ runsAcpi,
       runsSysFs,
       runsUPower
     ]
 
 runsAcpi :: TestTree
-runsAcpi = runsApp (Just "acpi") "acpi"
+runsAcpi = runsApp "acpi" "acpi"
 
 runsSysFs :: TestTree
-runsSysFs = runsApp (Just "sysfs") "sysfs"
+runsSysFs = runsApp "sysfs" "sysfs"
 
 runsUPower :: TestTree
-runsUPower = runsApp (Just "upower") "upower"
+runsUPower = runsApp "upower" "upower"
 
-runsMany :: TestTree
-runsMany = runsApp Nothing "many"
-
-runsApp :: Maybe String -> String -> TestTree
+runsApp :: String -> String -> TestTree
 runsApp appCmd appName = testCase ("Runs " <> appName) $ do
-  let argList = ["battery"] <> maybe [] (\s -> ["--app", s]) appCmd
+  let argList = ["battery", "--app", appCmd]
   capturePythia argList >>= assertNonEmpty
 
 testStatus :: TestTree
 testStatus = testCase "Tests status" $ do
-  let argList = ["battery", "--field", "status"]
+  let argList = ["battery", "--field", "status", "--app", "acpi"]
   result <- capturePythia argList
   assertBool ("Verify status: " <> T.unpack result) (verifyStatus result)
   where
@@ -61,7 +57,7 @@ testStatus = testCase "Tests status" $ do
 
 testPercentage :: TestTree
 testPercentage = testCase "Tests percentage" $ do
-  let argList = ["battery", "--field", "percentage"]
+  let argList = ["battery", "--field", "percentage", "--app", "sysfs"]
   result <- capturePythia argList
   result' <- case T.unpack result of
     [d1, d2, '%'] -> pure [d1, d2]

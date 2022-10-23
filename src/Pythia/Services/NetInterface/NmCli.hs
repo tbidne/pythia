@@ -86,6 +86,7 @@ netInterfaceShellApp = ShellApp.runSimple shell
     shell =
       MkSimpleShell
         { command = "nmcli -t -m multiline device show",
+          isSupported = supported,
           parser = parseInterfaces
         }
 {-# INLINEABLE netInterfaceShellApp #-}

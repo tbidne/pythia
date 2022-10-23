@@ -38,16 +38,15 @@ import Options.Applicative
 import Options.Applicative qualified as OApp
 import Options.Applicative.Help (Chunk (..))
 import Options.Applicative.Types (ArgPolicy (..))
-import Pythia.Data.RunApp (RunApp (..))
 import Pythia.Prelude
-import Pythia.Services.Battery (BatteryApp (..), BatteryConfig (..))
+import Pythia.Services.Battery.Types (BatteryApp (..))
 import Pythia.Services.GlobalIp.Types
   ( GlobalIpApp (..),
     GlobalIpConfig (..),
     UrlSource (..),
   )
-import Pythia.Services.Memory (MemoryApp (..), MemoryConfig (..))
-import Pythia.Services.NetInterface (NetInterfaceApp (..), NetInterfaceConfig (..))
+import Pythia.Services.Memory.Types (MemoryApp (..))
+import Pythia.Services.NetInterface.Types (NetInterfaceApp (..))
 import Pythia.Services.Types.Network (Device (..), IpType (..))
 import Pythia.Utils (Pretty (..), (<+>))
 import Pythia.Utils qualified as U
@@ -76,10 +75,10 @@ data MemoryFormat
 -- @since 0.1
 type PythiaCommand :: Type
 data PythiaCommand
-  = BatteryCmd BatteryConfig BatteryField
-  | MemoryCmd MemoryConfig MemoryField MemoryFormat
-  | NetInterfaceCmd NetInterfaceConfig (Maybe Device) NetInterfaceField
-  | NetConnCmd NetInterfaceConfig NetConnField
+  = BatteryCmd BatteryApp BatteryField
+  | MemoryCmd MemoryApp MemoryField MemoryFormat
+  | NetInterfaceCmd NetInterfaceApp (Maybe Device) NetInterfaceField
+  | NetConnCmd NetInterfaceApp NetConnField
   | NetIpGlobalCmd (GlobalIpConfig (These [UrlSource 'Ipv4] [UrlSource 'Ipv6]))
   | TimeCmd TimezoneDest (Maybe String)
   deriving stock (Eq, Show)
@@ -214,22 +213,21 @@ parseBattery = do
   app <-
     OApp.option
       reader
-      ( OApp.value Many
-          <> OApp.long "app"
+      ( OApp.long "app"
           <> OApp.short 'a'
           <> OApp.metavar "APP"
           <> OApp.help helpTxt
       )
   field <- parseBatteryField
-  pure $ BatteryCmd (MkBatteryConfig app) field
+  pure $ BatteryCmd app field
   where
     helpTxt = "App must be one of [acpi | sysfs | upower]."
     reader = do
       a <- OApp.str
       case a of
-        "acpi" -> pure $ Single BatteryAppAcpi
-        "sysfs" -> pure $ Single BatteryAppSysFs
-        "upower" -> pure $ Single BatteryAppUPower
+        "acpi" -> pure BatteryAppAcpi
+        "sysfs" -> pure BatteryAppSysFs
+        "upower" -> pure BatteryAppUPower
         _ -> OApp.readerAbort $ ErrorMsg $ "Unrecognized battery app: " <> T.unpack a
 
 parseBatteryField :: Parser BatteryField
@@ -257,7 +255,7 @@ parseMemory = do
   app <- parseMemoryAppOption
   field <- parseMemoryField
   percentage <- parseMemoryFormat
-  pure $ MemoryCmd (MkMemoryConfig app) field percentage
+  pure $ MemoryCmd app field percentage
 
 parseMemoryField :: Parser MemoryField
 parseMemoryField =
@@ -281,12 +279,11 @@ parseMemoryField =
         "free" -> pure MemoryFieldFree
         _ -> OApp.readerAbort $ ErrorMsg $ "Unrecognized memory field: " <> T.unpack a
 
-parseMemoryAppOption :: Parser (RunApp MemoryApp)
+parseMemoryAppOption :: Parser MemoryApp
 parseMemoryAppOption =
   OApp.option
     readApp
-    ( OApp.value Many
-        <> OApp.long "app"
+    ( OApp.long "app"
         <> OApp.short 'a'
         <> OApp.metavar "APP"
         <> OApp.help helpTxt
@@ -297,7 +294,7 @@ parseMemoryAppOption =
     readApp = do
       a <- OApp.str
       case a of
-        "free" -> pure $ Single MemoryAppFree
+        "free" -> pure MemoryAppFree
         _ -> OApp.readerAbort $ ErrorMsg $ "Unrecognized memory app: " <> T.unpack a
 
 parseMemoryFormat :: Parser MemoryFormat
@@ -318,7 +315,7 @@ parseNetInterface = do
   app <- netInterfaceAppOption
   device <- netInterfaceDeviceOption
   val <- parseNetInterfaceField
-  pure $ NetInterfaceCmd (MkNetInterfaceConfig app) device val
+  pure $ NetInterfaceCmd app device val
 
 parseNetInterfaceField :: Parser NetInterfaceField
 parseNetInterfaceField =
@@ -341,12 +338,11 @@ parseNetInterfaceField =
         "ipv6" -> pure NetInterfaceFieldIpv6
         _ -> OApp.readerAbort $ ErrorMsg $ "Unrecognized network interface field: " <> T.unpack a
 
-netInterfaceAppOption :: Parser (RunApp NetInterfaceApp)
+netInterfaceAppOption :: Parser NetInterfaceApp
 netInterfaceAppOption =
   OApp.option
     readApp
-    ( OApp.value Many
-        <> OApp.long "app"
+    ( OApp.long "app"
         <> OApp.short 'a'
         <> OApp.metavar "APP"
         <> OApp.help helpTxt
@@ -357,8 +353,8 @@ netInterfaceAppOption =
     readApp = do
       a <- OApp.str
       case a of
-        "nmcli" -> pure $ Single NetInterfaceAppNmCli
-        "ip" -> pure $ Single NetInterfaceAppIp
+        "nmcli" -> pure NetInterfaceAppNmCli
+        "ip" -> pure NetInterfaceAppIp
         _ -> OApp.readerAbort $ ErrorMsg $ "Unrecognized network interface app: " <> T.unpack a
 
 netInterfaceDeviceOption :: Parser (Maybe Device)
@@ -377,7 +373,7 @@ netInterfaceDeviceOption =
 parseNetConn :: Parser PythiaCommand
 parseNetConn = NetConnCmd <$> parseApp <*> parseNetConnField
   where
-    parseApp = MkNetInterfaceConfig <$> netInterfaceAppOption
+    parseApp = netInterfaceAppOption
 
 parseNetConnField :: Parser NetConnField
 parseNetConnField =
@@ -420,12 +416,11 @@ parseIpGlobal = do
       GlobalIpFieldIpv6 -> MkGlobalIpConfig app (That ipv6Urls)
       GlobalIpFieldBoth -> MkGlobalIpConfig app (These ipv4Urls ipv6Urls)
 
-ipAppOption :: Parser (RunApp GlobalIpApp)
+ipAppOption :: Parser GlobalIpApp
 ipAppOption =
   OApp.option
     readApp
-    ( OApp.value Many
-        <> OApp.long "app"
+    ( OApp.long "app"
         <> OApp.short 'a'
         <> OApp.metavar "APP"
         <> OApp.help helpTxt
@@ -436,8 +431,8 @@ ipAppOption =
     readApp = do
       a <- OApp.str
       case a of
-        "dig" -> pure $ Single GlobalIpAppDig
-        "curl" -> pure $ Single GlobalIpAppCurl
+        "dig" -> pure GlobalIpAppDig
+        "curl" -> pure GlobalIpAppCurl
         _ ->
           OApp.readerAbort $
             ErrorMsg $

@@ -1,4 +1,5 @@
 {-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE UndecidableInstances #-}
 
 -- | Provides common network types.
 --
@@ -18,11 +19,8 @@ module Pythia.Services.Types.Network
     Device (..),
 
     -- * Optics
-    _MkDevice,
     _Ipv4,
     _Ipv6,
-    _MkIpAddress,
-    _MkIpAddresses,
   )
 where
 
@@ -77,7 +75,7 @@ newtype Device = MkDevice
     )
 
 -- | @since 0.1
-makePrisms ''Device
+makeFieldLabelsNoPrefix ''Device
 
 -- | IP types.
 --
@@ -234,7 +232,7 @@ newtype IpAddress a = MkIpAddress
     )
 
 -- | @since 0.1
-makePrisms ''IpAddress
+makeFieldLabelsNoPrefix ''IpAddress
 
 -- | @since 0.1
 instance Pretty (IpAddress a) where
@@ -263,7 +261,7 @@ newtype IpAddresses a = MkIpAddresses
     )
 
 -- | @since 0.1
-makePrisms ''IpAddresses
+makeFieldLabelsNoPrefix ''IpAddresses
 
 -- | @since 0.1
 instance Semigroup (IpAddresses a) where

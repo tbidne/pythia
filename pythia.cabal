@@ -75,7 +75,6 @@ library
     Pythia.Control.Exception
     Pythia.Data.Command
     Pythia.Data.Percentage
-    Pythia.Data.RunApp
     Pythia.Data.Supremum
     Pythia.Internal.ShellApp
     Pythia.Prelude

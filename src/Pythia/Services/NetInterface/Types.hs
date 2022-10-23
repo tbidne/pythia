@@ -7,7 +7,6 @@
 module Pythia.Services.NetInterface.Types
   ( -- * Configuration
     NetInterfaceApp (..),
-    NetInterfaceConfig (..),
 
     -- * NetInterface Fields
     NetInterfaceType (..),
@@ -15,10 +14,12 @@ module Pythia.Services.NetInterface.Types
     NetInterface (..),
     NetInterfaces (..),
 
+    -- * Errors
+    DeviceNotFound (..),
+
     -- * Optics
     _NetInterfaceAppNmCli,
     _NetInterfaceAppIp,
-    _MkNetInterfaceConfig,
     _Ethernet,
     _Wifi,
     _Wifi_P2P,
@@ -31,7 +32,7 @@ module Pythia.Services.NetInterface.Types
   )
 where
 
-import Pythia.Data.RunApp (RunApp)
+import Data.Text qualified as T
 import Pythia.Data.Supremum (Supremum (..))
 import Pythia.Prelude
 import Pythia.Services.Types.Network
@@ -86,41 +87,6 @@ data NetInterfaceApp
 
 -- | @since 0.1
 makePrisms ''NetInterfaceApp
-
--- | Complete configuration for querying network interfaces.
---
--- >>> mempty @NetInterfaceConfig
--- MkNetInterfaceConfig Many
---
--- @since 0.1
-type NetInterfaceConfig :: Type
-newtype NetInterfaceConfig = MkNetInterfaceConfig (RunApp NetInterfaceApp)
-  deriving stock
-    ( -- | @since 0.1
-      Eq,
-      -- | @since 0.1
-      Generic,
-      -- | @since 0.1
-      Show
-    )
-  deriving anyclass
-    ( -- | @since 0.1
-      NFData
-    )
-
--- | @since 0.1
-makePrisms ''NetInterfaceConfig
-
--- | @since 0.1
-instance Semigroup NetInterfaceConfig where
-  MkNetInterfaceConfig a <> MkNetInterfaceConfig a' =
-    MkNetInterfaceConfig (a <> a')
-  {-# INLINEABLE (<>) #-}
-
--- | @since 0.1
-instance Monoid NetInterfaceConfig where
-  mempty = MkNetInterfaceConfig mempty
-  {-# INLINEABLE mempty #-}
 
 -- | Various connection types.
 --
@@ -275,3 +241,36 @@ makePrisms ''NetInterfaces
 instance Pretty NetInterfaces where
   pretty = U.vsep . U.punctuate (U.pretty @Text "\n") . fmap pretty . view _MkNetInterfaces
   {-# INLINEABLE pretty #-}
+
+-- | Exception for when we cannot find a desired device.
+--
+-- ==== __Examples__
+--
+-- >>> displayException $ MkDeviceNotFound "bad device"
+-- "Device not found: bad device"
+--
+-- @since 0.1
+type DeviceNotFound :: Type
+newtype DeviceNotFound = MkDeviceNotFound Device
+  deriving stock
+    ( -- | @since 0.1
+      Eq,
+      -- | @since 0.1
+      Generic,
+      -- | @since 0.1
+      Show
+    )
+  deriving anyclass
+    ( -- | @since 0.1
+      NFData
+    )
+
+-- | @since 0.1
+makePrisms ''DeviceNotFound
+
+-- | @since 0.1
+instance Exception DeviceNotFound where
+  displayException =
+    ("Device not found: " <>)
+      . T.unpack
+      . view (_MkDeviceNotFound % #unDevice)

@@ -76,6 +76,7 @@ memoryShellApp = ShellApp.runSimple shell
     shell =
       MkSimpleShell
         { command = "free --bytes",
+          isSupported = supported,
           parser = parseMemory
         }
 {-# INLINEABLE memoryShellApp #-}

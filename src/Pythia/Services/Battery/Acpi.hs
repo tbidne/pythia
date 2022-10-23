@@ -77,6 +77,7 @@ batteryShellApp = ShellApp.runSimple shell
     shell =
       MkSimpleShell
         { command = "acpi",
+          isSupported = supported,
           parser = parseBattery
         }
 {-# INLINEABLE batteryShellApp #-}

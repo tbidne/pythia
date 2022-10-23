@@ -12,17 +12,16 @@ import Data.Time.Format (FormatTime)
 import Data.Time.Format qualified as Format
 import Options.Applicative qualified as OApp
 import Pythia
-  ( BatteryConfig,
+  ( BatteryApp,
     Device,
     GlobalIpConfig (..),
     IpType (..),
-    MemoryConfig (..),
+    MemoryApp (..),
     NetInterface (..),
-    NetInterfaceConfig,
+    NetInterfaceApp,
     NetInterfaces (..),
     SystemMemory (..),
     UrlSource (..),
-    _MkNetInterfaces,
   )
 import Pythia qualified
 import Pythia.Args
@@ -39,6 +38,7 @@ import Pythia.Args
 import Pythia.Data.Percentage (rawPercentage)
 import Pythia.Prelude
 import Pythia.Services.Memory qualified as Mem
+import Pythia.Services.NetInterface.Types (_MkNetInterfaces)
 import Pythia.Utils (Doc, Pretty (..))
 import Pythia.Utils qualified as U
 
@@ -63,7 +63,7 @@ runPythiaHandler handler = do
       NetIpGlobalCmd cfg -> handleGlobalIp handler cfg
       TimeCmd ttype format -> handleTime handler format ttype
 
-handleBattery :: (Text -> IO a) -> BatteryConfig -> BatteryField -> IO a
+handleBattery :: (Text -> IO a) -> BatteryApp -> BatteryField -> IO a
 handleBattery handler cfg field =
   Pythia.queryBattery cfg
     >>= handler . toField field
@@ -72,7 +72,7 @@ handleBattery handler cfg field =
     toField BatteryFieldPercentage = U.prettyToText . view #percentage
     toField BatteryFieldStatus = U.prettyToText . view #status
 
-handleMemory :: (Text -> IO a) -> MemoryConfig -> MemoryField -> MemoryFormat -> IO a
+handleMemory :: (Text -> IO a) -> MemoryApp -> MemoryField -> MemoryFormat -> IO a
 handleMemory handler cfg field format =
   Pythia.queryMemory cfg
     >>= handler . toField format field
@@ -93,7 +93,7 @@ handleMemory handler cfg field format =
     toField MemoryPercentage MemoryFieldUsed = U.prettyToText . Mem.percentageUsed
     toField MemoryPercentage MemoryFieldFree = U.prettyToText . Mem.percentageFree
 
-handleNetInterface :: (Text -> IO a) -> NetInterfaceConfig -> Maybe Device -> NetInterfaceField -> IO a
+handleNetInterface :: (Text -> IO a) -> NetInterfaceApp -> Maybe Device -> NetInterfaceField -> IO a
 handleNetInterface handler cfg mdevice field = do
   resultTxt <- case mdevice of
     Nothing -> interfacesToText <$> Pythia.queryNetInterfaces cfg
@@ -121,7 +121,7 @@ handleNetInterface handler cfg mdevice field = do
     toField NetInterfaceFieldIpv4 = U.pretty . view #ipv4s
     toField NetInterfaceFieldIpv6 = U.pretty . view #ipv6s
 
-handleNetConn :: (Text -> IO a) -> NetInterfaceConfig -> NetConnField -> IO a
+handleNetConn :: (Text -> IO a) -> NetInterfaceApp -> NetConnField -> IO a
 handleNetConn handler cfg field = do
   result <- Pythia.queryNetInterfaces cfg
   handler $ case Pythia.findUp result of

@@ -21,7 +21,6 @@ module Pythia.Internal.ShellApp
 where
 
 import Data.ByteString.Lazy qualified as LBS
-import Data.List.NonEmpty (NonEmpty (..))
 import Data.Text qualified as T
 import GHC.IO.Exception (ExitCode (..))
 import Pythia.Control.Exception
@@ -44,6 +43,10 @@ data SimpleShell err result = MkSimpleShell
     --
     -- @since 0.1
     command :: Command,
+    -- | Determines if the shell command is supported on this system.
+    --
+    -- @since 0.1
+    isSupported :: IO Bool,
     -- | The parser for the result of running the command.
     --
     -- @since 0.1
@@ -55,22 +58,28 @@ makeFieldLabelsNoPrefix ''SimpleShell
 
 -- | @since 0.1
 instance Bifunctor SimpleShell where
-  bimap f g (MkSimpleShell c p) = MkSimpleShell c p'
+  bimap f g (MkSimpleShell a b c) = MkSimpleShell a b c'
     where
-      p' = bimap f g . p
+      c' = bimap f g . c
   {-# INLINEABLE bimap #-}
 
 -- | Runs a simple shell.
 --
 -- __Throws:__
 --
+-- * @'NotSupportedException'@: if the command is not supported on this system.
 -- * @err@: if running the command throws 'SomeException' or a parse
 -- error is encountered.
 --
 -- @since 0.1
 runSimple :: Exception err => SimpleShell err result -> IO result
-runSimple simple = runCommand (simple ^. #command) >>= parseAndThrow
+runSimple simple = do
+  supported <- simple ^. #isSupported
+  if supported
+    then runCommand command >>= parseAndThrow
+    else throwIO $ MkNotSupportedException (command ^. #unCommand)
   where
+    command = simple ^. #command
     parseAndThrow = throwLeft . (simple ^. #parser)
 {-# INLINEABLE runSimple #-}
 

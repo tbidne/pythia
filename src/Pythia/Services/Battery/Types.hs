@@ -6,7 +6,6 @@
 -- @since 0.1
 module Pythia.Services.Battery.Types
   ( -- * Configuration
-    BatteryConfig (..),
     BatteryApp (..),
 
     -- * Battery Fields
@@ -14,7 +13,6 @@ module Pythia.Services.Battery.Types
     Battery (..),
 
     -- * Optics
-    _MkBatteryConfig,
     _BatteryAppAcpi,
     _BatteryAppSysFs,
     _BatteryAppUPower,
@@ -26,7 +24,6 @@ module Pythia.Services.Battery.Types
 where
 
 import Pythia.Data.Percentage (Percentage)
-import Pythia.Data.RunApp (RunApp)
 import Pythia.Data.Supremum (Supremum (..))
 import Pythia.Prelude
 import Pythia.Utils (Pretty (..), (<+>))
@@ -79,40 +76,6 @@ data BatteryApp
 
 -- | @since 0.1
 makePrisms ''BatteryApp
-
--- | Battery configuration.
---
--- >>> mempty @BatteryConfig
--- MkBatteryConfig Many
---
--- @since 0.1
-type BatteryConfig :: Type
-newtype BatteryConfig = MkBatteryConfig (RunApp BatteryApp)
-  deriving stock
-    ( -- | @since 0.1
-      Eq,
-      -- | @since 0.1
-      Generic,
-      -- | @since 0.1
-      Show
-    )
-  deriving anyclass
-    ( -- | @since 0.1
-      NFData
-    )
-
--- | @since 0.1
-makePrisms ''BatteryConfig
-
--- | @since 0.1
-instance Semigroup BatteryConfig where
-  MkBatteryConfig l <> MkBatteryConfig r = MkBatteryConfig (l <> r)
-  {-# INLINEABLE (<>) #-}
-
--- | @since 0.1
-instance Monoid BatteryConfig where
-  mempty = MkBatteryConfig mempty
-  {-# INLINEABLE mempty #-}
 
 -- | Represents battery charging status.
 --

@@ -18,7 +18,6 @@ module Pythia.Control.Exception
   )
 where
 
-import Data.List.NonEmpty (NonEmpty (..))
 import Data.List.NonEmpty qualified as NE
 import Data.Text qualified as T
 import Pythia.Data.Command (Command (..))
@@ -53,10 +52,11 @@ makePrisms ''CommandException
 instance Exception CommandException where
   displayException e =
     mconcat
-      [ "Command Exception. Command <",
+      [ "Command exception. Command: <",
         T.unpack $ e' ^. _1 % #unCommand,
         ">. Error: <",
-        T.unpack $ e' ^. _2
+        T.unpack $ e' ^. _2,
+        ">"
       ]
     where
       e' = e ^. _MkCommandException

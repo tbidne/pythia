@@ -6,8 +6,6 @@
 -- @since 0.1
 module Pythia.Services.Memory.Types
   ( MemoryApp (..),
-    MemoryConfig (..),
-    _MkMemoryConfig,
     Memory (..),
     _MkMemory,
     SystemMemory (..),
@@ -25,7 +23,6 @@ import Numeric.Algebra (MGroup, Normed)
 import Numeric.Data.NonNegative (NonNegative (..), unNonNegative)
 import Numeric.Data.Positive (Positive (..), unPositive)
 import Numeric.Literal.Integer (FromInteger (..))
-import Pythia.Data.RunApp (RunApp)
 import Pythia.Data.Supremum (Supremum (..))
 import Pythia.Prelude
 import Pythia.Utils (Doc, Pretty (..), (<+>))
@@ -67,40 +64,6 @@ data MemoryApp
     ( -- | @since 0.1.0.0
       NFData
     )
-
--- | Memory configuration.
---
--- >>> mempty @MemoryConfig
--- MkMemoryConfig Many
---
--- @since 0.1
-type MemoryConfig :: Type
-newtype MemoryConfig = MkMemoryConfig (RunApp MemoryApp)
-  deriving stock
-    ( -- | @since 0.1
-      Eq,
-      -- | @since 0.1
-      Generic,
-      -- | @since 0.1
-      Show
-    )
-  deriving anyclass
-    ( -- | @since 0.1
-      NFData
-    )
-
--- | @since 0.1
-makePrisms ''MemoryConfig
-
--- | @since 0.1
-instance Semigroup MemoryConfig where
-  MkMemoryConfig l <> MkMemoryConfig r = MkMemoryConfig (l <> r)
-  {-# INLINEABLE (<>) #-}
-
--- | @since 0.1
-instance Monoid MemoryConfig where
-  mempty = MkMemoryConfig mempty
-  {-# INLINEABLE mempty #-}
 
 -- | Represents the current memory usage. The type parameter is some wrapper
 -- around the memory intended to enforce an invariant e.g. non-negative.

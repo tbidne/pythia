@@ -19,15 +19,12 @@ module Pythia.Services.GlobalIp
     GlobalIpConfig (..),
     GlobalIpApp (..),
     UrlSource (..),
-    RunApp (..),
   )
 where
 
 import Data.Char qualified as Char
 import Data.Text qualified as T
 import Pythia.Data.Command (Command)
-import Pythia.Data.RunApp (RunApp (..))
-import Pythia.Internal.ShellApp (AppAction (..))
 import Pythia.Internal.ShellApp qualified as ShellApp
 import Pythia.Prelude
 import Pythia.Services.GlobalIp.Types
@@ -44,7 +41,6 @@ import Pythia.Services.Types.Network
     IpRefinement,
     IpType (..),
   )
-import Pythia.Utils qualified as U
 import Refined (Predicate, Refined)
 import Refined qualified as R
 
@@ -90,30 +86,14 @@ queryGlobalIpv6 = queryGlobalIp' #app #sources getIpv6s
 {-# INLINEABLE queryGlobalIpv6 #-}
 
 queryGlobalIp' ::
-  Lens' config (RunApp GlobalIpApp) ->
+  Lens' config GlobalIpApp ->
   Lens' config sources ->
   (GlobalIpApp -> sources -> IO result) ->
   config ->
   IO result
 queryGlobalIp' appLens sourceLens getIpFn config =
-  case config ^. appLens of
-    Many -> ShellApp.tryAppActions allApps
-    Single app -> singleRun app
-  where
-    allApps =
-      [ MkAppAction (singleRun GlobalIpAppDig) digSupported "dig",
-        MkAppAction (singleRun GlobalIpAppCurl) curlSupported "curl"
-      ]
-    singleRun a = getIpFn a (config ^. sourceLens)
+  getIpFn (config ^. appLens) (config ^. sourceLens)
 {-# INLINEABLE queryGlobalIp' #-}
-
-curlSupported :: IO Bool
-curlSupported = U.exeSupported "curl"
-{-# INLINEABLE curlSupported #-}
-
-digSupported :: IO Bool
-digSupported = U.exeSupported "dig"
-{-# INLINEABLE digSupported #-}
 
 getBothIps ::
   GlobalIpApp ->

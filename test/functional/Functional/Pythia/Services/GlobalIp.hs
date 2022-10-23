@@ -22,52 +22,36 @@ testApps =
   testGroup
     "Tests apps with defaults"
     [ runsCurlDefault,
-      runsDigDefault,
-      runsManyDefault
+      runsDigDefault
     ]
 
 runsCurlDefault :: TestTree
-runsCurlDefault = runsApp (Just "curl") [] "curl"
+runsCurlDefault = runsApp "curl" [] "curl"
 
 runsDigDefault :: TestTree
-runsDigDefault = runsApp (Just "dig") [] "dig"
-
-runsManyDefault :: TestTree
-runsManyDefault = runsApp Nothing [] "many"
+runsDigDefault = runsApp "dig" [] "dig"
 
 testCustomSources :: TestTree
 testCustomSources =
   testGroup
     "Uses custom sources"
     [ runsCurlIpv4CustomSrcs,
-      runsDigIpv4CustomSrcs,
-      runsManyIpv4CustomSrcs
+      runsDigIpv4CustomSrcs
     ]
 
 runsCurlIpv4CustomSrcs :: TestTree
-runsCurlIpv4CustomSrcs = runsApp (Just "curl") srcs "curl"
+runsCurlIpv4CustomSrcs = runsApp "curl" srcs "curl"
   where
     srcs = ["--ipv4-src", "http://whatismyip.akamai.com/"]
 
 runsDigIpv4CustomSrcs :: TestTree
-runsDigIpv4CustomSrcs = runsApp (Just "dig") srcs "dig"
+runsDigIpv4CustomSrcs = runsApp "dig" srcs "dig"
   where
     srcs = ["--ipv4-src", "@resolver1.opendns.com myip.opendns.com"]
 
-runsManyIpv4CustomSrcs :: TestTree
-runsManyIpv4CustomSrcs = runsApp Nothing srcs "many"
-  where
-    srcs =
-      [ "--ipv4-src",
-        "http://whatismyip.akamai.com/",
-        "--ipv4-src",
-        "@resolver1.opendns.com myip.opendns.com"
-      ]
-
-runsApp :: Maybe String -> [String] -> String -> TestTree
+runsApp :: String -> [String] -> String -> TestTree
 runsApp appCmd customSrcs desc = testCase desc $ do
   let argList =
-        ["global-ip"]
-          <> maybe [] (\s -> ["--app", s]) appCmd
+        ["global-ip", "--app", appCmd]
           <> customSrcs
   capturePythia argList >>= assertNonEmpty

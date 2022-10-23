@@ -27,7 +27,7 @@ test:
 
 repl:
 	if [ -z "$(ARGS)" ]; then \
-		cabal repl; \
+		cabal repl pythia; \
 	else \
 		cabal repl $(ARGS); \
 	fi

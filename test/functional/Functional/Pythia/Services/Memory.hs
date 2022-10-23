@@ -28,21 +28,15 @@ testApps :: TestTree
 testApps =
   testGroup
     "Tests Apps"
-    [ runsMany,
-      runsFree
+    [ runsFree
     ]
 
 runsFree :: TestTree
-runsFree = runsApp (Just "free") "free"
+runsFree = runsApp "free" "free"
 
-runsMany :: TestTree
-runsMany = runsApp Nothing "many"
-
-runsApp :: Maybe String -> String -> TestTree
+runsApp :: String -> String -> TestTree
 runsApp appCmd desc = testCase desc $ do
-  let argList =
-        ["memory"]
-          <> maybe [] (\s -> ["--app", s]) appCmd
+  let argList = ["memory", "--app", appCmd]
   result <- capturePythia argList
   parseTest result parseMemFull
 
@@ -69,7 +63,7 @@ runsFieldFree = runsField "free"
 
 runsField :: String -> TestTree
 runsField field = testCase field $ do
-  let argList = ["memory", "--field", field]
+  let argList = ["memory", "--field", field, "--app", "free"]
   result <- capturePythia argList
   parseTest result parseMemWithUnit
 
@@ -85,13 +79,13 @@ testsPercentage =
 
 runsPercentage :: TestTree
 runsPercentage = testCase "full" $ do
-  let argList = ["memory", "--percentage"]
+  let argList = ["memory", "--percentage", "--app", "free"]
   result <- capturePythia argList
   parseTest result parsePercentageFull
 
 runsPercentageField :: String -> TestTree
 runsPercentageField field = testCase field $ do
-  let argList = ["memory", "--percentage", "--field", field]
+  let argList = ["memory", "--percentage", "--field", field, "--app", "free"]
   result <- capturePythia argList
   parseTest result parsePercentage
 

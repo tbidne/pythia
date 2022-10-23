@@ -30,8 +30,6 @@
 
 Pythia is a tool for retrieving system information. It is both a library and an executable. Pythia's functionality is based on the concept of using existing tools one has on their system. For example, to read battery information, you can tell `pythia` to use the `upower` utility. Pythia will then execute a `upower` command, parse its output, then return that data to the user.
 
-In general, if the specific app is unspecified, then pythia will try all of the applications it knows about, returning the first success.
-
 # Services
 
 This section describes services from the perspective of the executable. The library API is close, but there are some discrepancies, usually where the executable has extra functionality.
@@ -43,7 +41,7 @@ This service is for reading battery information.
 ### Usage
 
 ```
-Usage: pythia battery [-a|--app APP] [-f|--field FIELD]
+Usage: pythia battery (-a|--app APP) [-f|--field FIELD]
   Queries the battery state.
 
 Available options:
@@ -72,10 +70,10 @@ Discharging: 76%
 $ pythia battery --app acpi
 Charging: 42%
 
-$ pythia battery --field status
+$ pythia battery --app acpi --field status
 Discharging
 
-$ pythia battery --field percentage
+$ pythia battery --app acpi --field percentage
 75%
 ```
 
@@ -86,7 +84,7 @@ This service is for reading memory usage.
 ### Usage
 
 ```
-Usage: pythia memory [-a|--app APP] [-f|--field FIELD] [-p|--percentage]
+Usage: pythia memory (-a|--app APP) [-f|--field FIELD] [-p|--percentage]
   Queries memory usage.
 
 Available options:
@@ -112,22 +110,22 @@ By default, we return the total and used memory. This can be refined with `--fie
 $ pythia memory
 6.75 G / 16.57 G
 
-$ pythia memory --percentage
+$ pythia memory --app free --percentage
 39 / 100%
 
-$ pythia memory --field total
+$ pythia memory --app free --field total
 16.57 G
 
-$ pythia memory --field used
+$ pythia memory --app free --field used
 6.71 G
 
-$ pythia memory --field used --percentage
+$ pythia memory --app free --field used --percentage
 40%
 
-$ pythia memory --field free
+$ pythia memory --app free --field free
 9.87 G
 
-$ pythia memory --field free --percentage
+$ pythia memory --app free --field free --percentage
 60%
 ```
 ## Network Interfaces
@@ -137,7 +135,7 @@ This service is for reading information about the network interfaces found on th
 ### Usage
 
 ```
-Usage: pythia net-if [-a|--app APP] [-d|--device NAME] [-f|--field FIELD]
+Usage: pythia net-if (-a|--app APP) [-d|--device NAME] [-f|--field FIELD]
   Queries network interfaces.
 
 Available options:
@@ -156,12 +154,12 @@ The following applications are supported:
 * `nmcli`
 * `ip`
 
-`nmcli` is preferred when no option is given, as it returns more information. By default, `pythia` returns a list of all devices found on the system. This can be restricted to a single device by using the `--device` option. Furthermore, the return fields can be refined via `--field`.
+`nmcli` should be preferred, as it returns more information. By default, `pythia` returns a list of all devices found on the system. This can be restricted to a single device by using the `--device` option. Furthermore, the return fields can be refined via `--field`.
 
 ### Examples
 
 ```
-$ pythia net-if
+$ pythia net-if --app nmcli
 
 Device: wlp0s20f3
 Type: Wifi
@@ -191,20 +189,20 @@ Name:
 IPv4: 
 IPv6: fe80::a63f:791a:3eaa:9d86
 
-$ pythia net-if --device wlp0s20f3
+$ pythia net-if  --app nmcli --device wlp0s20f3
 Type: Wifi
 State: Up
 Name: MySSID
 IPv4: 192.168.1.2
 IPv6: fe80::fe44:82ff:fede:f814, fe80::a328:482:5263:10b8
 
-$ pythia net-if --device wlp0s20f3 --field name
+$ pythia net-if  --app nmcli --device wlp0s20f3 --field name
 MySSID
 
-$ pythia net-if --device wlp0s20f3 --field ipv4
+$ pythia net-if --app nmcli --device wlp0s20f3 --field ipv4
 192.168.1.2
 
-$ pythia net-if --field ipv6
+$ pythia net-if --app nmcli --field ipv6
 192.168.1.2fe80::fe44:82ff:fede:f814, fe80::a328:482:5263:10b8
 
 
@@ -219,7 +217,7 @@ This service is for finding a network interface that represents a live connectio
 ### Usage
 
 ```
-Usage: pythia net-conn [-a|--app APP] [-f|--field FIELD]
+Usage: pythia net-conn (-a|--app APP) [-f|--field FIELD]
   Queries network interfaces for a live connection.
 
 Available options:
@@ -236,12 +234,12 @@ The following applications are supported:
 * `nmcli`
 * `ip`
 
-`nmcli` is preferred when no option is given, as it returns more information. `pythia` will return the first interface that has state "up". The return fields can be refined via `--field`.
+`pythia` will return the first interface that has state "up". The return fields can be refined via `--field`.
 
 ### Examples
 
 ```
-$ pythia net-conn
+$ pythia net-conn --app nmcli
 Device: wlp0s20f3
 Type: Wifi
 State: Up
@@ -249,10 +247,10 @@ Name: MySSID
 IPv4: 192.168.1.2
 IPv6: fe80::a328:482:5263:10b8
 
-$ pythia net-conn --field name
+$ pythia net-conn --app nmcli --field name
 MySSID
 
-$ pythia net-conn --field ipv4
+$ pythia net-conn --app nmcli --field ipv4
 192.168.1.2
 ```
 
@@ -263,7 +261,7 @@ This service is for reading our global IP address.
 ### Usage
 
 ```
-Usage: pythia global-ip [-a|--app APP] [-t|--ip-type TYPE] [--ipv4-src URL] 
+Usage: pythia global-ip (-a|--app APP) [-t|--ip-type TYPE] [--ipv4-src URL] 
                         [--ipv6-src URL]
   Queries the global IP addresses.
 
@@ -297,7 +295,7 @@ Because we have to reach out to an external server to get this IP address, pythi
 ### Examples
 
 ```
-$ pythia global-ip
+$ pythia global-ip --app curl
 165.52.200.7
 
 $ pythia global-ip --app curl --ipv4-src http://whatismyip.akamai.com/

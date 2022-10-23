@@ -22,7 +22,6 @@ module Pythia.Services.GlobalIp.Types
   )
 where
 
-import Pythia.Data.RunApp (RunApp (..))
 import Pythia.Data.Supremum (Supremum (..))
 import Pythia.Prelude
 import Pythia.Services.Types.Network (IpType (..))
@@ -36,15 +35,15 @@ import Pythia.Services.Types.Network (IpType (..))
 -- @since 0.1
 type GlobalIpApp :: Type
 data GlobalIpApp
-  = -- | Uses the dig command to perform a DNS lookup. This is generally the
+  = -- | Uses curl to lookup the ip addresses.
+    --
+    -- @since 0.1
+    GlobalIpAppCurl
+  | -- | Uses the dig command to perform a DNS lookup. This is generally the
     -- fastest and most reliable.
     --
     -- @since 0.1
     GlobalIpAppDig
-  | -- | Uses curl to lookup the ip addresses.
-    --
-    -- @since 0.1
-    GlobalIpAppCurl
   deriving stock
     ( -- | @since 0.1
       Bounded,
@@ -117,7 +116,7 @@ makePrisms ''UrlSource
 -- sources.
 --
 -- >>> mempty @(GlobalIpConfig [UrlSource Ipv4])
--- MkGlobalIpConfig {app = Many, sources = []}
+-- MkGlobalIpConfig {app = GlobalIpAppCurl, sources = []}
 --
 -- @since 0.1
 type GlobalIpConfig :: Type -> Type
@@ -125,7 +124,7 @@ data GlobalIpConfig a = MkGlobalIpConfig
   { -- | Determines how we want to query.
     --
     -- @since 0.1
-    app :: RunApp GlobalIpApp,
+    app :: GlobalIpApp,
     -- | Extra lookup sources. This will be either a single @['UrlSource' a]@
     -- or a pair @(['UrlSource' 'Ipv4'], ['UrlSource' 'Ipv6'])@, depending on
     -- which address we want to retrieve.

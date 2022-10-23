@@ -21,16 +21,13 @@ testApps :: TestTree
 testApps =
   testGroup
     "Test Apps"
-    [ runApps (Just "nmcli") "nmcli",
-      runApps (Just "ip") "ip",
-      runApps Nothing "<default>"
+    [ runApps "nmcli" "nmcli",
+      runApps "ip" "ip"
     ]
 
-runApps :: Maybe String -> String -> TestTree
+runApps :: String -> String -> TestTree
 runApps appCmd desc = testCase ("Finds live interface with " <> desc) $ do
-  let argList =
-        ["net-conn"]
-          <> maybe [] (\s -> ["--app", s]) appCmd
+  let argList = ["net-conn", "--app", appCmd]
   capturePythia argList >>= assertNonEmpty
 
 testFields :: TestTree
@@ -44,5 +41,5 @@ testFields =
 
 runsField :: String -> TestTree
 runsField field = testCase field $ do
-  let argList = ["net-conn", "--field", field]
+  let argList = ["net-conn", "--field", field, "--app", "nmcli"]
   capturePythia argList >>= assertNonEmpty

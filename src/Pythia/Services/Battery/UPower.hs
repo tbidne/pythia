@@ -88,6 +88,7 @@ batteryShellApp = ShellApp.runSimple shell
     shell =
       MkSimpleShell
         { command = "upower -i `upower -e | grep 'BAT'`",
+          isSupported = supported,
           parser = parseBattery
         }
 {-# INLINEABLE batteryShellApp #-}

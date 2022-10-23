@@ -85,6 +85,7 @@ netInterfaceShellApp = ShellApp.runSimple shell
     shell =
       MkSimpleShell
         { command = "ip address",
+          isSupported = supported,
           parser = parseInterfaces
         }
 {-# INLINEABLE netInterfaceShellApp #-}
