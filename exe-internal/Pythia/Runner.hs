@@ -10,6 +10,7 @@ where
 import Data.Text qualified as T
 import Data.Time.Format (FormatTime)
 import Data.Time.Format qualified as Format
+import GHC.Conc.Sync (setUncaughtExceptionHandler)
 import Options.Applicative qualified as OApp
 import Pythia
   ( BatteryApp,
@@ -53,15 +54,15 @@ runPythia = runPythiaHandler (putStrLn . T.unpack)
 -- @since 0.1
 runPythiaHandler :: (Text -> IO a) -> IO a
 runPythiaHandler handler = do
-  cmd <- OApp.execParser parserInfo
-  (\e -> handler (T.pack $ displayException e))
-    `handleAny` case cmd of
-      BatteryCmd cfg field -> handleBattery handler cfg field
-      MemoryCmd cfg field format -> handleMemory handler cfg field format
-      NetInterfaceCmd cfg device field -> handleNetInterface handler cfg device field
-      NetConnCmd cfg field -> handleNetConn handler cfg field
-      NetIpGlobalCmd cfg -> handleGlobalIp handler cfg
-      TimeCmd ttype format -> handleTime handler format ttype
+  setUncaughtExceptionHandler (putStrLn . displayException)
+
+  OApp.execParser parserInfo >>= \case
+    BatteryCmd cfg field -> handleBattery handler cfg field
+    MemoryCmd cfg field format -> handleMemory handler cfg field format
+    NetInterfaceCmd cfg device field -> handleNetInterface handler cfg device field
+    NetConnCmd cfg field -> handleNetConn handler cfg field
+    NetIpGlobalCmd cfg -> handleGlobalIp handler cfg
+    TimeCmd ttype format -> handleTime handler format ttype
 
 handleBattery :: (Text -> IO a) -> BatteryApp -> BatteryField -> IO a
 handleBattery handler cfg field =
