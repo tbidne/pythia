@@ -42,6 +42,9 @@ import Pythia.Services.Types.Network
 import Pythia.Utils (Pretty (..), (<+>))
 import Pythia.Utils qualified as U
 
+-- $setup
+-- >>> import Pythia.Prelude
+
 -- | Determines how we should query the system for interface state information.
 --
 -- @since 0.1

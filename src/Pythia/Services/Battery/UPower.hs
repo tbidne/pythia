@@ -34,6 +34,10 @@ import Text.Megaparsec qualified as MP
 import Text.Megaparsec.Char qualified as MPC
 import Text.Read qualified as TR
 
+-- $setup
+-- >>> import Control.Exception (displayException)
+-- >>> import Pythia.Prelude
+
 -- | Errors that can occur with upower.
 --
 -- ==== __Examples__

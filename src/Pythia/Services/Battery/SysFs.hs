@@ -31,6 +31,10 @@ import System.Directory qualified as Dir
 import System.FilePath ((</>))
 import Text.Read qualified as TR
 
+-- $setup
+-- >>> import Control.Exception (displayException)
+-- >>> import Pythia.Prelude
+
 sysDir :: FilePath
 sysDir = "/sys/class/power_supply"
 {-# INLINEABLE sysDir #-}

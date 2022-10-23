@@ -33,6 +33,10 @@ import Pythia.Prelude
 import Pythia.Utils (Pretty (..), (<+>))
 import Pythia.Utils qualified as U
 
+-- $setup
+-- >>> import Data.List.NonEmpty (NonEmpty ((:|)))
+-- >>> import Pythia.Prelude
+
 -- | All specific exceptions thrown by pythia are subtypes of
 -- 'PythiaException'.
 --

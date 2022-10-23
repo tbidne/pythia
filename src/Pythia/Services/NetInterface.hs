@@ -75,6 +75,10 @@ import Pythia.Services.Types.Network
 import Pythia.Utils (Pretty (..))
 import Pythia.Utils qualified as U
 
+-- $setup
+-- >>> import Control.Exception (displayException)
+-- >>> import Pythia.Prelude
+
 -- | Exception for when we cannot find a desired device.
 --
 -- ==== __Examples__

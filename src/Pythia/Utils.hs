@@ -49,7 +49,7 @@ import Text.Megaparsec qualified as MP
 import Text.Megaparsec.Char qualified as MPC
 
 -- $setup
--- >>> :set -XOverloadedStrings
+-- >>> import Pythia.Prelude
 -- >>> import Text.Megaparsec (parseTest)
 
 -- | Similar to 'foldMap' but for 'Alternative'.

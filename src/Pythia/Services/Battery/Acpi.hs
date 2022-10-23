@@ -34,6 +34,10 @@ import Text.Megaparsec.Char qualified as MPC
 import Text.Megaparsec.Error qualified as MPE
 import Text.Read qualified as TR
 
+-- $setup
+-- >>> import Control.Exception (displayException)
+-- >>> import Pythia.Prelude
+
 -- | Error parsing acpi output.
 --
 -- ==== __Examples__

@@ -57,6 +57,10 @@ import Pythia.Services.Memory.Types
     _MkMemoryConfig,
   )
 
+-- $setup
+-- >>> import Control.Exception (displayException)
+-- >>> import Pythia.Prelude
+
 -- | Queries the memory based on the configuration. If 'app' is
 -- 'Many' then we try supported apps in the following order:
 --

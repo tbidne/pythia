@@ -12,6 +12,9 @@ where
 
 import Pythia.Prelude
 
+-- $setup
+-- >>> import Pythia.Prelude
+
 -- | Used in conjunction for our services for indicating how we want to run
 -- queries. 'Many' is the identity for its monoid instance.
 --

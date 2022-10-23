@@ -27,6 +27,10 @@ import Pythia.Data.Supremum (Supremum (..))
 import Pythia.Prelude
 import Pythia.Services.Types.Network (IpType (..))
 
+-- $setup
+-- >>> import Pythia.Prelude
+-- >>> import Pythia.Services.Types.Network (IpType (..))
+
 -- | This type determines what program we use to lookup the ip address.
 --
 -- @since 0.1

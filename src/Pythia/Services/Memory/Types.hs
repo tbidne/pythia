@@ -30,6 +30,9 @@ import Pythia.Data.Supremum (Supremum (..))
 import Pythia.Prelude
 import Pythia.Utils (Doc, Pretty (..), (<+>))
 
+-- $setup
+-- >>> import Pythia.Prelude
+
 -- | Determines how we should query the system for memory usage.
 --
 -- @since 0.1

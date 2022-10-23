@@ -31,6 +31,9 @@ import Pythia.Data.Supremum (Supremum (..))
 import Pythia.Prelude
 import Pythia.Utils (Pretty (..), (<+>))
 
+-- $setup
+-- >>> import Pythia.Prelude
+
 -- | Determines how we should query the system for battery state information.
 --
 -- @since 0.1

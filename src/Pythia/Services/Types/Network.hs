@@ -36,6 +36,9 @@ import Refined (Predicate, Refined)
 import Refined qualified as R
 
 -- $setup
+-- >>> import Data.Text qualified as T
+-- >>> import Pythia.Prelude
+-- >>> import Refined qualified as R
 -- >>> :{
 --   let trim :: Show a => a -> String
 --       trim = T.unpack . T.strip . T.pack . show
