@@ -74,7 +74,19 @@ haddock:
 
 haddockc:
 # the skipped modules are for reexports that either don't have haddocks or ci can't find them.
-	nix run github:tbidne/nix-hs-tools/0.7#haddock-cov -- . -t 90
+	nix run github:tbidne/nix-hs-tools/0.7#haddock-cov -- \
+	. \
+	-m Pythia.Data.RunApp 75 \
+	-m Pythia.Prelude 60 \
+	-m Pythia.Services.Battery 80 \
+	-m Pythia.Services.Battery.Types 60 \
+	-m Pythia.Services.Battery.UPower 85 \
+	-m Pythia.Services.GlobalIp.Types 90 \
+	-m Pythia.Services.NetInterface 80 \
+	-m Pythia.Services.NetInterface.Types 60 \
+	-m Pythia.Services.Time 90 \
+	-m Pythia.Services.Types.Network 90 \
+	-m Pythia.Utils 50
 
 hackage:
 	cabal sdist ;\
