@@ -8,19 +8,22 @@ ghc-options:
     -Wmissing-home-modules -Wmissing-export-lists -Wpartial-fields
     -Wredundant-constraints -Wunused-packages -Wmissing-deriving-strategies
 extra-deps:
+- doctest-parallel-0.2.5@sha256:7cbd37fc2e858e33fe68989dc950685c5db83719ad3fc21b452e3b0abb98e4bd,5858
 - env-guard-0.2@sha256:59410eed9b9ddbd115760a59c7170927320d8612e414701d323a0c8985c97523,1251
 - optics-core-0.4.1@sha256:b163d1a8f392536c645cbd728c3e29d9f35864b25b1e3cef3a29806ee8a21c6b,5545
 - optics-th-0.4.1@sha256:786f37412cb1ff62842277698fdc11efb3cf4e799011e341d9ef118a8100a860,3089
 - package-version-0.1.0.0@sha256:bb9fc93e905540aa8e1b32f80c2dc82756a4481c63779bd92e3796ed8085ab98,2854
 - tz-0.1.3.6@sha256:1b0c04d8d7f494888f166c66b72e7fcbc2269e57d1d17d48294ac4e19133a3ef,4631
 - git: https://github.com/tbidne/algebra-simple.git
-  commit: 5d9288b1e2149a1bb6db28d694c5528c0aef3cbd
+  commit: c8aaa4495964ecea9bb898c4fcb8b1c718ecc813
+- git: https://github.com/tbidne/bounds.git
+  commit: 7a8832ef4a55d565e72fab553a4d485329235bf7
 - git: https://github.com/tbidne/byte-types.git
-  commit: 4374876dc1c9d53d810d46531268fbb26c341f74
+  commit: cc0e1323b51f1ec3441ddc6578a05e9d7fcdb977
 - git: https://github.com/tbidne/smart-math.git
-  commit: 91de961c2606c72fdd2cec3ad76372448b28ee50
+  commit: 49c8269089372c989426b57ad0574ec0ef63bad0
 - git: https://github.com/tbidne/time-conv.git
-  commit: be46a94e01dcad5e841ad5217deb45bd79e02f07
+  commit: bb918e30ef862a92d5b38e6354d96bc2c2d9778e
 flags:
   refined:
     aeson: false

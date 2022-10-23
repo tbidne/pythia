@@ -3,7 +3,7 @@ name:               pythia
 version:            0.1
 license:            MIT
 license-file:       LICENSE
-tested-with:        GHC ==8.10.7 || ==9.0.2 || ==9.2.3
+tested-with:        GHC ==8.10.7 || ==9.0.2 || ==9.2.4 || ==9.4.2
 copyright:          2021 Thomas Bidne
 author:             Thomas Bidne
 maintainer:         tbidne@protonmail.com
@@ -99,7 +99,7 @@ library
 
   build-depends:
     , algebra-simple   ^>=0.1
-    , base             >=4.14.1.0  && <4.17
+    , base             >=4.14.1.0  && <4.18
     , byte-types       ^>=0.1
     , bytestring       >=0.10.10.0 && <0.12
     , containers       ^>=0.6.2.1
@@ -110,7 +110,7 @@ library
     , optics-core      ^>=0.4
     , optics-th        ^>=0.4
     , prettyprinter    >=1.4.0     && <1.8
-    , refined          >=0.6       && <0.8
+    , refined          >=0.6       && <0.9
     , safe-exceptions  ^>=0.1.7.0
     , smart-math       ^>=0.1
     , text             >=1.2.3.2   && <2.1
@@ -131,7 +131,7 @@ library pythia-exe-internal
     , base
     , gitrev                >=1.2.0    && <1.4
     , optparse-applicative  >=0.16.1.0 && <0.18
-    , package-version       ^>=0.1.0.0
+    , package-version       >=0.1.0.0  && <0.4
     , pythia
     , text
     , time

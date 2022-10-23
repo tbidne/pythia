@@ -5,66 +5,77 @@
 
 packages:
 - completed:
+    hackage: env-guard-0.2@sha256:59410eed9b9ddbd115760a59c7170927320d8612e414701d323a0c8985c97523,1251
     pantry-tree:
       sha256: c8135d95be0df0ce63d0ee398af20e38f505153032b32c4ab0e8f0f615501d46
       size: 419
-    hackage: env-guard-0.2@sha256:59410eed9b9ddbd115760a59c7170927320d8612e414701d323a0c8985c97523,1251
   original:
     hackage: env-guard-0.2@sha256:59410eed9b9ddbd115760a59c7170927320d8612e414701d323a0c8985c97523,1251
 - completed:
+    hackage: package-version-0.1.0.0@sha256:bb9fc93e905540aa8e1b32f80c2dc82756a4481c63779bd92e3796ed8085ab98,2854
     pantry-tree:
       sha256: 8e33ac2f8d2db754cf11d1439fa970dbf14c6756746426ba89f54a7183a9d2d7
       size: 981
-    hackage: package-version-0.1.0.0@sha256:bb9fc93e905540aa8e1b32f80c2dc82756a4481c63779bd92e3796ed8085ab98,2854
   original:
     hackage: package-version-0.1.0.0@sha256:bb9fc93e905540aa8e1b32f80c2dc82756a4481c63779bd92e3796ed8085ab98,2854
 - completed:
+    commit: c8aaa4495964ecea9bb898c4fcb8b1c718ecc813
+    git: https://github.com/tbidne/algebra-simple.git
     name: algebra-simple
     pantry-tree:
-      sha256: 054da92da6e250783a99efa3f148540e8843b74f9abfe84967d1e5896b76c764
-      size: 4196
-    commit: 5d9288b1e2149a1bb6db28d694c5528c0aef3cbd
-    git: https://github.com/tbidne/algebra-simple.git
+      sha256: 35146456af251b3f9726d520aa8caa62b35a4102205a493eab9c5f41697d7b67
+      size: 4285
     version: '0.1'
   original:
-    commit: 5d9288b1e2149a1bb6db28d694c5528c0aef3cbd
+    commit: c8aaa4495964ecea9bb898c4fcb8b1c718ecc813
     git: https://github.com/tbidne/algebra-simple.git
 - completed:
+    commit: 7a8832ef4a55d565e72fab553a4d485329235bf7
+    git: https://github.com/tbidne/bounds.git
+    name: bounds
+    pantry-tree:
+      sha256: 6a960a4a889dde6f76ffdead9abdcbe8ac3efc17f24c4ff7594861c41070a667
+      size: 1474
+    version: '0.1'
+  original:
+    commit: 7a8832ef4a55d565e72fab553a4d485329235bf7
+    git: https://github.com/tbidne/bounds.git
+- completed:
+    commit: cc0e1323b51f1ec3441ddc6578a05e9d7fcdb977
+    git: https://github.com/tbidne/byte-types.git
     name: byte-types
     pantry-tree:
-      sha256: 62b5805d1649fe17680cfdd15961d66c4b8b98544f6c02daa440664c1a6e2ecb
-      size: 3157
-    commit: 4374876dc1c9d53d810d46531268fbb26c341f74
-    git: https://github.com/tbidne/byte-types.git
+      sha256: 13c68f816dedfccae0c8a54839325a869de61586636a36d658c34a7b14ffa757
+      size: 9212
     version: '0.1'
   original:
-    commit: 4374876dc1c9d53d810d46531268fbb26c341f74
+    commit: cc0e1323b51f1ec3441ddc6578a05e9d7fcdb977
     git: https://github.com/tbidne/byte-types.git
 - completed:
+    commit: 49c8269089372c989426b57ad0574ec0ef63bad0
+    git: https://github.com/tbidne/smart-math.git
     name: smart-math
     pantry-tree:
-      sha256: f708fc43ee8bcfb62e9fae669fb2a7e66a25dee655c8731199a82d77de0d4206
-      size: 3196
-    commit: 91de961c2606c72fdd2cec3ad76372448b28ee50
-    git: https://github.com/tbidne/smart-math.git
+      sha256: eb61d107bc8f028bca89603b6a78e9bf71c39a4ddbba74562ce8c182737c2196
+      size: 3179
     version: '0.1'
   original:
-    commit: 91de961c2606c72fdd2cec3ad76372448b28ee50
+    commit: 49c8269089372c989426b57ad0574ec0ef63bad0
     git: https://github.com/tbidne/smart-math.git
 - completed:
+    commit: bb918e30ef862a92d5b38e6354d96bc2c2d9778e
+    git: https://github.com/tbidne/time-conv.git
     name: time-conv
     pantry-tree:
-      sha256: cdb1a89ebbc55bf504671ee1f05108c9374b35ee9e2fe0437b21745555705eb9
-      size: 1994
-    commit: be46a94e01dcad5e841ad5217deb45bd79e02f07
-    git: https://github.com/tbidne/time-conv.git
+      sha256: ed32f8808a249c2370c777bfe81bd2c4a565d789abf9d36d291c33f5ffde59e0
+      size: 2123
     version: '0.1'
   original:
-    commit: be46a94e01dcad5e841ad5217deb45bd79e02f07
+    commit: bb918e30ef862a92d5b38e6354d96bc2c2d9778e
     git: https://github.com/tbidne/time-conv.git
 snapshots:
 - completed:
-    sha256: 4c31d4ef975b0211078862566aedf3b82b6cea569fc2cde4c72a51e5a8d236ce
-    size: 618951
-    url: https://raw.githubusercontent.com/commercialhaskell/stackage-snapshots/master/lts/19/14.yaml
-  original: lts-19.14
+    sha256: 7f4393ad659c579944d12202cffb12d8e4b8114566b015f77bbc303a24cff934
+    size: 619405
+    url: https://raw.githubusercontent.com/commercialhaskell/stackage-snapshots/master/lts/19/28.yaml
+  original: lts-19.28

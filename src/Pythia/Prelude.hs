@@ -1,3 +1,5 @@
+{-# LANGUAGE CPP #-}
+
 -- | Custom prelude.
 --
 -- @since 0.1
@@ -57,6 +59,9 @@ import Data.Text.Encoding qualified as TextEnc
 import Data.Text.Encoding.Error qualified as TextEncErr
 import Data.Traversable as X (Traversable (..), for)
 import Data.Tuple as X (uncurry)
+#if MIN_VERSION_base(4, 17, 0)
+import Data.Type.Equality as X (type (~))
+#endif
 import Data.Void as X (Void)
 import Data.Word as X (Word8)
 import GHC.Enum as X (Bounded (..), Enum (..))
