@@ -34,7 +34,16 @@ import Control.Exception.Safe as X
     try,
     tryAny,
   )
-import Control.Monad as X (Monad (..), join, void, (<=<), (=<<), (>=>))
+import Control.Monad as X
+  ( Monad (..),
+    join,
+    unless,
+    void,
+    when,
+    (<=<),
+    (=<<),
+    (>=>),
+  )
 import Data.Bifunctor as X (Bifunctor (..))
 import Data.Bool as X (Bool (..), not, otherwise, (&&), (||))
 import Data.ByteString as X (ByteString)
@@ -51,7 +60,6 @@ import Data.List as X (filter, replicate)
 import Data.List.NonEmpty as X (NonEmpty ((:|)))
 import Data.Maybe as X (Maybe (..), fromMaybe, maybe)
 import Data.Monoid as X (Monoid (..))
-import GHC.Natural as X (Natural)
 import Data.Ord as X (Ord (..))
 import Data.Proxy as X (Proxy (..))
 import Data.Semigroup as X (Semigroup (..))
@@ -62,6 +70,7 @@ import Data.Text.Encoding qualified as TextEnc
 import Data.Text.Encoding.Error qualified as TextEncErr
 import Data.Traversable as X (Traversable (..), for)
 import Data.Tuple as X (uncurry)
+import GHC.Natural as X (Natural)
 #if MIN_VERSION_base(4, 17, 0)
 import Data.Type.Equality as X (type (~))
 #endif

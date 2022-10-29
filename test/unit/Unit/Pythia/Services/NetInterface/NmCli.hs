@@ -30,23 +30,19 @@ parseAll = testCase "Parses all interfaces" $ do
   let notFound = expectedSet \\ resultSet
       extras = resultSet \\ expectedSet
 
-  if (not . Set.null) notFound
-    then
-      THU.assertFailure $
-        "Did not find expected interface(s):"
-          <> prettyInterfaces (Set.toList notFound)
-          <> ".\n\nResult(s):"
-          <> prettyInterfaces (Set.toList resultSet)
-    else pure ()
+  unless (Set.null notFound) $
+    THU.assertFailure $
+      "Did not find expected interface(s):"
+        <> prettyInterfaces (Set.toList notFound)
+        <> ".\n\nResult(s):"
+        <> prettyInterfaces (Set.toList resultSet)
 
-  if (not . Set.null) extras
-    then
-      THU.assertFailure $
-        "Found unexpected interface(s):"
-          <> prettyInterfaces (Set.toList extras)
-          <> ".\n\nExpected:"
-          <> prettyInterfaces (Set.toList expectedSet)
-    else pure ()
+  unless (Set.null extras) $
+    THU.assertFailure $
+      "Found unexpected interface(s):"
+        <> prettyInterfaces (Set.toList extras)
+        <> ".\n\nExpected:"
+        <> prettyInterfaces (Set.toList expectedSet)
   where
     expectedSet =
       Set.fromList
