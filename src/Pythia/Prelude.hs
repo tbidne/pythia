@@ -13,6 +13,7 @@ module Pythia.Prelude
     throwLeft,
     throwMaybe,
     showt,
+    natToDouble,
 
     -- * Base
     module X,
@@ -50,6 +51,7 @@ import Data.List as X (filter, replicate)
 import Data.List.NonEmpty as X (NonEmpty ((:|)))
 import Data.Maybe as X (Maybe (..), fromMaybe, maybe)
 import Data.Monoid as X (Monoid (..))
+import GHC.Natural as X (Natural)
 import Data.Ord as X (Ord (..))
 import Data.Proxy as X (Proxy (..))
 import Data.Semigroup as X (Semigroup (..))
@@ -71,7 +73,7 @@ import GHC.Float as X (Double, Float)
 import GHC.Generics as X (Generic)
 import GHC.Num as X (Num (..))
 import GHC.Read as X (Read (..))
-import GHC.Real as X (even, floor, (/))
+import GHC.Real as X (even, floor, fromIntegral, (/))
 import GHC.Show as X (Show (..))
 import Optics.Core as X
   ( A_Prism,
@@ -166,3 +168,8 @@ throwMaybe e = maybe (throwIO e) pure
 showt :: Show a => a -> Text
 showt = T.pack . show
 {-# INLINEABLE showt #-}
+
+-- | @since 0.1
+natToDouble :: Natural -> Double
+natToDouble = fromIntegral
+{-# INLINE natToDouble #-}

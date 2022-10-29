@@ -19,13 +19,9 @@ import Data.Bytes.Formatting
     formatSized,
     sizedFormatterUnix,
   )
-import Numeric.Algebra (MGroup, Normed)
-import Numeric.Data.NonNegative (NonNegative (..), unNonNegative)
-import Numeric.Data.Positive (Positive (..), unPositive)
-import Numeric.Literal.Integer (FromInteger (..))
 import Pythia.Data.Supremum (Supremum (..))
 import Pythia.Prelude
-import Pythia.Utils (Doc, Pretty (..), (<+>))
+import Pythia.Utils (Pretty (..), (<+>))
 
 -- $setup
 -- >>> import Pythia.Prelude
@@ -69,50 +65,31 @@ data MemoryApp
 -- around the memory intended to enforce an invariant e.g. non-negative.
 --
 -- @since 0.1
-type Memory :: (Type -> Type) -> Type
-newtype Memory (f :: Type -> Type) = MkMemory (Bytes 'B (f Double))
+type Memory :: Type
+newtype Memory = MkMemory (Bytes 'B Natural)
   deriving stock
     ( -- | @since 0.1
-      Generic
+      Eq,
+      -- | @since 0.1
+      Generic,
+      -- | @since 0.1
+      Show
+    )
+  deriving anyclass
+    ( -- | @since 0.1
+      NFData
     )
 
 -- | @since 0.1
 makePrisms ''Memory
 
 -- | @since 0.1
-deriving stock instance Eq (f Double) => Eq (Memory f)
-
--- | @since 0.1
-deriving stock instance Show (f Double) => Show (Memory f)
-
--- | @since 0.1
-deriving anyclass instance NFData (f Double) => NFData (Memory f)
-
--- | @since 0.1
-instance Pretty (Memory NonNegative) where
-  pretty = prettyMemory unNonNegative
+instance Pretty Memory where
+  pretty (MkMemory bytes) = pretty formatted
+    where
+      bytes' = Bytes.normalize $ fmap natToDouble bytes
+      formatted = formatSized (MkFloatingFormatter (Just 2)) sizedFormatterUnix bytes'
   {-# INLINEABLE pretty #-}
-
--- | @since 0.1
-instance Pretty (Memory Positive) where
-  pretty = prettyMemory unPositive
-  {-# INLINEABLE pretty #-}
-
-prettyMemory ::
-  ( FromInteger (f Double),
-    MGroup (f Double),
-    Ord (f Double),
-    Normed (f Double)
-  ) =>
-  (f Double -> Double) ->
-  Memory f ->
-  Doc ann
-prettyMemory unwrapper (MkMemory bytes) = pretty formatted
-  where
-    bytes' = Bytes.normalize bytes
-    unwrapped = fmap unwrapper bytes'
-    formatted = formatSized (MkFloatingFormatter (Just 2)) sizedFormatterUnix unwrapped
-{-# INLINEABLE prettyMemory #-}
 
 -- | Represents the current memory usage.
 --
@@ -122,12 +99,12 @@ data SystemMemory = MkSystemMemory
   { -- | The total memory on this system.
     --
     -- @since 0.1
-    total :: !(Memory Positive),
+    total :: !Memory,
     -- | The memory currently in use. This does not include the
     -- cache.
     --
     -- @since 0.1
-    used :: !(Memory NonNegative)
+    used :: !Memory
   }
   deriving stock
     ( -- | @since 0.1

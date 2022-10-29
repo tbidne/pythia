@@ -18,9 +18,6 @@ where
 import Data.Bytes (Bytes (..))
 import Data.Char qualified as Char
 import Data.Text qualified as T
-import Numeric.Algebra (ASemigroup (..))
-import Numeric.Data.NonNegative qualified as NN
-import Numeric.Data.Positive qualified as Pos
 import Pythia.Internal.ShellApp (SimpleShell (..))
 import Pythia.Internal.ShellApp qualified as ShellApp
 import Pythia.Prelude
@@ -116,7 +113,7 @@ mparseMemory = do
   used <- parseNat
   parseNat
   shared <- parseNat
-  pure $ MkSystemMemory (MkMemory (MkBytes total)) (MkMemory (MkBytes (used .+. shared)))
+  pure $ MkSystemMemory (MkMemory (MkBytes total)) (MkMemory (MkBytes (used + shared)))
   where
     parseNat = parseBytes readNat
     parsePos = parseBytes readPos
@@ -124,6 +121,6 @@ mparseMemory = do
       MPC.space1
       num <- MP.takeWhile1P Nothing Char.isDigit
       maybe empty pure (parseFn num)
-    readNat = (NN.mkNonNegative <=< TR.readMaybe) . T.unpack
-    readPos = (Pos.mkPositive <=< TR.readMaybe) . T.unpack
+    readNat = TR.readMaybe . T.unpack
+    readPos = TR.readMaybe . T.unpack
 {-# INLINEABLE mparseMemory #-}
