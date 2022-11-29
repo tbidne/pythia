@@ -63,15 +63,15 @@ packages:
     commit: 49c8269089372c989426b57ad0574ec0ef63bad0
     git: https://github.com/tbidne/smart-math.git
 - completed:
-    commit: bb918e30ef862a92d5b38e6354d96bc2c2d9778e
+    commit: 02498efe9f6185bc14db55a6d0068c05a473b13f
     git: https://github.com/tbidne/time-conv.git
     name: time-conv
     pantry-tree:
-      sha256: ed32f8808a249c2370c777bfe81bd2c4a565d789abf9d36d291c33f5ffde59e0
-      size: 2123
+      sha256: 04f5ea7ae32c00025a3a9ac635a29200509e6ea4b3d45ec4b399fad2e5ac2772
+      size: 1979
     version: '0.1'
   original:
-    commit: bb918e30ef862a92d5b38e6354d96bc2c2d9778e
+    commit: 02498efe9f6185bc14db55a6d0068c05a473b13f
     git: https://github.com/tbidne/time-conv.git
 snapshots:
 - completed:
