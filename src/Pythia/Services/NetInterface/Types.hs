@@ -28,7 +28,6 @@ module Pythia.Services.NetInterface.Types
     _NetStateUp,
     _NetStateDown,
     _NetStateUnknown,
-    _MkNetInterfaces,
   )
 where
 
@@ -218,7 +217,7 @@ instance Pretty NetInterface where
 
 -- | @since 0.1
 type NetInterfaces :: Type
-newtype NetInterfaces = MkNetInterfaces [NetInterface]
+newtype NetInterfaces = MkNetInterfaces {unNetInterfaces :: [NetInterface]}
   deriving stock
     ( -- | @since 0.1
       Eq,
@@ -235,11 +234,8 @@ newtype NetInterfaces = MkNetInterfaces [NetInterface]
     )
 
 -- | @since 0.1
-makePrisms ''NetInterfaces
-
--- | @since 0.1
 instance Pretty NetInterfaces where
-  pretty = U.vsep . U.punctuate (U.pretty @Text "\n") . fmap pretty . view _MkNetInterfaces
+  pretty = U.vsep . U.punctuate (U.pretty @Text "\n") . fmap pretty . view #unNetInterfaces
   {-# INLINEABLE pretty #-}
 
 -- | Exception for when we cannot find a desired device.
@@ -266,11 +262,9 @@ newtype DeviceNotFound = MkDeviceNotFound Device
     )
 
 -- | @since 0.1
-makePrisms ''DeviceNotFound
-
--- | @since 0.1
 instance Exception DeviceNotFound where
-  displayException =
+  displayException (MkDeviceNotFound d) =
     ("Device not found: " <>)
       . T.unpack
-      . view (_MkDeviceNotFound % #unDevice)
+      . view #unDevice
+      $ d

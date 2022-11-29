@@ -29,24 +29,13 @@ import Pythia.Services.Memory.Types
   ( Memory (..),
     MemoryApp (..),
     SystemMemory (..),
-    _MkMemory,
   )
 
 -- $setup
 -- >>> import Control.Exception (displayException)
 -- >>> import Pythia.Prelude
 
--- | Queries the memory based on the configuration. If 'app' is
--- 'Many' then we try supported apps in the following order:
---
--- @
--- ['MemoryFree']
--- @
---
--- __Throws:__
---
--- * 'FreeParseError'
--- * 'Pythia.Control.Exception.CommandException'
+-- | Queries the memory based on the configuration.
 --
 -- @since 0.1
 queryMemory :: MemoryApp -> IO SystemMemory
@@ -58,8 +47,8 @@ queryMemory MemoryAppFree = Free.memoryShellApp
 freeMemory :: SystemMemory -> Memory
 freeMemory sysMem = free
   where
-    t = sysMem ^. (#total % _MkMemory % _MkBytes)
-    u = sysMem ^. (#used % _MkMemory % _MkBytes)
+    t = sysMem ^. (#total % #unMemory % _MkBytes)
+    u = sysMem ^. (#used % #unMemory % _MkBytes)
     free = MkMemory $ MkBytes $ t - u
 
 -- | Returns the used memory as a percentage.
@@ -68,8 +57,8 @@ freeMemory sysMem = free
 percentageUsed :: SystemMemory -> Percentage
 percentageUsed sysMem = MkPercentage p
   where
-    t = natToDouble $ sysMem ^. (#total % _MkMemory % _MkBytes)
-    u = natToDouble $ sysMem ^. (#used % _MkMemory % _MkBytes)
+    t = natToDouble $ sysMem ^. (#total % #unMemory % _MkBytes)
+    u = natToDouble $ sysMem ^. (#used % #unMemory % _MkBytes)
     p = Interval.unsafeLRInterval $ doubleToWord8 $ u / t
 
     doubleToWord8 :: Double -> Word8

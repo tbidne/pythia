@@ -1,5 +1,3 @@
-{-# LANGUAGE TemplateHaskell #-}
-
 -- | This module provides functionality for retrieving battery information
 -- using SysFS.
 --
@@ -13,9 +11,7 @@ module Pythia.Services.Battery.SysFs
     SysFsDirNotFound (..),
     SysFsBatteryDirNotFound (..),
     SysFsFileNotFound (..),
-    _MkSysFsFileNotFound,
     SysFsBatteryParseError (..),
-    _MkSysFsBatteryParseError,
   )
 where
 
@@ -110,14 +106,11 @@ newtype SysFsFileNotFound = MkSysFsFileNotFound Text
     )
 
 -- | @since 0.1
-makePrisms ''SysFsFileNotFound
-
--- | @since 0.1
 instance Exception SysFsFileNotFound where
-  displayException =
+  displayException (MkSysFsFileNotFound e) =
     ("Could not find sysfs file: " <>)
       . T.unpack
-      . view _MkSysFsFileNotFound
+      $ e
 
 -- | Sysfs battery parse error.
 --
@@ -137,21 +130,13 @@ newtype SysFsBatteryParseError = MkSysFsBatteryParseError Text
     )
 
 -- | @since 0.1
-makePrisms ''SysFsBatteryParseError
-
--- | @since 0.1
 instance Exception SysFsBatteryParseError where
-  displayException =
+  displayException (MkSysFsBatteryParseError e) =
     ("SysFs parse error: " <>)
       . T.unpack
-      . view _MkSysFsBatteryParseError
+      $ e
 
 -- | @\/sys\/class@ query for 'Battery'.
---
--- __Throws:__
---
--- * 'SysFsException': if something goes wrong (e.g. cannot find a directory,
---       file, or we have a parse error).
 --
 -- @since 0.1
 batteryQuery :: IO Battery
@@ -248,7 +233,6 @@ parseStatus fp = do
     T.toLower
       . T.strip
       <$> readFileUtf8Lenient fp
-      `catchAny` \e -> throwIO e
   case statusTxt of
     "charging" -> pure Charging
     "discharging" -> pure Discharging
@@ -259,9 +243,7 @@ parseStatus fp = do
 
 parsePercentage :: FilePath -> IO Percentage
 parsePercentage fp = do
-  percentTxt <-
-    readFileUtf8Lenient fp
-      `catchAny` \e -> throwIO e
+  percentTxt <- readFileUtf8Lenient fp
   case readInterval percentTxt of
     Nothing -> throwIO $ MkSysFsBatteryParseError percentTxt
     Just bs -> pure $ MkPercentage bs

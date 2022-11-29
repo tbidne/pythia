@@ -1,6 +1,3 @@
-{-# LANGUAGE TemplateHaskell #-}
-{-# LANGUAGE UndecidableInstances #-}
-
 -- | Provides various exception types.
 --
 -- @since 0.1
@@ -10,11 +7,6 @@ module Pythia.Control.Exception
     SomeExceptions (..),
     NotSupportedException (..),
     NoActionsRunException (..),
-
-    -- * Optics
-    _MkCommandException,
-    _MkSomeExceptions,
-    _MkNotSupportedException,
   )
 where
 
@@ -43,20 +35,15 @@ data CommandException = MkCommandException Command Text
     )
 
 -- | @since 0.1
-makePrisms ''CommandException
-
--- | @since 0.1
 instance Exception CommandException where
-  displayException e =
+  displayException (MkCommandException c t) =
     mconcat
       [ "Command exception. Command: <",
-        T.unpack $ e' ^. _1 % #unCommand,
+        T.unpack $ c ^. #unCommand,
         ">. Error: <",
-        T.unpack $ e' ^. _2,
+        T.unpack t,
         ">"
       ]
-    where
-      e' = e ^. _MkCommandException
 
 -- | Collects 1 or more exceptions.
 --
@@ -73,9 +60,6 @@ newtype SomeExceptions = MkSomeExceptions (NonEmpty SomeException)
     ( -- | @since 0.1
       Show
     )
-
--- | @since 0.1
-makePrisms ''SomeExceptions
 
 -- | @since 0.1
 instance Exception SomeExceptions where
@@ -110,14 +94,11 @@ newtype NotSupportedException = MkNotSupportedException Text
     )
 
 -- | @since 0.1
-makePrisms ''NotSupportedException
-
--- | @since 0.1
 instance Exception NotSupportedException where
-  displayException e =
+  displayException (MkNotSupportedException e) =
     mconcat
       [ "App not supported: <",
-        T.unpack (e ^. _MkNotSupportedException),
+        T.unpack e,
         ">"
       ]
 

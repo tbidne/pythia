@@ -34,7 +34,6 @@ import Pythia.Services.GlobalIp.Types
     GlobalIpv4Config,
     GlobalIpv6Config,
     UrlSource (..),
-    _MkUrlSource,
   )
 import Pythia.Services.Types.Network
   ( IpAddress (..),
@@ -45,16 +44,6 @@ import Refined (Predicate, Refined)
 import Refined qualified as R
 
 -- | Queries for IPv4 and IPv6 global IP address based on the configuration.
--- If 'app' is 'Many' then we try supported apps in the following
--- order:
---
--- @
--- ['GlobalIpAppDig', 'GlobalIpAppCurl']
--- @
---
--- __Throws:__
---
--- * 'Pythia.Control.Exception.CommandException'
 --
 -- @since 0.1
 queryGlobalIp :: GlobalIpBothConfig -> IO (IpAddress 'Ipv4, IpAddress 'Ipv6)
@@ -63,22 +52,12 @@ queryGlobalIp = queryGlobalIp' #app #sources getBothIps
 
 -- | 'queryGlobalIp' restricted to IPv4 address only.
 --
--- __Throws:__
---
--- * 'Pythia.Control.Exception.PythiaException': if an error is
--- encountered (e.g. running a command or parse error).
---
 -- @since 0.1
 queryGlobalIpv4 :: GlobalIpv4Config -> IO (IpAddress 'Ipv4)
 queryGlobalIpv4 = queryGlobalIp' #app #sources getIpv4s
 {-# INLINEABLE queryGlobalIpv4 #-}
 
 -- | 'queryGlobalIp' restricted to IPv6 address only.
---
--- __Throws:__
---
--- * 'Pythia.Control.Exception.PythiaException': if an error is
--- encountered (e.g. running a command or parse error).
 --
 -- @since 0.1
 queryGlobalIpv6 :: GlobalIpv6Config -> IO (IpAddress 'Ipv6)
@@ -128,8 +107,8 @@ getIpv6s app extraSrcs = do
 {-# INLINEABLE getIpv6s #-}
 
 prependApp :: GlobalIpApp -> [UrlSource a] -> [UrlSource a]
-prependApp GlobalIpAppCurl srcs = fmap (_MkUrlSource %~ ("curl " <>)) srcs
-prependApp GlobalIpAppDig srcs = fmap (_MkUrlSource %~ (\s -> "dig " <> s <> " +short")) srcs
+prependApp GlobalIpAppCurl srcs = fmap (#unUrlSource %~ ("curl " <>)) srcs
+prependApp GlobalIpAppDig srcs = fmap (#unUrlSource %~ (\s -> "dig " <> s <> " +short")) srcs
 {-# INLINEABLE prependApp #-}
 
 ipv4Defaults :: GlobalIpApp -> [UrlSource 'Ipv4]
@@ -169,7 +148,7 @@ digDefaults = (ipv4s, ipv6s)
 {-# INLINEABLE digDefaults #-}
 
 getIpFromSources :: Predicate (IpRefinement a) Text => [UrlSource a] -> IO (IpAddress a)
-getIpFromSources = fmap MkIpAddress . getIp (_MkUrlSource % re #unCommand)
+getIpFromSources = fmap MkIpAddress . getIp (#unUrlSource % re #unCommand)
 {-# INLINEABLE getIpFromSources #-}
 
 getIp ::

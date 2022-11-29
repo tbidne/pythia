@@ -39,7 +39,6 @@ import Pythia.Args
 import Pythia.Data.Percentage (rawPercentage)
 import Pythia.Prelude
 import Pythia.Services.Memory qualified as Mem
-import Pythia.Services.NetInterface.Types (_MkNetInterfaces)
 import Pythia.Utils (Doc, Pretty (..))
 import Pythia.Utils qualified as U
 
@@ -111,7 +110,7 @@ handleNetInterface handler cfg mdevice field = do
           docToText
             . U.vsep
             . fmap (toField field)
-            . view _MkNetInterfaces
+            . view #unNetInterfaces
 
     interfaceToText :: NetInterface -> Text
     interfaceToText = docToText . toField field

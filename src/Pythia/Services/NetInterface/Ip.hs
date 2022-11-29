@@ -1,5 +1,3 @@
-{-# LANGUAGE TemplateHaskell #-}
-
 -- | This module provides functionality for retrieving network connection
 -- information using ip utility.
 --
@@ -11,7 +9,6 @@ module Pythia.Services.NetInterface.Ip
 
     -- * Misc
     IpParseError (..),
-    _MkIpParseError,
     parseInterfaces,
   )
 where
@@ -62,21 +59,13 @@ newtype IpParseError = MkIpParseError Text
     )
 
 -- | @since 0.1
-makePrisms ''IpParseError
-
--- | @since 0.1
 instance Exception IpParseError where
-  displayException =
+  displayException (MkIpParseError e) =
     ("Ip parse error: " <>)
       . T.unpack
-      . view _MkIpParseError
+      $ e
 
 -- | Ip query for 'NetInterface'.
---
--- __Throws:__
---
--- * 'IpException': if something goes wrong (i.e. exception while running
---       the command, or we have a parse error).
 --
 -- @since 0.1
 netInterfaceShellApp :: IO NetInterfaces

@@ -10,4 +10,4 @@ main =
     "RUN_DOCTEST"
     ExpectEnvSet
     (DocTest.mainFromCabal "pythia" [])
-    (putStrLn "*** Doctests Disabled ***")
+    (putStrLn "*** Doctests Disabled. Enable with RUN_DOCTEST=1. ***")

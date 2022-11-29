@@ -1,5 +1,3 @@
-{-# LANGUAGE TemplateHaskell #-}
-
 -- | This module provides functionality for retrieving memory usage using Free.
 --
 -- @since 0.1
@@ -10,7 +8,6 @@ module Pythia.Services.Memory.Free
 
     -- * Misc
     FreeParseError (..),
-    _MkFreeParseError,
     parseMemory,
   )
 where
@@ -50,21 +47,13 @@ newtype FreeParseError = MkFreeParseError Text
     )
 
 -- | @since 0.1
-makePrisms ''FreeParseError
-
--- | @since 0.1
 instance Exception FreeParseError where
-  displayException =
+  displayException (MkFreeParseError e) =
     ("Could not parse memory from: " <>)
       . T.unpack
-      . view _MkFreeParseError
+      $ e
 
 -- | Free query for 'Memory'.
---
--- __Throws:__
---
--- * 'FreeException': if something goes wrong (i.e. exception while running
---       the command, or we have a parse error).
 --
 -- @since 0.1
 memoryShellApp :: IO SystemMemory

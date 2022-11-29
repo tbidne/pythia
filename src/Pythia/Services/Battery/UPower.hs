@@ -1,5 +1,3 @@
-{-# LANGUAGE TemplateHaskell #-}
-
 -- | This module provides functionality for retrieving battery information
 -- using UPower.
 --
@@ -11,8 +9,6 @@ module Pythia.Services.Battery.UPower
 
     -- * Misc
     UPowerParseError (..),
-    _UPowerParseErrorPercentage,
-    _UPowerParseErrorStatus,
     parseBattery,
   )
 where
@@ -65,9 +61,6 @@ data UPowerParseError
     )
 
 -- | @since 0.1
-makePrisms ''UPowerParseError
-
--- | @since 0.1
 instance Exception UPowerParseError where
   displayException (UPowerParseErrorPercentage s) =
     "No percentage found in upower output: " <> T.unpack s
@@ -75,11 +68,6 @@ instance Exception UPowerParseError where
     "No status found in upower output: " <> T.unpack s
 
 -- | UPower query for 'Battery'.
---
--- __Throws:__
---
--- * 'UPowerException': if something goes wrong (i.e. exception while running
---       the command, or we have a parse error).
 --
 -- @since 0.1
 batteryShellApp :: IO Battery
@@ -106,16 +94,16 @@ supported = U.exeSupported "upower"
 -- ==== __Examples__
 --
 -- >>> parseBattery "state: fully-charged\npercentage: 100%"
--- Right (MkBattery {percentage = MkPercentage (UnsafeLRInterval 100), status = Full})
+-- Right (MkBattery {percentage = MkPercentage {unPercentage = UnsafeLRInterval 100}, status = Full})
 --
 -- >>> parseBattery "state: discharging\npercentage: 70%"
--- Right (MkBattery {percentage = MkPercentage (UnsafeLRInterval 70), status = Discharging})
+-- Right (MkBattery {percentage = MkPercentage {unPercentage = UnsafeLRInterval 70}, status = Discharging})
 --
 -- >>> parseBattery "state: charging\npercentage: 40%"
--- Right (MkBattery {percentage = MkPercentage (UnsafeLRInterval 40), status = Charging})
+-- Right (MkBattery {percentage = MkPercentage {unPercentage = UnsafeLRInterval 40}, status = Charging})
 --
 -- >>> parseBattery "state: pending-charge\npercentage: 40%"
--- Right (MkBattery {percentage = MkPercentage (UnsafeLRInterval 40), status = Pending})
+-- Right (MkBattery {percentage = MkPercentage {unPercentage = UnsafeLRInterval 40}, status = Pending})
 --
 -- >>> parseBattery "state: bad\npercentage: 40%"
 -- Left (UPowerParseErrorStatus "state: bad\npercentage: 40%")

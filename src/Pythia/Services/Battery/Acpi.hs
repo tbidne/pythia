@@ -1,5 +1,3 @@
-{-# LANGUAGE TemplateHaskell #-}
-
 -- | This module provides functionality for retrieving battery information
 -- using ACPI.
 --
@@ -11,7 +9,6 @@ module Pythia.Services.Battery.Acpi
 
     -- * Misc
     AcpiParseError (..),
-    _MkAcpiParseError,
     parseBattery,
   )
 where
@@ -54,21 +51,13 @@ newtype AcpiParseError = MkAcpiParseError Text
     )
 
 -- | @since 0.1
-makePrisms ''AcpiParseError
-
--- | @since 0.1
 instance Exception AcpiParseError where
-  displayException =
+  displayException (MkAcpiParseError e) =
     ("Acpi parse error: " <>)
       . T.unpack
-      . view _MkAcpiParseError
+      $ e
 
 -- | ACPI query for 'Battery'.
---
--- __Throws:__
---
--- * 'AcpiException': if something goes wrong (i.e. exception while running
---       the command, or we have a parse error).
 --
 -- @since 0.1
 batteryShellApp :: IO Battery
@@ -95,13 +84,13 @@ supported = U.exeSupported "acpi"
 -- ==== __Examples__
 --
 -- >>> parseBattery "Battery 0: Full, 100%"
--- Right (MkBattery {percentage = MkPercentage (UnsafeLRInterval 100), status = Full})
+-- Right (MkBattery {percentage = MkPercentage {unPercentage = UnsafeLRInterval 100}, status = Full})
 --
 -- >>> parseBattery "Battery 0: Discharging, 80%"
--- Right (MkBattery {percentage = MkPercentage (UnsafeLRInterval 80), status = Discharging})
+-- Right (MkBattery {percentage = MkPercentage {unPercentage = UnsafeLRInterval 80}, status = Discharging})
 --
 -- >>> parseBattery "Battery 0: Charging, 40%"
--- Right (MkBattery {percentage = MkPercentage (UnsafeLRInterval 40), status = Charging})
+-- Right (MkBattery {percentage = MkPercentage {unPercentage = UnsafeLRInterval 40}, status = Charging})
 --
 -- >>> parseBattery "Battery 0: bad status, 80%"
 -- Left (MkAcpiParseError "Acpi.hs:1:12:\n  |\n1 | Battery 0: bad status, 80%\n  |            ^\nUnknown status\n")

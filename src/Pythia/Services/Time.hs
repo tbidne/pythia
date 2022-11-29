@@ -25,19 +25,14 @@ import Pythia.Prelude
 --
 -- @since 0.1
 queryLocalTime :: IO ZonedTime
-queryLocalTime = TimeConv.readTime Nothing `catchAny` throwIO
+queryLocalTime = TimeConv.readTime Nothing
 {-# INLINEABLE queryLocalTime #-}
 
 -- | Queries current UTC time.
 --
--- __Throws:__
---
--- * 'Pythia.Control.Exception.PythiaException': if an error is
--- encountered (e.g. running a command or parse error).
---
 -- @since 0.1
 queryUTC :: IO UTCTime
-queryUTC = Clock.getCurrentTime `catchAny` throwIO
+queryUTC = Clock.getCurrentTime
 {-# INLINEABLE queryUTC #-}
 
 -- | Queries current time in the given timezone.
@@ -46,16 +41,10 @@ queryUTC = Clock.getCurrentTime `catchAny` throwIO
 -- queryTimeZone "America/New_York"
 -- @
 --
--- __Throws:__
---
--- * 'Pythia.Control.Exception.PythiaException': if an error is
--- encountered (e.g. running a command or parse error).
---
 -- @since 0.1
 queryTimeZone :: Text -> IO ZonedTime
 queryTimeZone =
-  handleAny throwIO
-    . TimeConv.readConvertTime Nothing
+  TimeConv.readConvertTime Nothing
     . Just
     . TZDatabaseText
 {-# INLINEABLE queryTimeZone #-}
@@ -70,8 +59,7 @@ queryTimeZone =
 -- @since 0.1
 queryTimeZoneLabel :: TZLabel -> IO ZonedTime
 queryTimeZoneLabel =
-  handleAny throwIO
-    . TimeConv.readConvertTime Nothing
+  TimeConv.readConvertTime Nothing
     . Just
     . TZDatabaseLabel
 {-# INLINEABLE queryTimeZoneLabel #-}

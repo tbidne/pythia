@@ -1,5 +1,3 @@
-{-# LANGUAGE TemplateHaskell #-}
-
 -- | This module provides functionality for retrieving network connection
 -- information using nmcli.
 --
@@ -11,7 +9,6 @@ module Pythia.Services.NetInterface.NmCli
 
     -- * Misc
     NmCliParseError (..),
-    _MkNmCliParseError,
     parseInterfaces,
   )
 where
@@ -63,21 +60,13 @@ newtype NmCliParseError = MkNmCliParseError Text
     )
 
 -- | @since 0.1
-makePrisms ''NmCliParseError
-
--- | @since 0.1
 instance Exception NmCliParseError where
-  displayException =
+  displayException (MkNmCliParseError e) =
     ("NmCli parse error: " <>)
       . T.unpack
-      . view _MkNmCliParseError
+      $ e
 
 -- | NmCli query for 'NetInterfaces'.
---
--- __Throws:__
---
--- * 'NmCliException': if something goes wrong (i.e. exception while running
---       the command, or we have a parse error).
 --
 -- @since 0.1
 netInterfaceShellApp :: IO NetInterfaces

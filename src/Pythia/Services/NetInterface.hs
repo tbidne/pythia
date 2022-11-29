@@ -35,18 +35,7 @@ import Pythia.Services.Types.Network
 -- >>> import Pythia.Prelude
 -- >>> import Pythia.Services.NetInterface.Types (DeviceNotFound)
 
--- | Queries for all network interface data. If the 'NetInterfaceConfig'\'s app
--- is 'Many' then we try all 'NetInterfaceApp's supported by this system, in
--- the following order:
---
--- @
--- ['NetInterfaceAppNmCli', 'NetInterfaceAppIp']
--- @
---
--- __Throws:__
---
--- * 'Pythia.Control.Exception.PythiaException': if an error is
--- encountered (e.g. running a command or parse error).
+-- | Queries for all network interface data.
 --
 -- @since 0.1
 queryNetInterfaces :: NetInterfaceApp -> IO NetInterfaces
@@ -56,20 +45,13 @@ queryNetInterfaces NetInterfaceAppIp = Ip.netInterfaceShellApp
 
 -- | Like 'queryNetInterfaces' but returns data for a single device.
 --
--- __Throws:__
---
--- * 'DeviceNotFound'
--- * 'IpParseError'
--- * 'NmCliParseError'
--- * 'Pythia.Control.Exception.CommandException'
---
 -- @since 0.1
 queryNetInterface :: Device -> NetInterfaceApp -> IO NetInterface
 queryNetInterface d = queryNetInterfaces >=> findDevice d
 {-# INLINEABLE queryNetInterface #-}
 
 findDevice :: Device -> NetInterfaces -> IO NetInterface
-findDevice device = throwMaybe e . headMaybe . view _MkNetInterfaces . filterDevice device
+findDevice device = throwMaybe e . headMaybe . view #unNetInterfaces . filterDevice device
   where
     e = MkDeviceNotFound device
 {-# INLINEABLE findDevice #-}
@@ -96,7 +78,7 @@ findDevice device = throwMaybe e . headMaybe . view _MkNetInterfaces . filterDev
 --
 -- @since 0.1
 findUp :: NetInterfaces -> Maybe NetInterface
-findUp = headMaybe . (sortType . filterUp) . view _MkNetInterfaces
+findUp = headMaybe . (sortType . filterUp) . view #unNetInterfaces
   where
     sortType = OL.sortOn (view #ntype)
     filterUp = filter ((== NetStateUp) . view #state)

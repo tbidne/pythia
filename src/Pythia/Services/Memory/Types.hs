@@ -7,7 +7,6 @@
 module Pythia.Services.Memory.Types
   ( MemoryApp (..),
     Memory (..),
-    _MkMemory,
     SystemMemory (..),
   )
 where
@@ -66,7 +65,7 @@ data MemoryApp
 --
 -- @since 0.1
 type Memory :: Type
-newtype Memory = MkMemory (Bytes 'B Natural)
+newtype Memory = MkMemory {unMemory :: Bytes 'B Natural}
   deriving stock
     ( -- | @since 0.1
       Eq,
@@ -81,7 +80,7 @@ newtype Memory = MkMemory (Bytes 'B Natural)
     )
 
 -- | @since 0.1
-makePrisms ''Memory
+makeFieldLabelsNoPrefix ''Memory
 
 -- | @since 0.1
 instance Pretty Memory where

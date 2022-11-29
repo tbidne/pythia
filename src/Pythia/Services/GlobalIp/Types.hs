@@ -18,7 +18,6 @@ module Pythia.Services.GlobalIp.Types
     -- * Optics
     _GlobalIpAppDig,
     _GlobalIpAppCurl,
-    _MkUrlSource,
   )
 where
 
@@ -88,7 +87,7 @@ makePrisms ''GlobalIpApp
 --
 -- @since 0.1
 type UrlSource :: IpType -> Type
-newtype UrlSource a = MkUrlSource Text
+newtype UrlSource a = MkUrlSource {unUrlSource :: Text}
   deriving stock
     ( -- | @since 0.1
       Eq,
@@ -109,7 +108,7 @@ newtype UrlSource a = MkUrlSource Text
     )
 
 -- | @since 0.1
-makePrisms ''UrlSource
+makeFieldLabelsNoPrefix ''UrlSource
 
 -- | Complete configuration for querying global IP addresses. The 'Monoid'
 -- instance will construct a config that tries all apps and has no extra
