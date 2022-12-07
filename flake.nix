@@ -30,6 +30,12 @@
       inputs.flake-parts.follows = "flake-parts";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    monad-effects = {
+      url = "github:tbidne/monad-effects";
+      inputs.flake-compat.follows = "flake-compat";
+      inputs.flake-parts.follows = "flake-parts";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
     smart-math = {
       url = "github:tbidne/smart-math";
       inputs.algebra-simple.follows = "algebra-simple";
@@ -43,6 +49,8 @@
       inputs.flake-compat.follows = "flake-compat";
       inputs.flake-parts.follows = "flake-parts";
       inputs.nixpkgs.follows = "nixpkgs";
+
+      inputs.monad-effects.follows = "monad-effects";
     };
   };
   outputs =
@@ -51,6 +59,7 @@
     , byte-types
     , flake-compat
     , flake-parts
+    , monad-effects
     , nixpkgs
     , self
     , smart-math
@@ -68,8 +77,14 @@
             ghcid
             haskell-language-server
           ];
-          ghc-version = "ghc924";
-          compiler = pkgs.haskell.packages."${ghc-version}";
+          ghc-version = "ghc925";
+          compiler = pkgs.haskell.packages."${ghc-version}".override {
+            overrides = final: prev: {
+              # https://github.com/ddssff/listlike/issues/23
+              ListLike = hlib.dontCheck prev.ListLike;
+            };
+          };
+          hlib = pkgs.haskell.lib;
           mkPkg = returnShellEnv: withDevTools:
             compiler.developPackage {
               inherit returnShellEnv;
@@ -86,6 +101,9 @@
                   final.callCabal2nix "bounds" bounds { };
                 byte-types =
                   final.callCabal2nix "byte-types" byte-types { };
+                monad-callstack = final.callCabal2nix "monad-callstack"
+                  "${monad-effects}/monad-callstack"
+                  { };
                 smart-math =
                   final.callCabal2nix "smart-math" smart-math { };
                 time-conv =

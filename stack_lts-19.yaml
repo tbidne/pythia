@@ -1,4 +1,4 @@
-resolver: nightly-2022-10-11
+resolver: lts-19.28
 packages:
 - .
 ghc-options:
@@ -30,4 +30,4 @@ flags:
     quickcheck: false
 nix:
   shell-file: nix/stack.nix
-  nix-shell-options: [--argstr, stack-vers, nightly]
+  nix-shell-options: [--argstr, stack-vers, lts-19]
