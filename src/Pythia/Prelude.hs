@@ -25,14 +25,7 @@ import Control.DeepSeq as X (NFData)
 import Control.Exception.Safe as X
   ( Exception (..),
     SomeException,
-    catch,
-    catchAny,
-    catchAnyDeep,
-    handle,
-    handleAny,
     throwIO,
-    try,
-    tryAny,
   )
 import Control.Monad as X
   ( Monad (..),
@@ -70,6 +63,12 @@ import Data.Text.Encoding qualified as TextEnc
 import Data.Text.Encoding.Error qualified as TextEncErr
 import Data.Traversable as X (Traversable (..), for)
 import Data.Tuple as X (uncurry)
+import Effects.MonadCallStack as X
+  ( MonadCallStack,
+    checkpointCallStack,
+    throwWithCallStack,
+    try,
+  )
 import GHC.Natural as X (Natural)
 #if MIN_VERSION_base(4, 17, 0)
 import Data.Type.Equality as X (type (~))
@@ -154,7 +153,7 @@ headMaybe (x : _) = Just x
 --
 -- @since 0.1
 throwLeft :: forall e a. Exception e => Either e a -> IO a
-throwLeft = either throwIO pure
+throwLeft = either throwWithCallStack pure
 {-# INLINEABLE throwLeft #-}
 
 -- | @throwMaybe e x@ throws @e@ if @x@ is 'Nothing'.
@@ -168,7 +167,7 @@ throwLeft = either throwIO pure
 --
 -- @since 0.1
 throwMaybe :: forall e a. Exception e => e -> Maybe a -> IO a
-throwMaybe e = maybe (throwIO e) pure
+throwMaybe e = maybe (throwWithCallStack e) pure
 {-# INLINEABLE throwMaybe #-}
 
 -- | 'Text' version of 'show'.
