@@ -22,7 +22,7 @@ main =
     "RUN_FUNCTIONAL"
     ExpectEnvSet
     tests
-    (putStrLn "*** Functional tests disabled ***")
+    (putStrLn "*** Functional tests disabled. Enable with RUN_FUNCTIONAL=1. ***")
   where
     tests =
       Tasty.defaultMain $

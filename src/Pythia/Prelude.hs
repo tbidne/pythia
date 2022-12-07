@@ -144,26 +144,12 @@ headMaybe (x : _) = Just x
 
 -- | Throws 'Left'.
 --
--- ==== __Examples__
---
--- >>> throwLeft (Left @AnException @() AnException)
--- *** Exception: AnException
---
--- >>> throwLeft (Right @AnException @() ())
---
 -- @since 0.1
 throwLeft :: forall e a. Exception e => Either e a -> IO a
 throwLeft = either throwWithCallStack pure
 {-# INLINEABLE throwLeft #-}
 
 -- | @throwMaybe e x@ throws @e@ if @x@ is 'Nothing'.
---
--- ==== __Examples__
---
--- >>> throwMaybe AnException Nothing
--- *** Exception: AnException
---
--- >>> throwMaybe AnException (Just ())
 --
 -- @since 0.1
 throwMaybe :: forall e a. Exception e => e -> Maybe a -> IO a

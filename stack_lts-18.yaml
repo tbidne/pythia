@@ -8,6 +8,7 @@ ghc-options:
     -Wmissing-home-modules -Wmissing-export-lists -Wpartial-fields
     -Wredundant-constraints -Wunused-packages -Wmissing-deriving-strategies
 extra-deps:
+- annotated-exception-0.2.0.4@sha256:3d499515d64d64ecc1a43a8ebbc70b24020e1ed2cbf8726039d282d87d8cb0ed,1785
 - doctest-parallel-0.2.5@sha256:7cbd37fc2e858e33fe68989dc950685c5db83719ad3fc21b452e3b0abb98e4bd,5858
 - env-guard-0.2@sha256:59410eed9b9ddbd115760a59c7170927320d8612e414701d323a0c8985c97523,1251
 - optics-core-0.4.1@sha256:b163d1a8f392536c645cbd728c3e29d9f35864b25b1e3cef3a29806ee8a21c6b,5545
