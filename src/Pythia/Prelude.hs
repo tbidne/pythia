@@ -65,7 +65,7 @@ import Data.Traversable as X (Traversable (..), for)
 import Data.Tuple as X (uncurry)
 import Effects.MonadCallStack as X
   ( MonadCallStack,
-    checkpointCallStack,
+    addCallStack,
     throwWithCallStack,
     try,
   )

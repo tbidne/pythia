@@ -17,13 +17,13 @@ extra-deps:
 - git: https://github.com/tbidne/byte-types.git
   commit: be3e764d76c530fd3641c133ed2d53adfc8f046d
 - git: https://github.com/tbidne/monad-effects.git
-  commit: b3d1b6b414d9a0561da5ed529a9ff663a0345270
+  commit: 3fddc571755e7b01a0c665058e9e0503b5c07250
   subdirs:
   - monad-callstack
 - git: https://github.com/tbidne/smart-math.git
   commit: e88d85948eb7de24ebb567ca10e06257fc5dbd49
 - git: https://github.com/tbidne/time-conv.git
-  commit: e5c541fabd9fb5b35ad578634843492c6a8b3871
+  commit: 147a0b9f98e8bf558735cf49c63071564d11681f
 flags:
   refined:
     aeson: false
