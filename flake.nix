@@ -38,6 +38,7 @@
 
       inputs.algebra-simple.follows = "algebra-simple";
       inputs.bounds.follows = "bounds";
+      inputs.smart-math.follows = "smart-math";
     };
     smart-math = {
       url = "github:tbidne/smart-math";

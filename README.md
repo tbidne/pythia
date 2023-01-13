@@ -8,7 +8,6 @@
 
 [![nix](https://img.shields.io/github/workflow/status/tbidne/pythia/nix/main?label=nix&logo=nixos&logoColor=85c5e7&labelColor=2f353c)](https://github.com/tbidne/pythia/actions/workflows/nix.yaml)
 [![cabal](https://img.shields.io/github/workflow/status/tbidne/pythia/cabal/main?label=cabal&labelColor=2f353c)](https://github.com/tbidne/pythia/actions/workflows/cabal.yaml)
-[![stack](https://img.shields.io/github/workflow/status/tbidne/pythia/stack/main?label=stack&logoColor=white&labelColor=2f353c)](https://github.com/tbidne/pythia/actions/workflows/stack.yaml)
 [![style](https://img.shields.io/github/workflow/status/tbidne/pythia/style/main?label=style&logoColor=white&labelColor=2f353c)](https://github.com/tbidne/pythia/actions/workflows/style.yaml)
 
 </div>

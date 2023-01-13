@@ -134,14 +134,17 @@
         ],
         "nixpkgs": [
           "nixpkgs"
+        ],
+        "smart-math": [
+          "smart-math"
         ]
       },
       "locked": {
-        "lastModified": 1670798210,
-        "narHash": "sha256-c3gMbOFAtqXfWdFXTUZ1qkSEIFyA5O/4jl55UPznrp0=",
+        "lastModified": 1673575733,
+        "narHash": "sha256-UzpJfYeQC299Ol7pq5sj+znfxGXhwG1i8mJLFZsp8xg=",
         "owner": "tbidne",
         "repo": "monad-effects",
-        "rev": "3fddc571755e7b01a0c665058e9e0503b5c07250",
+        "rev": "dd9598e5f8508e02cf68c193b881417600bcc700",
         "type": "github"
       },
       "original": {
@@ -245,11 +248,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1670801745,
-        "narHash": "sha256-PAWb/c1l6wFc7UibMyR3rOmryoR5px3VYTYsrb3lY5U=",
+        "lastModified": 1673603246,
+        "narHash": "sha256-tKOyoVW6F4bqSAGFh56Y7TbetYWdGQ9tfoRL6IqBx8A=",
         "owner": "tbidne",
         "repo": "time-conv",
-        "rev": "147a0b9f98e8bf558735cf49c63071564d11681f",
+        "rev": "cce31c6669a4b335d1bf46cc6c3954a4a40c7b26",
         "type": "github"
       },
       "original": {

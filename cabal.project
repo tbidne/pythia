@@ -31,7 +31,7 @@ source-repository-package
 source-repository-package
     type: git
     location: https://github.com/tbidne/monad-effects.git
-    tag: 3fddc571755e7b01a0c665058e9e0503b5c07250
+    tag: dd9598e5f8508e02cf68c193b881417600bcc700
     subdir:
         monad-callstack
 
@@ -43,4 +43,4 @@ source-repository-package
 source-repository-package
     type: git
     location: https://github.com/tbidne/time-conv.git
-    tag: 147a0b9f98e8bf558735cf49c63071564d11681f
+    tag: cce31c6669a4b335d1bf46cc6c3954a4a40c7b26
