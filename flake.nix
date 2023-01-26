@@ -117,6 +117,9 @@
                 monad-stm = final.callCabal2nix "monad-stm"
                   "${monad-effects}/monad-stm"
                   { };
+                monad-typed-process = final.callCabal2nix "monad-typed-process"
+                  "${monad-effects}/monad-typed-process"
+                  { };
                 smart-math =
                   final.callCabal2nix "smart-math" smart-math { };
                 time-conv =
