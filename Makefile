@@ -69,7 +69,7 @@ haddock:
 	cabal haddock --haddock-hyperlink-source --haddock-quickjump ;\
 	mkdir -p docs/ ;\
 	find docs/ -type f | xargs -I % sh -c "rm -r %" ;\
-	cp -r dist-newstyle/build/x86_64-linux/ghc-9.2.4/pythia-0.1/noopt/doc/html/pythia/* docs/
+	cp -r dist-newstyle/build/x86_64-linux/ghc-9.2.5/pythia-0.1/noopt/doc/html/pythia/* docs/
 
 haddockc:
 # the skipped modules are for reexports that either don't have haddocks or ci can't find them.
