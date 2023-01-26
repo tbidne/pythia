@@ -20,6 +20,7 @@ where
 
 import Data.ByteString.Lazy qualified as LBS
 import Data.Text qualified as T
+import Effects.System.Process qualified as TP
 import GHC.IO.Exception (ExitCode (..))
 import Pythia.Control.Exception
   ( CommandException (..),
@@ -29,7 +30,6 @@ import Pythia.Control.Exception
   )
 import Pythia.Data.Command (Command (..))
 import Pythia.Prelude
-import System.Process.Typed qualified as TP
 
 -- | Type for running a "simple" shell command given by 'Command'.
 -- The 'parser' is used to parse the result.
@@ -75,7 +75,7 @@ runSimple simple = do
   supported <- simple ^. #isSupported
   if supported
     then runCommand command >>= parseAndThrow
-    else throwWithCallStack $ MkNotSupportedException (command ^. #unCommand)
+    else throwWithCS $ MkNotSupportedException (command ^. #unCommand)
   where
     command = simple ^. #command
     parseAndThrow = throwLeft . (simple ^. #parser)
@@ -97,7 +97,7 @@ runCommand command = do
   case exitCode of
     ExitSuccess -> pure $ decodeUtf8Lenient (LBS.toStrict out)
     ExitFailure _ ->
-      throwWithCallStack $ MkCommandException command $ T.pack $ show $ LBS.toStrict err
+      throwWithCS $ MkCommandException command $ T.pack $ show $ LBS.toStrict err
   where
     cmdStr = command ^. #unCommand
 {-# INLINEABLE runCommand #-}
@@ -144,13 +144,13 @@ tryIOs :: [IO result] -> IO result
 tryIOs actions =
   foldr tryIO (pure mempty) actions >>= \case
     Success result -> pure result
-    Errs errs -> throwWithCallStack $ MkSomeExceptions errs
-    NoRuns -> throwWithCallStack MkNoActionsRunException
+    Errs errs -> throwWithCS $ MkSomeExceptions errs
+    NoRuns -> throwWithCS MkNoActionsRunException
 {-# INLINEABLE tryIOs #-}
 
 tryIO :: IO result -> IO (ActionsResult result) -> IO (ActionsResult result)
 tryIO action acc =
-  try @SomeException action >>= \case
+  tryAny action >>= \case
     Right result -> pure $ Success result
     Left ex -> appendEx ex <$> acc
 {-# INLINEABLE tryIO #-}

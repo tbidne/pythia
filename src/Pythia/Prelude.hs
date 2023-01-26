@@ -4,11 +4,7 @@
 --
 -- @since 0.1
 module Pythia.Prelude
-  ( -- * File
-    readFileUtf8Lenient,
-    decodeUtf8Lenient,
-
-    -- * Misc
+  ( -- * Misc
     headMaybe,
     throwLeft,
     throwMaybe,
@@ -40,7 +36,6 @@ import Control.Monad as X
 import Data.Bifunctor as X (Bifunctor (..))
 import Data.Bool as X (Bool (..), not, otherwise, (&&), (||))
 import Data.ByteString as X (ByteString)
-import Data.ByteString qualified as BS
 import Data.Char as X (Char)
 import Data.Either as X (Either (..), either)
 import Data.Eq as X (Eq (..))
@@ -59,15 +54,16 @@ import Data.Semigroup as X (Semigroup (..))
 import Data.String as X (IsString (..), String)
 import Data.Text as X (Text)
 import Data.Text qualified as T
-import Data.Text.Encoding qualified as TextEnc
-import Data.Text.Encoding.Error qualified as TextEncErr
 import Data.Traversable as X (Traversable (..), for)
 import Data.Tuple as X (uncurry)
-import Effects.MonadCallStack as X
-  ( MonadCallStack,
-    addCallStack,
-    throwWithCallStack,
-    try,
+import Effects.Exception as X
+  ( addCS,
+    throwWithCS,
+    tryAny,
+  )
+import Effects.FileSystem.FileReader as X
+  ( decodeUtf8Lenient,
+    readFileUtf8Lenient,
   )
 import GHC.Natural as X (Natural)
 #if MIN_VERSION_base(4, 17, 0)
@@ -112,20 +108,6 @@ import System.IO as X (FilePath, IO, print, putStrLn)
 -- >>> :set -XDeriveAnyClass
 -- >>> data AnException = AnException deriving (Exception, Show)
 
--- | Strictly reads a file and leniently converts the contents to UTF8.
---
--- @since 0.1
-readFileUtf8Lenient :: FilePath -> IO Text
-readFileUtf8Lenient = fmap decodeUtf8Lenient . BS.readFile
-{-# INLINEABLE readFileUtf8Lenient #-}
-
--- | Lenient UTF8 decode.
---
--- @since 0.1
-decodeUtf8Lenient :: ByteString -> Text
-decodeUtf8Lenient = TextEnc.decodeUtf8With TextEncErr.lenientDecode
-{-# INLINEABLE decodeUtf8Lenient #-}
-
 -- | Total version of 'Prelude.head'.
 --
 -- ==== __Examples__
@@ -146,14 +128,14 @@ headMaybe (x : _) = Just x
 --
 -- @since 0.1
 throwLeft :: forall e a. Exception e => Either e a -> IO a
-throwLeft = either throwWithCallStack pure
+throwLeft = either throwWithCS pure
 {-# INLINEABLE throwLeft #-}
 
 -- | @throwMaybe e x@ throws @e@ if @x@ is 'Nothing'.
 --
 -- @since 0.1
 throwMaybe :: forall e a. Exception e => e -> Maybe a -> IO a
-throwMaybe e = maybe (throwWithCallStack e) pure
+throwMaybe e = maybe (throwWithCS e) pure
 {-# INLINEABLE throwMaybe #-}
 
 -- | 'Text' version of 'show'.

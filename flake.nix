@@ -105,8 +105,17 @@
                   final.callCabal2nix "bounds" bounds { };
                 byte-types =
                   final.callCabal2nix "byte-types" byte-types { };
-                monad-callstack = final.callCabal2nix "monad-callstack"
-                  "${monad-effects}/monad-callstack"
+                monad-exceptions = final.callCabal2nix "monad-exceptions"
+                  "${monad-effects}/monad-exceptions"
+                  { };
+                monad-fs = final.callCabal2nix "monad-fs"
+                  "${monad-effects}/monad-fs"
+                  { };
+                monad-process = final.callCabal2nix "monad-process"
+                  "${monad-effects}/monad-process"
+                  { };
+                monad-stm = final.callCabal2nix "monad-stm"
+                  "${monad-effects}/monad-stm"
                   { };
                 smart-math =
                   final.callCabal2nix "smart-math" smart-math { };
