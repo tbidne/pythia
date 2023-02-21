@@ -29,7 +29,7 @@ newtype Supremum a = MkSupremum a
     )
 
 -- | @since 0.1
-instance Ord a => Semigroup (Supremum a) where
+instance (Ord a) => Semigroup (Supremum a) where
   (<>) = max
   {-# INLINEABLE (<>) #-}
 

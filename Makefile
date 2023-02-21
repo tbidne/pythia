@@ -48,22 +48,22 @@ ci: lint format
 # formatting
 
 formatc:
-	nix run github:tbidne/nix-hs-tools/0.7#nixpkgs-fmt -- --check ;\
-	nix run github:tbidne/nix-hs-tools/0.7#cabal-fmt -- --check ;\
-	nix run github:tbidne/nix-hs-tools/0.7#ormolu -- --mode check
+	nix run github:tbidne/nix-hs-tools/0.8#nixpkgs-fmt -- --check ;\
+	nix run github:tbidne/nix-hs-tools/0.8#cabal-fmt -- --check ;\
+	nix run github:tbidne/nix-hs-tools/0.8#ormolu -- --mode check
 
 format:
-	nix run github:tbidne/nix-hs-tools/0.7#nixpkgs-fmt ;\
-	nix run github:tbidne/nix-hs-tools/0.7#cabal-fmt -- --inplace ;\
-	nix run github:tbidne/nix-hs-tools/0.7#ormolu -- --mode inplace
+	nix run github:tbidne/nix-hs-tools/0.8#nixpkgs-fmt ;\
+	nix run github:tbidne/nix-hs-tools/0.8#cabal-fmt -- --inplace ;\
+	nix run github:tbidne/nix-hs-tools/0.8#ormolu -- --mode inplace
 
 # linting
 
 lint:
-	nix run github:tbidne/nix-hs-tools/0.7#hlint -- --refact
+	nix run github:tbidne/nix-hs-tools/0.8#hlint -- --refact
 
 lintc:
-	nix run github:tbidne/nix-hs-tools/0.7#hlint
+	nix run github:tbidne/nix-hs-tools/0.8#hlint
 
 haddock:
 	cabal haddock --haddock-hyperlink-source --haddock-quickjump ;\

@@ -212,7 +212,7 @@ parseIpv6s :: MParser [IpAddress 'Ipv6]
 parseIpv6s = parseAllIpInfo "6" MkIpAddress
 {-# INLINEABLE parseIpv6s #-}
 
-parseAllIpInfo :: Predicate p Text => Text -> (Refined p Text -> a) -> MParser [a]
+parseAllIpInfo :: (Predicate p Text) => Text -> (Refined p Text -> a) -> MParser [a]
 parseAllIpInfo p cons = do
   ipvs <- parseIps p cons
   parseGateway p
@@ -222,7 +222,7 @@ parseAllIpInfo p cons = do
   pure ipvs
 {-# INLINEABLE parseAllIpInfo #-}
 
-parseIps :: Predicate p Text => Text -> (Refined p Text -> a) -> MParser [a]
+parseIps :: (Predicate p Text) => Text -> (Refined p Text -> a) -> MParser [a]
 parseIps p cons = do
   addrs <- parseAddresses p
   let xs = traverse R.refine addrs

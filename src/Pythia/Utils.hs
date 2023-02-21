@@ -79,7 +79,7 @@ foldAlt f = foldr ((<|>) . f) empty
 -- [1,2,3]
 --
 -- @since 0.1
-mAlt :: Alternative f => Maybe (f a) -> f a
+mAlt :: (Alternative f) => Maybe (f a) -> f a
 mAlt = fromMaybe empty
 {-# INLINEABLE mAlt #-}
 
@@ -158,6 +158,6 @@ exeSupported exeName = May.isJust <$> Dir.findExecutable exeName
 -- | Converts a type with a 'Pretty' instance to 'Text'.
 --
 -- @since 0.1
-prettyToText :: Pretty a => a -> Text
+prettyToText :: (Pretty a) => a -> Text
 prettyToText = PrettyText.renderStrict . Pretty.layoutCompact . pretty
 {-# INLINEABLE prettyToText #-}

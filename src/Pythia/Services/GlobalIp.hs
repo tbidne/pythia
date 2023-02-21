@@ -147,13 +147,13 @@ digDefaults = (ipv4s, ipv6s)
     ipv6s = []
 {-# INLINEABLE digDefaults #-}
 
-getIpFromSources :: Predicate (IpRefinement a) Text => [UrlSource a] -> IO (IpAddress a)
+getIpFromSources :: (Predicate (IpRefinement a) Text) => [UrlSource a] -> IO (IpAddress a)
 getIpFromSources = fmap MkIpAddress . getIp (#unUrlSource % re #unCommand)
 {-# INLINEABLE getIpFromSources #-}
 
 getIp ::
   forall p a.
-  Predicate p Text =>
+  (Predicate p Text) =>
   Iso' a Command ->
   [a] ->
   IO (Refined p Text)

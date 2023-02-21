@@ -127,21 +127,21 @@ headMaybe (x : _) = Just x
 -- | Throws 'Left'.
 --
 -- @since 0.1
-throwLeft :: forall e a. Exception e => Either e a -> IO a
+throwLeft :: forall e a. (Exception e) => Either e a -> IO a
 throwLeft = either throwWithCS pure
 {-# INLINEABLE throwLeft #-}
 
 -- | @throwMaybe e x@ throws @e@ if @x@ is 'Nothing'.
 --
 -- @since 0.1
-throwMaybe :: forall e a. Exception e => e -> Maybe a -> IO a
+throwMaybe :: forall e a. (Exception e) => e -> Maybe a -> IO a
 throwMaybe e = maybe (throwWithCS e) pure
 {-# INLINEABLE throwMaybe #-}
 
 -- | 'Text' version of 'show'.
 --
 -- @since 0.1
-showt :: Show a => a -> Text
+showt :: (Show a) => a -> Text
 showt = T.pack . show
 {-# INLINEABLE showt #-}
 

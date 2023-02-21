@@ -70,7 +70,7 @@ instance Bifunctor SimpleShell where
 -- error is encountered.
 --
 -- @since 0.1
-runSimple :: Exception err => SimpleShell err result -> IO result
+runSimple :: (Exception err) => SimpleShell err result -> IO result
 runSimple simple = do
   supported <- simple ^. #isSupported
   if supported

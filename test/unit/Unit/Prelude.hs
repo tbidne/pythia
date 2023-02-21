@@ -15,5 +15,5 @@ import Test.Tasty.HUnit as X (assertBool, assertFailure, testCase, (@=?))
 -- | Constructs an 'IpAddress', calls error if the refinement fails.
 --
 -- @since 0.1
-unsafeIpAddress :: Predicate (IpRefinement a) Text => Text -> IpAddress a
+unsafeIpAddress :: (Predicate (IpRefinement a) Text) => Text -> IpAddress a
 unsafeIpAddress = MkIpAddress . R.unsafeRefine

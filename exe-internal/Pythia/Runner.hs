@@ -162,10 +162,10 @@ handleTime handler mformat = \case
   TimezoneDestTZ tz -> Pythia.queryTimeZone tz >>= handler . formatTime
   where
     format = fromMaybe Format.rfc822DateFormat mformat
-    formatTime :: FormatTime t => t -> Text
+    formatTime :: (FormatTime t) => t -> Text
     formatTime = T.pack . Format.formatTime Format.defaultTimeLocale format
 
-prettyPrint :: Pretty a => (Text -> IO b) -> a -> IO b
+prettyPrint :: (Pretty a) => (Text -> IO b) -> a -> IO b
 prettyPrint handler = handler . U.prettyToText
 
 docToText :: Doc ann -> Text

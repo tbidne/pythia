@@ -148,13 +148,13 @@ data GlobalIpConfig a = MkGlobalIpConfig
 makeFieldLabelsNoPrefix ''GlobalIpConfig
 
 -- | @since 0.1
-instance Semigroup a => Semigroup (GlobalIpConfig a) where
+instance (Semigroup a) => Semigroup (GlobalIpConfig a) where
   MkGlobalIpConfig a s <> MkGlobalIpConfig a' s' =
     MkGlobalIpConfig (a <> a') (s <> s')
   {-# INLINEABLE (<>) #-}
 
 -- | @since 0.1
-instance Monoid a => Monoid (GlobalIpConfig a) where
+instance (Monoid a) => Monoid (GlobalIpConfig a) where
   mempty = MkGlobalIpConfig mempty mempty
   {-# INLINEABLE mempty #-}
 
