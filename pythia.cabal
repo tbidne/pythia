@@ -208,7 +208,7 @@ test-suite doctest
   main-is:          Main.hs
   build-depends:
     , base
-    , doctest-parallel  ^>=0.2
+    , doctest    >=0.16.3 && <0.22
     , env-guard
 
   hs-source-dirs:   test/doctest
