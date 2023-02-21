@@ -18,11 +18,6 @@ where
 
 import Control.Applicative as X (Alternative (..), Applicative (..))
 import Control.DeepSeq as X (NFData)
-import Control.Exception.Safe as X
-  ( Exception (..),
-    SomeException,
-    throwIO,
-  )
 import Control.Monad as X
   ( Monad (..),
     join,
@@ -57,8 +52,11 @@ import Data.Text qualified as T
 import Data.Traversable as X (Traversable (..), for)
 import Data.Tuple as X (uncurry)
 import Effects.Exception as X
-  ( addCS,
-    throwWithCS,
+  ( Exception (..),
+    SomeException,
+    addCS,
+    throwCS,
+    throwM,
     tryAny,
   )
 import Effects.FileSystem.FileReader as X
@@ -128,14 +126,14 @@ headMaybe (x : _) = Just x
 --
 -- @since 0.1
 throwLeft :: forall e a. (Exception e) => Either e a -> IO a
-throwLeft = either throwWithCS pure
+throwLeft = either throwCS pure
 {-# INLINEABLE throwLeft #-}
 
 -- | @throwMaybe e x@ throws @e@ if @x@ is 'Nothing'.
 --
 -- @since 0.1
 throwMaybe :: forall e a. (Exception e) => e -> Maybe a -> IO a
-throwMaybe e = maybe (throwWithCS e) pure
+throwMaybe e = maybe (throwCS e) pure
 {-# INLINEABLE throwMaybe #-}
 
 -- | 'Text' version of 'show'.

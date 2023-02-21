@@ -109,6 +109,18 @@ parseBattery txt = first mkErr parseResult
 type MParser :: Type -> Type
 type MParser = Parsec Void Text
 
+-- FIXME: Received an error with the text:
+--
+--     Battery 0: Unknown, 0%, rate information unavailable
+--
+-- The acpi output was:
+--
+--    Battery 0: Unknown, 0%, rate information unavailable
+--    Battery 1: Discharging, 71%, 02:22:21 remaining
+--
+-- So we have two things to fix. One, unknown status is possible. Two,
+-- if we receive more than 1, take the first non-unknown.
+
 mparseBattery :: MParser Battery
 mparseBattery = do
   MPC.string "Battery"

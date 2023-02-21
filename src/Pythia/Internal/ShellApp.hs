@@ -75,7 +75,7 @@ runSimple simple = do
   supported <- simple ^. #isSupported
   if supported
     then runCommand command >>= parseAndThrow
-    else throwWithCS $ MkNotSupportedException (command ^. #unCommand)
+    else throwCS $ MkNotSupportedException (command ^. #unCommand)
   where
     command = simple ^. #command
     parseAndThrow = throwLeft . (simple ^. #parser)
@@ -97,7 +97,7 @@ runCommand command = do
   case exitCode of
     ExitSuccess -> pure $ decodeUtf8Lenient (LBS.toStrict out)
     ExitFailure _ ->
-      throwWithCS $ MkCommandException command $ T.pack $ show $ LBS.toStrict err
+      throwCS $ MkCommandException command $ T.pack $ show $ LBS.toStrict err
   where
     cmdStr = command ^. #unCommand
 {-# INLINEABLE runCommand #-}
@@ -144,8 +144,8 @@ tryIOs :: [IO result] -> IO result
 tryIOs actions =
   foldr tryIO (pure mempty) actions >>= \case
     Success result -> pure result
-    Errs errs -> throwWithCS $ MkSomeExceptions errs
-    NoRuns -> throwWithCS MkNoActionsRunException
+    Errs errs -> throwCS $ MkSomeExceptions errs
+    NoRuns -> throwCS MkNoActionsRunException
 {-# INLINEABLE tryIOs #-}
 
 tryIO :: IO result -> IO (ActionsResult result) -> IO (ActionsResult result)

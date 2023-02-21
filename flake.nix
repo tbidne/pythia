@@ -58,7 +58,7 @@
     };
   };
   outputs =
-    { algebra-simple
+    inputs@{ algebra-simple
     , bounds
     , byte-types
     , flake-compat
@@ -69,7 +69,7 @@
     , smart-math
     , time-conv
     }:
-    flake-parts.lib.mkFlake { inherit self; } {
+    flake-parts.lib.mkFlake { inherit inputs; } {
       perSystem = { pkgs, ... }:
         let
           buildTools = c: with c; [
@@ -89,7 +89,7 @@
                 ];
             }))
           ];
-          ghc-version = "ghc925";
+          ghc-version = "ghc944";
           compiler = pkgs.haskell.packages."${ghc-version}".override {
             overrides = final: prev: {
               # https://github.com/ddssff/listlike/issues/23
@@ -119,8 +119,8 @@
                 monad-fs = final.callCabal2nix "monad-fs"
                   "${monad-effects}/monad-fs"
                   { };
-                monad-process = final.callCabal2nix "monad-process"
-                  "${monad-effects}/monad-process"
+                monad-ioref = final.callCabal2nix "monad-ioref"
+                  "${monad-effects}/monad-ioref"
                   { };
                 monad-stm = final.callCabal2nix "monad-stm"
                   "${monad-effects}/monad-stm"
@@ -128,8 +128,10 @@
                 monad-typed-process = final.callCabal2nix "monad-typed-process"
                   "${monad-effects}/monad-typed-process"
                   { };
+                package-version = hlib.doJailbreak prev.package-version;
                 smart-math =
                   final.callCabal2nix "smart-math" smart-math { };
+                tasty-hedgehog = prev.tasty-hedgehog_1_4_0_0;
                 time-conv =
                   final.callCabal2nix "time-conv" time-conv { };
               };
