@@ -78,8 +78,16 @@
             pkgs.zlib
           ];
           devTools = c: with c; [
-            ghcid
-            haskell-language-server
+            (pkgs.haskell.lib.dontCheck ghcid)
+            (hlib.overrideCabal haskell-language-server (old: {
+              configureFlags = (old.configureFlags or [ ]) ++
+                [
+                  "-f -brittany"
+                  "-f -floskell"
+                  "-f -fourmolu"
+                  "-f -stylishhaskell"
+                ];
+            }))
           ];
           ghc-version = "ghc925";
           compiler = pkgs.haskell.packages."${ghc-version}".override {
@@ -89,7 +97,7 @@
             };
           };
           hlib = pkgs.haskell.lib;
-          mkPkg = returnShellEnv: withDevTools:
+          mkPkg = returnShellEnv:
             compiler.developPackage {
               inherit returnShellEnv;
               name = "pythia";
@@ -97,7 +105,7 @@
               modifier = drv:
                 pkgs.haskell.lib.addBuildTools drv
                   (buildTools compiler ++
-                    (if withDevTools then devTools compiler else [ ]));
+                    (if returnShellEnv then devTools compiler else [ ]));
               overrides = final: prev: with compiler; {
                 algebra-simple =
                   final.callCabal2nix "algebra-simple" algebra-simple { };
@@ -128,9 +136,8 @@
             };
         in
         {
-          packages.default = mkPkg false false;
-          devShells.default = mkPkg true true;
-          devShells.ci = mkPkg true false;
+          packages.default = mkPkg false;
+          devShells.default = mkPkg true;
         };
       systems = [
         "x86_64-linux"
