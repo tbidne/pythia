@@ -100,26 +100,19 @@ supported = U.exeSupported "acpi"
 --
 -- @since 0.1
 parseBattery :: Text -> Either AcpiParseError Battery
-parseBattery txt = first mkErr parseResult
+parseBattery txt = U.foldMap1 parseLine "<empty input>" tlines
   where
-    parseResult = MP.parse mparseBattery "Acpi.hs" txt
-    mkErr err = MkAcpiParseError $ T.pack $ MPE.errorBundlePretty err
+    tlines = T.lines txt
 {-# INLINEABLE parseBattery #-}
+
+parseLine :: Text -> Either AcpiParseError Battery
+parseLine = first mkErr . MP.parse mparseBattery "Acpi.hs"
+  where
+    mkErr = MkAcpiParseError . T.pack . MPE.errorBundlePretty
+{-# INLINEABLE parseLine #-}
 
 type MParser :: Type -> Type
 type MParser = Parsec Void Text
-
--- FIXME: Received an error with the text:
---
---     Battery 0: Unknown, 0%, rate information unavailable
---
--- The acpi output was:
---
---    Battery 0: Unknown, 0%, rate information unavailable
---    Battery 1: Discharging, 71%, 02:22:21 remaining
---
--- So we have two things to fix. One, unknown status is possible. Two,
--- if we receive more than 1, take the first non-unknown.
 
 mparseBattery :: MParser Battery
 mparseBattery = do

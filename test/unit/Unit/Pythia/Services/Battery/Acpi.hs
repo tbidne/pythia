@@ -17,7 +17,10 @@ tests =
       parseDischarging,
       parseFull,
       parsePending,
-      unknownStatusFails
+      unknownStatusFails,
+      parseFirst,
+      parseSecond,
+      parseMiddle
     ]
 
 parseCharging :: TestTree
@@ -36,6 +39,43 @@ unknownStatusFails :: TestTree
 unknownStatusFails = testCase "Unknown status fails" $ do
   let result = Acpi.parseBattery (battery 80 "bad status")
   assertBool "Acpi unknown status should be Left" (isLeft result)
+
+parseFirst :: TestTree
+parseFirst = testCase "Parses second battery" $ do
+  let result = Acpi.parseBattery batteryTxt
+  Just Discharging @=? result ^? _Right % #status
+  Just (unsafeLRInterval 73) @=? result ^? _Right % #percentage % #unPercentage
+  where
+    batteryTxt =
+      T.unlines
+        [ "Battery 1: Discharging, 73%, 02:38:37 remaining",
+          "Battery 0: Unknown, 0%, rate information unavailable"
+        ]
+
+parseSecond :: TestTree
+parseSecond = testCase "Parses second battery" $ do
+  let result = Acpi.parseBattery batteryTxt
+  Just Discharging @=? result ^? _Right % #status
+  Just (unsafeLRInterval 73) @=? result ^? _Right % #percentage % #unPercentage
+  where
+    batteryTxt =
+      T.unlines
+        [ "Battery 0: Unknown, 0%, rate information unavailable",
+          "Battery 1: Discharging, 73%, 02:38:37 remaining"
+        ]
+
+parseMiddle :: TestTree
+parseMiddle = testCase "Parses second battery" $ do
+  let result = Acpi.parseBattery batteryTxt
+  Just Discharging @=? result ^? _Right % #status
+  Just (unsafeLRInterval 73) @=? result ^? _Right % #percentage % #unPercentage
+  where
+    batteryTxt =
+      T.unlines
+        [ "Battery 0: Unknown, 0%, rate information unavailable",
+          "Battery 1: Discharging, 73%, 02:38:37 remaining",
+          "Battery 0: Unknown, 0%, rate information unavailable"
+        ]
 
 parseX :: Word8 -> (Text, BatteryStatus) -> TestTree
 parseX lvl (csTxt, cs) = testCase desc $ do

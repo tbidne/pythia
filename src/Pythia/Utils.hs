@@ -6,6 +6,7 @@
 module Pythia.Utils
   ( -- * Folding
     foldAlt,
+    foldMap1,
     mAlt,
 
     -- * Parsing
@@ -66,6 +67,15 @@ import Text.Megaparsec.Char qualified as MPC
 foldAlt :: (Foldable t, Alternative f) => (a -> f b) -> t a -> f b
 foldAlt f = foldr ((<|>) . f) empty
 {-# INLINEABLE foldAlt #-}
+
+-- | Relaxes 'foldMap'\'s 'Monoid' constraint to 'Semigroup'. Requires a
+-- starting value. This will have to do until semigroupoids' Foldable1 is
+-- in base.
+--
+-- @since 0.1
+foldMap1 :: (Foldable f, Semigroup s) => (a -> s) -> a -> f a -> s
+foldMap1 f x xs = foldr (\b g y -> f y <> g b) f xs x
+{-# INLINEABLE foldMap1 #-}
 
 -- | Convenience function for mapping a 'Maybe' to its underlying
 -- 'Alternative'.
