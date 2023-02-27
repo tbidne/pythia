@@ -31,13 +31,13 @@ source-repository-package
 source-repository-package
     type: git
     location: https://github.com/tbidne/monad-effects.git
-    tag: be76809b9ec7e1fba4e003c1c8784f1d3382d4d2
+    tag: fdae8d71d67e490aeeaaf9207ffcad8e3914189d
     subdir:
-        monad-exceptions
-        monad-fs
-        monad-ioref
-        monad-stm
-        monad-typed-process
+        effects-exceptions
+        effects-fs
+        effects-ioref
+        effects-stm
+        effects-typed-process
 
 source-repository-package
     type: git
@@ -47,4 +47,4 @@ source-repository-package
 source-repository-package
     type: git
     location: https://github.com/tbidne/time-conv.git
-    tag: b4628f6fe2f475ac57174a01b52ab15638a1329d
+    tag: 0b3aec465a90e15a61fbf54c42220c45f24d5e61
