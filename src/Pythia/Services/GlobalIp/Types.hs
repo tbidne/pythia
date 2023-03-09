@@ -127,9 +127,6 @@ instance
 
 -- | Complete configuration for querying global IP addresses.
 --
--- >>> mempty @(GlobalIpConfig [UrlSource Ipv4])
--- MkGlobalIpConfig {app = GlobalIpAppCurl, sources = []}
---
 -- @since 0.1
 type GlobalIpConfig :: Type -> Type
 data GlobalIpConfig a = MkGlobalIpConfig

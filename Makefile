@@ -1,5 +1,5 @@
 .PHONY: build clean repl watch ;\
-	test unit integration functional ;\
+	doctest test ;\
 	cic ci formatc format lint lintc ;\
 	haddock hackage
 
@@ -18,12 +18,10 @@ build:
 clean:
 	cabal clean
 
-test:
-	if [ -z "$(ARGS)" ]; then \
-		RUN_DOCTEST=1 RUN_FUNCTIONAL=1 cabal test; \
-	else \
-		RUN_DOCTEST=1 RUN_FUNCTIONAL=1 cabal test $(ARGS); \
-	fi
+doctest:
+	cabal build --write-ghc-environment-files=always; \
+	RUN_DOCTEST=1 cabal test doctest; \
+	rm .ghc.environment.*
 
 repl:
 	if [ -z "$(ARGS)" ]; then \
