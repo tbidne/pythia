@@ -1,4 +1,3 @@
-
 {-# LANGUAGE UndecidableInstances #-}
 
 -- | Provides the 'Percentage' type.

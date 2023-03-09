@@ -1,4 +1,3 @@
-
 {-# LANGUAGE UndecidableInstances #-}
 
 -- | This module provides the core types describing the battery.
@@ -24,7 +23,6 @@ module Pythia.Services.Battery.Types
 where
 
 import Pythia.Data.Percentage (Percentage)
-import Pythia.Data.Supremum (Supremum (..))
 import Pythia.Prelude
 import Pythia.Utils (Pretty (..), (<+>))
 
@@ -62,13 +60,6 @@ data BatteryApp
       -- | @since 0.1
       Show
     )
-  deriving
-    ( -- | @since 0.1
-      Monoid,
-      -- | @since 0.1
-      Semigroup
-    )
-    via (Supremum BatteryApp)
   deriving anyclass
     ( -- | @since 0.1.0.0
       NFData

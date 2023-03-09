@@ -1,4 +1,3 @@
-
 {-# LANGUAGE UndecidableInstances #-}
 
 -- | Provides types to be used for querying the global IP addresses.
@@ -21,7 +20,6 @@ module Pythia.Services.GlobalIp.Types
   )
 where
 
-import Pythia.Data.Supremum (Supremum (..))
 import Pythia.Prelude
 import Pythia.Services.Types.Network (IpType (..))
 
@@ -57,13 +55,6 @@ data GlobalIpApp
       -- | @since 0.1
       Show
     )
-  deriving
-    ( -- | @since 0.1
-      Monoid,
-      -- | @since 0.1
-      Semigroup
-    )
-    via (Supremum GlobalIpApp)
   deriving anyclass
     ( -- | @since 0.1
       NFData
@@ -134,9 +125,7 @@ instance
   labelOptic = iso (\(MkUrlSource s) -> s) MkUrlSource
   {-# INLINE labelOptic #-}
 
--- | Complete configuration for querying global IP addresses. The 'Monoid'
--- instance will construct a config that tries all apps and has no extra
--- sources.
+-- | Complete configuration for querying global IP addresses.
 --
 -- >>> mempty @(GlobalIpConfig [UrlSource Ipv4])
 -- MkGlobalIpConfig {app = GlobalIpAppCurl, sources = []}
@@ -185,17 +174,6 @@ instance
   labelOptic = lensVL $ \f (MkGlobalIpConfig _app _sources) ->
     fmap (MkGlobalIpConfig _app) (f _sources)
   {-# INLINE labelOptic #-}
-
--- | @since 0.1
-instance (Semigroup a) => Semigroup (GlobalIpConfig a) where
-  MkGlobalIpConfig a s <> MkGlobalIpConfig a' s' =
-    MkGlobalIpConfig (a <> a') (s <> s')
-  {-# INLINEABLE (<>) #-}
-
--- | @since 0.1
-instance (Monoid a) => Monoid (GlobalIpConfig a) where
-  mempty = MkGlobalIpConfig mempty mempty
-  {-# INLINEABLE mempty #-}
 
 -- | Type alias for 'Ipv4' 'GlobalIpConfig'.
 --

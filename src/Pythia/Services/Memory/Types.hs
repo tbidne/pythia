@@ -1,4 +1,3 @@
-
 {-# LANGUAGE UndecidableInstances #-}
 
 -- | This module provides the core types describing the memory.
@@ -18,7 +17,6 @@ import Data.Bytes.Formatting
     formatSized,
     sizedFormatterUnix,
   )
-import Pythia.Data.Supremum (Supremum (..))
 import Pythia.Prelude
 import Pythia.Utils (Pretty (..), (<+>))
 
@@ -48,13 +46,6 @@ data MemoryApp
       -- | @since 0.1
       Show
     )
-  deriving
-    ( -- | @since 0.1
-      Monoid,
-      -- | @since 0.1
-      Semigroup
-    )
-    via (Supremum MemoryApp)
   deriving anyclass
     ( -- | @since 0.1.0.0
       NFData

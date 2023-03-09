@@ -1,4 +1,3 @@
-
 {-# LANGUAGE UndecidableInstances #-}
 
 -- | Provides common network types.
@@ -284,6 +283,13 @@ newtype IpAddresses a = MkIpAddresses
       -- | @since 0.1
       Show
     )
+  deriving
+    ( -- | @since 0.1
+      Semigroup,
+      -- | @since 0.1
+      Monoid
+    )
+    via [IpAddress a]
   deriving anyclass
     ( -- | @since 0.1
       NFData
@@ -296,16 +302,6 @@ instance
   where
   labelOptic = iso (\(MkIpAddresses a) -> a) MkIpAddresses
   {-# INLINE labelOptic #-}
-
--- | @since 0.1
-instance Semigroup (IpAddresses a) where
-  MkIpAddresses xs <> MkIpAddresses ys = MkIpAddresses (xs <> ys)
-  {-# INLINEABLE (<>) #-}
-
--- | @since 0.1
-instance Monoid (IpAddresses a) where
-  mempty = MkIpAddresses []
-  {-# INLINEABLE mempty #-}
 
 -- | @since 0.1
 instance Pretty (IpAddresses a) where

@@ -1,4 +1,3 @@
-
 {-# LANGUAGE UndecidableInstances #-}
 
 -- | Provides network interface types.
@@ -32,7 +31,6 @@ module Pythia.Services.NetInterface.Types
 where
 
 import Data.Text qualified as T
-import Pythia.Data.Supremum (Supremum (..))
 import Pythia.Prelude
 import Pythia.Services.Types.Network
   ( Device,
@@ -72,13 +70,6 @@ data NetInterfaceApp
       -- | @since 0.1
       Show
     )
-  deriving
-    ( -- | @since 0.1
-      Monoid,
-      -- | @since 0.1
-      Semigroup
-    )
-    via (Supremum NetInterfaceApp)
   deriving anyclass
     ( -- | @since 0.1
       NFData
