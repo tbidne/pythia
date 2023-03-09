@@ -78,13 +78,16 @@ import GHC.Read as X (Read (..))
 import GHC.Real as X (even, floor, fromIntegral, (/))
 import GHC.Show as X (Show (..))
 import Optics.Core as X
-  ( A_Prism,
+  ( A_Lens,
+    A_Prism,
     An_Iso,
     Iso,
     Iso',
     LabelOptic (..),
     Lens',
+    Prism',
     iso,
+    lensVL,
     over,
     prism,
     re,
@@ -99,7 +102,6 @@ import Optics.Core as X
     _Left,
     _Right,
   )
-import Optics.TH as X (makeFieldLabelsNoPrefix, makePrisms)
 import System.IO as X (FilePath, IO, print, putStrLn)
 
 -- $setup

@@ -134,11 +134,11 @@ parseLink :: MParser ()
 parseLink = MPC.space *> MPC.string "link" *> U.takeLine_
 {-# INLINEABLE parseLink #-}
 
-parseIpv4s :: MParser [IpAddress 'Ipv4]
+parseIpv4s :: MParser [IpAddress Ipv4]
 parseIpv4s = parseIps "inet " MkIpAddress
 {-# INLINEABLE parseIpv4s #-}
 
-parseIpv6s :: MParser [IpAddress 'Ipv6]
+parseIpv6s :: MParser [IpAddress Ipv6]
 parseIpv6s = parseIps "inet6 " MkIpAddress
 {-# INLINEABLE parseIpv6s #-}
 

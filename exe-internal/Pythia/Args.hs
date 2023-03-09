@@ -79,7 +79,7 @@ data PythiaCommand
   | MemoryCmd MemoryApp MemoryField MemoryFormat
   | NetInterfaceCmd NetInterfaceApp (Maybe Device) NetInterfaceField
   | NetConnCmd NetInterfaceApp NetConnField
-  | NetIpGlobalCmd (GlobalIpConfig (These [UrlSource 'Ipv4] [UrlSource 'Ipv6]))
+  | NetIpGlobalCmd (GlobalIpConfig (These [UrlSource Ipv4] [UrlSource Ipv6]))
   | TimeCmd TimezoneDest (Maybe String)
   deriving stock (Eq, Show)
 
@@ -460,7 +460,7 @@ ipTypeOption =
         "both" -> pure GlobalIpFieldBoth
         _ -> OApp.readerAbort $ ErrorMsg $ "Unrecognized ip type: " <> T.unpack a
 
-ipv4SrcOption :: Parser [UrlSource 'Ipv4]
+ipv4SrcOption :: Parser [UrlSource Ipv4]
 ipv4SrcOption =
   A.many $
     OApp.option
@@ -476,7 +476,7 @@ ipv4SrcOption =
         <> " and overrides the defaults. These sources are only used if we"
         <> " query for IPv4 per --ip-type."
 
-ipv6SrcOption :: Parser [UrlSource 'Ipv6]
+ipv6SrcOption :: Parser [UrlSource Ipv6]
 ipv6SrcOption =
   A.many $
     OApp.option

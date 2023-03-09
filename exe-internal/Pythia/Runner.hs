@@ -136,7 +136,7 @@ handleNetConn handler cfg field = do
     toField NetConnFieldIpv4 = U.prettyToText . view #ipv4s
     toField NetConnFieldIpv6 = U.prettyToText . view #ipv6s
 
-handleGlobalIp :: (Text -> IO a) -> GlobalIpConfig (These [UrlSource 'Ipv4] [UrlSource 'Ipv6]) -> IO a
+handleGlobalIp :: (Text -> IO a) -> GlobalIpConfig (These [UrlSource Ipv4] [UrlSource Ipv6]) -> IO a
 handleGlobalIp handler cfg = do
   case cfg ^. #sources of
     This ipv4Sources ->

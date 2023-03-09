@@ -1,4 +1,4 @@
-{-# LANGUAGE TemplateHaskell #-}
+
 {-# LANGUAGE UndecidableInstances #-}
 
 -- | Provides types to be used for querying the global IP addresses.
@@ -70,7 +70,26 @@ data GlobalIpApp
     )
 
 -- | @since 0.1
-makePrisms ''GlobalIpApp
+_GlobalIpAppCurl :: Prism' GlobalIpApp ()
+_GlobalIpAppCurl =
+  prism
+    (const GlobalIpAppCurl)
+    ( \x -> case x of
+        GlobalIpAppCurl -> Right ()
+        _ -> Left x
+    )
+{-# INLINE _GlobalIpAppCurl #-}
+
+-- | @since 0.1
+_GlobalIpAppDig :: Prism' GlobalIpApp ()
+_GlobalIpAppDig =
+  prism
+    (const GlobalIpAppDig)
+    ( \x -> case x of
+        GlobalIpAppDig -> Right ()
+        _ -> Left x
+    )
+{-# INLINE _GlobalIpAppDig #-}
 
 -- | Additional URL source for retrieving IP information. The intended app
 -- should not be included (i.e. curl or dig), but any desired flags should
@@ -108,7 +127,12 @@ newtype UrlSource a = MkUrlSource {unUrlSource :: Text}
     )
 
 -- | @since 0.1
-makeFieldLabelsNoPrefix ''UrlSource
+instance
+  (k ~ An_Iso, a ~ Text, b ~ Text) =>
+  LabelOptic "unUrlSource" k (UrlSource p) (UrlSource p) a b
+  where
+  labelOptic = iso (\(MkUrlSource s) -> s) MkUrlSource
+  {-# INLINE labelOptic #-}
 
 -- | Complete configuration for querying global IP addresses. The 'Monoid'
 -- instance will construct a config that tries all apps and has no extra
@@ -145,7 +169,22 @@ data GlobalIpConfig a = MkGlobalIpConfig
     )
 
 -- | @since 0.1
-makeFieldLabelsNoPrefix ''GlobalIpConfig
+instance
+  (k ~ A_Lens, a ~ GlobalIpApp, b ~ GlobalIpApp) =>
+  LabelOptic "app" k (GlobalIpConfig s) (GlobalIpConfig s) a b
+  where
+  labelOptic = lensVL $ \f (MkGlobalIpConfig _app _sources) ->
+    fmap (`MkGlobalIpConfig` _sources) (f _app)
+  {-# INLINE labelOptic #-}
+
+-- | @since 0.1
+instance
+  (k ~ A_Lens, a ~ s, b ~ s) =>
+  LabelOptic "sources" k (GlobalIpConfig s) (GlobalIpConfig s) a b
+  where
+  labelOptic = lensVL $ \f (MkGlobalIpConfig _app _sources) ->
+    fmap (MkGlobalIpConfig _app) (f _sources)
+  {-# INLINE labelOptic #-}
 
 -- | @since 0.1
 instance (Semigroup a) => Semigroup (GlobalIpConfig a) where
@@ -162,16 +201,16 @@ instance (Monoid a) => Monoid (GlobalIpConfig a) where
 --
 -- @since 0.1.0.0
 type GlobalIpv4Config :: Type
-type GlobalIpv4Config = GlobalIpConfig [UrlSource 'Ipv4]
+type GlobalIpv4Config = GlobalIpConfig [UrlSource Ipv4]
 
 -- | Type alias for 'Ipv6' 'GlobalIpConfig'.
 --
 -- @since 0.1.0.0
 type GlobalIpv6Config :: Type
-type GlobalIpv6Config = GlobalIpConfig [UrlSource 'Ipv6]
+type GlobalIpv6Config = GlobalIpConfig [UrlSource Ipv6]
 
 -- | Type alias for 'Ipv4' and 'Ipv6' 'GlobalIpConfig'.
 --
 -- @since 0.1.0.0
 type GlobalIpBothConfig :: Type
-type GlobalIpBothConfig = GlobalIpConfig ([UrlSource 'Ipv4], [UrlSource 'Ipv6])
+type GlobalIpBothConfig = GlobalIpConfig ([UrlSource Ipv4], [UrlSource Ipv6])

@@ -1,4 +1,4 @@
-{-# LANGUAGE TemplateHaskell #-}
+
 {-# LANGUAGE UndecidableInstances #-}
 
 -- | Provides common network types.
@@ -75,7 +75,12 @@ newtype Device = MkDevice
     )
 
 -- | @since 0.1
-makeFieldLabelsNoPrefix ''Device
+instance
+  (k ~ An_Iso, a ~ Text, b ~ Text) =>
+  LabelOptic "unDevice" k Device Device a b
+  where
+  labelOptic = iso (\(MkDevice d) -> d) MkDevice
+  {-# INLINE labelOptic #-}
 
 -- | IP types.
 --
@@ -100,15 +105,34 @@ data IpType
     )
 
 -- | @since 0.1
-makePrisms ''IpType
+_Ipv4 :: Prism' IpType ()
+_Ipv4 =
+  prism
+    (const Ipv4)
+    ( \x -> case x of
+        Ipv4 -> Right ()
+        _ -> Left x
+    )
+{-# INLINE _Ipv4 #-}
+
+-- | @since 0.1
+_Ipv6 :: Prism' IpType ()
+_Ipv6 =
+  prism
+    (const Ipv6)
+    ( \x -> case x of
+        Ipv6 -> Right ()
+        _ -> Left x
+    )
+{-# INLINE _Ipv6 #-}
 
 -- | Maps 'IpType' to its 'Text' refinement.
 --
 -- @since 0.1
 type IpRefinement :: IpType -> Type
 type family IpRefinement a where
-  IpRefinement 'Ipv4 = Ipv4Refinement
-  IpRefinement 'Ipv6 = Ipv6Refinement
+  IpRefinement Ipv4 = Ipv4Refinement
+  IpRefinement Ipv6 = Ipv6Refinement
 
 -- | IPv4 Refinement. We implement a custom type here so we get better error
 -- messages. 'Text' must satisfy:
@@ -232,7 +256,12 @@ newtype IpAddress a = MkIpAddress
     )
 
 -- | @since 0.1
-makeFieldLabelsNoPrefix ''IpAddress
+instance
+  (k ~ An_Iso, a ~ Refined (IpRefinement s) Text, b ~ Refined (IpRefinement s) Text) =>
+  LabelOptic "unIpAddress" k (IpAddress s) (IpAddress s) a b
+  where
+  labelOptic = iso (\(MkIpAddress a) -> a) MkIpAddress
+  {-# INLINE labelOptic #-}
 
 -- | @since 0.1
 instance Pretty (IpAddress a) where
@@ -261,7 +290,12 @@ newtype IpAddresses a = MkIpAddresses
     )
 
 -- | @since 0.1
-makeFieldLabelsNoPrefix ''IpAddresses
+instance
+  (k ~ An_Iso, a ~ [IpAddress s], b ~ [IpAddress s]) =>
+  LabelOptic "unIpAddresses" k (IpAddresses s) (IpAddresses s) a b
+  where
+  labelOptic = iso (\(MkIpAddresses a) -> a) MkIpAddresses
+  {-# INLINE labelOptic #-}
 
 -- | @since 0.1
 instance Semigroup (IpAddresses a) where

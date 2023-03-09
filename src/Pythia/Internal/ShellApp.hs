@@ -1,4 +1,4 @@
-{-# LANGUAGE TemplateHaskell #-}
+
 {-# LANGUAGE UndecidableInstances #-}
 
 -- | This module provides the functionality for running shell
@@ -52,14 +52,31 @@ data SimpleShell err result = MkSimpleShell
   }
 
 -- | @since 0.1
-makeFieldLabelsNoPrefix ''SimpleShell
+instance
+  (k ~ A_Lens, a ~ Command, b ~ Command) =>
+  LabelOptic "command" k (SimpleShell err result) (SimpleShell err result) a b
+  where
+  labelOptic = lensVL $ \f (MkSimpleShell _command _isSupported _parser) ->
+    fmap (\command' -> MkSimpleShell command' _isSupported _parser) (f _command)
+  {-# INLINE labelOptic #-}
 
 -- | @since 0.1
-instance Bifunctor SimpleShell where
-  bimap f g (MkSimpleShell a b c) = MkSimpleShell a b c'
-    where
-      c' = bimap f g . c
-  {-# INLINEABLE bimap #-}
+instance
+  (k ~ A_Lens, a ~ IO Bool, b ~ IO Bool) =>
+  LabelOptic "isSupported" k (SimpleShell err result) (SimpleShell err result) a b
+  where
+  labelOptic = lensVL $ \f (MkSimpleShell _command _isSupported _parser) ->
+    fmap (\isSupported' -> MkSimpleShell _command isSupported' _parser) (f _isSupported)
+  {-# INLINE labelOptic #-}
+
+-- | @since 0.1
+instance
+  (k ~ A_Lens, a ~ (Text -> Either err result), b ~ (Text -> Either err result)) =>
+  LabelOptic "parser" k (SimpleShell err result) (SimpleShell err result) a b
+  where
+  labelOptic = lensVL $ \f (MkSimpleShell _command _isSupported _parser) ->
+    fmap (MkSimpleShell _command _isSupported) (f _parser)
+  {-# INLINE labelOptic #-}
 
 -- | Runs a simple shell.
 --

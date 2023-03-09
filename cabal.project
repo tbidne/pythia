@@ -6,6 +6,7 @@ package pythia
     -Wincomplete-record-updates -Wincomplete-uni-patterns
     -Wmissing-home-modules -Wmissing-export-lists -Wpartial-fields
     -Wredundant-constraints -Wunused-packages -Wmissing-deriving-strategies
+    -Wno-unticked-promoted-constructors
 
 optimization: 2
 test-show-details: direct

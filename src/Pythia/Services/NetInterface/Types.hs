@@ -1,4 +1,4 @@
-{-# LANGUAGE TemplateHaskell #-}
+
 {-# LANGUAGE UndecidableInstances #-}
 
 -- | Provides network interface types.
@@ -85,7 +85,26 @@ data NetInterfaceApp
     )
 
 -- | @since 0.1
-makePrisms ''NetInterfaceApp
+_NetInterfaceAppIp :: Prism' NetInterfaceApp ()
+_NetInterfaceAppIp =
+  prism
+    (const NetInterfaceAppIp)
+    ( \x -> case x of
+        NetInterfaceAppIp -> Right ()
+        _ -> Left x
+    )
+{-# INLINE _NetInterfaceAppIp #-}
+
+-- | @since 0.1
+_NetInterfaceAppNmCli :: Prism' NetInterfaceApp ()
+_NetInterfaceAppNmCli =
+  prism
+    (const NetInterfaceAppNmCli)
+    ( \x -> case x of
+        NetInterfaceAppNmCli -> Right ()
+        _ -> Left x
+    )
+{-# INLINE _NetInterfaceAppNmCli #-}
 
 -- | Various connection types.
 --
@@ -118,7 +137,59 @@ data NetInterfaceType
     )
 
 -- | @since 0.1
-makePrisms ''NetInterfaceType
+_Ethernet :: Prism' NetInterfaceType ()
+_Ethernet =
+  prism
+    (const Ethernet)
+    ( \x -> case x of
+        Ethernet -> Right ()
+        _ -> Left x
+    )
+{-# INLINE _Ethernet #-}
+
+-- | @since 0.1
+_Wifi :: Prism' NetInterfaceType ()
+_Wifi =
+  prism
+    (const Wifi)
+    ( \x -> case x of
+        Wifi -> Right ()
+        _ -> Left x
+    )
+{-# INLINE _Wifi #-}
+
+-- | @since 0.1
+_Wifi_P2P :: Prism' NetInterfaceType ()
+_Wifi_P2P =
+  prism
+    (const Wifi_P2P)
+    ( \x -> case x of
+        Wifi_P2P -> Right ()
+        _ -> Left x
+    )
+{-# INLINE _Wifi_P2P #-}
+
+-- | @since 0.1
+_Loopback :: Prism' NetInterfaceType ()
+_Loopback =
+  prism
+    (const Loopback)
+    ( \x -> case x of
+        Loopback -> Right ()
+        _ -> Left x
+    )
+{-# INLINE _Loopback #-}
+
+-- | @since 0.1
+_Tun :: Prism' NetInterfaceType ()
+_Tun =
+  prism
+    (const Tun)
+    ( \x -> case x of
+        Tun -> Right ()
+        _ -> Left x
+    )
+{-# INLINE _Tun #-}
 
 instance Pretty NetInterfaceType where
   pretty = pretty . show
@@ -151,7 +222,37 @@ data NetInterfaceState
     )
 
 -- | @since 0.1
-makePrisms ''NetInterfaceState
+_NetStateUp :: Prism' NetInterfaceState ()
+_NetStateUp =
+  prism
+    (const NetStateUp)
+    ( \x -> case x of
+        NetStateUp -> Right ()
+        _ -> Left x
+    )
+{-# INLINE _NetStateUp #-}
+
+-- | @since 0.1
+_NetStateDown :: Prism' NetInterfaceState ()
+_NetStateDown =
+  prism
+    (const NetStateDown)
+    ( \x -> case x of
+        NetStateDown -> Right ()
+        _ -> Left x
+    )
+{-# INLINE _NetStateDown #-}
+
+-- | @since 0.1
+_NetStateUnknown :: Prism' NetInterfaceState Text
+_NetStateUnknown =
+  prism
+    NetStateUnknown
+    ( \x -> case x of
+        NetStateUnknown t -> Right t
+        _ -> Left x
+    )
+{-# INLINE _NetStateUnknown #-}
 
 instance Pretty NetInterfaceState where
   pretty = pretty . show
@@ -173,9 +274,9 @@ data NetInterface = MkNetInterface
     -- @since 0.1
     name :: Maybe Text,
     -- | @since 0.1
-    ipv4s :: IpAddresses 'Ipv4,
+    ipv4s :: IpAddresses Ipv4,
     -- | @since 0.1
-    ipv6s :: IpAddresses 'Ipv6
+    ipv6s :: IpAddresses Ipv6
   }
   deriving stock
     ( -- | @since 0.1
@@ -193,7 +294,58 @@ data NetInterface = MkNetInterface
     )
 
 -- | @since 0.1
-makeFieldLabelsNoPrefix ''NetInterface
+instance
+  (k ~ A_Lens, a ~ Device, b ~ Device) =>
+  LabelOptic "device" k NetInterface NetInterface a b
+  where
+  labelOptic = lensVL $ \f (MkNetInterface _device _ntype _state _name _ipv4s _ipv6s) ->
+    fmap (\device' -> MkNetInterface device' _ntype _state _name _ipv4s _ipv6s) (f _device)
+  {-# INLINE labelOptic #-}
+
+-- | @since 0.1
+instance
+  (k ~ A_Lens, a ~ Maybe NetInterfaceType, b ~ Maybe NetInterfaceType) =>
+  LabelOptic "ntype" k NetInterface NetInterface a b
+  where
+  labelOptic = lensVL $ \f (MkNetInterface _device _ntype _state _name _ipv4s _ipv6s) ->
+    fmap (\ntype' -> MkNetInterface _device ntype' _state _name _ipv4s _ipv6s) (f _ntype)
+  {-# INLINE labelOptic #-}
+
+-- | @since 0.1
+instance
+  (k ~ A_Lens, a ~ NetInterfaceState, b ~ NetInterfaceState) =>
+  LabelOptic "state" k NetInterface NetInterface a b
+  where
+  labelOptic = lensVL $ \f (MkNetInterface _device _ntype _state _name _ipv4s _ipv6s) ->
+    fmap (\state' -> MkNetInterface _device _ntype state' _name _ipv4s _ipv6s) (f _state)
+  {-# INLINE labelOptic #-}
+
+-- | @since 0.1
+instance
+  (k ~ A_Lens, a ~ Maybe Text, b ~ Maybe Text) =>
+  LabelOptic "name" k NetInterface NetInterface a b
+  where
+  labelOptic = lensVL $ \f (MkNetInterface _device _ntype _state _name _ipv4s _ipv6s) ->
+    fmap (\name' -> MkNetInterface _device _ntype _state name' _ipv4s _ipv6s) (f _name)
+  {-# INLINE labelOptic #-}
+
+-- | @since 0.1
+instance
+  (k ~ A_Lens, a ~ IpAddresses Ipv4, b ~ IpAddresses Ipv4) =>
+  LabelOptic "ipv4s" k NetInterface NetInterface a b
+  where
+  labelOptic = lensVL $ \f (MkNetInterface _device _ntype _state _name _ipv4s _ipv6s) ->
+    fmap (\ipv4s' -> MkNetInterface _device _ntype _state _name ipv4s' _ipv6s) (f _ipv4s)
+  {-# INLINE labelOptic #-}
+
+-- | @since 0.1
+instance
+  (k ~ A_Lens, a ~ IpAddresses Ipv6, b ~ IpAddresses Ipv6) =>
+  LabelOptic "ipv6s" k NetInterface NetInterface a b
+  where
+  labelOptic = lensVL $ \f (MkNetInterface _device _ntype _state _name _ipv4s _ipv6s) ->
+    fmap (MkNetInterface _device _ntype _state _name _ipv4s) (f _ipv6s)
+  {-# INLINE labelOptic #-}
 
 -- | @since 0.1
 instance Pretty NetInterface where

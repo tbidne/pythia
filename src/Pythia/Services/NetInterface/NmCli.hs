@@ -204,11 +204,11 @@ parseWiredProp :: MParser ()
 parseWiredProp = MPC.string "WIRED-PROPERTIES" *> U.takeLine_
 {-# INLINEABLE parseWiredProp #-}
 
-parseIpv4s :: MParser [IpAddress 'Ipv4]
+parseIpv4s :: MParser [IpAddress Ipv4]
 parseIpv4s = parseAllIpInfo "4" MkIpAddress
 {-# INLINEABLE parseIpv4s #-}
 
-parseIpv6s :: MParser [IpAddress 'Ipv6]
+parseIpv6s :: MParser [IpAddress Ipv6]
 parseIpv6s = parseAllIpInfo "6" MkIpAddress
 {-# INLINEABLE parseIpv6s #-}
 

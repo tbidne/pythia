@@ -1,4 +1,3 @@
-{-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE UndecidableInstances #-}
 
 -- | This module provides the 'Command' type.
@@ -39,4 +38,9 @@ newtype Command = MkCommand
     )
 
 -- | @since 0.1
-makeFieldLabelsNoPrefix ''Command
+instance
+  (k ~ An_Iso, a ~ Text, b ~ Text) =>
+  LabelOptic "unCommand" k Command Command a b
+  where
+  labelOptic = iso (\(MkCommand t) -> t) MkCommand
+  {-# INLINE labelOptic #-}

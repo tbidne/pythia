@@ -46,21 +46,21 @@ import Refined qualified as R
 -- | Queries for IPv4 and IPv6 global IP address based on the configuration.
 --
 -- @since 0.1
-queryGlobalIp :: GlobalIpBothConfig -> IO (IpAddress 'Ipv4, IpAddress 'Ipv6)
+queryGlobalIp :: GlobalIpBothConfig -> IO (IpAddress Ipv4, IpAddress Ipv6)
 queryGlobalIp = queryGlobalIp' #app #sources getBothIps
 {-# INLINEABLE queryGlobalIp #-}
 
 -- | 'queryGlobalIp' restricted to IPv4 address only.
 --
 -- @since 0.1
-queryGlobalIpv4 :: GlobalIpv4Config -> IO (IpAddress 'Ipv4)
+queryGlobalIpv4 :: GlobalIpv4Config -> IO (IpAddress Ipv4)
 queryGlobalIpv4 = queryGlobalIp' #app #sources getIpv4s
 {-# INLINEABLE queryGlobalIpv4 #-}
 
 -- | 'queryGlobalIp' restricted to IPv6 address only.
 --
 -- @since 0.1
-queryGlobalIpv6 :: GlobalIpv6Config -> IO (IpAddress 'Ipv6)
+queryGlobalIpv6 :: GlobalIpv6Config -> IO (IpAddress Ipv6)
 queryGlobalIpv6 = queryGlobalIp' #app #sources getIpv6s
 {-# INLINEABLE queryGlobalIpv6 #-}
 
@@ -76,8 +76,8 @@ queryGlobalIp' appLens sourceLens getIpFn config =
 
 getBothIps ::
   GlobalIpApp ->
-  ([UrlSource 'Ipv4], [UrlSource 'Ipv6]) ->
-  IO (IpAddress 'Ipv4, IpAddress 'Ipv6)
+  ([UrlSource Ipv4], [UrlSource Ipv6]) ->
+  IO (IpAddress Ipv4, IpAddress Ipv6)
 getBothIps app (ipv4Srcs, ipv6Srcs) =
   (,)
     <$> getIpv4s app ipv4Srcs
@@ -86,8 +86,8 @@ getBothIps app (ipv4Srcs, ipv6Srcs) =
 
 getIpv4s ::
   GlobalIpApp ->
-  [UrlSource 'Ipv4] ->
-  IO (IpAddress 'Ipv4)
+  [UrlSource Ipv4] ->
+  IO (IpAddress Ipv4)
 getIpv4s app extraSrcs = do
   let sources = case extraSrcs of
         [] -> ipv4Defaults app
@@ -97,8 +97,8 @@ getIpv4s app extraSrcs = do
 
 getIpv6s ::
   GlobalIpApp ->
-  [UrlSource 'Ipv6] ->
-  IO (IpAddress 'Ipv6)
+  [UrlSource Ipv6] ->
+  IO (IpAddress Ipv6)
 getIpv6s app extraSrcs = do
   let sources = case extraSrcs of
         [] -> ipv6Defaults app
@@ -111,17 +111,17 @@ prependApp GlobalIpAppCurl srcs = fmap (#unUrlSource %~ ("curl " <>)) srcs
 prependApp GlobalIpAppDig srcs = fmap (#unUrlSource %~ (\s -> "dig " <> s <> " +short")) srcs
 {-# INLINEABLE prependApp #-}
 
-ipv4Defaults :: GlobalIpApp -> [UrlSource 'Ipv4]
+ipv4Defaults :: GlobalIpApp -> [UrlSource Ipv4]
 ipv4Defaults GlobalIpAppCurl = curlDefaults ^. _1
 ipv4Defaults GlobalIpAppDig = digDefaults ^. _1
 {-# INLINEABLE ipv4Defaults #-}
 
-ipv6Defaults :: GlobalIpApp -> [UrlSource 'Ipv6]
+ipv6Defaults :: GlobalIpApp -> [UrlSource Ipv6]
 ipv6Defaults GlobalIpAppCurl = curlDefaults ^. _2
 ipv6Defaults GlobalIpAppDig = digDefaults ^. _2
 {-# INLINEABLE ipv6Defaults #-}
 
-curlDefaults :: ([UrlSource 'Ipv4], [UrlSource 'Ipv6])
+curlDefaults :: ([UrlSource Ipv4], [UrlSource Ipv6])
 curlDefaults = (ipv4s, ipv6s)
   where
     ipv4s =
@@ -133,7 +133,7 @@ curlDefaults = (ipv4s, ipv6s)
     ipv6s = []
 {-# INLINEABLE curlDefaults #-}
 
-digDefaults :: ([UrlSource 'Ipv4], [UrlSource 'Ipv6])
+digDefaults :: ([UrlSource Ipv4], [UrlSource Ipv6])
 digDefaults = (ipv4s, ipv6s)
   where
     ipv4s =

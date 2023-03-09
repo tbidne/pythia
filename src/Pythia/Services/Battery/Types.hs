@@ -1,4 +1,4 @@
-{-# LANGUAGE TemplateHaskell #-}
+
 {-# LANGUAGE UndecidableInstances #-}
 
 -- | This module provides the core types describing the battery.
@@ -75,7 +75,37 @@ data BatteryApp
     )
 
 -- | @since 0.1
-makePrisms ''BatteryApp
+_BatteryAppSysFs :: Prism' BatteryApp ()
+_BatteryAppSysFs =
+  prism
+    (const BatteryAppSysFs)
+    ( \x -> case x of
+        BatteryAppSysFs -> Right ()
+        _ -> Left x
+    )
+{-# INLINE _BatteryAppSysFs #-}
+
+-- | @since 0.1
+_BatteryAppAcpi :: Prism' BatteryApp ()
+_BatteryAppAcpi =
+  prism
+    (const BatteryAppAcpi)
+    ( \x -> case x of
+        BatteryAppAcpi -> Right ()
+        _ -> Left x
+    )
+{-# INLINE _BatteryAppAcpi #-}
+
+-- | @since 0.1
+_BatteryAppUPower :: Prism' BatteryApp ()
+_BatteryAppUPower =
+  prism
+    (const BatteryAppUPower)
+    ( \x -> case x of
+        BatteryAppUPower -> Right ()
+        _ -> Left x
+    )
+{-# INLINE _BatteryAppUPower #-}
 
 -- | Represents battery charging status.
 --
@@ -104,7 +134,48 @@ data BatteryStatus
     )
 
 -- | @since 0.1
-makePrisms ''BatteryStatus
+_Charging :: Prism' BatteryStatus ()
+_Charging =
+  prism
+    (const Charging)
+    ( \x -> case x of
+        Charging -> Right ()
+        _ -> Left x
+    )
+{-# INLINE _Charging #-}
+
+-- | @since 0.1
+_Discharging :: Prism' BatteryStatus ()
+_Discharging =
+  prism
+    (const Discharging)
+    ( \x -> case x of
+        Discharging -> Right ()
+        _ -> Left x
+    )
+{-# INLINE _Discharging #-}
+
+-- | @since 0.1
+_Full :: Prism' BatteryStatus ()
+_Full =
+  prism
+    (const Full)
+    ( \x -> case x of
+        Full -> Right ()
+        _ -> Left x
+    )
+{-# INLINE _Full #-}
+
+-- | @since 0.1
+_Pending :: Prism' BatteryStatus ()
+_Pending =
+  prism
+    (const Pending)
+    ( \x -> case x of
+        Pending -> Right ()
+        _ -> Left x
+    )
+{-# INLINE _Pending #-}
 
 -- | @since 0.1
 instance Pretty BatteryStatus where
@@ -138,7 +209,22 @@ data Battery = MkBattery
     )
 
 -- | @since 0.1
-makeFieldLabelsNoPrefix ''Battery
+instance
+  (k ~ A_Lens, a ~ Percentage, b ~ Percentage) =>
+  LabelOptic "percentage" k Battery Battery a b
+  where
+  labelOptic = lensVL $ \f (MkBattery _percentage _status) ->
+    fmap (`MkBattery` _status) (f _percentage)
+  {-# INLINE labelOptic #-}
+
+-- | @since 0.1
+instance
+  (k ~ A_Lens, a ~ BatteryStatus, b ~ BatteryStatus) =>
+  LabelOptic "status" k Battery Battery a b
+  where
+  labelOptic = lensVL $ \f (MkBattery _percentage _status) ->
+    fmap (MkBattery _percentage) (f _status)
+  {-# INLINE labelOptic #-}
 
 -- | @since 0.1
 instance Pretty Battery where

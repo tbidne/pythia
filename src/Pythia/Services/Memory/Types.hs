@@ -1,4 +1,4 @@
-{-# LANGUAGE TemplateHaskell #-}
+
 {-# LANGUAGE UndecidableInstances #-}
 
 -- | This module provides the core types describing the memory.
@@ -80,7 +80,12 @@ newtype Memory = MkMemory {unMemory :: Bytes 'B Natural}
     )
 
 -- | @since 0.1
-makeFieldLabelsNoPrefix ''Memory
+instance
+  (k ~ An_Iso, a ~ Bytes 'B Natural, b ~ Bytes 'B Natural) =>
+  LabelOptic "unMemory" k Memory Memory a b
+  where
+  labelOptic = iso (\(MkMemory p) -> p) MkMemory
+  {-# INLINE labelOptic #-}
 
 -- | @since 0.1
 instance Pretty Memory where
@@ -127,4 +132,19 @@ instance Pretty SystemMemory where
   {-# INLINEABLE pretty #-}
 
 -- | @since 0.1
-makeFieldLabelsNoPrefix ''SystemMemory
+instance
+  (k ~ A_Lens, a ~ Memory, b ~ Memory) =>
+  LabelOptic "total" k SystemMemory SystemMemory a b
+  where
+  labelOptic = lensVL $ \f (MkSystemMemory _total _used) ->
+    fmap (`MkSystemMemory` _used) (f _total)
+  {-# INLINE labelOptic #-}
+
+-- | @since 0.1
+instance
+  (k ~ A_Lens, a ~ Memory, b ~ Memory) =>
+  LabelOptic "used" k SystemMemory SystemMemory a b
+  where
+  labelOptic = lensVL $ \f (MkSystemMemory _total _used) ->
+    fmap (MkSystemMemory _total) (f _used)
+  {-# INLINE labelOptic #-}

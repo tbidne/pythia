@@ -1,4 +1,4 @@
-{-# LANGUAGE TemplateHaskell #-}
+
 {-# LANGUAGE UndecidableInstances #-}
 
 -- | Provides the 'Percentage' type.
@@ -35,7 +35,12 @@ newtype Percentage = MkPercentage {unPercentage :: LRInterval 0 100 Word8}
     )
 
 -- | @since 0.1
-makeFieldLabelsNoPrefix ''Percentage
+instance
+  (k ~ An_Iso, a ~ LRInterval 0 100 Word8, b ~ LRInterval 0 100 Word8) =>
+  LabelOptic "unPercentage" k Percentage Percentage a b
+  where
+  labelOptic = iso (\(MkPercentage p) -> p) MkPercentage
+  {-# INLINE labelOptic #-}
 
 -- | @since 0.1
 instance Pretty Percentage where
