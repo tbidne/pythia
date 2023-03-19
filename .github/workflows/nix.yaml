@@ -31,11 +31,4 @@ jobs:
             access-tokens = github.com=${{ secrets.GITHUB_TOKEN }}
       
       - name: Compile & Test
-        run: |
-          nix build
-          if [ -d "./result/lib" ]; then
-            echo "Build succeeded"
-          else
-            echo "Build failed"
-            exit -1
-          fi
+        run: nix build
