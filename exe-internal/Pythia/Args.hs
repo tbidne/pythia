@@ -37,6 +37,8 @@ import Options.Applicative
   )
 import Options.Applicative qualified as OApp
 import Options.Applicative.Help (Chunk (..))
+import Options.Applicative.Help.Chunk qualified as Chunk
+import Options.Applicative.Help.Pretty qualified as Pretty
 import Options.Applicative.Types (ArgPolicy (..))
 import Pythia.Prelude
 import Pythia.Services.Battery.Types (BatteryApp (..))
@@ -154,7 +156,7 @@ parserInfo =
   ParserInfo
     { infoParser = cmdParser,
       infoFullDesc = True,
-      infoProgDesc = Chunk desc,
+      infoProgDesc = desc,
       infoHeader = Chunk header,
       infoFooter = Chunk footer,
       infoFailureCode = 1,
@@ -164,8 +166,8 @@ parserInfo =
     header = Just "Pythia: A tool for querying system information."
     footer = Just $ fromString ""
     desc =
-      Just $
-        "\nPythia queries system information. This is achieved by "
+      Chunk.paragraph $
+        "Pythia queries system information. This is achieved by "
           <> "using applications on the machine whose output pythia knows how to "
           <> "parse. For instance, pythia can retrieve battery information by "
           <> "using acpi, upower, or reading /sys/class directly. In general, "
@@ -187,12 +189,12 @@ cmdParser =
     <**> version
   where
     batStateTxt =
-      OApp.progDesc "Queries the battery state."
-    memoryTxt = OApp.progDesc "Queries memory usage."
-    netInterfaceTxt = OApp.progDesc "Queries network interfaces."
-    netConnTxt = OApp.progDesc "Queries network interfaces for a live connection."
-    ipGlobalTxt = OApp.progDesc "Queries the global IP addresses."
-    timeTxt = OApp.progDesc "Queries the system time."
+      mkCmdDesc "Queries the battery state."
+    memoryTxt = mkCmdDesc "Queries memory usage."
+    netInterfaceTxt = mkCmdDesc "Queries network interfaces."
+    netConnTxt = mkCmdDesc "Queries network interfaces for a live connection."
+    ipGlobalTxt = mkCmdDesc "Queries the global IP addresses."
+    timeTxt = mkCmdDesc "Queries the system time."
 
 version :: Parser (a -> a)
 version = OApp.infoOption txt (OApp.long "version" <> OApp.short 'v')
@@ -216,7 +218,7 @@ parseBattery = do
       ( OApp.long "app"
           <> OApp.short 'a'
           <> OApp.metavar "APP"
-          <> OApp.help helpTxt
+          <> mkHelp helpTxt
       )
   field <- parseBatteryField
   pure $ BatteryCmd app field
@@ -238,7 +240,7 @@ parseBatteryField =
         <> OApp.long "field"
         <> OApp.short 'f'
         <> OApp.metavar "FIELD"
-        <> OApp.help helpTxt
+        <> mkHelp helpTxt
     )
   where
     helpTxt =
@@ -265,7 +267,7 @@ parseMemoryField =
         <> OApp.long "field"
         <> OApp.short 'f'
         <> OApp.metavar "FIELD"
-        <> OApp.help helpTxt
+        <> mkHelp helpTxt
     )
   where
     helpTxt =
@@ -286,7 +288,7 @@ parseMemoryAppOption =
     ( OApp.long "app"
         <> OApp.short 'a'
         <> OApp.metavar "APP"
-        <> OApp.help helpTxt
+        <> mkHelp helpTxt
     )
   where
     helpTxt =
@@ -304,7 +306,7 @@ parseMemoryFormat =
     MemoryPercentage
     ( OApp.long "percentage"
         <> OApp.short 'p'
-        <> OApp.help helpTxt
+        <> mkHelp helpTxt
     )
   where
     helpTxt =
@@ -325,7 +327,7 @@ parseNetInterfaceField =
         <> OApp.long "field"
         <> OApp.short 'f'
         <> OApp.metavar "FIELD"
-        <> OApp.help helpTxt
+        <> mkHelp helpTxt
     )
   where
     helpTxt =
@@ -345,7 +347,7 @@ netInterfaceAppOption =
     ( OApp.long "app"
         <> OApp.short 'a'
         <> OApp.metavar "APP"
-        <> OApp.help helpTxt
+        <> mkHelp helpTxt
     )
   where
     helpTxt =
@@ -365,7 +367,7 @@ netInterfaceDeviceOption =
         <> OApp.long "device"
         <> OApp.short 'd'
         <> OApp.metavar "NAME"
-        <> OApp.help deviceTxt
+        <> mkHelp deviceTxt
     )
   where
     deviceTxt = "The name of the network device to filter on e.g. wlp0s20f3"
@@ -383,7 +385,7 @@ parseNetConnField =
         <> OApp.long "field"
         <> OApp.short 'f'
         <> OApp.metavar "FIELD"
-        <> OApp.help helpTxt
+        <> mkHelp helpTxt
     )
   where
     helpTxt =
@@ -423,7 +425,7 @@ ipAppOption =
     ( OApp.long "app"
         <> OApp.short 'a'
         <> OApp.metavar "APP"
-        <> OApp.help helpTxt
+        <> mkHelp helpTxt
     )
   where
     helpTxt =
@@ -446,7 +448,7 @@ ipTypeOption =
         <> OApp.long "ip-type"
         <> OApp.short 't'
         <> OApp.metavar "TYPE"
-        <> OApp.help helpTxt
+        <> mkHelp helpTxt
     )
   where
     helpTxt =
@@ -467,7 +469,7 @@ ipv4SrcOption =
       OApp.str
       ( OApp.long "ipv4-src"
           <> OApp.metavar "URL"
-          <> OApp.help helpTxt
+          <> mkHelp helpTxt
       )
   where
     helpTxt =
@@ -483,7 +485,7 @@ ipv6SrcOption =
       OApp.str
       ( OApp.long "ipv6-src"
           <> OApp.metavar "URL"
-          <> OApp.help helpTxt
+          <> mkHelp helpTxt
       )
   where
     helpTxt =
@@ -502,7 +504,7 @@ parseTimezoneDest =
         <> OApp.long "dest"
         <> OApp.short 'd'
         <> OApp.metavar "[utc | TZ]"
-        <> OApp.help helpTxt
+        <> mkHelp helpTxt
     )
   where
     helpTxt =
@@ -526,7 +528,7 @@ parseTimeFormat =
       ( OApp.long "format"
           <> OApp.short 'f'
           <> OApp.metavar "STR"
-          <> OApp.help helpTxt
+          <> mkHelp helpTxt
       )
   where
     helpTxt =
@@ -535,3 +537,17 @@ parseTimeFormat =
 
 mkCommand :: String -> Parser a -> OApp.InfoMod a -> Mod CommandFields a
 mkCommand cmdTxt parser helpTxt = OApp.command cmdTxt (OApp.info parser helpTxt)
+
+mkHelp :: String -> OApp.Mod f a
+mkHelp =
+  OApp.helpDoc
+    . fmap (<> Pretty.hardline)
+    . Chunk.unChunk
+    . Chunk.paragraph
+
+mkCmdDesc :: String -> OApp.InfoMod a
+mkCmdDesc =
+  OApp.progDescDoc
+    . fmap (<> Pretty.hardline)
+    . Chunk.unChunk
+    . Chunk.paragraph

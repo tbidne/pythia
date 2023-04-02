@@ -41,12 +41,16 @@ This service is for reading battery information.
 
 ```
 Usage: pythia battery (-a|--app APP) [-f|--field FIELD]
+
   Queries the battery state.
+
 
 Available options:
   -a,--app APP             App must be one of [acpi | sysfs | upower].
+
   -f,--field FIELD         If specified, prints only the given field. Must be
                            one of [percentage | status].
+
   -h,--help                Show this help text
 ```
 
@@ -84,14 +88,19 @@ This service is for reading memory usage.
 
 ```
 Usage: pythia memory (-a|--app APP) [-f|--field FIELD] [-p|--percentage]
+
   Queries memory usage.
+
 
 Available options:
   -a,--app APP             App must be one of [free].
+
   -f,--field FIELD         If specified, prints only the given field. Must be
                            one of [total | used | free].
+
   -p,--percentage          If specified, values are written as a percentage
                            rather than bytes.
+
   -h,--help                Show this help text
 ```
 
@@ -135,14 +144,19 @@ This service is for reading information about the network interfaces found on th
 
 ```
 Usage: pythia net-if (-a|--app APP) [-d|--device NAME] [-f|--field FIELD]
+
   Queries network interfaces.
+
 
 Available options:
   -a,--app APP             App must be one of [nmcli | ip].
+
   -d,--device NAME         The name of the network device to filter on e.g.
                            wlp0s20f3
+
   -f,--field FIELD         If specified, prints only the given field. Must be
                            one of [name | ipv4 | ipv6].
+
   -h,--help                Show this help text
 ```
 
@@ -170,22 +184,22 @@ IPv6: fe80::fe44:82ff:fede:f814, fe80::a328:482:5263:10b8
 Device: enp0s31f6
 Type: Ethernet
 State: Down
-Name: 
-IPv4: 
-IPv6: 
+Name:
+IPv4:
+IPv6:
 
 Device: lo
 Type: Loopback
 State: UnknownState "unmanaged"
-Name: 
+Name:
 IPv4: 127.0.0.1
 IPv6: ::1
 
 Device: vpn
 Type: Tun
 State: UnknownState "unmanaged"
-Name: 
-IPv4: 
+Name:
+IPv4:
 IPv6: fe80::a63f:791a:3eaa:9d86
 
 $ pythia net-if  --app nmcli --device wlp0s20f3
@@ -217,12 +231,16 @@ This service is for finding a network interface that represents a live connectio
 
 ```
 Usage: pythia net-conn (-a|--app APP) [-f|--field FIELD]
+
   Queries network interfaces for a live connection.
+
 
 Available options:
   -a,--app APP             App must be one of [nmcli | ip].
+
   -f,--field FIELD         If specified, prints only the given field. Must be
-                           one of [device, type, name | ipv4 | ipv6].
+                           one of [device | type | name | ipv4 | ipv6].
+
   -h,--help                Show this help text
 ```
 
@@ -260,23 +278,29 @@ This service is for reading our global IP address.
 ### Usage
 
 ```
-Usage: pythia global-ip (-a|--app APP) [-t|--ip-type TYPE] [--ipv4-src URL] 
+Usage: pythia global-ip (-a|--app APP) [-t|--ip-type TYPE] [--ipv4-src URL]
                         [--ipv6-src URL]
+
   Queries the global IP addresses.
+
 
 Available options:
   -a,--app APP             App must be one of [dig | curl].
+
   -t,--ip-type TYPE        Whether to retrieve IPv4 or IPv6 address. One of:
                            [ipv4 | ipv6 | both]. Defaults to ipv4.
+
   --ipv4-src URL           Custom server URL for retrieving the IPv4 address
                            e.g. http://whatismyip.akamai.com/. Can be specified
                            multiple times and overrides the defaults. These
                            sources are only used if we query for IPv4 per
                            --ip-type.
+
   --ipv6-src URL           Custom server URL for retrieving the IPv6 address.
                            Can be specified multiple times and overrides the
                            defaults. These sources are only used if we query for
                            IPv6 per --ip-type.
+
   -h,--help                Show this help text
 ```
 
@@ -312,7 +336,9 @@ This service is for reading the current system time.
 
 ```
 Usage: pythia time [-d|--dest [utc | TZ]] [-f|--format STR]
+
   Queries the system time.
+
 
 Available options:
   -d,--dest [utc | TZ]     Determines what timezone we return. If none is given
@@ -320,9 +346,11 @@ Available options:
                            TZ] where TZ is a tz database label e.g.
                            America/New_York. See
                            https://en.wikipedia.org/wiki/Tz_database.
+
   -f,--format STR          Glibc-style format string e.g. %Y-%m-%d for
-                           yyyy-mm-dd. Defaults to RFC822 See
+                           yyyy-mm-dd. Defaults to RFC822. See
                            https://hackage.haskell.org/package/time-1.13/docs/Data-Time-Format.html#v:formatTime
+
   -h,--help                Show this help text
 ```
 
