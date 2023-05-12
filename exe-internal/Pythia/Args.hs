@@ -1,5 +1,3 @@
-{-# LANGUAGE TemplateHaskell #-}
-
 -- | This modules provides the arg parsing functionality.
 --
 -- @since 0.1
