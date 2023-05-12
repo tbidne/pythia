@@ -104,7 +104,6 @@
               # https://github.com/ddssff/listlike/issues/23
               ListLike = hlib.dontCheck prev.ListLike;
               ormolu = prev.ormolu_0_5_3_0;
-              package-version = hlib.doJailbreak prev.package-version;
               tasty-hedgehog = prev.tasty-hedgehog_1_4_0_0;
             } // mkLibs final [
               "algebra-simple"

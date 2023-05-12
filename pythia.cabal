@@ -122,15 +122,15 @@ library
 
 library pythia-exe-internal
   import:           common-exts
+  other-modules:    Paths_pythia
+  autogen-modules:  Paths_pythia
   exposed-modules:
     Pythia.Args
     Pythia.Runner
 
   build-depends:
     , base
-    , gitrev                >=1.2.0    && <1.4
     , optparse-applicative  >=0.16.1.0 && <0.18
-    , package-version       >=0.1.0.0  && <0.4
     , pythia
     , text
     , time

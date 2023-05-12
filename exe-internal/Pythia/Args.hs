@@ -24,9 +24,9 @@ module Pythia.Args
 where
 
 import Control.Applicative qualified as A
+import Data.List qualified as L
 import Data.Text qualified as T
-import Data.Version.Package qualified as PV
-import Development.GitRev qualified as GitRev
+import Data.Version (Version (versionBranch))
 import Options.Applicative
   ( CommandFields,
     Mod,
@@ -40,6 +40,7 @@ import Options.Applicative.Help (Chunk (..))
 import Options.Applicative.Help.Chunk qualified as Chunk
 import Options.Applicative.Help.Pretty qualified as Pretty
 import Options.Applicative.Types (ArgPolicy (..))
+import Paths_pythia qualified as Paths
 import Pythia.Prelude
 import Pythia.Services.Battery.Types (BatteryApp (..))
 import Pythia.Services.GlobalIp.Types
@@ -50,8 +51,6 @@ import Pythia.Services.GlobalIp.Types
 import Pythia.Services.Memory.Types (MemoryApp (..))
 import Pythia.Services.NetInterface.Types (NetInterfaceApp (..))
 import Pythia.Services.Types.Network (Device (..), IpType (..))
-import Pythia.Utils (Pretty (..), (<+>))
-import Pythia.Utils qualified as U
 
 -- | So we don't have to add @these@.
 --
@@ -197,18 +196,9 @@ cmdParser =
     timeTxt = mkCmdDesc "Queries the system time."
 
 version :: Parser (a -> a)
-version = OApp.infoOption txt (OApp.long "version" <> OApp.short 'v')
+version = OApp.infoOption versNum (OApp.long "version" <> OApp.short 'v')
   where
-    txt =
-      T.unpack $
-        toText $
-          U.vsep
-            [ pretty @Text "Pythia",
-              pretty @Text "Version:" <+> pretty $$(PV.packageVersionTextTH "pythia.cabal"),
-              pretty @Text "Revision:" <+> pretty @Text $(GitRev.gitHash),
-              pretty @Text "Date:" <+> pretty @Text $(GitRev.gitCommitDate)
-            ]
-    toText = U.renderStrict . U.layoutCompact
+    versNum = "Version: " <> L.intercalate "." (show <$> versionBranch Paths.version)
 
 parseBattery :: Parser PythiaCommand
 parseBattery = do
