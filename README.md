@@ -3,12 +3,8 @@
 # Pythia
 
 [![GitHub release (latest SemVer)](https://img.shields.io/github/v/release/tbidne/pythia?include_prereleases&sort=semver)](https://github.com/tbidne/pythia/releases/)
-![haskell](https://img.shields.io/static/v1?label=&message=9.4&logo=haskell&logoColor=655889&labelColor=2f353e&color=655889)
+[![ci](http://img.shields.io/github/actions/workflow/status/tbidne/pythia/ci.yaml?branch=main)](https://github.com/tbidne/pythia/actions/workflows/ci.yaml)
 [![MIT](https://img.shields.io/github/license/tbidne/pythia?color=blue)](https://opensource.org/licenses/MIT)
-
-[![nix](http://img.shields.io/github/actions/workflow/status/tbidne/pythia/nix.yaml?branch=main&label=nix&logo=nixos&logoColor=85c5e7&labelColor=2f353c)](https://github.com/tbidne/pythia/actions/workflows/nix.yaml)
-[![cabal](http://img.shields.io/github/actions/workflow/status/tbidne/pythia/cabal.yaml?branch=main&label=cabal&labelColor=2f353c)](https://github.com/tbidne/pythia/actions/workflows/cabal.yaml)
-[![style](http://img.shields.io/github/actions/workflow/status/tbidne/pythia/style.yaml?branch=main&label=style&logoColor=white&labelColor=2f353c)](https://github.com/tbidne/pythia/actions/workflows/style.yaml)
 
 </div>
 
