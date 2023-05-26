@@ -130,7 +130,7 @@ library pythia-exe-internal
 
   build-depends:
     , base
-    , optparse-applicative  >=0.16.1.0 && <0.18
+    , optparse-applicative  >=0.16.1.0 && <0.19
     , pythia
     , text
     , time
