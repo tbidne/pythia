@@ -119,8 +119,8 @@ parseInterface = do
   ipv4s' <- U.mAlt <$> MP.optional parseIpv4s
   ipv6s' <- U.mAlt <$> MP.optional parseIpv6s
   MP.many MPC.eol
-  pure $
-    MkNetInterface
+  pure
+    $ MkNetInterface
       { device = device',
         ntype = Just type',
         state = state',
@@ -190,8 +190,8 @@ parseName :: MParser (Maybe Text)
 parseName = do
   MPC.string "GENERAL.CONNECTION:"
   name' <- U.takeLineLabel (Just "name")
-  pure $
-    if T.null name'
+  pure
+    $ if T.null name'
       then Nothing
       else Just name'
 {-# INLINEABLE parseName #-}
@@ -230,13 +230,13 @@ parseIps p cons = do
     Left ex ->
       let errMsg :: String
           errMsg =
-            T.unpack $
-              "Malformed ipv"
-                <> p
-                <> " address found: "
-                <> showt addrs
-                <> ". Error: "
-                <> showt ex
+            T.unpack
+              $ "Malformed ipv"
+              <> p
+              <> " address found: "
+              <> showt addrs
+              <> ". Error: "
+              <> showt ex
        in MP.fancyFailure $ Set.fromList [ErrorFail errMsg]
     Right xss -> pure (cons <$> xss)
 {-# INLINEABLE parseIps #-}

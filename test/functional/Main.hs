@@ -25,8 +25,8 @@ main =
     (putStrLn "*** Functional tests disabled. Enable with RUN_FUNCTIONAL=1. ***")
   where
     tests =
-      Tasty.defaultMain $
-        Tasty.testGroup
+      Tasty.defaultMain
+        $ Tasty.testGroup
           "Functional tests"
           [ Battery.tests,
             GlobalIp.tests,

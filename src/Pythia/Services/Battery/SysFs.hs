@@ -1,3 +1,5 @@
+{-# LANGUAGE QuasiQuotes #-}
+
 -- | This module provides functionality for retrieving battery information
 -- using SysFS.
 --
@@ -16,25 +18,23 @@ module Pythia.Services.Battery.SysFs
 where
 
 import Data.Text qualified as T
+import Effects.FileSystem.PathReader qualified as Dir
+import Effects.FileSystem.Utils (OsPath, decodeOsToFpShow, osp, (</>))
 import Numeric.Data.Interval qualified as Interval
 import Pythia.Data.Percentage (Percentage (..))
 import Pythia.Prelude
 import Pythia.Services.Battery.Types (Battery (..), BatteryStatus (..))
-import System.Directory qualified as Dir
-import System.FilePath ((</>))
 import Text.Read qualified as TR
 
 -- $setup
 -- >>> import Control.Exception (displayException)
 -- >>> import Pythia.Prelude
 
-sysDir :: FilePath
-sysDir = "/sys/class/power_supply"
-{-# INLINEABLE sysDir #-}
+sysDir :: OsPath
+sysDir = [osp|/sys/class/power_supply|]
 
-sysfsDir :: FilePath
-sysfsDir = "/sysfs/class/power_supply"
-{-# INLINEABLE sysfsDir #-}
+sysfsDir :: OsPath
+sysfsDir = [osp|/sysfs/class/power_supply|]
 
 -- | Sysfs dir not found error.
 --
@@ -57,10 +57,11 @@ data SysFsDirNotFound = MkSysFsDirNotFound
 instance Exception SysFsDirNotFound where
   displayException _ =
     mconcat
-      [ "Could not find either sysfs dirs: ",
-        sysDir,
-        ", ",
-        sysfsDir
+      [ "Could not find either sysfs dirs: '",
+        decodeOsToFpShow sysDir,
+        "', '",
+        decodeOsToFpShow sysfsDir,
+        "'"
       ]
 
 -- | Sysfs battery dir not found.
@@ -97,7 +98,7 @@ instance Exception SysFsBatteryDirNotFound where
 --
 -- @since 0.1
 type SysFsFileNotFound :: Type
-newtype SysFsFileNotFound = MkSysFsFileNotFound Text
+newtype SysFsFileNotFound = MkSysFsFileNotFound OsPath
   deriving stock
     ( -- | @since 0.1
       Eq,
@@ -108,9 +109,11 @@ newtype SysFsFileNotFound = MkSysFsFileNotFound Text
 -- | @since 0.1
 instance Exception SysFsFileNotFound where
   displayException (MkSysFsFileNotFound e) =
-    ("Could not find sysfs file: " <>)
-      . T.unpack
-      $ e
+    mconcat
+      [ "Could not find sysfs file: '",
+        decodeOsToFpShow e,
+        "'"
+      ]
 
 -- | Sysfs battery parse error.
 --
@@ -141,7 +144,6 @@ instance Exception SysFsBatteryParseError where
 -- @since 0.1
 batteryQuery :: IO Battery
 batteryQuery = queryBattery
-{-# INLINEABLE batteryQuery #-}
 
 -- | Returns a boolean determining if this program is supported on the
 -- current system. In particular, we return 'True' if the directory
@@ -161,19 +163,24 @@ supported = do
   case efp of
     Left _ -> pure False
     Right _ -> pure True
-{-# INLINEABLE supported #-}
 
 queryBattery :: IO Battery
 queryBattery = do
   batDir <- findSysBatDir
-  statusPath <- fileExists (batDir </> "status")
+
+  let statusPath = batDir </> [osp|status|]
+  statusPathExists <- Dir.doesFileExist statusPath
+  unless statusPathExists $ throwCS $ MkSysFsFileNotFound statusPath
+
+  let percentPath = batDir </> [osp|capacity|]
+  percentPathExists <- Dir.doesFileExist percentPath
+  unless percentPathExists $ throwCS $ MkSysFsFileNotFound percentPath
+
   status <- parseStatus statusPath
-  percentPath <- fileExists (batDir </> "capacity")
   percentage <- parsePercentage percentPath
   pure $ MkBattery percentage status
-{-# INLINEABLE queryBattery #-}
 
-findSysBatDir :: IO FilePath
+findSysBatDir :: IO OsPath
 findSysBatDir = do
   sysExists <- Dir.doesDirectoryExist sysDir
   sysBase <-
@@ -185,49 +192,38 @@ findSysBatDir = do
           then pure sysfsDir
           else throwCS MkSysFsDirNotFound
   findBatteryDir sysBase
-{-# INLINEABLE findSysBatDir #-}
 
-findBatteryDir :: FilePath -> IO FilePath
+findBatteryDir :: OsPath -> IO OsPath
 findBatteryDir sysBase = do
   mResult <- foldr firstExists (pure Nothing) batDirs
   case mResult of
     Nothing -> throwCS MkSysFsBatteryDirNotFound
     Just result -> pure result
   where
-    firstExists bd acc = do
-      e <- maybeDirExists (sysBase </> bd)
+    firstExists batDir acc = do
+      e <- maybeDirExists (sysBase </> batDir)
       case e of
         Nothing -> acc
         Just e' -> pure $ Just e'
     batDirs =
-      [ "BAT0",
-        "BAT1",
-        "BAT2",
-        "BAT3",
-        "BAT4",
-        "BAT5",
-        "BAT"
+      [ [osp|BAT0|],
+        [osp|BAT1|],
+        [osp|BAT2|],
+        [osp|BAT3|],
+        [osp|BAT4|],
+        [osp|BAT5|],
+        [osp|BAT|]
       ]
-{-# INLINEABLE findBatteryDir #-}
 
-maybeDirExists :: FilePath -> IO (Maybe FilePath)
+maybeDirExists :: OsPath -> IO (Maybe OsPath)
 maybeDirExists fp = do
   b <- Dir.doesDirectoryExist fp
-  pure $
-    if b
+  pure
+    $ if b
       then Just fp
       else Nothing
-{-# INLINEABLE maybeDirExists #-}
 
-fileExists :: FilePath -> IO FilePath
-fileExists fp = do
-  b <- Dir.doesFileExist fp
-  if b
-    then pure fp
-    else throwCS $ MkSysFsFileNotFound $ T.pack fp
-{-# INLINEABLE fileExists #-}
-
-parseStatus :: FilePath -> IO BatteryStatus
+parseStatus :: OsPath -> IO BatteryStatus
 parseStatus fp = do
   statusTxt <-
     T.toLower
@@ -239,9 +235,8 @@ parseStatus fp = do
     "not charging" -> pure Pending
     "full" -> pure Full
     bad -> throwCS $ MkSysFsBatteryParseError $ "Unknown status: " <> bad
-{-# INLINEABLE parseStatus #-}
 
-parsePercentage :: FilePath -> IO Percentage
+parsePercentage :: OsPath -> IO Percentage
 parsePercentage fp = do
   percentTxt <- readFileUtf8Lenient fp
   case readInterval percentTxt of
@@ -249,4 +244,3 @@ parsePercentage fp = do
     Just bs -> pure $ MkPercentage bs
   where
     readInterval = Interval.mkLRInterval <=< TR.readMaybe . T.unpack
-{-# INLINEABLE parsePercentage #-}

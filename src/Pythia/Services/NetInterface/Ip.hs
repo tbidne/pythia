@@ -119,8 +119,8 @@ parseInterface = do
   ipv4s' <- parseIpv4s
   ipv6s' <- parseIpv6s
 
-  pure $
-    MkNetInterface
+  pure
+    $ MkNetInterface
       { device = MkDevice device',
         ntype = Nothing,
         state = state',
@@ -150,13 +150,13 @@ parseIps p cons = do
     Left ex ->
       let errMsg :: String
           errMsg =
-            T.unpack $
-              "Malformed ipv"
-                <> p
-                <> " address found: "
-                <> showt addrs
-                <> ". Error: "
-                <> showt ex
+            T.unpack
+              $ "Malformed ipv"
+              <> p
+              <> " address found: "
+              <> showt addrs
+              <> ". Error: "
+              <> showt ex
        in MP.fancyFailure $ Set.fromList [ErrorFail errMsg]
     Right xss -> pure (cons <$> xss)
 {-# INLINEABLE parseIps #-}

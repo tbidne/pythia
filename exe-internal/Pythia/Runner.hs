@@ -66,7 +66,8 @@ runPythiaHandler handler = do
 handleBattery :: (Text -> IO a) -> BatteryApp -> BatteryField -> IO a
 handleBattery handler cfg field =
   Pythia.queryBattery cfg
-    >>= handler . toField field
+    >>= handler
+    . toField field
   where
     toField BatteryFieldDefault = U.prettyToText
     toField BatteryFieldPercentage = U.prettyToText . view #percentage
@@ -75,7 +76,8 @@ handleBattery handler cfg field =
 handleMemory :: (Text -> IO a) -> MemoryApp -> MemoryField -> MemoryFormat -> IO a
 handleMemory handler cfg field format =
   Pythia.queryMemory cfg
-    >>= handler . toField format field
+    >>= handler
+    . toField format field
   where
     toField :: MemoryFormat -> MemoryField -> SystemMemory -> Text
     toField MemoryBytes MemoryFieldDefault = U.prettyToText
@@ -147,8 +149,8 @@ handleGlobalIp handler cfg = do
         >>= prettyPrint handler
     These ipv4Sources ipv6Sources -> do
       (ipv4Address, ipv6Address) <-
-        Pythia.queryGlobalIp $
-          MkGlobalIpConfig
+        Pythia.queryGlobalIp
+          $ MkGlobalIpConfig
             (cfg ^. #app)
             (ipv4Sources, ipv6Sources)
 

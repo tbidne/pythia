@@ -163,14 +163,14 @@ parserInfo =
     header = Just "Pythia: A tool for querying system information."
     footer = Just $ fromString ""
     desc =
-      Chunk.paragraph $
-        "Pythia queries system information. This is achieved by "
-          <> "using applications on the machine whose output pythia knows how to "
-          <> "parse. For instance, pythia can retrieve battery information by "
-          <> "using acpi, upower, or reading /sys/class directly. In general, "
-          <> "if the application is unspecified then pythia will try all "
-          <> "applications that exist on the current system, returning the first "
-          <> "success."
+      Chunk.paragraph
+        $ "Pythia queries system information. This is achieved by "
+        <> "using applications on the machine whose output pythia knows how to "
+        <> "parse. For instance, pythia can retrieve battery information by "
+        <> "using acpi, upower, or reading /sys/class directly. In general, "
+        <> "if the application is unspecified then pythia will try all "
+        <> "applications that exist on the current system, returning the first "
+        <> "success."
 
 cmdParser :: Parser PythiaCommand
 cmdParser =
@@ -388,10 +388,10 @@ parseNetConnField =
         "ipv4" -> pure NetConnFieldIpv4
         "ipv6" -> pure NetConnFieldIpv6
         _ ->
-          OApp.readerAbort $
-            ErrorMsg $
-              "Unrecognized network interface field: "
-                <> T.unpack a
+          OApp.readerAbort
+            $ ErrorMsg
+            $ "Unrecognized network interface field: "
+            <> T.unpack a
 
 parseIpGlobal :: Parser PythiaCommand
 parseIpGlobal = do
@@ -400,8 +400,9 @@ parseIpGlobal = do
   ipv4Urls <- ipv4SrcOption
   ipv6Urls <- ipv6SrcOption
 
-  pure $
-    NetIpGlobalCmd $ case ipType of
+  pure
+    $ NetIpGlobalCmd
+    $ case ipType of
       GlobalIpFieldIpv4 -> MkGlobalIpConfig app (This ipv4Urls)
       GlobalIpFieldIpv6 -> MkGlobalIpConfig app (That ipv6Urls)
       GlobalIpFieldBoth -> MkGlobalIpConfig app (These ipv4Urls ipv6Urls)
@@ -424,9 +425,10 @@ ipAppOption =
         "dig" -> pure GlobalIpAppDig
         "curl" -> pure GlobalIpAppCurl
         _ ->
-          OApp.readerAbort $
-            ErrorMsg $
-              "Unrecognized network interface app: " <> T.unpack a
+          OApp.readerAbort
+            $ ErrorMsg
+            $ "Unrecognized network interface app: "
+            <> T.unpack a
 
 ipTypeOption :: Parser GlobalIpField
 ipTypeOption =
@@ -452,8 +454,8 @@ ipTypeOption =
 
 ipv4SrcOption :: Parser [UrlSource Ipv4]
 ipv4SrcOption =
-  A.many $
-    OApp.option
+  A.many
+    $ OApp.option
       OApp.str
       ( OApp.long "ipv4-src"
           <> OApp.metavar "URL"
@@ -468,8 +470,8 @@ ipv4SrcOption =
 
 ipv6SrcOption :: Parser [UrlSource Ipv6]
 ipv6SrcOption =
-  A.many $
-    OApp.option
+  A.many
+    $ OApp.option
       OApp.str
       ( OApp.long "ipv6-src"
           <> OApp.metavar "URL"
@@ -510,8 +512,8 @@ parseTimezoneDest =
 
 parseTimeFormat :: Parser (Maybe String)
 parseTimeFormat =
-  A.optional $
-    OApp.option
+  A.optional
+    $ OApp.option
       OApp.str
       ( OApp.long "format"
           <> OApp.short 'f'

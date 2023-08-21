@@ -86,6 +86,6 @@ findUp = headMaybe . (sortType . filterUp) . view #unNetInterfaces
 
 filterDevice :: Device -> NetInterfaces -> NetInterfaces
 filterDevice device (MkNetInterfaces ifs) =
-  MkNetInterfaces $
-    filter ((== device) . view #device) ifs
+  MkNetInterfaces
+    $ filter ((== device) . view #device) ifs
 {-# INLINEABLE filterDevice #-}

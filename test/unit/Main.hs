@@ -16,8 +16,8 @@ import Unit.Pythia.Services.NetInterface.NmCli qualified as NetInterface.NmCli
 -- @since 0.1
 main :: IO ()
 main = do
-  Tasty.defaultMain $
-    Tasty.testGroup
+  Tasty.defaultMain
+    $ Tasty.testGroup
       "Unit tests"
       [ Battery.Acpi.tests,
         Battery.UPower.tests,

@@ -50,10 +50,14 @@ testStatus = testCase "Tests status" $ do
   assertBool ("Verify status: " <> T.unpack result) (verifyStatus result)
   where
     verifyStatus s =
-      s == "Charging"
-        || s == "Discharging"
-        || s == "Full"
-        || s == "Pending"
+      s
+        == "Charging"
+        || s
+        == "Discharging"
+        || s
+        == "Full"
+        || s
+        == "Pending"
 
 testPercentage :: TestTree
 testPercentage = testCase "Tests percentage" $ do

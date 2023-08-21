@@ -10,4 +10,4 @@ mkdir -p docs/
 # shellcheck disable=SC2038
 find docs/ -type f | xargs -I % sh -c "rm -r %"
 
-cp -r dist-newstyle/build/x86_64-linux/ghc-9.4.4/pythia-0.1/opt/doc/html/pythia/* docs/
+cp -r dist-newstyle/build/x86_64-linux/ghc-9.6.2/pythia-0.1/opt/doc/html/pythia/* docs/
