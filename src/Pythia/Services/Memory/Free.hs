@@ -59,8 +59,7 @@ instance Exception FreeParseError where
 --
 -- @since 0.1
 memoryShellApp ::
-  ( Concurrent :> es,
-    TypedProcessDynamic :> es,
+  ( TypedProcess :> es,
     PathReaderDynamic :> es
   ) =>
   Eff es SystemMemory

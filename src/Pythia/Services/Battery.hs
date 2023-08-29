@@ -30,10 +30,9 @@ import Pythia.Services.Battery.UPower qualified as UPower
 --
 -- @since 0.1
 queryBattery ::
-  ( Concurrent :> es,
-    FileReaderDynamic :> es,
+  ( FileReaderDynamic :> es,
     PathReaderDynamic :> es,
-    TypedProcessDynamic :> es
+    TypedProcess :> es
   ) =>
   BatteryApp ->
   Eff es Battery

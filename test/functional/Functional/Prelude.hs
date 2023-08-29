@@ -7,7 +7,6 @@ where
 
 import Data.Text qualified as T
 import Effectful (runEff)
-import Effectful.Concurrent (runConcurrent)
 import Effectful.Environment (runEnvironment, withArgs)
 import Effectful.FileSystem.FileReader.Dynamic
   ( runFileReaderDynamicIO,
@@ -22,7 +21,7 @@ import Effectful.IORef.Static
     runIORefStaticIO,
   )
 import Effectful.Optparse.Static (runOptparseStaticIO)
-import Effectful.Process.Typed.Dynamic (runTypedProcessDynamicIO)
+import Effectful.Process.Typed (runTypedProcess)
 import Effectful.Time.Dynamic (runTimeDynamicIO)
 import Pythia.Prelude as X
 import Pythia.Runner (runPythiaHandler)
@@ -41,14 +40,13 @@ capturePythia argList = run $ do
   where
     run =
       runEff
-        . runConcurrent
         . runEnvironment
         . runFileReaderDynamicIO
         . runIORefStaticIO
         . runOptparseStaticIO
         . runPathReaderDynamicIO
         . runTimeDynamicIO
-        . runTypedProcessDynamicIO
+        . runTypedProcess
 
 assertNonEmpty :: Text -> IO ()
 assertNonEmpty txt =

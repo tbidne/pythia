@@ -115,7 +115,7 @@ library
     , time                     >=1.9.3     && <1.14
     , time-conv                ^>=0.1
     , time-effectful           ^>=0.1
-    , typed-process-effectful  ^>=0.1
+    , typed-process-effectful  ^>=1.0.0.0
 
   hs-source-dirs:   src
   default-language: Haskell2010

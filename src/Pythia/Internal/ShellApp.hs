@@ -20,7 +20,7 @@ where
 import Data.ByteString.Lazy qualified as LBS
 import Data.Text qualified as T
 import Effectful (Effect)
-import Effectful.Process.Typed.Dynamic qualified as TP
+import Effectful.Process.Typed qualified as TP
 import GHC.IO.Exception (ExitCode (..))
 import Pythia.Control.Exception
   ( CommandException (..),
@@ -89,8 +89,7 @@ instance
 -- @since 0.1
 runSimple ::
   ( Exception err,
-    Concurrent :> es,
-    TypedProcessDynamic :> es
+    TypedProcess :> es
   ) =>
   SimpleShell es err result ->
   Eff es result
@@ -115,8 +114,7 @@ runSimple simple = do
 --
 -- @since 0.1
 runCommand ::
-  ( Concurrent :> es,
-    TypedProcessDynamic :> es
+  ( TypedProcess :> es
   ) =>
   Command ->
   Eff es Text

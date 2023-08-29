@@ -70,6 +70,15 @@
               hedgehog = prev.hedgehog_1_3;
               hlint = prev.hlint_3_6_1;
               ormolu = prev.ormolu_0_7_1_0;
+              typed-process-effectful =
+                hlib.dontCheck
+                (final.callHackageDirect
+                  {
+                    pkg = "typed-process-effectful";
+                    ver = "1.0.0.0";
+                    sha256 = "sha256-+AGzviNpE6sIf8j8IQ6qjEjIILe82mItZSEkc/Qc34c=";
+                  }
+                  {});
             } // nix-hs-utils.mkLibs inputs final [
               "algebra-simple"
               "bounds"
@@ -84,7 +93,6 @@
               "optparse-effectful"
               "terminal-effectful"
               "time-effectful"
-              "typed-process-effectful"
             ];
           };
           hlib = pkgs.haskell.lib;

@@ -63,9 +63,8 @@ instance Exception AcpiParseError where
 --
 -- @since 0.1
 batteryShellApp ::
-  ( Concurrent :> es,
-    PathReaderDynamic :> es,
-    TypedProcessDynamic :> es
+  ( PathReaderDynamic :> es,
+    TypedProcess :> es
   ) =>
   Eff es Battery
 batteryShellApp = ShellApp.runSimple shell

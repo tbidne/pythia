@@ -38,7 +38,6 @@ source-repository-package
         lib/optparse-effectful
         lib/terminal-effectful
         lib/time-effectful
-        lib/typed-process-effectful
 
 source-repository-package
     type: git

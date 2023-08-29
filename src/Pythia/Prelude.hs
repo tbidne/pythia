@@ -71,7 +71,7 @@ import Effectful.FileSystem.FileReader.Dynamic as X
   )
 import Effectful.FileSystem.PathReader.Dynamic as X (PathReaderDynamic)
 import Effectful.FileSystem.Utils as X (OsPath, decodeUtf8Lenient, osp)
-import Effectful.Process.Typed.Dynamic as X (TypedProcessDynamic)
+import Effectful.Process.Typed as X (TypedProcess)
 import Effectful.Time.Dynamic as X (TimeDynamic)
 import GHC.Enum as X (Bounded (..), Enum (..))
 import GHC.Err as X (error, undefined)

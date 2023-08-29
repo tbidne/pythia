@@ -39,9 +39,8 @@ import Pythia.Services.Types.Network
 --
 -- @since 0.1
 queryNetInterfaces ::
-  ( Concurrent :> es,
-    PathReaderDynamic :> es,
-    TypedProcessDynamic :> es
+  ( PathReaderDynamic :> es,
+    TypedProcess :> es
   ) =>
   NetInterfaceApp ->
   Eff es NetInterfaces
@@ -53,9 +52,8 @@ queryNetInterfaces NetInterfaceAppIp = Ip.netInterfaceShellApp
 --
 -- @since 0.1
 queryNetInterface ::
-  ( Concurrent :> es,
-    PathReaderDynamic :> es,
-    TypedProcessDynamic :> es
+  ( PathReaderDynamic :> es,
+    TypedProcess :> es
   ) =>
   Device ->
   NetInterfaceApp ->

@@ -47,7 +47,7 @@ import Refined qualified as R
 --
 -- @since 0.1
 queryGlobalIp ::
-  (Concurrent :> es, TypedProcessDynamic :> es) =>
+  (TypedProcess :> es) =>
   GlobalIpBothConfig ->
   Eff es (IpAddress Ipv4, IpAddress Ipv6)
 queryGlobalIp = queryGlobalIp' #app #sources getBothIps
@@ -57,7 +57,7 @@ queryGlobalIp = queryGlobalIp' #app #sources getBothIps
 --
 -- @since 0.1
 queryGlobalIpv4 ::
-  (Concurrent :> es, TypedProcessDynamic :> es) =>
+  (TypedProcess :> es) =>
   GlobalIpv4Config ->
   Eff es (IpAddress Ipv4)
 queryGlobalIpv4 = queryGlobalIp' #app #sources getIpv4s
@@ -67,7 +67,7 @@ queryGlobalIpv4 = queryGlobalIp' #app #sources getIpv4s
 --
 -- @since 0.1
 queryGlobalIpv6 ::
-  (Concurrent :> es, TypedProcessDynamic :> es) =>
+  (TypedProcess :> es) =>
   GlobalIpv6Config ->
   Eff es (IpAddress Ipv6)
 queryGlobalIpv6 = queryGlobalIp' #app #sources getIpv6s
@@ -84,7 +84,7 @@ queryGlobalIp' appLens sourceLens getIpFn config =
 {-# INLINEABLE queryGlobalIp' #-}
 
 getBothIps ::
-  (Concurrent :> es, TypedProcessDynamic :> es) =>
+  (TypedProcess :> es) =>
   GlobalIpApp ->
   ([UrlSource Ipv4], [UrlSource Ipv6]) ->
   Eff es (IpAddress Ipv4, IpAddress Ipv6)
@@ -95,7 +95,7 @@ getBothIps app (ipv4Srcs, ipv6Srcs) =
 {-# INLINEABLE getBothIps #-}
 
 getIpv4s ::
-  (Concurrent :> es, TypedProcessDynamic :> es) =>
+  (TypedProcess :> es) =>
   GlobalIpApp ->
   [UrlSource Ipv4] ->
   Eff es (IpAddress Ipv4)
@@ -107,7 +107,7 @@ getIpv4s app extraSrcs = do
 {-# INLINEABLE getIpv4s #-}
 
 getIpv6s ::
-  (Concurrent :> es, TypedProcessDynamic :> es) =>
+  (TypedProcess :> es) =>
   GlobalIpApp ->
   [UrlSource Ipv6] ->
   Eff es (IpAddress Ipv6)
@@ -160,9 +160,8 @@ digDefaults = (ipv4s, ipv6s)
 {-# INLINEABLE digDefaults #-}
 
 getIpFromSources ::
-  ( Concurrent :> es,
-    Predicate (IpRefinement a) Text,
-    TypedProcessDynamic :> es
+  ( Predicate (IpRefinement a) Text,
+    TypedProcess :> es
   ) =>
   [UrlSource a] ->
   Eff es (IpAddress a)
@@ -171,9 +170,8 @@ getIpFromSources = fmap MkIpAddress . getIp (#unUrlSource % re #unCommand)
 
 getIp ::
   forall es p a.
-  ( Concurrent :> es,
-    Predicate p Text,
-    TypedProcessDynamic :> es
+  ( Predicate p Text,
+    TypedProcess :> es
   ) =>
   Iso' a Command ->
   [a] ->

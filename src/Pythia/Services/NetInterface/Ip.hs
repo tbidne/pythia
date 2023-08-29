@@ -71,9 +71,8 @@ instance Exception IpParseError where
 --
 -- @since 0.1
 netInterfaceShellApp ::
-  ( Concurrent :> es,
-    PathReaderDynamic :> es,
-    TypedProcessDynamic :> es
+  ( PathReaderDynamic :> es,
+    TypedProcess :> es
   ) =>
   Eff es NetInterfaces
 netInterfaceShellApp = ShellApp.runSimple shell

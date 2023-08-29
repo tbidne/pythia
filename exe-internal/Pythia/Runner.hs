@@ -48,13 +48,12 @@ import Pythia.Utils qualified as U
 --
 -- @since 0.1
 runPythia ::
-  ( Concurrent :> es,
-    FileReaderDynamic :> es,
+  ( FileReaderDynamic :> es,
     OptparseStatic :> es,
     PathReaderDynamic :> es,
     TimeDynamic :> es,
     TerminalStatic :> es,
-    TypedProcessDynamic :> es
+    TypedProcess :> es
   ) =>
   Eff es ()
 runPythia = runPythiaHandler Term.putTextLn
@@ -63,12 +62,11 @@ runPythia = runPythiaHandler Term.putTextLn
 --
 -- @since 0.1
 runPythiaHandler ::
-  ( Concurrent :> es,
-    FileReaderDynamic :> es,
+  ( FileReaderDynamic :> es,
     OptparseStatic :> es,
     PathReaderDynamic :> es,
     TimeDynamic :> es,
-    TypedProcessDynamic :> es
+    TypedProcess :> es
   ) =>
   (Text -> Eff es a) ->
   Eff es a
@@ -82,10 +80,9 @@ runPythiaHandler handler = do
     TimeCmd ttype format -> handleTime handler format ttype
 
 handleBattery ::
-  ( Concurrent :> es,
-    FileReaderDynamic :> es,
+  ( FileReaderDynamic :> es,
     PathReaderDynamic :> es,
-    TypedProcessDynamic :> es
+    TypedProcess :> es
   ) =>
   (Text -> Eff es a) ->
   BatteryApp ->
@@ -101,9 +98,8 @@ handleBattery handler cfg field =
     toField BatteryFieldStatus = U.prettyToText . view #status
 
 handleMemory ::
-  ( Concurrent :> es,
-    PathReaderDynamic :> es,
-    TypedProcessDynamic :> es
+  ( PathReaderDynamic :> es,
+    TypedProcess :> es
   ) =>
   (Text -> Eff es a) ->
   MemoryApp ->
@@ -132,9 +128,8 @@ handleMemory handler cfg field format =
     toField MemoryPercentage MemoryFieldFree = U.prettyToText . Mem.percentageFree
 
 handleNetInterface ::
-  ( Concurrent :> es,
-    PathReaderDynamic :> es,
-    TypedProcessDynamic :> es
+  ( PathReaderDynamic :> es,
+    TypedProcess :> es
   ) =>
   (Text -> Eff es a) ->
   NetInterfaceApp ->
@@ -169,9 +164,8 @@ handleNetInterface handler cfg mdevice field = do
     toField NetInterfaceFieldIpv6 = U.pretty . view #ipv6s
 
 handleNetConn ::
-  ( Concurrent :> es,
-    PathReaderDynamic :> es,
-    TypedProcessDynamic :> es
+  ( PathReaderDynamic :> es,
+    TypedProcess :> es
   ) =>
   (Text -> Eff es a) ->
   NetInterfaceApp ->
@@ -192,8 +186,7 @@ handleNetConn handler cfg field = do
     toField NetConnFieldIpv6 = U.prettyToText . view #ipv6s
 
 handleGlobalIp ::
-  ( Concurrent :> es,
-    TypedProcessDynamic :> es
+  ( TypedProcess :> es
   ) =>
   (Text -> Eff es a) ->
   GlobalIpConfig (These [UrlSource Ipv4] [UrlSource Ipv6]) ->

@@ -39,9 +39,8 @@ import Pythia.Services.Memory.Types
 --
 -- @since 0.1
 queryMemory ::
-  ( Concurrent :> es,
-    PathReaderDynamic :> es,
-    TypedProcessDynamic :> es
+  ( PathReaderDynamic :> es,
+    TypedProcess :> es
   ) =>
   MemoryApp ->
   Eff es SystemMemory
