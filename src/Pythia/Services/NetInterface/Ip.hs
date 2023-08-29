@@ -1,3 +1,5 @@
+{-# LANGUAGE QuasiQuotes #-}
+
 -- | This module provides functionality for retrieving network connection
 -- information using ip utility.
 --
@@ -68,7 +70,12 @@ instance Exception IpParseError where
 -- | Ip query for 'NetInterface'.
 --
 -- @since 0.1
-netInterfaceShellApp :: IO NetInterfaces
+netInterfaceShellApp ::
+  ( Concurrent :> es,
+    PathReaderDynamic :> es,
+    TypedProcessDynamic :> es
+  ) =>
+  Eff es NetInterfaces
 netInterfaceShellApp = ShellApp.runSimple shell
   where
     shell =
@@ -83,8 +90,8 @@ netInterfaceShellApp = ShellApp.runSimple shell
 -- current system.
 --
 -- @since 0.1
-supported :: IO Bool
-supported = U.exeSupported "ip"
+supported :: (PathReaderDynamic :> es) => Eff es Bool
+supported = U.exeSupported [osp|ip|]
 {-# INLINEABLE supported #-}
 
 type MParser :: Type -> Type

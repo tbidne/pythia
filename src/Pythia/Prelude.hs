@@ -51,24 +51,28 @@ import Data.Text as X (Text)
 import Data.Text qualified as T
 import Data.Traversable as X (Traversable (..), for)
 import Data.Tuple as X (uncurry)
-import Effects.Exception as X
-  ( Exception (..),
-    SomeException,
-    addCS,
-    throwCS,
-    throwM,
-    tryAny,
-  )
-import Effects.FileSystem.FileReader as X
-  ( decodeUtf8Lenient,
-    readFileUtf8Lenient,
-  )
 import GHC.Natural as X (Natural)
 #if MIN_VERSION_base(4, 17, 0)
 import Data.Type.Equality as X (type (~))
 #endif
 import Data.Void as X (Void)
 import Data.Word as X (Word8)
+import Effectful as X (Eff, type (:>))
+import Effectful.Concurrent as X (Concurrent)
+import Effectful.Exception as X
+  ( Exception (displayException),
+    SomeException,
+    throwM,
+    tryAny,
+  )
+import Effectful.FileSystem.FileReader.Dynamic as X
+  ( FileReaderDynamic,
+    readFileUtf8Lenient,
+  )
+import Effectful.FileSystem.PathReader.Dynamic as X (PathReaderDynamic)
+import Effectful.FileSystem.Utils as X (OsPath, decodeUtf8Lenient, osp)
+import Effectful.Process.Typed.Dynamic as X (TypedProcessDynamic)
+import Effectful.Time.Dynamic as X (TimeDynamic)
 import GHC.Enum as X (Bounded (..), Enum (..))
 import GHC.Err as X (error, undefined)
 import GHC.Float as X (Double, Float)
@@ -127,15 +131,15 @@ headMaybe (x : _) = Just x
 -- | Throws 'Left'.
 --
 -- @since 0.1
-throwLeft :: forall e a. (Exception e) => Either e a -> IO a
-throwLeft = either throwCS pure
+throwLeft :: forall es e a. (Exception e) => Either e a -> Eff es a
+throwLeft = either throwM pure
 {-# INLINEABLE throwLeft #-}
 
 -- | @throwMaybe e x@ throws @e@ if @x@ is 'Nothing'.
 --
 -- @since 0.1
-throwMaybe :: forall e a. (Exception e) => e -> Maybe a -> IO a
-throwMaybe e = maybe (throwCS e) pure
+throwMaybe :: forall es e a. (Exception e) => e -> Maybe a -> Eff es a
+throwMaybe e = maybe (throwM e) pure
 {-# INLINEABLE throwMaybe #-}
 
 -- | 'Text' version of 'show'.

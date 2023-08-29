@@ -1,3 +1,5 @@
+{-# LANGUAGE QuasiQuotes #-}
+
 -- | This module provides functionality for retrieving battery information
 -- using UPower.
 --
@@ -70,7 +72,12 @@ instance Exception UPowerParseError where
 -- | UPower query for 'Battery'.
 --
 -- @since 0.1
-batteryShellApp :: IO Battery
+batteryShellApp ::
+  ( Concurrent :> es,
+    PathReaderDynamic :> es,
+    TypedProcessDynamic :> es
+  ) =>
+  Eff es Battery
 batteryShellApp = ShellApp.runSimple shell
   where
     shell =
@@ -85,8 +92,8 @@ batteryShellApp = ShellApp.runSimple shell
 -- current system.
 --
 -- @since 0.1
-supported :: IO Bool
-supported = U.exeSupported "upower"
+supported :: (PathReaderDynamic :> es) => Eff es Bool
+supported = U.exeSupported [osp|upower|]
 {-# INLINEABLE supported #-}
 
 -- | Attempts to parse the output of UPower.

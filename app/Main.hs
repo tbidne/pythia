@@ -4,6 +4,18 @@
 module Main (main) where
 
 import Control.Exception (displayException)
+import Effectful (runEff)
+import Effectful.Concurrent (runConcurrent)
+import Effectful.FileSystem.FileReader.Dynamic
+  ( runFileReaderDynamicIO,
+  )
+import Effectful.FileSystem.PathReader.Dynamic
+  ( runPathReaderDynamicIO,
+  )
+import Effectful.Optparse.Static (runOptparseStaticIO)
+import Effectful.Process.Typed.Dynamic (runTypedProcessDynamicIO)
+import Effectful.Terminal.Static (runTerminalStaticIO)
+import Effectful.Time.Dynamic (runTimeDynamicIO)
 import GHC.Conc.Sync (setUncaughtExceptionHandler)
 import Pythia.Runner (runPythia)
 
@@ -14,4 +26,14 @@ main :: IO ()
 main = do
   setUncaughtExceptionHandler $ \ex -> putStrLn ("\n" <> displayException ex)
 
-  runPythia
+  run runPythia
+  where
+    run =
+      runEff
+        . runConcurrent
+        . runFileReaderDynamicIO
+        . runOptparseStaticIO
+        . runPathReaderDynamicIO
+        . runTerminalStaticIO
+        . runTimeDynamicIO
+        . runTypedProcessDynamicIO

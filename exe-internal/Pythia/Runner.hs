@@ -10,8 +10,10 @@ where
 import Data.Text qualified as T
 import Data.Time.Format (FormatTime)
 import Data.Time.Format qualified as Format
-import GHC.Conc.Sync (setUncaughtExceptionHandler)
-import Options.Applicative qualified as OApp
+import Effectful.Optparse.Static (OptparseStatic)
+import Effectful.Optparse.Static qualified as OA
+import Effectful.Terminal.Static (TerminalStatic)
+import Effectful.Terminal.Static qualified as Term
 import Pythia
   ( BatteryApp,
     Device,
@@ -45,17 +47,33 @@ import Pythia.Utils qualified as U
 -- | Reads cli args and prints the results to stdout.
 --
 -- @since 0.1
-runPythia :: IO ()
-runPythia = runPythiaHandler (putStrLn . T.unpack)
+runPythia ::
+  ( Concurrent :> es,
+    FileReaderDynamic :> es,
+    OptparseStatic :> es,
+    PathReaderDynamic :> es,
+    TimeDynamic :> es,
+    TerminalStatic :> es,
+    TypedProcessDynamic :> es
+  ) =>
+  Eff es ()
+runPythia = runPythiaHandler Term.putTextLn
 
 -- | Reads cli args and applies the parameter handler.
 --
 -- @since 0.1
-runPythiaHandler :: (Text -> IO a) -> IO a
+runPythiaHandler ::
+  ( Concurrent :> es,
+    FileReaderDynamic :> es,
+    OptparseStatic :> es,
+    PathReaderDynamic :> es,
+    TimeDynamic :> es,
+    TypedProcessDynamic :> es
+  ) =>
+  (Text -> Eff es a) ->
+  Eff es a
 runPythiaHandler handler = do
-  setUncaughtExceptionHandler (putStrLn . displayException)
-
-  OApp.execParser parserInfo >>= \case
+  OA.execParser parserInfo >>= \case
     BatteryCmd cfg field -> handleBattery handler cfg field
     MemoryCmd cfg field format -> handleMemory handler cfg field format
     NetInterfaceCmd cfg device field -> handleNetInterface handler cfg device field
@@ -63,7 +81,16 @@ runPythiaHandler handler = do
     NetIpGlobalCmd cfg -> handleGlobalIp handler cfg
     TimeCmd ttype format -> handleTime handler format ttype
 
-handleBattery :: (Text -> IO a) -> BatteryApp -> BatteryField -> IO a
+handleBattery ::
+  ( Concurrent :> es,
+    FileReaderDynamic :> es,
+    PathReaderDynamic :> es,
+    TypedProcessDynamic :> es
+  ) =>
+  (Text -> Eff es a) ->
+  BatteryApp ->
+  BatteryField ->
+  Eff es a
 handleBattery handler cfg field =
   Pythia.queryBattery cfg
     >>= handler
@@ -73,7 +100,16 @@ handleBattery handler cfg field =
     toField BatteryFieldPercentage = U.prettyToText . view #percentage
     toField BatteryFieldStatus = U.prettyToText . view #status
 
-handleMemory :: (Text -> IO a) -> MemoryApp -> MemoryField -> MemoryFormat -> IO a
+handleMemory ::
+  ( Concurrent :> es,
+    PathReaderDynamic :> es,
+    TypedProcessDynamic :> es
+  ) =>
+  (Text -> Eff es a) ->
+  MemoryApp ->
+  MemoryField ->
+  MemoryFormat ->
+  Eff es a
 handleMemory handler cfg field format =
   Pythia.queryMemory cfg
     >>= handler
@@ -95,7 +131,16 @@ handleMemory handler cfg field format =
     toField MemoryPercentage MemoryFieldUsed = U.prettyToText . Mem.percentageUsed
     toField MemoryPercentage MemoryFieldFree = U.prettyToText . Mem.percentageFree
 
-handleNetInterface :: (Text -> IO a) -> NetInterfaceApp -> Maybe Device -> NetInterfaceField -> IO a
+handleNetInterface ::
+  ( Concurrent :> es,
+    PathReaderDynamic :> es,
+    TypedProcessDynamic :> es
+  ) =>
+  (Text -> Eff es a) ->
+  NetInterfaceApp ->
+  Maybe Device ->
+  NetInterfaceField ->
+  Eff es a
 handleNetInterface handler cfg mdevice field = do
   resultTxt <- case mdevice of
     Nothing -> interfacesToText <$> Pythia.queryNetInterfaces cfg
@@ -123,7 +168,15 @@ handleNetInterface handler cfg mdevice field = do
     toField NetInterfaceFieldIpv4 = U.pretty . view #ipv4s
     toField NetInterfaceFieldIpv6 = U.pretty . view #ipv6s
 
-handleNetConn :: (Text -> IO a) -> NetInterfaceApp -> NetConnField -> IO a
+handleNetConn ::
+  ( Concurrent :> es,
+    PathReaderDynamic :> es,
+    TypedProcessDynamic :> es
+  ) =>
+  (Text -> Eff es a) ->
+  NetInterfaceApp ->
+  NetConnField ->
+  Eff es a
 handleNetConn handler cfg field = do
   result <- Pythia.queryNetInterfaces cfg
   handler $ case Pythia.findUp result of
@@ -138,7 +191,13 @@ handleNetConn handler cfg field = do
     toField NetConnFieldIpv4 = U.prettyToText . view #ipv4s
     toField NetConnFieldIpv6 = U.prettyToText . view #ipv6s
 
-handleGlobalIp :: (Text -> IO a) -> GlobalIpConfig (These [UrlSource Ipv4] [UrlSource Ipv6]) -> IO a
+handleGlobalIp ::
+  ( Concurrent :> es,
+    TypedProcessDynamic :> es
+  ) =>
+  (Text -> Eff es a) ->
+  GlobalIpConfig (These [UrlSource Ipv4] [UrlSource Ipv6]) ->
+  Eff es a
 handleGlobalIp handler cfg = do
   case cfg ^. #sources of
     This ipv4Sources ->
@@ -157,7 +216,13 @@ handleGlobalIp handler cfg = do
       _ <- prettyPrint handler ipv4Address
       prettyPrint handler ipv6Address
 
-handleTime :: (Text -> IO a) -> Maybe String -> TimezoneDest -> IO a
+handleTime ::
+  ( TimeDynamic :> es
+  ) =>
+  (Text -> Eff es a) ->
+  Maybe String ->
+  TimezoneDest ->
+  Eff es a
 handleTime handler mformat = \case
   TimezoneDestLocal -> Pythia.queryLocalTime >>= handler . formatTime
   TimezoneDestUTC -> Pythia.queryUTC >>= handler . formatTime
@@ -167,7 +232,7 @@ handleTime handler mformat = \case
     formatTime :: (FormatTime t) => t -> Text
     formatTime = T.pack . Format.formatTime Format.defaultTimeLocale format
 
-prettyPrint :: (Pretty a) => (Text -> IO b) -> a -> IO b
+prettyPrint :: (Pretty a) => (Text -> Eff es b) -> a -> Eff es b
 prettyPrint handler = handler . U.prettyToText
 
 docToText :: Doc ann -> Text

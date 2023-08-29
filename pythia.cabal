@@ -98,23 +98,24 @@ library
     Pythia.Utils
 
   build-depends:
-    , base                   >=4.14.1.0  && <4.19
-    , bytestring             >=0.10.10.0 && <0.13
-    , containers             ^>=0.6.2.1
-    , deepseq                >=1.4.4.0   && <1.6
-    , directory              ^>=1.3.5.0
-    , effects-exceptions     ^>=0.1
-    , effects-fs             ^>=0.1
-    , effects-typed-process  ^>=0.1
-    , megaparsec             >=7.0.5     && <9.5
-    , optics-core            ^>=0.4
-    , prettyprinter          >=1.4.0     && <1.8
-    , refined                >=0.6       && <0.9
-    , si-bytes               ^>=0.1
-    , smart-math             ^>=0.1
-    , text                   >=1.2.3.2   && <2.1
-    , time                   >=1.9.3     && <1.14
-    , time-conv              ^>=0.1
+    , base                     >=4.14.1.0  && <4.19
+    , bytestring               >=0.10.10.0 && <0.13
+    , containers               ^>=0.6.2.1
+    , deepseq                  >=1.4.4.0   && <1.6
+    , effectful                ^>=2.2.1.0
+    , exceptions-effectful     ^>=0.1
+    , fs-effectful             ^>=0.1
+    , megaparsec               >=7.0.5     && <9.5
+    , optics-core              ^>=0.4
+    , prettyprinter            >=1.4.0     && <1.8
+    , refined                  >=0.6       && <0.9
+    , si-bytes                 ^>=0.1
+    , smart-math               ^>=0.1
+    , text                     >=1.2.3.2   && <2.1
+    , time                     >=1.9.3     && <1.14
+    , time-conv                ^>=0.1
+    , time-effectful           ^>=0.1
+    , typed-process-effectful  ^>=0.1
 
   hs-source-dirs:   src
   default-language: Haskell2010
@@ -130,7 +131,9 @@ library pythia-exe-internal
   build-depends:
     , base
     , optparse-applicative  >=0.16.1.0 && <0.19
+    , optparse-effectful    ^>=0.1
     , pythia
+    , terminal-effectful    ^>=0.1
     , text
     , time
 
@@ -143,7 +146,13 @@ executable pythia
   main-is:            Main.hs
   build-depends:
     , base
+    , effectful
+    , fs-effectful
+    , optparse-effectful
     , pythia-exe-internal
+    , terminal-effectful
+    , time-effectful
+    , typed-process-effectful
 
   hs-source-dirs:     app
   ghc-options:        -threaded -with-rtsopts=-N
@@ -190,13 +199,19 @@ test-suite functional
 
   build-depends:
     , base
-    , env-guard            ^>=0.2
+    , effectful
+    , env-guard                ^>=0.2
+    , fs-effectful
+    , ioref-effectful
     , megaparsec
+    , optparse-effectful
     , pythia
     , pythia-exe-internal
     , tasty
     , tasty-hunit
     , text
+    , time-effectful
+    , typed-process-effectful
 
   hs-source-dirs:   test/functional
   default-language: Haskell2010

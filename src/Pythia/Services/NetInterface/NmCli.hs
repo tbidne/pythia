@@ -1,3 +1,5 @@
+{-# LANGUAGE QuasiQuotes #-}
+
 -- | This module provides functionality for retrieving network connection
 -- information using nmcli.
 --
@@ -69,7 +71,12 @@ instance Exception NmCliParseError where
 -- | NmCli query for 'NetInterfaces'.
 --
 -- @since 0.1
-netInterfaceShellApp :: IO NetInterfaces
+netInterfaceShellApp ::
+  ( Concurrent :> es,
+    PathReaderDynamic :> es,
+    TypedProcessDynamic :> es
+  ) =>
+  Eff es NetInterfaces
 netInterfaceShellApp = ShellApp.runSimple shell
   where
     shell =
@@ -84,8 +91,8 @@ netInterfaceShellApp = ShellApp.runSimple shell
 -- current system.
 --
 -- @since 0.1
-supported :: IO Bool
-supported = U.exeSupported "nmcli"
+supported :: (PathReaderDynamic :> es) => Eff es Bool
+supported = U.exeSupported [osp|nmcli|]
 {-# INLINEABLE supported #-}
 
 type MParser :: Type -> Type

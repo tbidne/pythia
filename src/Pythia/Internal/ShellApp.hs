@@ -19,7 +19,8 @@ where
 
 import Data.ByteString.Lazy qualified as LBS
 import Data.Text qualified as T
-import Effects.System.Process qualified as TP
+import Effectful (Effect)
+import Effectful.Process.Typed.Dynamic qualified as TP
 import GHC.IO.Exception (ExitCode (..))
 import Pythia.Control.Exception
   ( CommandException (..),
@@ -34,8 +35,8 @@ import Pythia.Prelude
 -- The 'parser' is used to parse the result.
 --
 -- @since 0.1
-type SimpleShell :: Type -> Type -> Type
-data SimpleShell err result = MkSimpleShell
+type SimpleShell :: [Effect] -> Type -> Type -> Type
+data SimpleShell es err result = MkSimpleShell
   { -- | The shell command to run.
     --
     -- @since 0.1
@@ -43,7 +44,7 @@ data SimpleShell err result = MkSimpleShell
     -- | Determines if the shell command is supported on this system.
     --
     -- @since 0.1
-    isSupported :: IO Bool,
+    isSupported :: Eff es Bool,
     -- | The parser for the result of running the command.
     --
     -- @since 0.1
@@ -53,7 +54,7 @@ data SimpleShell err result = MkSimpleShell
 -- | @since 0.1
 instance
   (k ~ A_Lens, a ~ Command, b ~ Command) =>
-  LabelOptic "command" k (SimpleShell err result) (SimpleShell err result) a b
+  LabelOptic "command" k (SimpleShell es err result) (SimpleShell es err result) a b
   where
   labelOptic = lensVL $ \f (MkSimpleShell _command _isSupported _parser) ->
     fmap (\command' -> MkSimpleShell command' _isSupported _parser) (f _command)
@@ -61,8 +62,8 @@ instance
 
 -- | @since 0.1
 instance
-  (k ~ A_Lens, a ~ IO Bool, b ~ IO Bool) =>
-  LabelOptic "isSupported" k (SimpleShell err result) (SimpleShell err result) a b
+  (k ~ A_Lens, a ~ Eff es Bool, b ~ Eff es Bool) =>
+  LabelOptic "isSupported" k (SimpleShell es err result) (SimpleShell es err result) a b
   where
   labelOptic = lensVL $ \f (MkSimpleShell _command _isSupported _parser) ->
     fmap (\isSupported' -> MkSimpleShell _command isSupported' _parser) (f _isSupported)
@@ -71,7 +72,7 @@ instance
 -- | @since 0.1
 instance
   (k ~ A_Lens, a ~ (Text -> Either err result), b ~ (Text -> Either err result)) =>
-  LabelOptic "parser" k (SimpleShell err result) (SimpleShell err result) a b
+  LabelOptic "parser" k (SimpleShell es err result) (SimpleShell es err result) a b
   where
   labelOptic = lensVL $ \f (MkSimpleShell _command _isSupported _parser) ->
     fmap (MkSimpleShell _command _isSupported) (f _parser)
@@ -86,12 +87,18 @@ instance
 -- error is encountered.
 --
 -- @since 0.1
-runSimple :: (Exception err) => SimpleShell err result -> IO result
+runSimple ::
+  ( Exception err,
+    Concurrent :> es,
+    TypedProcessDynamic :> es
+  ) =>
+  SimpleShell es err result ->
+  Eff es result
 runSimple simple = do
   supported <- simple ^. #isSupported
   if supported
     then runCommand command >>= parseAndThrow
-    else throwCS $ MkNotSupportedException (command ^. #unCommand)
+    else throwM $ MkNotSupportedException (command ^. #unCommand)
   where
     command = simple ^. #command
     parseAndThrow = throwLeft . (simple ^. #parser)
@@ -107,13 +114,18 @@ runSimple simple = do
 -- code.
 --
 -- @since 0.1
-runCommand :: Command -> IO Text
+runCommand ::
+  ( Concurrent :> es,
+    TypedProcessDynamic :> es
+  ) =>
+  Command ->
+  Eff es Text
 runCommand command = do
   (exitCode, out, err) <- TP.readProcess $ TP.shell $ T.unpack cmdStr
   case exitCode of
     ExitSuccess -> pure $ decodeUtf8Lenient (LBS.toStrict out)
     ExitFailure _ ->
-      throwCS $ MkCommandException command $ T.pack $ show $ LBS.toStrict err
+      throwM $ MkCommandException command $ T.pack $ show $ LBS.toStrict err
   where
     cmdStr = command ^. #unCommand
 {-# INLINEABLE runCommand #-}
@@ -156,15 +168,15 @@ instance Monoid (ActionsResult r) where
 --       successes.
 --
 -- @since 0.1
-tryIOs :: [IO result] -> IO result
+tryIOs :: [Eff es result] -> Eff es result
 tryIOs actions =
   foldr tryIO (pure mempty) actions >>= \case
     Success result -> pure result
-    Errs errs -> throwCS $ MkSomeExceptions errs
-    NoRuns -> throwCS MkNoActionsRunException
+    Errs errs -> throwM $ MkSomeExceptions errs
+    NoRuns -> throwM MkNoActionsRunException
 {-# INLINEABLE tryIOs #-}
 
-tryIO :: IO result -> IO (ActionsResult result) -> IO (ActionsResult result)
+tryIO :: Eff es result -> Eff es (ActionsResult result) -> Eff es (ActionsResult result)
 tryIO action acc =
   tryAny action >>= \case
     Right result -> pure $ Success result

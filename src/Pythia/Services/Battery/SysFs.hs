@@ -18,8 +18,8 @@ module Pythia.Services.Battery.SysFs
 where
 
 import Data.Text qualified as T
-import Effects.FileSystem.PathReader qualified as Dir
-import Effects.FileSystem.Utils (OsPath, decodeOsToFpShow, osp, (</>))
+import Effectful.FileSystem.PathReader.Dynamic qualified as Dir
+import Effectful.FileSystem.Utils (decodeOsToFpShow, (</>))
 import Numeric.Data.Interval qualified as Interval
 import Pythia.Data.Percentage (Percentage (..))
 import Pythia.Prelude
@@ -142,7 +142,11 @@ instance Exception SysFsBatteryParseError where
 -- | @\/sys\/class@ query for 'Battery'.
 --
 -- @since 0.1
-batteryQuery :: IO Battery
+batteryQuery ::
+  ( FileReaderDynamic :> es,
+    PathReaderDynamic :> es
+  ) =>
+  Eff es Battery
 batteryQuery = queryBattery
 
 -- | Returns a boolean determining if this program is supported on the
@@ -157,30 +161,34 @@ batteryQuery = queryBattery
 -- * @\/sys\/class\/power_supply\/BAT@
 --
 -- @since 0.1
-supported :: IO Bool
+supported :: (PathReaderDynamic :> es) => Eff es Bool
 supported = do
   efp <- tryAny findSysBatDir
   case efp of
     Left _ -> pure False
     Right _ -> pure True
 
-queryBattery :: IO Battery
+queryBattery ::
+  ( FileReaderDynamic :> es,
+    PathReaderDynamic :> es
+  ) =>
+  Eff es Battery
 queryBattery = do
   batDir <- findSysBatDir
 
   let statusPath = batDir </> [osp|status|]
   statusPathExists <- Dir.doesFileExist statusPath
-  unless statusPathExists $ throwCS $ MkSysFsFileNotFound statusPath
+  unless statusPathExists $ throwM $ MkSysFsFileNotFound statusPath
 
   let percentPath = batDir </> [osp|capacity|]
   percentPathExists <- Dir.doesFileExist percentPath
-  unless percentPathExists $ throwCS $ MkSysFsFileNotFound percentPath
+  unless percentPathExists $ throwM $ MkSysFsFileNotFound percentPath
 
   status <- parseStatus statusPath
   percentage <- parsePercentage percentPath
   pure $ MkBattery percentage status
 
-findSysBatDir :: IO OsPath
+findSysBatDir :: (PathReaderDynamic :> es) => Eff es OsPath
 findSysBatDir = do
   sysExists <- Dir.doesDirectoryExist sysDir
   sysBase <-
@@ -190,14 +198,14 @@ findSysBatDir = do
         sysFsExists <- Dir.doesDirectoryExist sysfsDir
         if sysFsExists
           then pure sysfsDir
-          else throwCS MkSysFsDirNotFound
+          else throwM MkSysFsDirNotFound
   findBatteryDir sysBase
 
-findBatteryDir :: OsPath -> IO OsPath
+findBatteryDir :: (PathReaderDynamic :> es) => OsPath -> Eff es OsPath
 findBatteryDir sysBase = do
   mResult <- foldr firstExists (pure Nothing) batDirs
   case mResult of
-    Nothing -> throwCS MkSysFsBatteryDirNotFound
+    Nothing -> throwM MkSysFsBatteryDirNotFound
     Just result -> pure result
   where
     firstExists batDir acc = do
@@ -215,7 +223,7 @@ findBatteryDir sysBase = do
         [osp|BAT|]
       ]
 
-maybeDirExists :: OsPath -> IO (Maybe OsPath)
+maybeDirExists :: (PathReaderDynamic :> es) => OsPath -> Eff es (Maybe OsPath)
 maybeDirExists fp = do
   b <- Dir.doesDirectoryExist fp
   pure
@@ -223,7 +231,7 @@ maybeDirExists fp = do
       then Just fp
       else Nothing
 
-parseStatus :: OsPath -> IO BatteryStatus
+parseStatus :: (FileReaderDynamic :> es) => OsPath -> Eff es BatteryStatus
 parseStatus fp = do
   statusTxt <-
     T.toLower
@@ -234,13 +242,13 @@ parseStatus fp = do
     "discharging" -> pure Discharging
     "not charging" -> pure Pending
     "full" -> pure Full
-    bad -> throwCS $ MkSysFsBatteryParseError $ "Unknown status: " <> bad
+    bad -> throwM $ MkSysFsBatteryParseError $ "Unknown status: " <> bad
 
-parsePercentage :: OsPath -> IO Percentage
+parsePercentage :: (FileReaderDynamic :> es) => OsPath -> Eff es Percentage
 parsePercentage fp = do
   percentTxt <- readFileUtf8Lenient fp
   case readInterval percentTxt of
-    Nothing -> throwCS $ MkSysFsBatteryParseError percentTxt
+    Nothing -> throwM $ MkSysFsBatteryParseError percentTxt
     Just bs -> pure $ MkPercentage bs
   where
     readInterval = Interval.mkLRInterval <=< TR.readMaybe . T.unpack

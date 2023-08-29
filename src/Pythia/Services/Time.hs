@@ -16,23 +16,23 @@ module Pythia.Services.Time
 where
 
 import Data.Time.Clock (UTCTime (..))
-import Data.Time.Clock qualified as Clock
 import Data.Time.Conversion (TZDatabase (..), TZLabel (..), ZonedTime (..))
 import Data.Time.Conversion qualified as TimeConv
+import Data.Time.LocalTime qualified as LT
 import Pythia.Prelude
 
 -- | Queries current local time.
 --
 -- @since 0.1
-queryLocalTime :: IO ZonedTime
+queryLocalTime :: (TimeDynamic :> es) => Eff es ZonedTime
 queryLocalTime = TimeConv.readTime Nothing
 {-# INLINEABLE queryLocalTime #-}
 
 -- | Queries current UTC time.
 --
 -- @since 0.1
-queryUTC :: IO UTCTime
-queryUTC = Clock.getCurrentTime
+queryUTC :: (TimeDynamic :> es) => Eff es UTCTime
+queryUTC = LT.zonedTimeToUTC <$> queryTimeZoneLabel Etc__UTC
 {-# INLINEABLE queryUTC #-}
 
 -- | Queries current time in the given timezone.
@@ -42,7 +42,7 @@ queryUTC = Clock.getCurrentTime
 -- @
 --
 -- @since 0.1
-queryTimeZone :: Text -> IO ZonedTime
+queryTimeZone :: (TimeDynamic :> es) => Text -> Eff es ZonedTime
 queryTimeZone =
   TimeConv.readConvertTime Nothing
     . Just
@@ -57,7 +57,7 @@ queryTimeZone =
 -- encountered (e.g. running a command or parse error).
 --
 -- @since 0.1
-queryTimeZoneLabel :: TZLabel -> IO ZonedTime
+queryTimeZoneLabel :: (TimeDynamic :> es) => TZLabel -> Eff es ZonedTime
 queryTimeZoneLabel =
   TimeConv.readConvertTime Nothing
     . Just

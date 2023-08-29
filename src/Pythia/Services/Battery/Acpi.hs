@@ -1,3 +1,5 @@
+{-# LANGUAGE QuasiQuotes #-}
+
 -- | This module provides functionality for retrieving battery information
 -- using ACPI.
 --
@@ -60,7 +62,12 @@ instance Exception AcpiParseError where
 -- | ACPI query for 'Battery'.
 --
 -- @since 0.1
-batteryShellApp :: IO Battery
+batteryShellApp ::
+  ( Concurrent :> es,
+    PathReaderDynamic :> es,
+    TypedProcessDynamic :> es
+  ) =>
+  Eff es Battery
 batteryShellApp = ShellApp.runSimple shell
   where
     shell =
@@ -75,8 +82,8 @@ batteryShellApp = ShellApp.runSimple shell
 -- current system.
 --
 -- @since 0.1
-supported :: IO Bool
-supported = U.exeSupported "acpi"
+supported :: (PathReaderDynamic :> es) => Eff es Bool
+supported = U.exeSupported [osp|acpi|]
 {-# INLINEABLE supported #-}
 
 -- | Attempts to parse the output of acpi.

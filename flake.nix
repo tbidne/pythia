@@ -19,15 +19,14 @@
       inputs.nixpkgs.follows = "nixpkgs";
       inputs.nix-hs-utils.follows = "nix-hs-utils";
     };
-    monad-effects = {
-      url = "github:tbidne/monad-effects";
+    effectful-effects = {
+      url = "github:tbidne/effectful-effects";
       inputs.flake-parts.follows = "flake-parts";
       inputs.nix-hs-utils.follows = "nix-hs-utils";
       inputs.nixpkgs.follows = "nixpkgs";
 
       inputs.algebra-simple.follows = "algebra-simple";
       inputs.bounds.follows = "bounds";
-      inputs.smart-math.follows = "smart-math";
     };
     si-bytes = {
       url = "github:tbidne/si-bytes";
@@ -46,18 +45,17 @@
       inputs.nix-hs-utils.follows = "nix-hs-utils";
     };
     time-conv = {
-      url = "github:tbidne/time-conv";
+      url = "github:tbidne/time-conv/effectful";
       inputs.algebra-simple.follows = "algebra-simple";
       inputs.bounds.follows = "bounds";
       inputs.flake-parts.follows = "flake-parts";
-      inputs.monad-effects.follows = "monad-effects";
+      inputs.effectful-effects.follows = "effectful-effects";
       inputs.nix-hs-utils.follows = "nix-hs-utils";
       inputs.nixpkgs.follows = "nixpkgs";
     };
   };
   outputs =
     inputs@{ flake-parts
-    , monad-effects
     , nix-hs-utils
     , self
     , ...
@@ -78,16 +76,15 @@
               "si-bytes"
               "smart-math"
               "time-conv"
-            ] // nix-hs-utils.mkRelLibs monad-effects final [
-              "effects-env"
-              "effects-exceptions"
-              "effects-fs"
-              "effects-ioref"
-              "effects-optparse"
-              "effects-stm"
-              "effects-terminal"
-              "effects-time"
-              "effects-typed-process"
+            ] // nix-hs-utils.mkRelLibs "${inputs.effectful-effects}/lib" final [
+              "env-effectful"
+              "exceptions-effectful"
+              "fs-effectful"
+              "ioref-effectful"
+              "optparse-effectful"
+              "terminal-effectful"
+              "time-effectful"
+              "typed-process-effectful"
             ];
           };
           hlib = pkgs.haskell.lib;
