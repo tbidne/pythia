@@ -29,7 +29,7 @@ source-repository-package
 source-repository-package
     type: git
     location: https://github.com/tbidne/effectful-effects.git
-    tag: b7ab2f66b035bf6905d64e308d9bbc9bca8db78d
+    tag: bfdfb6ed351bdb91588878da74c819c0e1423fbf
     subdir:
         lib/env-effectful
         lib/exceptions-effectful
@@ -52,4 +52,4 @@ source-repository-package
 source-repository-package
     type: git
     location: https://github.com/tbidne/time-conv.git
-    tag: 9366a7a894da66f9f785c000f4ef5158788fd3cd
+    tag: 21cf514398af4dfa5bb7e1a51796a22c36169f6a
