@@ -57,7 +57,7 @@ import Data.Type.Equality as X (type (~))
 #endif
 import Data.Void as X (Void)
 import Data.Word as X (Word8)
-import Effectful as X (Eff, type (:>))
+import Effectful as X (Eff, runEff, type (:>))
 import Effectful.Concurrent as X (Concurrent)
 import Effectful.Exception as X
   ( Exception (displayException),

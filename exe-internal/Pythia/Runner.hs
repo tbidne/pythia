@@ -4,6 +4,9 @@
 module Pythia.Runner
   ( runPythia,
     runPythiaHandler,
+
+    -- * Re-exports
+    runEff,
   )
 where
 
@@ -43,6 +46,21 @@ import Pythia.Prelude
 import Pythia.Services.Memory qualified as Mem
 import Pythia.Utils (Doc, Pretty (..))
 import Pythia.Utils qualified as U
+
+-- NOTE: We re-export runEff because the exe needs it, and we have run into
+-- an annoying interaction between re-exported modules and -Wunused-packages.
+--
+-- The effectful packages re-exports effectful-core's Effectful module,
+-- which is where runEff lives.
+--
+-- We would like to have this in our exe's Main.hs: import Effectful (runEff).
+-- For some reason, GHC 8 flags this under -Wunused-packages, possibly because
+-- it doesn't understand that we are relying on Effectful's re-export and not
+-- the original effectful-core.
+--
+-- We could presumably fix this by directly depending on effectful-core, but
+-- that's a bit annoying as we already have effectful. Re-exporting the
+-- function here is easy.
 
 -- | Reads cli args and prints the results to stdout.
 --

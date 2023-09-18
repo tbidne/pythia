@@ -6,7 +6,6 @@ module Functional.Prelude
 where
 
 import Data.Text qualified as T
-import Effectful (runEff)
 import Effectful.Environment (runEnvironment, withArgs)
 import Effectful.FileSystem.FileReader.Dynamic
   ( runFileReaderDynamicIO,

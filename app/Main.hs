@@ -4,7 +4,6 @@
 module Main (main) where
 
 import Control.Exception (displayException)
-import Effectful (runEff)
 import Effectful.FileSystem.FileReader.Dynamic
   ( runFileReaderDynamicIO,
   )
@@ -16,7 +15,7 @@ import Effectful.Process.Typed (runTypedProcess)
 import Effectful.Terminal.Static (runTerminalStaticIO)
 import Effectful.Time.Dynamic (runTimeDynamicIO)
 import GHC.Conc.Sync (setUncaughtExceptionHandler)
-import Pythia.Runner (runPythia)
+import Pythia.Runner (runEff, runPythia)
 
 -- | Runs the executable.
 --
