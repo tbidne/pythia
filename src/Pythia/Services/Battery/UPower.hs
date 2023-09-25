@@ -1,4 +1,5 @@
 {-# LANGUAGE QuasiQuotes #-}
+{-# OPTIONS_GHC -Wno-everything #-}
 
 -- | This module provides functionality for retrieving battery information
 -- using UPower.
@@ -29,6 +30,10 @@ import Text.Megaparsec (ErrorFancy (..), Parsec)
 import Text.Megaparsec qualified as MP
 import Text.Megaparsec.Char qualified as MPC
 import Text.Read qualified as TR
+import Effectful.Exception (throwString)
+import Effectful.Process.Typed (ExitCode(..))
+import qualified Effectful.Process.Typed as TP
+import qualified Data.ByteString.Lazy as LBS
 
 -- $setup
 -- >>> import Control.Exception (displayException)
@@ -77,14 +82,21 @@ batteryShellApp ::
     TypedProcess :> es
   ) =>
   Eff es Battery
-batteryShellApp = ShellApp.runSimple shell
-  where
-    shell =
-      MkSimpleShell
-        { command = "upower -i `upower -e | grep 'BAT'`",
-          isSupported = supported,
-          parser = parseBattery
-        }
+--batteryShellApp = ShellApp.runSimple shell
+batteryShellApp = do
+  isSupported <- supported
+  if isSupported
+    --then runCommand command >>= parseAndThrow
+    then do
+      (exitCode, out, err) <- TP.readProcess $ TP.shell $ "upower -i `upower -e | grep 'BAT'`"
+      case exitCode of
+        ExitSuccess ->
+          case parseBattery (decodeUtf8Lenient (LBS.toStrict out)) of
+            Left perr -> throwString $ "*** Parse error: " <> show perr
+            Right b -> pure b
+        ExitFailure _ ->
+          throwString $ "*** Process Error: " <> show err
+    else throwString "Not supported"
 {-# INLINEABLE batteryShellApp #-}
 
 -- | Returns a boolean determining if this program is supported on the

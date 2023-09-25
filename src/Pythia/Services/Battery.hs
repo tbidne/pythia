@@ -1,5 +1,3 @@
-{-# OPTIONS_GHC -Wno-everything #-}
-
 -- | This module exports battery related services.
 --
 -- @since 0.1
@@ -27,8 +25,6 @@ import Pythia.Services.Battery.Types
     BatteryStatus (..),
   )
 import Pythia.Services.Battery.UPower qualified as UPower
-import Numeric.Data.Interval (LRInterval (MkLRInterval), unsafeLRInterval)
-import Numeric.Data.Interval 
 
 -- | Queries the battery.
 --
@@ -40,9 +36,15 @@ queryBattery ::
   ) =>
   BatteryApp ->
   Eff es Battery
-queryBattery BatteryAppAcpi = pure battery
-queryBattery BatteryAppSysFs = pure battery
-queryBattery BatteryAppUPower = pure battery
-
-battery :: Battery
-battery = MkBattery (MkPercentage $ unsafeLRInterval 4) Charging
+-- FIXME: Seg fault is in here. Notes:
+--
+-- 1. Executing this (and any other service) from navi fails
+-- 2. Actually running the pythia exe works :-(
+-- 3. Returning a hardcoded battery here works in navi
+--
+-- Next:
+--   Try hardcoding the process stuff here. OR maybe return a hardcoded battery
+--   but run some random process call? Maybe process is the problem.
+queryBattery BatteryAppAcpi = Acpi.batteryShellApp
+queryBattery BatteryAppSysFs = SysFs.batteryQuery
+queryBattery BatteryAppUPower = UPower.batteryShellApp
