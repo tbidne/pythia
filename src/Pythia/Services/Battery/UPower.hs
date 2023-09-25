@@ -22,6 +22,7 @@ import Data.Text qualified as T
 import Numeric.Data.Interval qualified as Interval
 import Pythia.Data.Percentage (Percentage (..))
 import Pythia.Internal.ShellApp (SimpleShell (..))
+import Effectful.FileSystem.PathReader.Dynamic qualified as PR
 import Pythia.Internal.ShellApp qualified as ShellApp
 import Pythia.Prelude
 import Pythia.Services.Battery.Types (Battery (..), BatteryStatus (..))
@@ -34,6 +35,9 @@ import Effectful.Exception (throwString)
 import Effectful.Process.Typed (ExitCode(..))
 import qualified Effectful.Process.Typed as TP
 import qualified Data.ByteString.Lazy as LBS
+import System.Directory qualified as Dir
+import System.Directory.OsPath qualified as OsDir
+import Effectful.Dispatch.Static (unsafeEff_)
 
 -- $setup
 -- >>> import Control.Exception (displayException)
@@ -84,7 +88,34 @@ batteryShellApp ::
   Eff es Battery
 --batteryShellApp = ShellApp.runSimple shell
 batteryShellApp = do
-  isSupported <- supported
+  -- THIS WORKED!!!
+  -- Okay so test real shell this time. If that works, try in order:
+  -- 1. running supported check
+  -- 2. decoding (no parsing, just print)
+  -- 3. parsing
+  --
+  -- Supported is the problem ?!
+  -- Okay now test everything but supported
+  -- FIXME: Supported is indeed the problem wtf. To try:
+  --
+  -- 1. running another function from PathReader
+  --    - getHomeDirectory seg-faulted!
+  -- 2. running the non-ospath version (just lift unsafeEff i guess)
+  --_ <- supported
+  _ <- PR.getHomeDirectory
+  --_ <- TP.readProcess $ TP.shell $ "echo hi"
+  -- try ospath version next
+  -- filepath worked
+  -- now trying ospath
+  --_ <- unsafeEff_ $ OsDir.findExecutable [osp|upower|]
+  pure $
+    MkBattery
+      { percentage = MkPercentage $ Interval.unsafeLRInterval 20,
+        status = Charging
+      }
+  --isSupported <- supported
+  -- supported is indeed the problem wtf
+  {-let isSupported = True
   if isSupported
     --then runCommand command >>= parseAndThrow
     then do
@@ -96,7 +127,7 @@ batteryShellApp = do
             Right b -> pure b
         ExitFailure _ ->
           throwString $ "*** Process Error: " <> show err
-    else throwString "Not supported"
+    else throwString "Not supported"-}
 {-# INLINEABLE batteryShellApp #-}
 
 -- | Returns a boolean determining if this program is supported on the

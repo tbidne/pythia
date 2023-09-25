@@ -103,6 +103,7 @@ library
     , containers               ^>=0.6.2.1
     , deepseq                  >=1.4.4.0   && <1.6
     , effectful                ^>=2.2.1.0
+    , directory
     , exceptions-effectful     ^>=0.1
     , fs-effectful             ^>=0.1
     , megaparsec               >=7.0.5     && <9.5
