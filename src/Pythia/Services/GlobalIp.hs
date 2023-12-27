@@ -28,17 +28,17 @@ import Pythia.Data.Command (Command)
 import Pythia.Internal.ShellApp qualified as ShellApp
 import Pythia.Prelude
 import Pythia.Services.GlobalIp.Types
-  ( GlobalIpApp (..),
+  ( GlobalIpApp (GlobalIpAppCurl, GlobalIpAppDig),
     GlobalIpBothConfig,
-    GlobalIpConfig (..),
+    GlobalIpConfig (MkGlobalIpConfig, app, sources),
     GlobalIpv4Config,
     GlobalIpv6Config,
-    UrlSource (..),
+    UrlSource (MkUrlSource, unUrlSource),
   )
 import Pythia.Services.Types.Network
-  ( IpAddress (..),
+  ( IpAddress (MkIpAddress),
     IpRefinement,
-    IpType (..),
+    IpType (Ipv4, Ipv6),
   )
 import Refined (Predicate, Refined)
 import Refined qualified as R

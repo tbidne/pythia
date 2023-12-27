@@ -34,8 +34,6 @@ source-repository head
 
 common common-exts
   default-extensions:
-    NoImplicitPrelude
-    NoStarIsType
     AllowAmbiguousTypes
     ApplicativeDo
     ConstraintKinds
@@ -56,6 +54,8 @@ common common-exts
     MultiParamTypeClasses
     MultiWayIf
     NamedFieldPuns
+    NoImplicitPrelude
+    NoStarIsType
     NumericUnderscores
     OverloadedLabels
     OverloadedStrings

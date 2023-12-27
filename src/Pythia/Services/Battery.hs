@@ -15,14 +15,14 @@ module Pythia.Services.Battery
   )
 where
 
-import Pythia.Data.Percentage (Percentage (..))
+import Pythia.Data.Percentage (Percentage (MkPercentage, unPercentage))
 import Pythia.Prelude
 import Pythia.Services.Battery.Acpi qualified as Acpi
 import Pythia.Services.Battery.SysFs qualified as SysFs
 import Pythia.Services.Battery.Types
-  ( Battery (..),
-    BatteryApp (..),
-    BatteryStatus (..),
+  ( Battery (MkBattery, percentage, status),
+    BatteryApp (BatteryAppAcpi, BatteryAppSysFs, BatteryAppUPower),
+    BatteryStatus (Charging, Discharging, Full, Pending),
   )
 import Pythia.Services.Battery.UPower qualified as UPower
 

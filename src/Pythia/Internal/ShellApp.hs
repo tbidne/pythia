@@ -19,15 +19,15 @@ where
 
 import Data.ByteString.Lazy qualified as LBS
 import Data.Text qualified as T
-import Effects.System.Process qualified as TP
-import GHC.IO.Exception (ExitCode (..))
+import Effects.Process.Typed qualified as TP
+import GHC.IO.Exception (ExitCode (ExitFailure, ExitSuccess))
 import Pythia.Control.Exception
-  ( CommandException (..),
-    NoActionsRunException (..),
-    NotSupportedException (..),
-    SomeExceptions (..),
+  ( CommandException (MkCommandException),
+    NoActionsRunException (MkNoActionsRunException),
+    NotSupportedException (MkNotSupportedException),
+    SomeExceptions (MkSomeExceptions),
   )
-import Pythia.Data.Command (Command (..))
+import Pythia.Data.Command (Command)
 import Pythia.Prelude
 
 -- | Type for running a "simple" shell command given by 'Command'.

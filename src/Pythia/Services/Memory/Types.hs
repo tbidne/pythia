@@ -10,15 +10,15 @@ module Pythia.Services.Memory.Types
   )
 where
 
-import Data.Bytes (Bytes (..), Size (..))
+import Data.Bytes (Bytes, Size (B))
 import Data.Bytes qualified as Bytes
 import Data.Bytes.Formatting
-  ( FloatingFormatter (..),
+  ( FloatingFormatter (MkFloatingFormatter),
     formatSized,
     sizedFormatterUnix,
   )
 import Pythia.Prelude
-import Pythia.Utils (Pretty (..), (<+>))
+import Pythia.Utils (Pretty (pretty), (<+>))
 
 -- $setup
 -- >>> import Pythia.Prelude
@@ -56,7 +56,7 @@ data MemoryApp
 --
 -- @since 0.1
 type Memory :: Type
-newtype Memory = MkMemory {unMemory :: Bytes 'B Natural}
+newtype Memory = MkMemory {unMemory :: Bytes B Natural}
   deriving stock
     ( -- | @since 0.1
       Eq,
@@ -72,7 +72,7 @@ newtype Memory = MkMemory {unMemory :: Bytes 'B Natural}
 
 -- | @since 0.1
 instance
-  (k ~ An_Iso, a ~ Bytes 'B Natural, b ~ Bytes 'B Natural) =>
+  (k ~ An_Iso, a ~ Bytes 'B Natural, b ~ Bytes B Natural) =>
   LabelOptic "unMemory" k Memory Memory a b
   where
   labelOptic = iso (\(MkMemory p) -> p) MkMemory

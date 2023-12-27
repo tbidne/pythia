@@ -16,10 +16,13 @@ module Pythia.Prelude
   )
 where
 
-import Control.Applicative as X (Alternative (..), Applicative (..))
+import Control.Applicative as X
+  ( Alternative (empty, (<|>)),
+    Applicative (pure, (*>), (<*), (<*>)),
+  )
 import Control.DeepSeq as X (NFData)
 import Control.Monad as X
-  ( Monad (..),
+  ( Monad ((>>=)),
     join,
     unless,
     void,
@@ -28,31 +31,31 @@ import Control.Monad as X
     (=<<),
     (>=>),
   )
-import Data.Bifunctor as X (Bifunctor (..))
-import Data.Bool as X (Bool (..), not, otherwise, (&&), (||))
+import Data.Bifunctor as X (Bifunctor (bimap, first, second))
+import Data.Bool as X (Bool (False, True), not, otherwise, (&&), (||))
 import Data.ByteString as X (ByteString)
 import Data.Char as X (Char)
-import Data.Either as X (Either (..), either)
-import Data.Eq as X (Eq (..))
-import Data.Foldable as X (Foldable (..), for_)
+import Data.Either as X (Either (Left, Right), either)
+import Data.Eq as X (Eq ((/=), (==)))
+import Data.Foldable as X (Foldable (foldMap, foldl', foldr, length), for_)
 import Data.Function as X (const, id, ($), (.))
-import Data.Functor as X (Functor (..), ($>), (<$>), (<&>))
+import Data.Functor as X (Functor (fmap), ($>), (<$>), (<&>))
 import Data.Int as X (Int)
 import Data.Kind as X (Type)
 import Data.List as X (filter, replicate)
 import Data.List.NonEmpty as X (NonEmpty ((:|)))
-import Data.Maybe as X (Maybe (..), fromMaybe, maybe)
-import Data.Monoid as X (Monoid (..))
-import Data.Ord as X (Ord (..))
-import Data.Proxy as X (Proxy (..))
-import Data.Semigroup as X (Semigroup (..))
-import Data.String as X (IsString (..), String)
+import Data.Maybe as X (Maybe (Just, Nothing), fromMaybe, maybe)
+import Data.Monoid as X (Monoid (mconcat, mempty))
+import Data.Ord as X (Ord ((<=)), (<), (>))
+import Data.Proxy as X (Proxy (Proxy))
+import Data.Semigroup as X (Semigroup ((<>)))
+import Data.String as X (IsString (fromString), String)
 import Data.Text as X (Text)
 import Data.Text qualified as T
-import Data.Traversable as X (Traversable (..), for)
+import Data.Traversable as X (Traversable (traverse), for)
 import Data.Tuple as X (uncurry)
 import Effects.Exception as X
-  ( Exception (..),
+  ( Exception (displayException),
     SomeException,
     addCS,
     throwCS,
@@ -69,21 +72,21 @@ import Data.Type.Equality as X (type (~))
 #endif
 import Data.Void as X (Void)
 import Data.Word as X (Word8)
-import GHC.Enum as X (Bounded (..), Enum (..))
+import GHC.Enum as X (Bounded (maxBound, minBound), Enum)
 import GHC.Err as X (error, undefined)
 import GHC.Float as X (Double, Float)
 import GHC.Generics as X (Generic)
-import GHC.Num as X (Num (..))
-import GHC.Read as X (Read (..))
+import GHC.Num as X (Num ((*), (+), (-)))
+import GHC.Read as X (Read)
 import GHC.Real as X (even, floor, fromIntegral, (/))
-import GHC.Show as X (Show (..))
+import GHC.Show as X (Show (show))
 import Optics.Core as X
   ( A_Lens,
     A_Prism,
     An_Iso,
     Iso,
     Iso',
-    LabelOptic (..),
+    LabelOptic (labelOptic),
     Lens',
     Prism',
     iso,

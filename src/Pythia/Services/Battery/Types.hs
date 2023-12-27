@@ -24,7 +24,7 @@ where
 
 import Pythia.Data.Percentage (Percentage)
 import Pythia.Prelude
-import Pythia.Utils (Pretty (..), (<+>))
+import Pythia.Utils (Pretty (pretty), (<+>))
 
 -- $setup
 -- >>> import Pythia.Prelude

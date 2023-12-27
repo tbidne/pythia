@@ -9,9 +9,9 @@ module Pythia.Data.Percentage
   )
 where
 
-import Numeric.Data.Interval (LRInterval (..))
+import Numeric.Data.Interval (LRInterval (MkLRInterval))
 import Pythia.Prelude
-import Pythia.Utils (Pretty (..))
+import Pythia.Utils (Pretty (pretty))
 
 -- | Represents a percentage.
 --

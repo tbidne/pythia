@@ -34,10 +34,10 @@ import Data.Text qualified as T
 import Pythia.Prelude
 import Pythia.Services.Types.Network
   ( Device,
-    IpAddresses (..),
-    IpType (..),
+    IpAddresses,
+    IpType (Ipv4, Ipv6),
   )
-import Pythia.Utils (Pretty (..), (<+>))
+import Pythia.Utils (Pretty (pretty), (<+>))
 import Pythia.Utils qualified as U
 
 -- $setup

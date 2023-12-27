@@ -11,7 +11,7 @@ module Pythia.Control.Exception
 where
 
 import Data.Text qualified as T
-import Pythia.Data.Command (Command (..))
+import Pythia.Data.Command (Command)
 import Pythia.Prelude
 
 -- $setup

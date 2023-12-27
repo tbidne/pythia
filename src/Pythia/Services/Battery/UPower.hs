@@ -17,13 +17,28 @@ import Data.Char qualified as Char
 import Data.Set qualified as Set
 import Data.Text qualified as T
 import Numeric.Data.Interval qualified as Interval
-import Pythia.Data.Percentage (Percentage (..))
-import Pythia.Internal.ShellApp (SimpleShell (..))
+import Pythia.Data.Percentage (Percentage (MkPercentage))
+import Pythia.Internal.ShellApp
+  ( SimpleShell
+      ( MkSimpleShell,
+        command,
+        isSupported,
+        parser
+      ),
+  )
 import Pythia.Internal.ShellApp qualified as ShellApp
 import Pythia.Prelude
-import Pythia.Services.Battery.Types (Battery (..), BatteryStatus (..))
+import Pythia.Services.Battery.Types
+  ( Battery (MkBattery),
+    BatteryStatus
+      ( Charging,
+        Discharging,
+        Full,
+        Pending
+      ),
+  )
 import Pythia.Utils qualified as U
-import Text.Megaparsec (ErrorFancy (..), Parsec)
+import Text.Megaparsec (ErrorFancy (ErrorFail), Parsec)
 import Text.Megaparsec qualified as MP
 import Text.Megaparsec.Char qualified as MPC
 import Text.Read qualified as TR

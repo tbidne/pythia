@@ -12,13 +12,23 @@ module Pythia.Services.Memory.Free
   )
 where
 
-import Data.Bytes (Bytes (..))
+import Data.Bytes (Bytes (MkBytes))
 import Data.Char qualified as Char
 import Data.Text qualified as T
-import Pythia.Internal.ShellApp (SimpleShell (..))
+import Pythia.Internal.ShellApp
+  ( SimpleShell
+      ( MkSimpleShell,
+        command,
+        isSupported,
+        parser
+      ),
+  )
 import Pythia.Internal.ShellApp qualified as ShellApp
 import Pythia.Prelude
-import Pythia.Services.Memory.Types (Memory (..), SystemMemory (..))
+import Pythia.Services.Memory.Types
+  ( Memory (MkMemory),
+    SystemMemory (MkSystemMemory),
+  )
 import Pythia.Utils qualified as U
 import Text.Megaparsec (Parsec)
 import Text.Megaparsec qualified as MP

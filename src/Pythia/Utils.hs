@@ -35,11 +35,11 @@ where
 
 import Data.Maybe qualified as May
 #if !MIN_VERSION_prettyprinter(1, 7, 1)
-import Data.Text.Prettyprint.Doc (Pretty (..), (<+>))
+import Data.Text.Prettyprint.Doc (Pretty (pretty), (<+>))
 import Data.Text.Prettyprint.Doc qualified as Pretty
 import Data.Text.Prettyprint.Doc.Render.Text qualified as PrettyText
 #else
-import Prettyprinter (Pretty (..), (<+>))
+import Prettyprinter (Pretty (pretty), (<+>))
 import Prettyprinter qualified as Pretty
 import Prettyprinter.Render.Text qualified as PrettyText
 #endif

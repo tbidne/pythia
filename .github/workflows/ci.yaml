@@ -34,7 +34,7 @@ jobs:
           ghc-version: ${{ matrix.ghc }}
 
       - name: Configure
-        run: cabal configure --enable-tests
+        run: cabal configure --enable-tests --ghc-options -Werror
 
       - name: Compile
         run: cabal build exe:pythia

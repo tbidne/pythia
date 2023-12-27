@@ -21,9 +21,17 @@ import Data.Text qualified as T
 import Effects.FileSystem.PathReader qualified as Dir
 import Effects.FileSystem.Utils (OsPath, decodeOsToFpShow, osp, (</>))
 import Numeric.Data.Interval qualified as Interval
-import Pythia.Data.Percentage (Percentage (..))
+import Pythia.Data.Percentage (Percentage (MkPercentage))
 import Pythia.Prelude
-import Pythia.Services.Battery.Types (Battery (..), BatteryStatus (..))
+import Pythia.Services.Battery.Types
+  ( Battery (MkBattery),
+    BatteryStatus
+      ( Charging,
+        Discharging,
+        Full,
+        Pending
+      ),
+  )
 import Text.Read qualified as TR
 
 -- $setup

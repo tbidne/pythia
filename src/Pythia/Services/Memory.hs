@@ -19,16 +19,16 @@ module Pythia.Services.Memory
   )
 where
 
-import Data.Bytes (Bytes (..), _MkBytes)
-import Numeric.Data.Interval (LRInterval (..))
+import Data.Bytes (Bytes (MkBytes), _MkBytes)
+import Numeric.Data.Interval (LRInterval (MkLRInterval))
 import Numeric.Data.Interval qualified as Interval
-import Pythia.Data.Percentage (Percentage (..))
+import Pythia.Data.Percentage (Percentage (MkPercentage))
 import Pythia.Prelude
 import Pythia.Services.Memory.Free qualified as Free
 import Pythia.Services.Memory.Types
-  ( Memory (..),
-    MemoryApp (..),
-    SystemMemory (..),
+  ( Memory (MkMemory),
+    MemoryApp (MemoryAppFree),
+    SystemMemory (MkSystemMemory, total, used),
   )
 
 -- $setup

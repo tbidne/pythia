@@ -21,7 +21,7 @@ module Pythia.Services.GlobalIp.Types
 where
 
 import Pythia.Prelude
-import Pythia.Services.Types.Network (IpType (..))
+import Pythia.Services.Types.Network (IpType (Ipv4, Ipv6))
 
 -- $setup
 -- >>> import Pythia.Prelude

@@ -16,25 +16,25 @@ where
 import Data.Char qualified as Char
 import Data.Set qualified as Set
 import Data.Text qualified as T
-import Pythia.Internal.ShellApp (SimpleShell (..))
+import Pythia.Internal.ShellApp (SimpleShell (MkSimpleShell))
 import Pythia.Internal.ShellApp qualified as ShellApp
 import Pythia.Prelude
 import Pythia.Services.NetInterface.Types
-  ( NetInterface (..),
-    NetInterfaceState (..),
-    NetInterfaceType (..),
-    NetInterfaces (..),
+  ( NetInterface (MkNetInterface, device, ipv4s, ipv6s, name, ntype, state),
+    NetInterfaceState (NetStateDown, NetStateUnknown, NetStateUp),
+    NetInterfaceType (Ethernet, Loopback, Tun, Wifi, Wifi_P2P),
+    NetInterfaces (MkNetInterfaces),
   )
 import Pythia.Services.Types.Network
-  ( Device (..),
-    IpAddress (..),
-    IpAddresses (..),
-    IpType (..),
+  ( Device (MkDevice),
+    IpAddress (MkIpAddress),
+    IpAddresses (MkIpAddresses),
+    IpType (Ipv4, Ipv6),
   )
 import Pythia.Utils qualified as U
 import Refined (Predicate, Refined)
 import Refined qualified as R
-import Text.Megaparsec (ErrorFancy (..), Parsec, (<?>))
+import Text.Megaparsec (ErrorFancy (ErrorFail), Parsec, (<?>))
 import Text.Megaparsec qualified as MP
 import Text.Megaparsec.Char qualified as MPC
 

@@ -15,9 +15,16 @@ module Pythia.Services.Time
   )
 where
 
-import Data.Time.Clock (UTCTime (..))
+import Data.Time.Clock (UTCTime)
 import Data.Time.Clock qualified as Clock
-import Data.Time.Conversion (TZDatabase (..), TZLabel (..), ZonedTime (..))
+import Data.Time.Conversion
+  ( TZDatabase
+      ( TZDatabaseLabel,
+        TZDatabaseText
+      ),
+    TZLabel (..),
+    ZonedTime,
+  )
 import Data.Time.Conversion qualified as TimeConv
 import Pythia.Prelude
 
