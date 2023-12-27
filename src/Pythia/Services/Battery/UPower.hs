@@ -16,8 +16,8 @@ where
 import Data.Char qualified as Char
 import Data.Set qualified as Set
 import Data.Text qualified as T
-import Numeric.Data.Interval qualified as Interval
-import Pythia.Data.Percentage (Percentage (MkPercentage))
+import Pythia.Data.Percentage (Percentage)
+import Pythia.Data.Percentage qualified as Percentage
 import Pythia.Internal.ShellApp
   ( SimpleShell
       ( MkSimpleShell,
@@ -184,13 +184,13 @@ parsePercent = do
   nn <- parseNN
   MPC.char '%'
   MPC.space
-  pure $ MkPercentage nn
+  pure nn
   where
     parseNN = do
       num <- MP.takeWhile1P Nothing Char.isDigit
-      maybe empty pure (readInterval num)
+      maybe empty pure (readPercentage num)
 
-    readInterval = Interval.mkLRInterval <=< TR.readMaybe . T.unpack
+    readPercentage = Percentage.mkPercentage <=< TR.readMaybe . T.unpack
 {-# INLINEABLE parsePercent #-}
 
 parseStatus :: MParser BatteryStatus

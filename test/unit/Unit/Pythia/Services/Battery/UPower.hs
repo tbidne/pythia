@@ -4,7 +4,7 @@ module Unit.Pythia.Services.Battery.UPower
 where
 
 import Data.Text qualified as T
-import Numeric.Data.Interval (unsafeLRInterval)
+import Pythia.Data.Percentage (_MkPercentage)
 import Pythia.Services.Battery.Types (BatteryStatus (..))
 import Pythia.Services.Battery.UPower qualified as UPower
 import Unit.Prelude
@@ -41,7 +41,7 @@ parseX :: Word8 -> (Text, BatteryStatus) -> TestTree
 parseX lvl (csTxt, cs) = testCase desc $ do
   let result = UPower.parseBattery (state lvl csTxt)
   Just cs @=? result ^? _Right % #status
-  Just (unsafeLRInterval lvl) @=? result ^? _Right % #percentage % #unPercentage
+  Just lvl @=? result ^? _Right % #percentage % _MkPercentage
   where
     desc = "Parses percentage " <> show lvl <> ", status " <> T.unpack csTxt
 

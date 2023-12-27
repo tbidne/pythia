@@ -20,8 +20,8 @@ where
 import Data.Text qualified as T
 import Effects.FileSystem.PathReader qualified as Dir
 import Effects.FileSystem.Utils (OsPath, decodeOsToFpShow, osp, (</>))
-import Numeric.Data.Interval qualified as Interval
-import Pythia.Data.Percentage (Percentage (MkPercentage))
+import Pythia.Data.Percentage (Percentage)
+import Pythia.Data.Percentage qualified as Percentage
 import Pythia.Prelude
 import Pythia.Services.Battery.Types
   ( Battery (MkBattery),
@@ -247,8 +247,8 @@ parseStatus fp = do
 parsePercentage :: OsPath -> IO Percentage
 parsePercentage fp = do
   percentTxt <- readFileUtf8Lenient fp
-  case readInterval percentTxt of
+  case readPercentage percentTxt of
     Nothing -> throwCS $ MkSysFsBatteryParseError percentTxt
-    Just bs -> pure $ MkPercentage bs
+    Just bs -> pure bs
   where
-    readInterval = Interval.mkLRInterval <=< TR.readMaybe . T.unpack
+    readPercentage = Percentage.mkPercentage <=< TR.readMaybe . T.unpack

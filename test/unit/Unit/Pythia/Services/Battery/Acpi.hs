@@ -4,7 +4,7 @@ module Unit.Pythia.Services.Battery.Acpi
 where
 
 import Data.Text qualified as T
-import Numeric.Data.Interval (unsafeLRInterval)
+import Pythia.Data.Percentage (_MkPercentage)
 import Pythia.Services.Battery.Acpi qualified as Acpi
 import Pythia.Services.Battery.Types (BatteryStatus (..))
 import Unit.Prelude
@@ -44,7 +44,7 @@ parseFirst :: TestTree
 parseFirst = testCase "Parses second battery" $ do
   let result = Acpi.parseBattery batteryTxt
   Just Discharging @=? result ^? _Right % #status
-  Just (unsafeLRInterval 73) @=? result ^? _Right % #percentage % #unPercentage
+  Just 73 @=? result ^? _Right % #percentage % _MkPercentage
   where
     batteryTxt =
       T.unlines
@@ -56,7 +56,7 @@ parseSecond :: TestTree
 parseSecond = testCase "Parses second battery" $ do
   let result = Acpi.parseBattery batteryTxt
   Just Discharging @=? result ^? _Right % #status
-  Just (unsafeLRInterval 73) @=? result ^? _Right % #percentage % #unPercentage
+  Just 73 @=? result ^? _Right % #percentage % _MkPercentage
   where
     batteryTxt =
       T.unlines
@@ -68,7 +68,7 @@ parseMiddle :: TestTree
 parseMiddle = testCase "Parses second battery" $ do
   let result = Acpi.parseBattery batteryTxt
   Just Discharging @=? result ^? _Right % #status
-  Just (unsafeLRInterval 73) @=? result ^? _Right % #percentage % #unPercentage
+  Just 73 @=? result ^? _Right % #percentage % _MkPercentage
   where
     batteryTxt =
       T.unlines
@@ -81,7 +81,7 @@ parseX :: Word8 -> (Text, BatteryStatus) -> TestTree
 parseX lvl (csTxt, cs) = testCase desc $ do
   let result = Acpi.parseBattery (battery lvl csTxt)
   Just cs @=? result ^? _Right % #status
-  Just (unsafeLRInterval lvl) @=? result ^? _Right % #percentage % #unPercentage
+  Just lvl @=? result ^? _Right % #percentage % _MkPercentage
   where
     desc = "Parses percentage " <> show lvl <> ", state " <> T.unpack csTxt
 

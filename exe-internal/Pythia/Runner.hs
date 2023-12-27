@@ -8,6 +8,8 @@ module Pythia.Runner
 where
 
 import Data.Text qualified as T
+import Data.Text.Lazy qualified as TL
+import Data.Text.Lazy.Builder qualified as TLB
 import Data.Time.Format (FormatTime)
 import Data.Time.Format qualified as Format
 import GHC.Conc.Sync (setUncaughtExceptionHandler)
@@ -36,11 +38,9 @@ import Pythia.Args
     TimezoneDest (..),
     parserInfo,
   )
-import Pythia.Data.Percentage (rawPercentage)
+import Pythia.Data.Percentage (unPercentage)
 import Pythia.Prelude
 import Pythia.Services.Memory qualified as Mem
-import Pythia.Utils (Doc, Pretty (..))
-import Pythia.Utils qualified as U
 
 -- | Reads cli args and prints the results to stdout.
 --
@@ -69,9 +69,9 @@ handleBattery handler cfg field =
     >>= handler
     . toField field
   where
-    toField BatteryFieldDefault = U.prettyToText
-    toField BatteryFieldPercentage = U.prettyToText . view #percentage
-    toField BatteryFieldStatus = U.prettyToText . view #status
+    toField BatteryFieldDefault = display
+    toField BatteryFieldPercentage = display . view #percentage
+    toField BatteryFieldStatus = display . view #status
 
 handleMemory :: (Text -> IO a) -> MemoryApp -> MemoryField -> MemoryFormat -> IO a
 handleMemory handler cfg field format =
@@ -80,20 +80,20 @@ handleMemory handler cfg field format =
     . toField format field
   where
     toField :: MemoryFormat -> MemoryField -> SystemMemory -> Text
-    toField MemoryBytes MemoryFieldDefault = U.prettyToText
-    toField MemoryBytes MemoryFieldTotal = U.prettyToText . view #total
-    toField MemoryBytes MemoryFieldUsed = U.prettyToText . view #used
-    toField MemoryBytes MemoryFieldFree = U.prettyToText . Mem.freeMemory
+    toField MemoryBytes MemoryFieldDefault = display
+    toField MemoryBytes MemoryFieldTotal = display . view #total
+    toField MemoryBytes MemoryFieldUsed = display . view #used
+    toField MemoryBytes MemoryFieldFree = display . Mem.freeMemory
     -- so we don't have an extra %
     toField MemoryPercentage MemoryFieldDefault =
       (<> " / 100%")
         . T.pack
         . show
-        . rawPercentage
+        . unPercentage
         . Mem.percentageUsed
     toField MemoryPercentage MemoryFieldTotal = const "100%"
-    toField MemoryPercentage MemoryFieldUsed = U.prettyToText . Mem.percentageUsed
-    toField MemoryPercentage MemoryFieldFree = U.prettyToText . Mem.percentageFree
+    toField MemoryPercentage MemoryFieldUsed = display . Mem.percentageUsed
+    toField MemoryPercentage MemoryFieldFree = display . Mem.percentageFree
 
 handleNetInterface :: (Text -> IO a) -> NetInterfaceApp -> Maybe Device -> NetInterfaceField -> IO a
 handleNetInterface handler cfg mdevice field = do
@@ -107,21 +107,21 @@ handleNetInterface handler cfg mdevice field = do
       case field of
         -- special case so we can use NetInterface's Pretty instance directly,
         -- which will print extra newlines between interfaces.
-        NetInterfaceFieldDefault -> U.prettyToText
+        NetInterfaceFieldDefault -> display
         _ ->
           docToText
-            . U.vsep
+            . vsep
             . fmap (toField field)
             . view #unNetInterfaces
 
     interfaceToText :: NetInterface -> Text
     interfaceToText = docToText . toField field
 
-    toField :: NetInterfaceField -> NetInterface -> Doc ann
-    toField NetInterfaceFieldDefault = U.pretty
-    toField NetInterfaceFieldName = U.pretty . view #name
-    toField NetInterfaceFieldIpv4 = U.pretty . view #ipv4s
-    toField NetInterfaceFieldIpv6 = U.pretty . view #ipv6s
+    toField :: NetInterfaceField -> NetInterface -> Builder
+    toField NetInterfaceFieldDefault = displayBuilder
+    toField NetInterfaceFieldName = displayBuilder . view #name
+    toField NetInterfaceFieldIpv4 = displayBuilder . view #ipv4s
+    toField NetInterfaceFieldIpv6 = displayBuilder . view #ipv6s
 
 handleNetConn :: (Text -> IO a) -> NetInterfaceApp -> NetConnField -> IO a
 handleNetConn handler cfg field = do
@@ -131,12 +131,12 @@ handleNetConn handler cfg field = do
     Just conn -> toField field conn
   where
     toField :: NetConnField -> NetInterface -> Text
-    toField NetConnFieldDefault = U.prettyToText
-    toField NetConnFieldDevice = U.prettyToText . view #device
-    toField NetConnFieldType = U.prettyToText . view #ntype
-    toField NetConnFieldName = U.prettyToText . view #name
-    toField NetConnFieldIpv4 = U.prettyToText . view #ipv4s
-    toField NetConnFieldIpv6 = U.prettyToText . view #ipv6s
+    toField NetConnFieldDefault = display
+    toField NetConnFieldDevice = display . view #device
+    toField NetConnFieldType = display . view #ntype
+    toField NetConnFieldName = display . view #name
+    toField NetConnFieldIpv4 = display . view #ipv4s
+    toField NetConnFieldIpv6 = display . view #ipv6s
 
 handleGlobalIp :: (Text -> IO a) -> GlobalIpConfig (These [UrlSource Ipv4] [UrlSource Ipv6]) -> IO a
 handleGlobalIp handler cfg = do
@@ -167,8 +167,8 @@ handleTime handler mformat = \case
     formatTime :: (FormatTime t) => t -> Text
     formatTime = T.pack . Format.formatTime Format.defaultTimeLocale format
 
-prettyPrint :: (Pretty a) => (Text -> IO b) -> a -> IO b
-prettyPrint handler = handler . U.prettyToText
+prettyPrint :: (Display a) => (Text -> IO b) -> a -> IO b
+prettyPrint handler = handler . display
 
-docToText :: Doc ann -> Text
-docToText = U.renderStrict . U.layoutCompact
+docToText :: Builder -> Text
+docToText = TL.toStrict . TLB.toLazyText

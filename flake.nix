@@ -38,7 +38,7 @@
       inputs.nix-hs-utils.follows = "nix-hs-utils";
     };
     smart-math = {
-      url = "github:tbidne/smart-math";
+      url = "github:tbidne/smart-math/interval";
       inputs.algebra-simple.follows = "algebra-simple";
       inputs.bounds.follows = "bounds";
       inputs.flake-parts.follows = "flake-parts";
