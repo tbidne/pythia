@@ -37,8 +37,6 @@ import Pythia.Services.Types.Network
     IpAddresses,
     IpType (Ipv4, Ipv6),
   )
-import Pythia.Utils (Pretty (pretty), (<+>))
-import Pythia.Utils qualified as U
 
 -- $setup
 -- >>> import Pythia.Prelude
@@ -182,9 +180,8 @@ _Tun =
     )
 {-# INLINE _Tun #-}
 
-instance Pretty NetInterfaceType where
-  pretty = pretty . show
-  {-# INLINEABLE pretty #-}
+instance Display NetInterfaceType where
+  displayBuilder = displayBuilder . show
 
 -- | Various connection states.
 --
@@ -245,9 +242,10 @@ _NetStateUnknown =
     )
 {-# INLINE _NetStateUnknown #-}
 
-instance Pretty NetInterfaceState where
-  pretty = pretty . show
-  {-# INLINEABLE pretty #-}
+instance Display NetInterfaceState where
+  displayBuilder NetStateUp = "Up"
+  displayBuilder NetStateDown = "Down"
+  displayBuilder (NetStateUnknown t) = "Unknown: " <> displayBuilder t
 
 -- | Full connection data.
 --
@@ -339,9 +337,9 @@ instance
   {-# INLINE labelOptic #-}
 
 -- | @since 0.1
-instance Pretty NetInterface where
-  pretty netif =
-    U.vsep
+instance Display NetInterface where
+  displayBuilder netif =
+    vsep
       [ device,
         ctype,
         state,
@@ -350,13 +348,15 @@ instance Pretty NetInterface where
         ipv6s
       ]
     where
-      device = "Device:" <+> pretty (netif ^. #device)
-      ctype = "Type:" <+> pretty (netif ^. #ntype)
-      state = "State:" <+> pretty (netif ^. #state)
-      name = "Name:" <+> pretty (netif ^. #name)
-      ipv4s = "IPv4:" <+> pretty (netif ^. #ipv4s)
-      ipv6s = "IPv6:" <+> pretty (netif ^. #ipv6s)
-  {-# INLINEABLE pretty #-}
+      device = "Device:" <+> displayBuilder (netif ^. #device)
+      ctype = "Type:" <+> displayMaybe (netif ^. #ntype)
+      state = "State:" <+> displayBuilder (netif ^. #state)
+      name = "Name:" <+> displayMaybe (netif ^. #name)
+      ipv4s = "IPv4:" <+> displayBuilder (netif ^. #ipv4s)
+      ipv6s = "IPv6:" <+> displayBuilder (netif ^. #ipv6s)
+
+      displayMaybe (Just x) = displayBuilder x
+      displayMaybe Nothing = "Nothing"
 
 -- | @since 0.1
 type NetInterfaces :: Type
@@ -377,9 +377,8 @@ newtype NetInterfaces = MkNetInterfaces {unNetInterfaces :: [NetInterface]}
     )
 
 -- | @since 0.1
-instance Pretty NetInterfaces where
-  pretty = U.vsep . U.punctuate (U.pretty @Text "\n") . fmap pretty . view #unNetInterfaces
-  {-# INLINEABLE pretty #-}
+instance Display NetInterfaces where
+  displayBuilder = vsep . punctuate "\n" . fmap displayBuilder . view #unNetInterfaces
 
 -- | Exception for when we cannot find a desired device.
 --

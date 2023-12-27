@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP #-}
 {-# LANGUAGE UndecidableInstances #-}
 
 -- | Provides common network types.
@@ -26,9 +27,12 @@ where
 import Data.Char qualified as Char
 import Data.Text qualified as T
 import Data.Typeable (typeRep)
+#if MIN_VERSION_base(4,17,0)
+import GHC.IsList (IsList (Item, fromList, toList))
+#else
+import GHC.Exts (IsList (Item, fromList, toList))
+#endif
 import Pythia.Prelude
-import Pythia.Utils (Pretty (..))
-import Pythia.Utils qualified as U
 import Refined (Predicate, Refined)
 import Refined qualified as R
 
@@ -63,9 +67,9 @@ newtype Device = MkDevice
     )
   deriving
     ( -- | @since 0.1
-      IsString,
+      Display,
       -- | @since 0.1
-      Pretty
+      IsString
     )
     via Text
   deriving anyclass
@@ -263,9 +267,8 @@ instance
   {-# INLINE labelOptic #-}
 
 -- | @since 0.1
-instance Pretty (IpAddress a) where
-  pretty = pretty . R.unrefine . unIpAddress
-  {-# INLINEABLE pretty #-}
+instance Display (IpAddress a) where
+  displayBuilder = displayBuilder . R.unrefine . unIpAddress
 
 -- | @since 0.1
 type IpAddresses :: IpType -> Type
@@ -304,6 +307,16 @@ instance
   {-# INLINE labelOptic #-}
 
 -- | @since 0.1
-instance Pretty (IpAddresses a) where
-  pretty = U.hsep . U.punctuate U.comma . fmap pretty . view #unIpAddresses
-  {-# INLINEABLE pretty #-}
+instance Display (IpAddresses a) where
+  displayBuilder =
+    hsep
+      . punctuate comma
+      . fmap displayBuilder
+      . view #unIpAddresses
+
+-- | @since 0.1
+instance IsList (IpAddresses a) where
+  type Item (IpAddresses a) = IpAddress a
+
+  fromList = MkIpAddresses
+  toList = unIpAddresses

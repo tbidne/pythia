@@ -3,9 +3,7 @@ name:               pythia
 version:            0.1
 license:            MIT
 license-file:       LICENSE
-tested-with:
-  GHC ==8.10.7 || ==9.0.2 || ==9.2.8 || ==9.4.7 || ==9.6.3
-
+tested-with:        GHC ==9.2.8 || ==9.4.7 || ==9.6.3
 copyright:          2021-2023 Thomas Bidne
 author:             Thomas Bidne
 maintainer:         tbidne@protonmail.com
@@ -41,6 +39,7 @@ common common-exts
     DeriveAnyClass
     DeriveFunctor
     DeriveGeneric
+    DeriveLift
     DerivingVia
     DuplicateRecordFields
     FlexibleContexts
@@ -77,6 +76,7 @@ library
     Pythia.Control.Exception
     Pythia.Data.Command
     Pythia.Data.Percentage
+    Pythia.Data.Percentage.Internal
     Pythia.Internal.ShellApp
     Pythia.Prelude
     Pythia.Services.Battery
@@ -98,7 +98,7 @@ library
     Pythia.Utils
 
   build-depends:
-    , base                   >=4.14.1.0  && <4.19
+    , base                   >=4.16.0.0  && <4.19
     , bytestring             >=0.10.10.0 && <0.13
     , containers             ^>=0.6.2.1
     , deepseq                >=1.4.4.0   && <1.6
@@ -108,11 +108,12 @@ library
     , effects-typed-process  ^>=0.1
     , megaparsec             >=7.0.5     && <9.5
     , optics-core            ^>=0.4
-    , prettyprinter          >=1.4.0     && <1.8
     , refined                >=0.6       && <0.9
     , si-bytes               ^>=0.1
     , smart-math             ^>=0.1
+    , template-haskell       >=2.17.0.0  && <2.22
     , text                   >=1.2.3.2   && <2.1
+    , text-display           >=0.0.3.0   && <0.6
     , time                   >=1.9.3     && <1.14
     , time-conv              ^>=0.1
 
@@ -156,10 +157,13 @@ test-suite unit
   other-modules:
     Unit.Prelude
     Unit.Pythia.Services.Battery.Acpi
+    Unit.Pythia.Services.Battery.Types
     Unit.Pythia.Services.Battery.UPower
     Unit.Pythia.Services.Memory.Free
+    Unit.Pythia.Services.Memory.Types
     Unit.Pythia.Services.NetInterface.Ip
     Unit.Pythia.Services.NetInterface.NmCli
+    Unit.Pythia.Services.NetInterface.Types
 
   build-depends:
     , base
@@ -167,7 +171,6 @@ test-suite unit
     , pythia
     , refined
     , si-bytes
-    , smart-math
     , tasty        >=1.1.0.3 && <1.5
     , tasty-hunit  >=0.9     && <0.11
     , text

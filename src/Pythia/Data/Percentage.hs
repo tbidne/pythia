@@ -1,54 +1,62 @@
-{-# LANGUAGE UndecidableInstances #-}
-
 -- | Provides the 'Percentage' type.
 --
 -- @since 0.1
 module Pythia.Data.Percentage
-  ( Percentage (..),
-    rawPercentage,
+  ( -- * Type
+    Percentage (MkPercentage),
+
+    -- * Creation
+    mkPercentage,
+    mkPercentageTH,
+    unsafePercentage,
+
+    -- * Elimination
+    unPercentage,
+
+    -- * Optics
+    _MkPercentage,
   )
 where
 
-import Numeric.Data.Interval (LRInterval (MkLRInterval))
+import Effects.Exception (HasCallStack)
+import Language.Haskell.TH (Code, Q)
+import Language.Haskell.TH.Syntax (Lift (liftTyped))
+import Numeric.Data.Interval qualified as Interval
+import Optics.Core (ReversedPrism')
+import Pythia.Data.Percentage.Internal
+  ( Percentage (InternalPercentage, MkPercentage),
+    unPercentage,
+  )
 import Pythia.Prelude
-import Pythia.Utils (Pretty (pretty))
 
--- | Represents a percentage.
+-- | Creates a percentage for x in [0, 100].
 --
 -- @since 0.1
-type Percentage :: Type
-newtype Percentage = MkPercentage {unPercentage :: LRInterval 0 100 Word8}
-  deriving stock
-    ( -- | @since 0.1
-      Eq,
-      -- | @since 0.1
-      Generic,
-      -- | @since 0.1
-      Ord,
-      -- | @since 0.1
-      Show
-    )
-  deriving anyclass
-    ( -- | @since 0.1
-      NFData
-    )
+mkPercentage :: Word8 -> Maybe Percentage
+mkPercentage = fmap InternalPercentage . Interval.mkInterval
 
--- | @since 0.1
-instance
-  (k ~ An_Iso, a ~ LRInterval 0 100 Word8, b ~ LRInterval 0 100 Word8) =>
-  LabelOptic "unPercentage" k Percentage Percentage a b
+-- | Safely creates a percentage at compile-time.
+--
+-- @since 0.1
+mkPercentageTH :: Word8 -> Code Q Percentage
+mkPercentageTH x = maybe (error $ errMsg x) liftTyped $ mkPercentage x
+
+-- | Unsafely creates a percentage for x in [0, 100]. Calls error otherwise.
+--
+-- @since 0.1
+unsafePercentage :: (HasCallStack) => Word8 -> Percentage
+unsafePercentage x = fromMaybe (error $ errMsg x) $ mkPercentage x
+
+-- | 'ReversedPrism'' that enables total elimination and partial construction.
+--
+-- @since 0.1
+_MkPercentage :: ReversedPrism' Percentage Word8
+_MkPercentage = re (prism unPercentage g)
   where
-  labelOptic = iso (\(MkPercentage p) -> p) MkPercentage
-  {-# INLINE labelOptic #-}
+    g x = case mkPercentage x of
+      Nothing -> Left x
+      Just x' -> Right x'
 
--- | @since 0.1
-instance Pretty Percentage where
-  pretty (MkPercentage p) = pretty p <> pretty @Text "%"
-  {-# INLINEABLE pretty #-}
-
--- | Retrieve the raw percentage.
---
--- @since 0.1
-rawPercentage :: Percentage -> Word8
-rawPercentage (MkPercentage (MkLRInterval x)) = x
-{-# INLINEABLE rawPercentage #-}
+errMsg :: Word8 -> String
+errMsg x =
+  "Pythia.Data.Percentage: Wanted percentage in [0, 100], received: " <> show x

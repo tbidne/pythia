@@ -18,7 +18,6 @@ import Data.Bytes.Formatting
     sizedFormatterUnix,
   )
 import Pythia.Prelude
-import Pythia.Utils (Pretty (pretty), (<+>))
 
 -- $setup
 -- >>> import Pythia.Prelude
@@ -79,12 +78,11 @@ instance
   {-# INLINE labelOptic #-}
 
 -- | @since 0.1
-instance Pretty Memory where
-  pretty (MkMemory bytes) = pretty formatted
+instance Display Memory where
+  displayBuilder (MkMemory bytes) = displayBuilder formatted
     where
       bytes' = Bytes.normalize $ fmap natToDouble bytes
       formatted = formatSized (MkFloatingFormatter (Just 2)) sizedFormatterUnix bytes'
-  {-# INLINEABLE pretty #-}
 
 -- | Represents the current memory usage.
 --
@@ -115,12 +113,16 @@ data SystemMemory = MkSystemMemory
     )
 
 -- | @since 0.1
-instance Pretty SystemMemory where
-  pretty mem = pretty u <+> "/" <+> pretty t
+instance Display SystemMemory where
+  displayBuilder mem =
+    mconcat
+      [ displayBuilder u,
+        " / ",
+        displayBuilder t
+      ]
     where
       t = mem ^. #total
       u = mem ^. #used
-  {-# INLINEABLE pretty #-}
 
 -- | @since 0.1
 instance

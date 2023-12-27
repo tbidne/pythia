@@ -15,7 +15,7 @@ module Pythia.Services.Battery
   )
 where
 
-import Pythia.Data.Percentage (Percentage (MkPercentage, unPercentage))
+import Pythia.Data.Percentage (Percentage (MkPercentage))
 import Pythia.Prelude
 import Pythia.Services.Battery.Acpi qualified as Acpi
 import Pythia.Services.Battery.SysFs qualified as SysFs

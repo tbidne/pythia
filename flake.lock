@@ -92,11 +92,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1703360463,
-        "narHash": "sha256-AtP9ypkxCF1OPGXBedmZ+Vj9UbXcydwEcr42g/XacKE=",
+        "lastModified": 1704227039,
+        "narHash": "sha256-XukX5wI3NQz5jnQEaZ1l9JG2cM5psyC/0fG0bJbwhlg=",
         "owner": "tbidne",
         "repo": "monad-effects",
-        "rev": "cceae3294bc0d96285cbeeb2f81de452d0b9172c",
+        "rev": "7af8e1f9e75f967083839dbdcbbbe4d75ddecd60",
         "type": "github"
       },
       "original": {
@@ -218,11 +218,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1703673427,
-        "narHash": "sha256-V/44gX6tRAdFJHgM7RF5Xf7tXbHLXxGwE7HZgxxOQBs=",
+        "lastModified": 1704226318,
+        "narHash": "sha256-QoiEd1GW2pFX9cq4oFKtC94RCd2ik4KVUbIXoPGpXMg=",
         "owner": "tbidne",
         "repo": "smart-math",
-        "rev": "45915767efd03115ed50eb87524ee03a366794db",
+        "rev": "fdeac16ca3a05ac1a1211fab9fe8de5a91aeb7f7",
         "type": "github"
       },
       "original": {

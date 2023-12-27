@@ -24,7 +24,6 @@ where
 
 import Pythia.Data.Percentage (Percentage)
 import Pythia.Prelude
-import Pythia.Utils (Pretty (pretty), (<+>))
 
 -- $setup
 -- >>> import Pythia.Prelude
@@ -169,12 +168,11 @@ _Pending =
 {-# INLINE _Pending #-}
 
 -- | @since 0.1
-instance Pretty BatteryStatus where
-  pretty Charging = "Charging"
-  pretty Discharging = "Discharging"
-  pretty Full = "Full"
-  pretty Pending = "Pending"
-  {-# INLINEABLE pretty #-}
+instance Display BatteryStatus where
+  displayBuilder Charging = "Charging"
+  displayBuilder Discharging = "Discharging"
+  displayBuilder Full = "Full"
+  displayBuilder Pending = "Pending"
 
 -- | Full battery state, including percentage and status data.
 --
@@ -218,12 +216,13 @@ instance
   {-# INLINE labelOptic #-}
 
 -- | @since 0.1
-instance Pretty Battery where
-  pretty bs =
-    status
-      <> pretty @Text ":"
-      <+> percentage
+instance Display Battery where
+  displayBuilder bs =
+    mconcat
+      [ status,
+        ": ",
+        percentage
+      ]
     where
-      status = pretty $ bs ^. #status
-      percentage = pretty $ bs ^. #percentage
-  {-# INLINEABLE pretty #-}
+      status = displayBuilder $ bs ^. #status
+      percentage = displayBuilder $ bs ^. #percentage
