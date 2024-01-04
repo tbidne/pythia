@@ -82,6 +82,21 @@ jobs:
 
           exit $ec
 
+  functional_tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Setup nix
+        uses: cachix/install-nix-action@v22
+        with:
+          nix_path: nixpkgs=https://github.com/NixOS/nixpkgs/archive/897876e4c484f1e8f92009fd11b7d988a121a4e7.tar.gz
+          extra_nix_config: |
+            access-tokens = github.com=${{ secrets.GITHUB_TOKEN }}
+
+      - name: Functional tests
+        run: nix develop .#ci -c bash -c './tools/functional_tests.sh'
+
   lint:
     runs-on: "ubuntu-latest"
     steps:

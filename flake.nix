@@ -104,6 +104,42 @@
           packages.default = mkPkg false;
           devShells.default = mkPkg true;
 
+          # Dev shell used for functional tests
+          devShells.ci =
+            let
+              # Tools needed for functional tests. Some of the tools appear to
+              # be in nixos by default (e.g. free, ip), and it's not clean
+              # what pkg in which they reside, so we do not explicitly list
+              # them here.
+              funcTestTools = [
+                # battery
+                pkgs.acpi
+                pkgs.upower
+                # global ip
+                pkgs.curl
+                pkgs.dig
+                # memory
+                # pkgs.free
+                # net-if / net-conn
+                # pkgs.ip
+                # pkgs.networkmanager # nmcli
+              ];
+
+              hsShell = nix-hs-utils.mkHaskellPkg {
+                inherit compiler pkgs;
+                # zero out devTools since we do not need them on ci.
+                devTools = [ ];
+                name = "pythia-functional";
+                returnShellEnv = true;
+                root = ./.;
+                modifier = drv: pkgs.haskell.lib.addBuildTools drv funcTestTools;
+              };
+            in
+            hsShell.overrideAttrs (old: {
+              # enable tests
+              shellHook = "export RUN_FUNCTIONAL=1";
+            });
+
           apps = {
             format = nix-hs-utils.format compilerPkgs;
             lint = nix-hs-utils.lint compilerPkgs;
