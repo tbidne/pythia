@@ -50,11 +50,11 @@ ifs = (n1, e1, n2, e2, n3, e3)
     e1 =
       comb
         [ "Device: ",
-          "Type: Nothing",
+          "Type: <nothing>",
           "State: Up",
-          "Name: Nothing",
-          "IPv4: ",
-          "IPv6: "
+          "Name: <nothing>",
+          "IPv4: <empty>",
+          "IPv6: <empty>"
         ]
 
     n2 =
@@ -88,8 +88,8 @@ ifs = (n1, e1, n2, e2, n3, e3)
         [ "Device: device",
           "Type: Wifi_P2P",
           "State: Unknown: error",
-          "Name: Nothing",
-          "IPv4: ",
+          "Name: <nothing>",
+          "IPv4: <empty>",
           "IPv6: fe80::c34b:de57:8835:c2c7"
         ]
 

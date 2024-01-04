@@ -18,6 +18,9 @@ module Pythia.Prelude
     punctuate,
     comma,
     line,
+    displayMaybe,
+    displayList,
+    builderToText,
 
     -- * Base
     module X,
@@ -67,8 +70,18 @@ import Data.Text qualified as T
 import Data.Text.Display as X (Display (displayBuilder), display)
 import Data.Traversable as X (Traversable (traverse), for)
 import Data.Tuple as X (uncurry)
+#if MIN_VERSION_base(4, 17, 0)
+import Data.Type.Equality as X (type (~))
+#endif
+import Data.Text.Lazy qualified as TL
+import Data.Text.Lazy.Builder as X (Builder)
+import Data.Text.Lazy.Builder qualified as TLB
+import Data.Void as X (Void)
+import Data.Word as X (Word8)
 import Effects.Exception as X
   ( Exception (displayException),
+    MonadCatch,
+    MonadThrow,
     SomeException,
     addCS,
     throwCS,
@@ -76,20 +89,21 @@ import Effects.Exception as X
     tryAny,
   )
 import Effects.FileSystem.FileReader as X
-  ( decodeUtf8Lenient,
+  ( MonadFileReader,
+    decodeUtf8Lenient,
     readFileUtf8Lenient,
   )
-import GHC.Natural as X (Natural)
-#if MIN_VERSION_base(4, 17, 0)
-import Data.Type.Equality as X (type (~))
-#endif
-import Data.Text.Lazy.Builder as X (Builder)
-import Data.Void as X (Void)
-import Data.Word as X (Word8)
-import GHC.Enum as X (Bounded (maxBound, minBound), Enum)
+import Effects.FileSystem.PathReader as X (MonadPathReader)
+import Effects.FileSystem.Utils as X (OsPath, decodeOsToFpShow, osp, (</>))
+import Effects.Process.Typed as X (MonadTypedProcess)
+import Effects.System.Terminal as X (MonadTerminal (putStrLn), print, putTextLn)
+import Effects.Time as X (MonadTime)
+import GHC.Enum as X (Bounded (maxBound, minBound), Enum (toEnum))
 import GHC.Err as X (error, undefined)
 import GHC.Float as X (Double, Float)
 import GHC.Generics as X (Generic)
+import GHC.Integer as X (Integer)
+import GHC.Natural as X (Natural)
 import GHC.Num as X (Num ((*), (+), (-)))
 import GHC.Read as X (Read)
 import GHC.Real as X (even, floor, fromIntegral, (/))
@@ -119,7 +133,7 @@ import Optics.Core as X
     _Left,
     _Right,
   )
-import System.IO as X (FilePath, IO, print, putStrLn)
+import System.IO as X (FilePath, IO)
 
 -- $setup
 -- >>> :set -XDeriveAnyClass
@@ -144,14 +158,14 @@ headMaybe (x : _) = Just x
 -- | Throws 'Left'.
 --
 -- @since 0.1
-throwLeft :: forall e a. (Exception e) => Either e a -> IO a
+throwLeft :: forall m e a. (Exception e, MonadThrow m) => Either e a -> m a
 throwLeft = either throwCS pure
 {-# INLINEABLE throwLeft #-}
 
 -- | @throwMaybe e x@ throws @e@ if @x@ is 'Nothing'.
 --
 -- @since 0.1
-throwMaybe :: forall e a. (Exception e) => e -> Maybe a -> IO a
+throwMaybe :: forall m e a. (Exception e, MonadThrow m) => e -> Maybe a -> m a
 throwMaybe e = maybe (throwCS e) pure
 {-# INLINEABLE throwMaybe #-}
 
@@ -192,3 +206,20 @@ concatWith :: (Foldable t) => (Builder -> Builder -> Builder) -> t Builder -> Bu
 concatWith f ds
   | null ds = mempty
   | otherwise = foldr1 f ds
+
+displayMaybe :: (Display a) => Maybe a -> Builder
+displayMaybe (Just x) = displayBuilder x
+displayMaybe Nothing = "<nothing>"
+
+displayList :: (Display a) => [a] -> Builder
+displayList [] = "<empty>"
+displayList xs@(_ : _) =
+  hsep
+    . punctuate comma
+    . fmap displayBuilder
+    $ xs
+
+-- | Intermediate function for Display a => a -> Text, for when we want to
+-- use a custom builder, and not the type's built-in displayBuilder.
+builderToText :: Builder -> Text
+builderToText = TL.toStrict . TLB.toLazyText

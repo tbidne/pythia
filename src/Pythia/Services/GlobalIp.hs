@@ -46,38 +46,56 @@ import Refined qualified as R
 -- | Queries for IPv4 and IPv6 global IP address based on the configuration.
 --
 -- @since 0.1
-queryGlobalIp :: GlobalIpBothConfig -> IO (IpAddress Ipv4, IpAddress Ipv6)
+queryGlobalIp ::
+  ( MonadCatch m,
+    MonadTypedProcess m
+  ) =>
+  GlobalIpBothConfig ->
+  m (IpAddress Ipv4, IpAddress Ipv6)
 queryGlobalIp = queryGlobalIp' #app #sources getBothIps
 {-# INLINEABLE queryGlobalIp #-}
 
 -- | 'queryGlobalIp' restricted to IPv4 address only.
 --
 -- @since 0.1
-queryGlobalIpv4 :: GlobalIpv4Config -> IO (IpAddress Ipv4)
+queryGlobalIpv4 ::
+  ( MonadCatch m,
+    MonadTypedProcess m
+  ) =>
+  GlobalIpv4Config ->
+  m (IpAddress Ipv4)
 queryGlobalIpv4 = queryGlobalIp' #app #sources getIpv4s
 {-# INLINEABLE queryGlobalIpv4 #-}
 
 -- | 'queryGlobalIp' restricted to IPv6 address only.
 --
 -- @since 0.1
-queryGlobalIpv6 :: GlobalIpv6Config -> IO (IpAddress Ipv6)
+queryGlobalIpv6 ::
+  ( MonadCatch m,
+    MonadTypedProcess m
+  ) =>
+  GlobalIpv6Config ->
+  m (IpAddress Ipv6)
 queryGlobalIpv6 = queryGlobalIp' #app #sources getIpv6s
 {-# INLINEABLE queryGlobalIpv6 #-}
 
 queryGlobalIp' ::
   Lens' config GlobalIpApp ->
   Lens' config sources ->
-  (GlobalIpApp -> sources -> IO result) ->
+  (GlobalIpApp -> sources -> m result) ->
   config ->
-  IO result
+  m result
 queryGlobalIp' appLens sourceLens getIpFn config =
   getIpFn (config ^. appLens) (config ^. sourceLens)
 {-# INLINEABLE queryGlobalIp' #-}
 
 getBothIps ::
+  ( MonadCatch m,
+    MonadTypedProcess m
+  ) =>
   GlobalIpApp ->
   ([UrlSource Ipv4], [UrlSource Ipv6]) ->
-  IO (IpAddress Ipv4, IpAddress Ipv6)
+  m (IpAddress Ipv4, IpAddress Ipv6)
 getBothIps app (ipv4Srcs, ipv6Srcs) =
   (,)
     <$> getIpv4s app ipv4Srcs
@@ -85,9 +103,12 @@ getBothIps app (ipv4Srcs, ipv6Srcs) =
 {-# INLINEABLE getBothIps #-}
 
 getIpv4s ::
+  ( MonadCatch m,
+    MonadTypedProcess m
+  ) =>
   GlobalIpApp ->
   [UrlSource Ipv4] ->
-  IO (IpAddress Ipv4)
+  m (IpAddress Ipv4)
 getIpv4s app extraSrcs = do
   let sources = case extraSrcs of
         [] -> ipv4Defaults app
@@ -96,9 +117,12 @@ getIpv4s app extraSrcs = do
 {-# INLINEABLE getIpv4s #-}
 
 getIpv6s ::
+  ( MonadCatch m,
+    MonadTypedProcess m
+  ) =>
   GlobalIpApp ->
   [UrlSource Ipv6] ->
-  IO (IpAddress Ipv6)
+  m (IpAddress Ipv6)
 getIpv6s app extraSrcs = do
   let sources = case extraSrcs of
         [] -> ipv6Defaults app
@@ -147,16 +171,25 @@ digDefaults = (ipv4s, ipv6s)
     ipv6s = []
 {-# INLINEABLE digDefaults #-}
 
-getIpFromSources :: (Predicate (IpRefinement a) Text) => [UrlSource a] -> IO (IpAddress a)
+getIpFromSources ::
+  ( MonadCatch m,
+    MonadTypedProcess m,
+    Predicate (IpRefinement a) Text
+  ) =>
+  [UrlSource a] ->
+  m (IpAddress a)
 getIpFromSources = fmap MkIpAddress . getIp (#unUrlSource % re #unCommand)
 {-# INLINEABLE getIpFromSources #-}
 
 getIp ::
-  forall p a.
-  (Predicate p Text) =>
+  forall m p a.
+  ( MonadCatch m,
+    MonadTypedProcess m,
+    Predicate p Text
+  ) =>
   Iso' a Command ->
   [a] ->
-  IO (Refined p Text)
+  m (Refined p Text)
 getIp cmdIso cmds = ShellApp.tryIOs (fmap go cmds)
   where
     go cmd = do

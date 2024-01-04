@@ -12,5 +12,8 @@ cradle:
     - path: "./test/unit"
       component: "pythia:test:unit"
 
+    - path: "./test/integration"
+      component: "pythia:test:Integration"
+
     - path: "./test/functional"
       component: "pythia:test:functional"

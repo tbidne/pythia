@@ -34,8 +34,8 @@ import Pythia.Prelude
 -- The 'parser' is used to parse the result.
 --
 -- @since 0.1
-type SimpleShell :: Type -> Type -> Type
-data SimpleShell err result = MkSimpleShell
+type SimpleShell :: (Type -> Type) -> Type -> Type -> Type
+data SimpleShell m err result = MkSimpleShell
   { -- | The shell command to run.
     --
     -- @since 0.1
@@ -43,7 +43,7 @@ data SimpleShell err result = MkSimpleShell
     -- | Determines if the shell command is supported on this system.
     --
     -- @since 0.1
-    isSupported :: IO Bool,
+    isSupported :: m Bool,
     -- | The parser for the result of running the command.
     --
     -- @since 0.1
@@ -53,7 +53,7 @@ data SimpleShell err result = MkSimpleShell
 -- | @since 0.1
 instance
   (k ~ A_Lens, a ~ Command, b ~ Command) =>
-  LabelOptic "command" k (SimpleShell err result) (SimpleShell err result) a b
+  LabelOptic "command" k (SimpleShell m err result) (SimpleShell m err result) a b
   where
   labelOptic = lensVL $ \f (MkSimpleShell _command _isSupported _parser) ->
     fmap (\command' -> MkSimpleShell command' _isSupported _parser) (f _command)
@@ -61,8 +61,8 @@ instance
 
 -- | @since 0.1
 instance
-  (k ~ A_Lens, a ~ IO Bool, b ~ IO Bool) =>
-  LabelOptic "isSupported" k (SimpleShell err result) (SimpleShell err result) a b
+  (k ~ A_Lens, a ~ m Bool, b ~ m Bool) =>
+  LabelOptic "isSupported" k (SimpleShell m err result) (SimpleShell m err result) a b
   where
   labelOptic = lensVL $ \f (MkSimpleShell _command _isSupported _parser) ->
     fmap (\isSupported' -> MkSimpleShell _command isSupported' _parser) (f _isSupported)
@@ -71,7 +71,7 @@ instance
 -- | @since 0.1
 instance
   (k ~ A_Lens, a ~ (Text -> Either err result), b ~ (Text -> Either err result)) =>
-  LabelOptic "parser" k (SimpleShell err result) (SimpleShell err result) a b
+  LabelOptic "parser" k (SimpleShell m err result) (SimpleShell m err result) a b
   where
   labelOptic = lensVL $ \f (MkSimpleShell _command _isSupported _parser) ->
     fmap (MkSimpleShell _command _isSupported) (f _parser)
@@ -86,7 +86,14 @@ instance
 -- error is encountered.
 --
 -- @since 0.1
-runSimple :: (Exception err) => SimpleShell err result -> IO result
+runSimple ::
+  forall m err result.
+  ( Exception err,
+    MonadThrow m,
+    MonadTypedProcess m
+  ) =>
+  SimpleShell m err result ->
+  m result
 runSimple simple = do
   supported <- simple ^. #isSupported
   if supported
@@ -94,6 +101,8 @@ runSimple simple = do
     else throwCS $ MkNotSupportedException (command ^. #unCommand)
   where
     command = simple ^. #command
+
+    parseAndThrow :: Text -> m result
     parseAndThrow = throwLeft . (simple ^. #parser)
 {-# INLINEABLE runSimple #-}
 
@@ -107,7 +116,7 @@ runSimple simple = do
 -- code.
 --
 -- @since 0.1
-runCommand :: Command -> IO Text
+runCommand :: (MonadThrow m, MonadTypedProcess m) => Command -> m Text
 runCommand command = do
   (exitCode, out, err) <- TP.readProcess $ TP.shell $ T.unpack cmdStr
   case exitCode of
@@ -156,7 +165,11 @@ instance Monoid (ActionsResult r) where
 --       successes.
 --
 -- @since 0.1
-tryIOs :: [IO result] -> IO result
+tryIOs ::
+  ( MonadCatch m
+  ) =>
+  [m result] ->
+  m result
 tryIOs actions =
   foldr tryIO (pure mempty) actions >>= \case
     Success result -> pure result
@@ -164,7 +177,12 @@ tryIOs actions =
     NoRuns -> throwCS MkNoActionsRunException
 {-# INLINEABLE tryIOs #-}
 
-tryIO :: IO result -> IO (ActionsResult result) -> IO (ActionsResult result)
+tryIO ::
+  ( MonadCatch m
+  ) =>
+  m result ->
+  m (ActionsResult result) ->
+  m (ActionsResult result)
 tryIO action acc =
   tryAny action >>= \case
     Right result -> pure $ Success result

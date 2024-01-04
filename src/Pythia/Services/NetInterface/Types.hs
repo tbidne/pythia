@@ -355,9 +355,6 @@ instance Display NetInterface where
       ipv4s = "IPv4:" <+> displayBuilder (netif ^. #ipv4s)
       ipv6s = "IPv6:" <+> displayBuilder (netif ^. #ipv6s)
 
-      displayMaybe (Just x) = displayBuilder x
-      displayMaybe Nothing = "Nothing"
-
 -- | @since 0.1
 type NetInterfaces :: Type
 newtype NetInterfaces = MkNetInterfaces {unNetInterfaces :: [NetInterface]}

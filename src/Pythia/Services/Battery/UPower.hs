@@ -1,3 +1,5 @@
+{-# LANGUAGE QuasiQuotes #-}
+
 -- | This module provides functionality for retrieving battery information
 -- using UPower.
 --
@@ -85,7 +87,12 @@ instance Exception UPowerParseError where
 -- | UPower query for 'Battery'.
 --
 -- @since 0.1
-batteryShellApp :: IO Battery
+batteryShellApp ::
+  ( MonadPathReader m,
+    MonadThrow m,
+    MonadTypedProcess m
+  ) =>
+  m Battery
 batteryShellApp = ShellApp.runSimple shell
   where
     shell =
@@ -100,8 +107,8 @@ batteryShellApp = ShellApp.runSimple shell
 -- current system.
 --
 -- @since 0.1
-supported :: IO Bool
-supported = U.exeSupported "upower"
+supported :: (MonadPathReader m) => m Bool
+supported = U.exeSupported [osp|upower|]
 {-# INLINEABLE supported #-}
 
 -- | Attempts to parse the output of UPower.

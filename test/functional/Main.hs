@@ -1,4 +1,6 @@
--- | Entrypoint for unit tests.
+-- | Entrypoint for functional tests. This runs the tests for real, hence
+-- guarded behind an environment variable, as the tests will crash if the
+-- external apps (e.g. free) do not exist.
 --
 -- @since 0.1
 module Main (main) where

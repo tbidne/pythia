@@ -308,11 +308,7 @@ instance
 
 -- | @since 0.1
 instance Display (IpAddresses a) where
-  displayBuilder =
-    hsep
-      . punctuate comma
-      . fmap displayBuilder
-      . view #unIpAddresses
+  displayBuilder = displayList . view #unIpAddresses
 
 -- | @since 0.1
 instance IsList (IpAddresses a) where

@@ -38,7 +38,13 @@ import Pythia.Services.Types.Network
 -- | Queries for all network interface data.
 --
 -- @since 0.1
-queryNetInterfaces :: NetInterfaceApp -> IO NetInterfaces
+queryNetInterfaces ::
+  ( MonadPathReader m,
+    MonadThrow m,
+    MonadTypedProcess m
+  ) =>
+  NetInterfaceApp ->
+  m NetInterfaces
 queryNetInterfaces NetInterfaceAppNmCli = NmCli.netInterfaceShellApp
 queryNetInterfaces NetInterfaceAppIp = Ip.netInterfaceShellApp
 {-# INLINEABLE queryNetInterfaces #-}
@@ -46,11 +52,18 @@ queryNetInterfaces NetInterfaceAppIp = Ip.netInterfaceShellApp
 -- | Like 'queryNetInterfaces' but returns data for a single device.
 --
 -- @since 0.1
-queryNetInterface :: Device -> NetInterfaceApp -> IO NetInterface
+queryNetInterface ::
+  ( MonadPathReader m,
+    MonadThrow m,
+    MonadTypedProcess m
+  ) =>
+  Device ->
+  NetInterfaceApp ->
+  m NetInterface
 queryNetInterface d = queryNetInterfaces >=> findDevice d
 {-# INLINEABLE queryNetInterface #-}
 
-findDevice :: Device -> NetInterfaces -> IO NetInterface
+findDevice :: (MonadThrow m) => Device -> NetInterfaces -> m NetInterface
 findDevice device = throwMaybe e . headMaybe . view #unNetInterfaces . filterDevice device
   where
     e = MkDeviceNotFound device

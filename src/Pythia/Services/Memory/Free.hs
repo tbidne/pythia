@@ -1,3 +1,5 @@
+{-# LANGUAGE QuasiQuotes #-}
+
 -- | This module provides functionality for retrieving memory usage using Free.
 --
 -- @since 0.1
@@ -66,7 +68,12 @@ instance Exception FreeParseError where
 -- | Free query for 'Memory'.
 --
 -- @since 0.1
-memoryShellApp :: IO SystemMemory
+memoryShellApp ::
+  ( MonadPathReader m,
+    MonadThrow m,
+    MonadTypedProcess m
+  ) =>
+  m SystemMemory
 memoryShellApp = ShellApp.runSimple shell
   where
     shell =
@@ -81,8 +88,8 @@ memoryShellApp = ShellApp.runSimple shell
 -- current system.
 --
 -- @since 0.1
-supported :: IO Bool
-supported = U.exeSupported "free"
+supported :: (MonadPathReader m) => m Bool
+supported = U.exeSupported [osp|free|]
 {-# INLINEABLE supported #-}
 
 -- | Attempts to parse the output of free.

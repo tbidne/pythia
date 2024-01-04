@@ -8,12 +8,11 @@ module Pythia.Runner
 where
 
 import Data.Text qualified as T
-import Data.Text.Lazy qualified as TL
-import Data.Text.Lazy.Builder qualified as TLB
 import Data.Time.Format (FormatTime)
 import Data.Time.Format qualified as Format
-import GHC.Conc.Sync (setUncaughtExceptionHandler)
-import Options.Applicative qualified as OApp
+import Effects.Exception (MonadGlobalException, setUncaughtExceptionHandler)
+import Effects.Optparse (MonadOptparse)
+import Effects.Optparse qualified as OApp
 import Pythia
   ( BatteryApp,
     Device,
@@ -45,13 +44,34 @@ import Pythia.Services.Memory qualified as Mem
 -- | Reads cli args and prints the results to stdout.
 --
 -- @since 0.1
-runPythia :: IO ()
-runPythia = runPythiaHandler (putStrLn . T.unpack)
+runPythia ::
+  ( MonadCatch m,
+    MonadFileReader m,
+    MonadGlobalException m,
+    MonadPathReader m,
+    MonadOptparse m,
+    MonadTerminal m,
+    MonadTime m,
+    MonadTypedProcess m
+  ) =>
+  m ()
+runPythia = runPythiaHandler putTextLn
 
 -- | Reads cli args and applies the parameter handler.
 --
 -- @since 0.1
-runPythiaHandler :: (Text -> IO a) -> IO a
+runPythiaHandler ::
+  ( MonadCatch m,
+    MonadFileReader m,
+    MonadGlobalException m,
+    MonadPathReader m,
+    MonadOptparse m,
+    MonadTerminal m,
+    MonadTime m,
+    MonadTypedProcess m
+  ) =>
+  (Text -> m a) ->
+  m a
 runPythiaHandler handler = do
   setUncaughtExceptionHandler (putStrLn . displayException)
 
@@ -63,7 +83,16 @@ runPythiaHandler handler = do
     NetIpGlobalCmd cfg -> handleGlobalIp handler cfg
     TimeCmd ttype format -> handleTime handler format ttype
 
-handleBattery :: (Text -> IO a) -> BatteryApp -> BatteryField -> IO a
+handleBattery ::
+  ( MonadCatch m,
+    MonadFileReader m,
+    MonadPathReader m,
+    MonadTypedProcess m
+  ) =>
+  (Text -> m a) ->
+  BatteryApp ->
+  BatteryField ->
+  m a
 handleBattery handler cfg field =
   Pythia.queryBattery cfg
     >>= handler
@@ -73,7 +102,16 @@ handleBattery handler cfg field =
     toField BatteryFieldPercentage = display . view #percentage
     toField BatteryFieldStatus = display . view #status
 
-handleMemory :: (Text -> IO a) -> MemoryApp -> MemoryField -> MemoryFormat -> IO a
+handleMemory ::
+  ( MonadPathReader m,
+    MonadThrow m,
+    MonadTypedProcess m
+  ) =>
+  (Text -> m a) ->
+  MemoryApp ->
+  MemoryField ->
+  MemoryFormat ->
+  m a
 handleMemory handler cfg field format =
   Pythia.queryMemory cfg
     >>= handler
@@ -95,7 +133,16 @@ handleMemory handler cfg field format =
     toField MemoryPercentage MemoryFieldUsed = display . Mem.percentageUsed
     toField MemoryPercentage MemoryFieldFree = display . Mem.percentageFree
 
-handleNetInterface :: (Text -> IO a) -> NetInterfaceApp -> Maybe Device -> NetInterfaceField -> IO a
+handleNetInterface ::
+  ( MonadPathReader m,
+    MonadThrow m,
+    MonadTypedProcess m
+  ) =>
+  (Text -> m a) ->
+  NetInterfaceApp ->
+  Maybe Device ->
+  NetInterfaceField ->
+  m a
 handleNetInterface handler cfg mdevice field = do
   resultTxt <- case mdevice of
     Nothing -> interfacesToText <$> Pythia.queryNetInterfaces cfg
@@ -109,21 +156,29 @@ handleNetInterface handler cfg mdevice field = do
         -- which will print extra newlines between interfaces.
         NetInterfaceFieldDefault -> display
         _ ->
-          docToText
+          builderToText
             . vsep
             . fmap (toField field)
             . view #unNetInterfaces
 
     interfaceToText :: NetInterface -> Text
-    interfaceToText = docToText . toField field
+    interfaceToText = builderToText . toField field
 
     toField :: NetInterfaceField -> NetInterface -> Builder
     toField NetInterfaceFieldDefault = displayBuilder
-    toField NetInterfaceFieldName = displayBuilder . view #name
+    toField NetInterfaceFieldName = displayMaybe . view #name
     toField NetInterfaceFieldIpv4 = displayBuilder . view #ipv4s
     toField NetInterfaceFieldIpv6 = displayBuilder . view #ipv6s
 
-handleNetConn :: (Text -> IO a) -> NetInterfaceApp -> NetConnField -> IO a
+handleNetConn ::
+  ( MonadPathReader m,
+    MonadThrow m,
+    MonadTypedProcess m
+  ) =>
+  (Text -> m a) ->
+  NetInterfaceApp ->
+  NetConnField ->
+  m a
 handleNetConn handler cfg field = do
   result <- Pythia.queryNetInterfaces cfg
   handler $ case Pythia.findUp result of
@@ -133,12 +188,18 @@ handleNetConn handler cfg field = do
     toField :: NetConnField -> NetInterface -> Text
     toField NetConnFieldDefault = display
     toField NetConnFieldDevice = display . view #device
-    toField NetConnFieldType = display . view #ntype
-    toField NetConnFieldName = display . view #name
+    toField NetConnFieldType = builderToText . displayMaybe . view #ntype
+    toField NetConnFieldName = builderToText . displayMaybe . view #name
     toField NetConnFieldIpv4 = display . view #ipv4s
     toField NetConnFieldIpv6 = display . view #ipv6s
 
-handleGlobalIp :: (Text -> IO a) -> GlobalIpConfig (These [UrlSource Ipv4] [UrlSource Ipv6]) -> IO a
+handleGlobalIp ::
+  ( MonadCatch m,
+    MonadTypedProcess m
+  ) =>
+  (Text -> m a) ->
+  GlobalIpConfig (These [UrlSource Ipv4] [UrlSource Ipv6]) ->
+  m a
 handleGlobalIp handler cfg = do
   case cfg ^. #sources of
     This ipv4Sources ->
@@ -157,7 +218,14 @@ handleGlobalIp handler cfg = do
       _ <- prettyPrint handler ipv4Address
       prettyPrint handler ipv6Address
 
-handleTime :: (Text -> IO a) -> Maybe String -> TimezoneDest -> IO a
+handleTime ::
+  ( MonadCatch m,
+    MonadTime m
+  ) =>
+  (Text -> m a) ->
+  Maybe String ->
+  TimezoneDest ->
+  m a
 handleTime handler mformat = \case
   TimezoneDestLocal -> Pythia.queryLocalTime >>= handler . formatTime
   TimezoneDestUTC -> Pythia.queryUTC >>= handler . formatTime
@@ -167,8 +235,5 @@ handleTime handler mformat = \case
     formatTime :: (FormatTime t) => t -> Text
     formatTime = T.pack . Format.formatTime Format.defaultTimeLocale format
 
-prettyPrint :: (Display a) => (Text -> IO b) -> a -> IO b
+prettyPrint :: (Display a) => (Text -> m b) -> a -> m b
 prettyPrint handler = handler . display
-
-docToText :: Builder -> Text
-docToText = TL.toStrict . TLB.toLazyText

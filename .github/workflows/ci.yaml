@@ -39,6 +39,9 @@ jobs:
 
       - name: Unit Tests
         run: cabal test unit
+
+      - name: Integration Tests
+        run: cabal test integration
   nix:
     strategy:
       fail-fast: false

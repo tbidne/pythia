@@ -37,7 +37,13 @@ import Pythia.Services.Memory.Types
 -- | Queries the memory based on the configuration.
 --
 -- @since 0.1
-queryMemory :: MemoryApp -> IO SystemMemory
+queryMemory ::
+  ( MonadPathReader m,
+    MonadThrow m,
+    MonadTypedProcess m
+  ) =>
+  MemoryApp ->
+  m SystemMemory
 queryMemory MemoryAppFree = Free.memoryShellApp
 
 -- | Returns the amount of free memory.

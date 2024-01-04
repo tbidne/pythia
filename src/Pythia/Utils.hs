@@ -22,8 +22,8 @@ module Pythia.Utils
 where
 
 import Data.Maybe qualified as May
+import Effects.FileSystem.PathReader qualified as Dir
 import Pythia.Prelude
-import System.Directory qualified as Dir
 import Text.Megaparsec (Parsec, Stream, Token, Tokens)
 import Text.Megaparsec qualified as MP
 import Text.Megaparsec.Char qualified as MPC
@@ -140,6 +140,6 @@ eitherToBool = either (const False) (const True)
 -- supported on this system.
 --
 -- @since 0.1
-exeSupported :: String -> IO Bool
+exeSupported :: (MonadPathReader m) => OsPath -> m Bool
 exeSupported exeName = May.isJust <$> Dir.findExecutable exeName
 {-# INLINEABLE exeSupported #-}
