@@ -92,12 +92,12 @@ data SystemMemory = MkSystemMemory
   { -- | The total memory on this system.
     --
     -- @since 0.1
-    total :: !Memory,
+    total :: Memory,
     -- | The memory currently in use. This does not include the
     -- cache.
     --
     -- @since 0.1
-    used :: !Memory
+    used :: Memory
   }
   deriving stock
     ( -- | @since 0.1

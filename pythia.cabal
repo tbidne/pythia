@@ -63,6 +63,7 @@ common common-exts
     ScopedTypeVariables
     StandaloneDeriving
     StandaloneKindSignatures
+    StrictData
     TupleSections
     TypeApplications
     TypeFamilyDependencies
