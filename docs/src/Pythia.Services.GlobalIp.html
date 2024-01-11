@@ -1,0 +1,546 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><link rel="stylesheet" type="text/css" href="style.css" /><script type="text/javascript" src="highlight.js"></script></head><body><pre><span class="hs-comment">-- | This modules exports everything needed for retrieving global</span><span>
+</span><span id="line-2"></span><span class="hs-comment">-- IP addresses.</span><span>
+</span><span id="line-3"></span><span class="hs-comment">--</span><span>
+</span><span id="line-4"></span><span class="hs-comment">-- @since 0.1</span><span>
+</span><span id="line-5"></span><span class="hs-keyword">module</span><span> </span><span class="hs-identifier">Pythia.Services.GlobalIp</span><span>
+</span><span id="line-6"></span><span>  </span><span class="hs-special">(</span><span> </span><span class="annot"><span class="hs-comment">-- * Queries</span></span><span>
+</span><span id="line-7"></span><span>    </span><span class="annot"><a href="Pythia.Services.GlobalIp.html#queryGlobalIp"><span class="hs-identifier">queryGlobalIp</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-8"></span><span>    </span><span class="annot"><a href="Pythia.Services.GlobalIp.html#queryGlobalIpv4"><span class="hs-identifier">queryGlobalIpv4</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-9"></span><span>    </span><span class="annot"><a href="Pythia.Services.GlobalIp.html#queryGlobalIpv6"><span class="hs-identifier">queryGlobalIpv6</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-10"></span><span>
+</span><span id="line-11"></span><span>    </span><span class="annot"><span class="hs-comment">-- * Types</span></span><span>
+</span><span id="line-12"></span><span>    </span><span class="annot"><a href="Pythia.Services.Types.Network.html#IpType"><span class="hs-identifier">IpType</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span class="hs-special">,</span><span>
+</span><span id="line-13"></span><span>    </span><span class="annot"><a href="Pythia.Services.Types.Network.html#IpAddress"><span class="hs-identifier">IpAddress</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span class="hs-special">,</span><span>
+</span><span id="line-14"></span><span>
+</span><span id="line-15"></span><span>    </span><span class="annot"><span class="hs-comment">-- ** Configuration</span></span><span>
+</span><span id="line-16"></span><span>    </span><span class="annot"><a href="Pythia.Services.GlobalIp.Types.html#GlobalIpv4Config"><span class="hs-identifier">GlobalIpv4Config</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-17"></span><span>    </span><span class="annot"><a href="Pythia.Services.GlobalIp.Types.html#GlobalIpv6Config"><span class="hs-identifier">GlobalIpv6Config</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-18"></span><span>    </span><span class="annot"><a href="Pythia.Services.GlobalIp.Types.html#GlobalIpBothConfig"><span class="hs-identifier">GlobalIpBothConfig</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-19"></span><span>    </span><span class="annot"><a href="Pythia.Services.GlobalIp.Types.html#GlobalIpConfig"><span class="hs-identifier">GlobalIpConfig</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span class="hs-special">,</span><span>
+</span><span id="line-20"></span><span>    </span><span class="annot"><a href="Pythia.Services.GlobalIp.Types.html#GlobalIpApp"><span class="hs-identifier">GlobalIpApp</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span class="hs-special">,</span><span>
+</span><span id="line-21"></span><span>    </span><span class="annot"><a href="Pythia.Services.GlobalIp.Types.html#UrlSource"><span class="hs-identifier">UrlSource</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span class="hs-special">,</span><span>
+</span><span id="line-22"></span><span>  </span><span class="hs-special">)</span><span>
+</span><span id="line-23"></span><span class="hs-keyword">where</span><span>
+</span><span id="line-24"></span><span>
+</span><span id="line-25"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Data.Char</span></span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="hs-keyword">as</span><span> </span><span class="annot"><span class="hs-identifier">Char</span></span><span>
+</span><span id="line-26"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Data.Text</span></span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="hs-keyword">as</span><span> </span><span class="annot"><span class="hs-identifier">T</span></span><span>
+</span><span id="line-27"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Pythia.Data.Command.html"><span class="hs-identifier">Pythia.Data.Command</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Pythia.Data.Command.html#Command"><span class="hs-identifier">Command</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-28"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Pythia.Internal.ShellApp.html"><span class="hs-identifier">Pythia.Internal.ShellApp</span></a></span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="hs-keyword">as</span><span> </span><span class="annot"><span class="hs-identifier">ShellApp</span></span><span>
+</span><span id="line-29"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Pythia.Prelude.html"><span class="hs-identifier">Pythia.Prelude</span></a></span><span>
+</span><span id="line-30"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Pythia.Services.GlobalIp.Types.html"><span class="hs-identifier">Pythia.Services.GlobalIp.Types</span></a></span><span>
+</span><span id="line-31"></span><span>  </span><span class="hs-special">(</span><span> </span><span class="annot"><a href="Pythia.Services.GlobalIp.Types.html#GlobalIpApp"><span class="hs-identifier">GlobalIpApp</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Pythia.Services.GlobalIp.Types.html#GlobalIpAppCurl"><span class="hs-identifier">GlobalIpAppCurl</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Pythia.Services.GlobalIp.Types.html#GlobalIpAppDig"><span class="hs-identifier">GlobalIpAppDig</span></a></span><span class="hs-special">)</span><span class="hs-special">,</span><span>
+</span><span id="line-32"></span><span>    </span><span class="annot"><a href="Pythia.Services.GlobalIp.Types.html#GlobalIpBothConfig"><span class="hs-identifier">GlobalIpBothConfig</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-33"></span><span>    </span><span class="annot"><a href="Pythia.Services.GlobalIp.Types.html#GlobalIpConfig"><span class="hs-identifier">GlobalIpConfig</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Pythia.Services.GlobalIp.Types.html#MkGlobalIpConfig"><span class="hs-identifier">MkGlobalIpConfig</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Pythia.Services.GlobalIp.Types.html#%24sel%3Aapp%3AMkGlobalIpConfig"><span class="hs-identifier">app</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Pythia.Services.GlobalIp.Types.html#%24sel%3Asources%3AMkGlobalIpConfig"><span class="hs-identifier">sources</span></a></span><span class="hs-special">)</span><span class="hs-special">,</span><span>
+</span><span id="line-34"></span><span>    </span><span class="annot"><a href="Pythia.Services.GlobalIp.Types.html#GlobalIpv4Config"><span class="hs-identifier">GlobalIpv4Config</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-35"></span><span>    </span><span class="annot"><a href="Pythia.Services.GlobalIp.Types.html#GlobalIpv6Config"><span class="hs-identifier">GlobalIpv6Config</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-36"></span><span>    </span><span class="annot"><a href="Pythia.Services.GlobalIp.Types.html#UrlSource"><span class="hs-identifier">UrlSource</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Pythia.Services.GlobalIp.Types.html#MkUrlSource"><span class="hs-identifier">MkUrlSource</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Pythia.Services.GlobalIp.Types.html#%24sel%3AunUrlSource%3AMkUrlSource"><span class="hs-identifier">unUrlSource</span></a></span><span class="hs-special">)</span><span class="hs-special">,</span><span>
+</span><span id="line-37"></span><span>  </span><span class="hs-special">)</span><span>
+</span><span id="line-38"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Pythia.Services.Types.Network.html"><span class="hs-identifier">Pythia.Services.Types.Network</span></a></span><span>
+</span><span id="line-39"></span><span>  </span><span class="hs-special">(</span><span> </span><span class="annot"><a href="Pythia.Services.Types.Network.html#IpAddress"><span class="hs-identifier">IpAddress</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Pythia.Services.Types.Network.html#MkIpAddress"><span class="hs-identifier">MkIpAddress</span></a></span><span class="hs-special">)</span><span class="hs-special">,</span><span>
+</span><span id="line-40"></span><span>    </span><span class="annot"><a href="Pythia.Services.Types.Network.html#IpRefinement"><span class="hs-identifier">IpRefinement</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-41"></span><span>    </span><span class="annot"><a href="Pythia.Services.Types.Network.html#IpType"><span class="hs-identifier">IpType</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Pythia.Services.Types.Network.html#Ipv4"><span class="hs-identifier">Ipv4</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Pythia.Services.Types.Network.html#Ipv6"><span class="hs-identifier">Ipv6</span></a></span><span class="hs-special">)</span><span class="hs-special">,</span><span>
+</span><span id="line-42"></span><span>  </span><span class="hs-special">)</span><span>
+</span><span id="line-43"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="file:///nix/store/89p55d22k6d0gk18g32vfj0wzrnlwxj0-refined-0.8.1-doc/share/doc/refined-0.8.1/html/src/Refined.html"><span class="hs-identifier">Refined</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="file:///nix/store/89p55d22k6d0gk18g32vfj0wzrnlwxj0-refined-0.8.1-doc/share/doc/refined-0.8.1/html/src/Refined.html#Predicate"><span class="hs-identifier">Predicate</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="file:///nix/store/89p55d22k6d0gk18g32vfj0wzrnlwxj0-refined-0.8.1-doc/share/doc/refined-0.8.1/html/src/Refined.Unsafe.Type.html#Refined"><span class="hs-identifier">Refined</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-44"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="file:///nix/store/89p55d22k6d0gk18g32vfj0wzrnlwxj0-refined-0.8.1-doc/share/doc/refined-0.8.1/html/src/Refined.html"><span class="hs-identifier">Refined</span></a></span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="hs-keyword">as</span><span> </span><span class="annot"><span class="hs-identifier">R</span></span><span>
+</span><span id="line-45"></span><span>
+</span><span id="line-46"></span><span class="hs-comment">-- | Queries for IPv4 and IPv6 global IP address based on the configuration.</span><span>
+</span><span id="line-47"></span><span class="hs-comment">--</span><span>
+</span><span id="line-48"></span><span class="hs-comment">-- @since 0.1</span><span>
+</span><span id="line-49"></span><span id="local-6989586621679255765"><span class="annot"><a href="Pythia.Services.GlobalIp.html#queryGlobalIp"><span class="hs-identifier hs-type">queryGlobalIp</span></a></span><span> </span><span class="hs-glyph">::</span><span>
+</span><span id="line-50"></span><span>  </span><span class="hs-special">(</span><span> </span><span class="annot"><span class="hs-identifier hs-type">MonadCatch</span></span><span> </span><span class="annot"><a href="#local-6989586621679255765"><span class="hs-identifier hs-type">m</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-51"></span><span>    </span><span class="annot"><a href="file:///home/tommy/.local/state/cabal/store/ghc-9.6.3/effects-typed-process-0.1-9aab0d7122e26327440e15170619fab59878f147f1d369dd46812a2ece43b118/share/doc/html/src/Effects.Process.Typed.html#MonadTypedProcess"><span class="hs-identifier hs-type">MonadTypedProcess</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679255765"><span class="hs-identifier hs-type">m</span></a></span><span>
+</span><span id="line-52"></span><span>  </span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span>
+</span><span id="line-53"></span><span>  </span><span class="annot"><a href="Pythia.Services.GlobalIp.Types.html#GlobalIpBothConfig"><span class="hs-identifier hs-type">GlobalIpBothConfig</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span>
+</span><span id="line-54"></span><span>  </span><span class="annot"><a href="#local-6989586621679255765"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Pythia.Services.Types.Network.html#IpAddress"><span class="hs-identifier hs-type">IpAddress</span></a></span><span> </span><span class="annot"><a href="Pythia.Services.Types.Network.html#Ipv4"><span class="hs-identifier hs-type">Ipv4</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Pythia.Services.Types.Network.html#IpAddress"><span class="hs-identifier hs-type">IpAddress</span></a></span><span> </span><span class="annot"><a href="Pythia.Services.Types.Network.html#Ipv6"><span class="hs-identifier hs-type">Ipv6</span></a></span><span class="hs-special">)</span></span><span>
+</span><span id="line-55"></span><span id="queryGlobalIp"><span class="annot"><span class="annottext">queryGlobalIp :: forall (m :: Type -&gt; Type).
+(MonadCatch m, MonadTypedProcess m) =&gt;
+GlobalIpBothConfig -&gt; m (IpAddress 'Ipv4, IpAddress 'Ipv6)
+</span><a href="Pythia.Services.GlobalIp.html#queryGlobalIp"><span class="hs-identifier hs-var hs-var">queryGlobalIp</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Lens' GlobalIpBothConfig GlobalIpApp
+-&gt; Lens' GlobalIpBothConfig ([UrlSource 'Ipv4], [UrlSource 'Ipv6])
+-&gt; (GlobalIpApp
+    -&gt; ([UrlSource 'Ipv4], [UrlSource 'Ipv6])
+    -&gt; m (IpAddress 'Ipv4, IpAddress 'Ipv6))
+-&gt; GlobalIpBothConfig
+-&gt; m (IpAddress 'Ipv4, IpAddress 'Ipv6)
+forall config sources (m :: Type -&gt; Type) result.
+Lens' config GlobalIpApp
+-&gt; Lens' config sources
+-&gt; (GlobalIpApp -&gt; sources -&gt; m result)
+-&gt; config
+-&gt; m result
+</span><a href="Pythia.Services.GlobalIp.html#queryGlobalIp%27"><span class="hs-identifier hs-var">queryGlobalIp'</span></a></span><span> </span><span class="annot"><span class="annottext">Lens' GlobalIpBothConfig GlobalIpApp
+</span><span class="">#app</span></span><span> </span><span class="annot"><span class="annottext">Lens' GlobalIpBothConfig ([UrlSource 'Ipv4], [UrlSource 'Ipv6])
+</span><span class="">#sources</span></span><span> </span><span class="annot"><span class="annottext">GlobalIpApp
+-&gt; ([UrlSource 'Ipv4], [UrlSource 'Ipv6])
+-&gt; m (IpAddress 'Ipv4, IpAddress 'Ipv6)
+forall (m :: Type -&gt; Type).
+(MonadCatch m, MonadTypedProcess m) =&gt;
+GlobalIpApp
+-&gt; ([UrlSource 'Ipv4], [UrlSource 'Ipv6])
+-&gt; m (IpAddress 'Ipv4, IpAddress 'Ipv6)
+</span><a href="Pythia.Services.GlobalIp.html#getBothIps"><span class="hs-identifier hs-var">getBothIps</span></a></span><span>
+</span><span id="line-56"></span><span class="hs-pragma">{-# INLINEABLE</span><span> </span><span class="annot"><a href="Pythia.Services.GlobalIp.html#queryGlobalIp"><span class="hs-pragma hs-type">queryGlobalIp</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-57"></span><span>
+</span><span id="line-58"></span><span class="hs-comment">-- | 'queryGlobalIp' restricted to IPv4 address only.</span><span>
+</span><span id="line-59"></span><span class="hs-comment">--</span><span>
+</span><span id="line-60"></span><span class="hs-comment">-- @since 0.1</span><span>
+</span><span id="line-61"></span><span id="local-6989586621679255801"><span class="annot"><a href="Pythia.Services.GlobalIp.html#queryGlobalIpv4"><span class="hs-identifier hs-type">queryGlobalIpv4</span></a></span><span> </span><span class="hs-glyph">::</span><span>
+</span><span id="line-62"></span><span>  </span><span class="hs-special">(</span><span> </span><span class="annot"><span class="hs-identifier hs-type">MonadCatch</span></span><span> </span><span class="annot"><a href="#local-6989586621679255801"><span class="hs-identifier hs-type">m</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-63"></span><span>    </span><span class="annot"><a href="file:///home/tommy/.local/state/cabal/store/ghc-9.6.3/effects-typed-process-0.1-9aab0d7122e26327440e15170619fab59878f147f1d369dd46812a2ece43b118/share/doc/html/src/Effects.Process.Typed.html#MonadTypedProcess"><span class="hs-identifier hs-type">MonadTypedProcess</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679255801"><span class="hs-identifier hs-type">m</span></a></span><span>
+</span><span id="line-64"></span><span>  </span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span>
+</span><span id="line-65"></span><span>  </span><span class="annot"><a href="Pythia.Services.GlobalIp.Types.html#GlobalIpv4Config"><span class="hs-identifier hs-type">GlobalIpv4Config</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span>
+</span><span id="line-66"></span><span>  </span><span class="annot"><a href="#local-6989586621679255801"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Pythia.Services.Types.Network.html#IpAddress"><span class="hs-identifier hs-type">IpAddress</span></a></span><span> </span><span class="annot"><a href="Pythia.Services.Types.Network.html#Ipv4"><span class="hs-identifier hs-type">Ipv4</span></a></span><span class="hs-special">)</span></span><span>
+</span><span id="line-67"></span><span id="queryGlobalIpv4"><span class="annot"><span class="annottext">queryGlobalIpv4 :: forall (m :: Type -&gt; Type).
+(MonadCatch m, MonadTypedProcess m) =&gt;
+GlobalIpv4Config -&gt; m (IpAddress 'Ipv4)
+</span><a href="Pythia.Services.GlobalIp.html#queryGlobalIpv4"><span class="hs-identifier hs-var hs-var">queryGlobalIpv4</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Lens' GlobalIpv4Config GlobalIpApp
+-&gt; Lens' GlobalIpv4Config [UrlSource 'Ipv4]
+-&gt; (GlobalIpApp -&gt; [UrlSource 'Ipv4] -&gt; m (IpAddress 'Ipv4))
+-&gt; GlobalIpv4Config
+-&gt; m (IpAddress 'Ipv4)
+forall config sources (m :: Type -&gt; Type) result.
+Lens' config GlobalIpApp
+-&gt; Lens' config sources
+-&gt; (GlobalIpApp -&gt; sources -&gt; m result)
+-&gt; config
+-&gt; m result
+</span><a href="Pythia.Services.GlobalIp.html#queryGlobalIp%27"><span class="hs-identifier hs-var">queryGlobalIp'</span></a></span><span> </span><span class="annot"><span class="annottext">Lens' GlobalIpv4Config GlobalIpApp
+</span><span class="">#app</span></span><span> </span><span class="annot"><span class="annottext">Lens' GlobalIpv4Config [UrlSource 'Ipv4]
+</span><span class="">#sources</span></span><span> </span><span class="annot"><span class="annottext">GlobalIpApp -&gt; [UrlSource 'Ipv4] -&gt; m (IpAddress 'Ipv4)
+forall (m :: Type -&gt; Type).
+(MonadCatch m, MonadTypedProcess m) =&gt;
+GlobalIpApp -&gt; [UrlSource 'Ipv4] -&gt; m (IpAddress 'Ipv4)
+</span><a href="Pythia.Services.GlobalIp.html#getIpv4s"><span class="hs-identifier hs-var">getIpv4s</span></a></span><span>
+</span><span id="line-68"></span><span class="hs-pragma">{-# INLINEABLE</span><span> </span><span class="annot"><a href="Pythia.Services.GlobalIp.html#queryGlobalIpv4"><span class="hs-pragma hs-type">queryGlobalIpv4</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-69"></span><span>
+</span><span id="line-70"></span><span class="hs-comment">-- | 'queryGlobalIp' restricted to IPv6 address only.</span><span>
+</span><span id="line-71"></span><span class="hs-comment">--</span><span>
+</span><span id="line-72"></span><span class="hs-comment">-- @since 0.1</span><span>
+</span><span id="line-73"></span><span id="local-6989586621679255805"><span class="annot"><a href="Pythia.Services.GlobalIp.html#queryGlobalIpv6"><span class="hs-identifier hs-type">queryGlobalIpv6</span></a></span><span> </span><span class="hs-glyph">::</span><span>
+</span><span id="line-74"></span><span>  </span><span class="hs-special">(</span><span> </span><span class="annot"><span class="hs-identifier hs-type">MonadCatch</span></span><span> </span><span class="annot"><a href="#local-6989586621679255805"><span class="hs-identifier hs-type">m</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-75"></span><span>    </span><span class="annot"><a href="file:///home/tommy/.local/state/cabal/store/ghc-9.6.3/effects-typed-process-0.1-9aab0d7122e26327440e15170619fab59878f147f1d369dd46812a2ece43b118/share/doc/html/src/Effects.Process.Typed.html#MonadTypedProcess"><span class="hs-identifier hs-type">MonadTypedProcess</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679255805"><span class="hs-identifier hs-type">m</span></a></span><span>
+</span><span id="line-76"></span><span>  </span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span>
+</span><span id="line-77"></span><span>  </span><span class="annot"><a href="Pythia.Services.GlobalIp.Types.html#GlobalIpv6Config"><span class="hs-identifier hs-type">GlobalIpv6Config</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span>
+</span><span id="line-78"></span><span>  </span><span class="annot"><a href="#local-6989586621679255805"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Pythia.Services.Types.Network.html#IpAddress"><span class="hs-identifier hs-type">IpAddress</span></a></span><span> </span><span class="annot"><a href="Pythia.Services.Types.Network.html#Ipv6"><span class="hs-identifier hs-type">Ipv6</span></a></span><span class="hs-special">)</span></span><span>
+</span><span id="line-79"></span><span id="queryGlobalIpv6"><span class="annot"><span class="annottext">queryGlobalIpv6 :: forall (m :: Type -&gt; Type).
+(MonadCatch m, MonadTypedProcess m) =&gt;
+GlobalIpv6Config -&gt; m (IpAddress 'Ipv6)
+</span><a href="Pythia.Services.GlobalIp.html#queryGlobalIpv6"><span class="hs-identifier hs-var hs-var">queryGlobalIpv6</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Lens' GlobalIpv6Config GlobalIpApp
+-&gt; Lens' GlobalIpv6Config [UrlSource 'Ipv6]
+-&gt; (GlobalIpApp -&gt; [UrlSource 'Ipv6] -&gt; m (IpAddress 'Ipv6))
+-&gt; GlobalIpv6Config
+-&gt; m (IpAddress 'Ipv6)
+forall config sources (m :: Type -&gt; Type) result.
+Lens' config GlobalIpApp
+-&gt; Lens' config sources
+-&gt; (GlobalIpApp -&gt; sources -&gt; m result)
+-&gt; config
+-&gt; m result
+</span><a href="Pythia.Services.GlobalIp.html#queryGlobalIp%27"><span class="hs-identifier hs-var">queryGlobalIp'</span></a></span><span> </span><span class="annot"><span class="annottext">Lens' GlobalIpv6Config GlobalIpApp
+</span><span class="">#app</span></span><span> </span><span class="annot"><span class="annottext">Lens' GlobalIpv6Config [UrlSource 'Ipv6]
+</span><span class="">#sources</span></span><span> </span><span class="annot"><span class="annottext">GlobalIpApp -&gt; [UrlSource 'Ipv6] -&gt; m (IpAddress 'Ipv6)
+forall (m :: Type -&gt; Type).
+(MonadCatch m, MonadTypedProcess m) =&gt;
+GlobalIpApp -&gt; [UrlSource 'Ipv6] -&gt; m (IpAddress 'Ipv6)
+</span><a href="Pythia.Services.GlobalIp.html#getIpv6s"><span class="hs-identifier hs-var">getIpv6s</span></a></span><span>
+</span><span id="line-80"></span><span class="hs-pragma">{-# INLINEABLE</span><span> </span><span class="annot"><a href="Pythia.Services.GlobalIp.html#queryGlobalIpv6"><span class="hs-pragma hs-type">queryGlobalIpv6</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-81"></span><span>
+</span><span id="line-82"></span><span id="local-6989586621679255796"><span id="local-6989586621679255797"><span id="local-6989586621679255798"><span id="local-6989586621679255799"><span class="annot"><a href="Pythia.Services.GlobalIp.html#queryGlobalIp%27"><span class="hs-identifier hs-type">queryGlobalIp'</span></a></span><span> </span><span class="hs-glyph">::</span><span>
+</span><span id="line-83"></span><span>  </span><span class="annot"><a href="file:///nix/store/yiyd960cyn3zg283hgrwi5m0ilr7bcpb-optics-core-0.4.1.1-doc/share/doc/optics-core-0.4.1.1/html/src/Optics.Lens.html#Lens%27"><span class="hs-identifier hs-type">Lens'</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679255796"><span class="hs-identifier hs-type">config</span></a></span><span> </span><span class="annot"><a href="Pythia.Services.GlobalIp.Types.html#GlobalIpApp"><span class="hs-identifier hs-type">GlobalIpApp</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span>
+</span><span id="line-84"></span><span>  </span><span class="annot"><a href="file:///nix/store/yiyd960cyn3zg283hgrwi5m0ilr7bcpb-optics-core-0.4.1.1-doc/share/doc/optics-core-0.4.1.1/html/src/Optics.Lens.html#Lens%27"><span class="hs-identifier hs-type">Lens'</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679255796"><span class="hs-identifier hs-type">config</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679255797"><span class="hs-identifier hs-type">sources</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span>
+</span><span id="line-85"></span><span>  </span><span class="hs-special">(</span><span class="annot"><a href="Pythia.Services.GlobalIp.Types.html#GlobalIpApp"><span class="hs-identifier hs-type">GlobalIpApp</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679255797"><span class="hs-identifier hs-type">sources</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679255798"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679255799"><span class="hs-identifier hs-type">result</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span>
+</span><span id="line-86"></span><span>  </span><span class="annot"><a href="#local-6989586621679255796"><span class="hs-identifier hs-type">config</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span>
+</span><span id="line-87"></span><span>  </span><span class="annot"><a href="#local-6989586621679255798"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679255799"><span class="hs-identifier hs-type">result</span></a></span></span></span></span></span><span>
+</span><span id="line-88"></span><span id="queryGlobalIp%27"><span class="annot"><span class="annottext">queryGlobalIp' :: forall config sources (m :: Type -&gt; Type) result.
+Lens' config GlobalIpApp
+-&gt; Lens' config sources
+-&gt; (GlobalIpApp -&gt; sources -&gt; m result)
+-&gt; config
+-&gt; m result
+</span><a href="Pythia.Services.GlobalIp.html#queryGlobalIp%27"><span class="hs-identifier hs-var hs-var">queryGlobalIp'</span></a></span></span><span> </span><span id="local-6989586621679256003"><span class="annot"><span class="annottext">Lens' config GlobalIpApp
+</span><a href="#local-6989586621679256003"><span class="hs-identifier hs-var">appLens</span></a></span></span><span> </span><span id="local-6989586621679256004"><span class="annot"><span class="annottext">Lens' config sources
+</span><a href="#local-6989586621679256004"><span class="hs-identifier hs-var">sourceLens</span></a></span></span><span> </span><span id="local-6989586621679256005"><span class="annot"><span class="annottext">GlobalIpApp -&gt; sources -&gt; m result
+</span><a href="#local-6989586621679256005"><span class="hs-identifier hs-var">getIpFn</span></a></span></span><span> </span><span id="local-6989586621679256006"><span class="annot"><span class="annottext">config
+</span><a href="#local-6989586621679256006"><span class="hs-identifier hs-var">config</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-89"></span><span>  </span><span class="annot"><span class="annottext">GlobalIpApp -&gt; sources -&gt; m result
+</span><a href="#local-6989586621679256005"><span class="hs-identifier hs-var">getIpFn</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">config
+</span><a href="#local-6989586621679256006"><span class="hs-identifier hs-var">config</span></a></span><span> </span><span class="annot"><span class="annottext">config -&gt; Lens' config GlobalIpApp -&gt; GlobalIpApp
+forall k s (is :: IxList) a.
+Is k A_Getter =&gt;
+s -&gt; Optic' k is s a -&gt; a
+</span><a href="file:///nix/store/yiyd960cyn3zg283hgrwi5m0ilr7bcpb-optics-core-0.4.1.1-doc/share/doc/optics-core-0.4.1.1/html/src/Optics.Operators.html#%5E."><span class="hs-operator hs-var">^.</span></a></span><span> </span><span class="annot"><span class="annottext">Lens' config GlobalIpApp
+</span><a href="#local-6989586621679256003"><span class="hs-identifier hs-var">appLens</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">config
+</span><a href="#local-6989586621679256006"><span class="hs-identifier hs-var">config</span></a></span><span> </span><span class="annot"><span class="annottext">config -&gt; Lens' config sources -&gt; sources
+forall k s (is :: IxList) a.
+Is k A_Getter =&gt;
+s -&gt; Optic' k is s a -&gt; a
+</span><a href="file:///nix/store/yiyd960cyn3zg283hgrwi5m0ilr7bcpb-optics-core-0.4.1.1-doc/share/doc/optics-core-0.4.1.1/html/src/Optics.Operators.html#%5E."><span class="hs-operator hs-var">^.</span></a></span><span> </span><span class="annot"><span class="annottext">Lens' config sources
+</span><a href="#local-6989586621679256004"><span class="hs-identifier hs-var">sourceLens</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-90"></span><span class="hs-pragma">{-# INLINEABLE</span><span> </span><span class="annot"><a href="Pythia.Services.GlobalIp.html#queryGlobalIp%27"><span class="hs-pragma hs-type">queryGlobalIp'</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-91"></span><span>
+</span><span id="line-92"></span><span id="local-6989586621679255800"><span class="annot"><a href="Pythia.Services.GlobalIp.html#getBothIps"><span class="hs-identifier hs-type">getBothIps</span></a></span><span> </span><span class="hs-glyph">::</span><span>
+</span><span id="line-93"></span><span>  </span><span class="hs-special">(</span><span> </span><span class="annot"><span class="hs-identifier hs-type">MonadCatch</span></span><span> </span><span class="annot"><a href="#local-6989586621679255800"><span class="hs-identifier hs-type">m</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-94"></span><span>    </span><span class="annot"><a href="file:///home/tommy/.local/state/cabal/store/ghc-9.6.3/effects-typed-process-0.1-9aab0d7122e26327440e15170619fab59878f147f1d369dd46812a2ece43b118/share/doc/html/src/Effects.Process.Typed.html#MonadTypedProcess"><span class="hs-identifier hs-type">MonadTypedProcess</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679255800"><span class="hs-identifier hs-type">m</span></a></span><span>
+</span><span id="line-95"></span><span>  </span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span>
+</span><span id="line-96"></span><span>  </span><span class="annot"><a href="Pythia.Services.GlobalIp.Types.html#GlobalIpApp"><span class="hs-identifier hs-type">GlobalIpApp</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span>
+</span><span id="line-97"></span><span>  </span><span class="hs-special">(</span><span class="hs-special">[</span><span class="annot"><a href="Pythia.Services.GlobalIp.Types.html#UrlSource"><span class="hs-identifier hs-type">UrlSource</span></a></span><span> </span><span class="annot"><a href="Pythia.Services.Types.Network.html#Ipv4"><span class="hs-identifier hs-type">Ipv4</span></a></span><span class="hs-special">]</span><span class="hs-special">,</span><span> </span><span class="hs-special">[</span><span class="annot"><a href="Pythia.Services.GlobalIp.Types.html#UrlSource"><span class="hs-identifier hs-type">UrlSource</span></a></span><span> </span><span class="annot"><a href="Pythia.Services.Types.Network.html#Ipv6"><span class="hs-identifier hs-type">Ipv6</span></a></span><span class="hs-special">]</span><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span>
+</span><span id="line-98"></span><span>  </span><span class="annot"><a href="#local-6989586621679255800"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Pythia.Services.Types.Network.html#IpAddress"><span class="hs-identifier hs-type">IpAddress</span></a></span><span> </span><span class="annot"><a href="Pythia.Services.Types.Network.html#Ipv4"><span class="hs-identifier hs-type">Ipv4</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Pythia.Services.Types.Network.html#IpAddress"><span class="hs-identifier hs-type">IpAddress</span></a></span><span> </span><span class="annot"><a href="Pythia.Services.Types.Network.html#Ipv6"><span class="hs-identifier hs-type">Ipv6</span></a></span><span class="hs-special">)</span></span><span>
+</span><span id="line-99"></span><span id="getBothIps"><span class="annot"><span class="annottext">getBothIps :: forall (m :: Type -&gt; Type).
+(MonadCatch m, MonadTypedProcess m) =&gt;
+GlobalIpApp
+-&gt; ([UrlSource 'Ipv4], [UrlSource 'Ipv6])
+-&gt; m (IpAddress 'Ipv4, IpAddress 'Ipv6)
+</span><a href="Pythia.Services.GlobalIp.html#getBothIps"><span class="hs-identifier hs-var hs-var">getBothIps</span></a></span></span><span> </span><span id="local-6989586621679256022"><span class="annot"><span class="annottext">GlobalIpApp
+</span><a href="#local-6989586621679256022"><span class="hs-identifier hs-var">app</span></a></span></span><span> </span><span class="hs-special">(</span><span id="local-6989586621679256023"><span class="annot"><span class="annottext">[UrlSource 'Ipv4]
+</span><a href="#local-6989586621679256023"><span class="hs-identifier hs-var">ipv4Srcs</span></a></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679256024"><span class="annot"><span class="annottext">[UrlSource 'Ipv6]
+</span><a href="#local-6989586621679256024"><span class="hs-identifier hs-var">ipv6Srcs</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-100"></span><span>  </span><span class="hs-special">(</span><span class="hs-special">,</span><span class="hs-special">)</span><span>
+</span><span id="line-101"></span><span>    </span><span class="annot"><span class="annottext">(IpAddress 'Ipv4
+ -&gt; IpAddress 'Ipv6 -&gt; (IpAddress 'Ipv4, IpAddress 'Ipv6))
+-&gt; m (IpAddress 'Ipv4)
+-&gt; m (IpAddress 'Ipv6 -&gt; (IpAddress 'Ipv4, IpAddress 'Ipv6))
+forall (f :: Type -&gt; Type) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span><span class="hs-operator hs-var">&lt;$&gt;</span></span><span> </span><span class="annot"><span class="annottext">GlobalIpApp -&gt; [UrlSource 'Ipv4] -&gt; m (IpAddress 'Ipv4)
+forall (m :: Type -&gt; Type).
+(MonadCatch m, MonadTypedProcess m) =&gt;
+GlobalIpApp -&gt; [UrlSource 'Ipv4] -&gt; m (IpAddress 'Ipv4)
+</span><a href="Pythia.Services.GlobalIp.html#getIpv4s"><span class="hs-identifier hs-var">getIpv4s</span></a></span><span> </span><span class="annot"><span class="annottext">GlobalIpApp
+</span><a href="#local-6989586621679256022"><span class="hs-identifier hs-var">app</span></a></span><span> </span><span class="annot"><span class="annottext">[UrlSource 'Ipv4]
+</span><a href="#local-6989586621679256023"><span class="hs-identifier hs-var">ipv4Srcs</span></a></span><span>
+</span><span id="line-102"></span><span>    </span><span class="annot"><span class="annottext">m (IpAddress 'Ipv6 -&gt; (IpAddress 'Ipv4, IpAddress 'Ipv6))
+-&gt; m (IpAddress 'Ipv6) -&gt; m (IpAddress 'Ipv4, IpAddress 'Ipv6)
+forall a b. m (a -&gt; b) -&gt; m a -&gt; m b
+forall (f :: Type -&gt; Type) a b.
+Applicative f =&gt;
+f (a -&gt; b) -&gt; f a -&gt; f b
+</span><span class="hs-operator hs-var">&lt;*&gt;</span></span><span> </span><span class="annot"><span class="annottext">GlobalIpApp -&gt; [UrlSource 'Ipv6] -&gt; m (IpAddress 'Ipv6)
+forall (m :: Type -&gt; Type).
+(MonadCatch m, MonadTypedProcess m) =&gt;
+GlobalIpApp -&gt; [UrlSource 'Ipv6] -&gt; m (IpAddress 'Ipv6)
+</span><a href="Pythia.Services.GlobalIp.html#getIpv6s"><span class="hs-identifier hs-var">getIpv6s</span></a></span><span> </span><span class="annot"><span class="annottext">GlobalIpApp
+</span><a href="#local-6989586621679256022"><span class="hs-identifier hs-var">app</span></a></span><span> </span><span class="annot"><span class="annottext">[UrlSource 'Ipv6]
+</span><a href="#local-6989586621679256024"><span class="hs-identifier hs-var">ipv6Srcs</span></a></span><span>
+</span><span id="line-103"></span><span class="hs-pragma">{-# INLINEABLE</span><span> </span><span class="annot"><a href="Pythia.Services.GlobalIp.html#getBothIps"><span class="hs-pragma hs-type">getBothIps</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-104"></span><span>
+</span><span id="line-105"></span><span id="local-6989586621679255804"><span class="annot"><a href="Pythia.Services.GlobalIp.html#getIpv4s"><span class="hs-identifier hs-type">getIpv4s</span></a></span><span> </span><span class="hs-glyph">::</span><span>
+</span><span id="line-106"></span><span>  </span><span class="hs-special">(</span><span> </span><span class="annot"><span class="hs-identifier hs-type">MonadCatch</span></span><span> </span><span class="annot"><a href="#local-6989586621679255804"><span class="hs-identifier hs-type">m</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-107"></span><span>    </span><span class="annot"><a href="file:///home/tommy/.local/state/cabal/store/ghc-9.6.3/effects-typed-process-0.1-9aab0d7122e26327440e15170619fab59878f147f1d369dd46812a2ece43b118/share/doc/html/src/Effects.Process.Typed.html#MonadTypedProcess"><span class="hs-identifier hs-type">MonadTypedProcess</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679255804"><span class="hs-identifier hs-type">m</span></a></span><span>
+</span><span id="line-108"></span><span>  </span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span>
+</span><span id="line-109"></span><span>  </span><span class="annot"><a href="Pythia.Services.GlobalIp.Types.html#GlobalIpApp"><span class="hs-identifier hs-type">GlobalIpApp</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span>
+</span><span id="line-110"></span><span>  </span><span class="hs-special">[</span><span class="annot"><a href="Pythia.Services.GlobalIp.Types.html#UrlSource"><span class="hs-identifier hs-type">UrlSource</span></a></span><span> </span><span class="annot"><a href="Pythia.Services.Types.Network.html#Ipv4"><span class="hs-identifier hs-type">Ipv4</span></a></span><span class="hs-special">]</span><span> </span><span class="hs-glyph">-&gt;</span><span>
+</span><span id="line-111"></span><span>  </span><span class="annot"><a href="#local-6989586621679255804"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Pythia.Services.Types.Network.html#IpAddress"><span class="hs-identifier hs-type">IpAddress</span></a></span><span> </span><span class="annot"><a href="Pythia.Services.Types.Network.html#Ipv4"><span class="hs-identifier hs-type">Ipv4</span></a></span><span class="hs-special">)</span></span><span>
+</span><span id="line-112"></span><span id="getIpv4s"><span class="annot"><span class="annottext">getIpv4s :: forall (m :: Type -&gt; Type).
+(MonadCatch m, MonadTypedProcess m) =&gt;
+GlobalIpApp -&gt; [UrlSource 'Ipv4] -&gt; m (IpAddress 'Ipv4)
+</span><a href="Pythia.Services.GlobalIp.html#getIpv4s"><span class="hs-identifier hs-var hs-var">getIpv4s</span></a></span></span><span> </span><span id="local-6989586621679256033"><span class="annot"><span class="annottext">GlobalIpApp
+</span><a href="#local-6989586621679256033"><span class="hs-identifier hs-var">app</span></a></span></span><span> </span><span id="local-6989586621679256034"><span class="annot"><span class="annottext">[UrlSource 'Ipv4]
+</span><a href="#local-6989586621679256034"><span class="hs-identifier hs-var">extraSrcs</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">do</span><span>
+</span><span id="line-113"></span><span>  </span><span class="hs-keyword">let</span><span> </span><span id="local-6989586621679256035"><span class="annot"><span class="annottext">sources :: [UrlSource 'Ipv4]
+</span><a href="#local-6989586621679256035"><span class="hs-identifier hs-var hs-var">sources</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">case</span><span> </span><span class="annot"><span class="annottext">[UrlSource 'Ipv4]
+</span><a href="#local-6989586621679256034"><span class="hs-identifier hs-var">extraSrcs</span></a></span><span> </span><span class="hs-keyword">of</span><span>
+</span><span id="line-114"></span><span>        </span><span class="hs-special">[</span><span class="hs-special">]</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">GlobalIpApp -&gt; [UrlSource 'Ipv4]
+</span><a href="Pythia.Services.GlobalIp.html#ipv4Defaults"><span class="hs-identifier hs-var">ipv4Defaults</span></a></span><span> </span><span class="annot"><span class="annottext">GlobalIpApp
+</span><a href="#local-6989586621679256033"><span class="hs-identifier hs-var">app</span></a></span><span>
+</span><span id="line-115"></span><span>        </span><span class="annot"><span class="annottext">[UrlSource 'Ipv4]
+</span><span class="hs-identifier">_</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">GlobalIpApp -&gt; [UrlSource 'Ipv4] -&gt; [UrlSource 'Ipv4]
+forall (a :: IpType). GlobalIpApp -&gt; [UrlSource a] -&gt; [UrlSource a]
+</span><a href="Pythia.Services.GlobalIp.html#prependApp"><span class="hs-identifier hs-var">prependApp</span></a></span><span> </span><span class="annot"><span class="annottext">GlobalIpApp
+</span><a href="#local-6989586621679256033"><span class="hs-identifier hs-var">app</span></a></span><span> </span><span class="annot"><span class="annottext">[UrlSource 'Ipv4]
+</span><a href="#local-6989586621679256034"><span class="hs-identifier hs-var">extraSrcs</span></a></span><span>
+</span><span id="line-116"></span><span>  </span><span class="annot"><span class="annottext">[UrlSource 'Ipv4] -&gt; m (IpAddress 'Ipv4)
+forall (m :: Type -&gt; Type) (a :: IpType).
+(MonadCatch m, MonadTypedProcess m,
+ Predicate (IpRefinement a) Text) =&gt;
+[UrlSource a] -&gt; m (IpAddress a)
+</span><a href="Pythia.Services.GlobalIp.html#getIpFromSources"><span class="hs-identifier hs-var">getIpFromSources</span></a></span><span> </span><span class="annot"><span class="annottext">[UrlSource 'Ipv4]
+</span><a href="#local-6989586621679256035"><span class="hs-identifier hs-var">sources</span></a></span><span>
+</span><span id="line-117"></span><span class="hs-pragma">{-# INLINEABLE</span><span> </span><span class="annot"><a href="Pythia.Services.GlobalIp.html#getIpv4s"><span class="hs-pragma hs-type">getIpv4s</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-118"></span><span>
+</span><span id="line-119"></span><span id="local-6989586621679255808"><span class="annot"><a href="Pythia.Services.GlobalIp.html#getIpv6s"><span class="hs-identifier hs-type">getIpv6s</span></a></span><span> </span><span class="hs-glyph">::</span><span>
+</span><span id="line-120"></span><span>  </span><span class="hs-special">(</span><span> </span><span class="annot"><span class="hs-identifier hs-type">MonadCatch</span></span><span> </span><span class="annot"><a href="#local-6989586621679255808"><span class="hs-identifier hs-type">m</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-121"></span><span>    </span><span class="annot"><a href="file:///home/tommy/.local/state/cabal/store/ghc-9.6.3/effects-typed-process-0.1-9aab0d7122e26327440e15170619fab59878f147f1d369dd46812a2ece43b118/share/doc/html/src/Effects.Process.Typed.html#MonadTypedProcess"><span class="hs-identifier hs-type">MonadTypedProcess</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679255808"><span class="hs-identifier hs-type">m</span></a></span><span>
+</span><span id="line-122"></span><span>  </span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span>
+</span><span id="line-123"></span><span>  </span><span class="annot"><a href="Pythia.Services.GlobalIp.Types.html#GlobalIpApp"><span class="hs-identifier hs-type">GlobalIpApp</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span>
+</span><span id="line-124"></span><span>  </span><span class="hs-special">[</span><span class="annot"><a href="Pythia.Services.GlobalIp.Types.html#UrlSource"><span class="hs-identifier hs-type">UrlSource</span></a></span><span> </span><span class="annot"><a href="Pythia.Services.Types.Network.html#Ipv6"><span class="hs-identifier hs-type">Ipv6</span></a></span><span class="hs-special">]</span><span> </span><span class="hs-glyph">-&gt;</span><span>
+</span><span id="line-125"></span><span>  </span><span class="annot"><a href="#local-6989586621679255808"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Pythia.Services.Types.Network.html#IpAddress"><span class="hs-identifier hs-type">IpAddress</span></a></span><span> </span><span class="annot"><a href="Pythia.Services.Types.Network.html#Ipv6"><span class="hs-identifier hs-type">Ipv6</span></a></span><span class="hs-special">)</span></span><span>
+</span><span id="line-126"></span><span id="getIpv6s"><span class="annot"><span class="annottext">getIpv6s :: forall (m :: Type -&gt; Type).
+(MonadCatch m, MonadTypedProcess m) =&gt;
+GlobalIpApp -&gt; [UrlSource 'Ipv6] -&gt; m (IpAddress 'Ipv6)
+</span><a href="Pythia.Services.GlobalIp.html#getIpv6s"><span class="hs-identifier hs-var hs-var">getIpv6s</span></a></span></span><span> </span><span id="local-6989586621679256046"><span class="annot"><span class="annottext">GlobalIpApp
+</span><a href="#local-6989586621679256046"><span class="hs-identifier hs-var">app</span></a></span></span><span> </span><span id="local-6989586621679256047"><span class="annot"><span class="annottext">[UrlSource 'Ipv6]
+</span><a href="#local-6989586621679256047"><span class="hs-identifier hs-var">extraSrcs</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">do</span><span>
+</span><span id="line-127"></span><span>  </span><span class="hs-keyword">let</span><span> </span><span id="local-6989586621679256048"><span class="annot"><span class="annottext">sources :: [UrlSource 'Ipv6]
+</span><a href="#local-6989586621679256048"><span class="hs-identifier hs-var hs-var">sources</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">case</span><span> </span><span class="annot"><span class="annottext">[UrlSource 'Ipv6]
+</span><a href="#local-6989586621679256047"><span class="hs-identifier hs-var">extraSrcs</span></a></span><span> </span><span class="hs-keyword">of</span><span>
+</span><span id="line-128"></span><span>        </span><span class="hs-special">[</span><span class="hs-special">]</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">GlobalIpApp -&gt; [UrlSource 'Ipv6]
+</span><a href="Pythia.Services.GlobalIp.html#ipv6Defaults"><span class="hs-identifier hs-var">ipv6Defaults</span></a></span><span> </span><span class="annot"><span class="annottext">GlobalIpApp
+</span><a href="#local-6989586621679256046"><span class="hs-identifier hs-var">app</span></a></span><span>
+</span><span id="line-129"></span><span>        </span><span class="annot"><span class="annottext">[UrlSource 'Ipv6]
+</span><span class="hs-identifier">_</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">GlobalIpApp -&gt; [UrlSource 'Ipv6] -&gt; [UrlSource 'Ipv6]
+forall (a :: IpType). GlobalIpApp -&gt; [UrlSource a] -&gt; [UrlSource a]
+</span><a href="Pythia.Services.GlobalIp.html#prependApp"><span class="hs-identifier hs-var">prependApp</span></a></span><span> </span><span class="annot"><span class="annottext">GlobalIpApp
+</span><a href="#local-6989586621679256046"><span class="hs-identifier hs-var">app</span></a></span><span> </span><span class="annot"><span class="annottext">[UrlSource 'Ipv6]
+</span><a href="#local-6989586621679256047"><span class="hs-identifier hs-var">extraSrcs</span></a></span><span>
+</span><span id="line-130"></span><span>  </span><span class="annot"><span class="annottext">[UrlSource 'Ipv6] -&gt; m (IpAddress 'Ipv6)
+forall (m :: Type -&gt; Type) (a :: IpType).
+(MonadCatch m, MonadTypedProcess m,
+ Predicate (IpRefinement a) Text) =&gt;
+[UrlSource a] -&gt; m (IpAddress a)
+</span><a href="Pythia.Services.GlobalIp.html#getIpFromSources"><span class="hs-identifier hs-var">getIpFromSources</span></a></span><span> </span><span class="annot"><span class="annottext">[UrlSource 'Ipv6]
+</span><a href="#local-6989586621679256048"><span class="hs-identifier hs-var">sources</span></a></span><span>
+</span><span id="line-131"></span><span class="hs-pragma">{-# INLINEABLE</span><span> </span><span class="annot"><a href="Pythia.Services.GlobalIp.html#getIpv6s"><span class="hs-pragma hs-type">getIpv6s</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-132"></span><span>
+</span><span id="line-133"></span><span id="local-6989586621679255833"><span class="annot"><a href="Pythia.Services.GlobalIp.html#prependApp"><span class="hs-identifier hs-type">prependApp</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Pythia.Services.GlobalIp.Types.html#GlobalIpApp"><span class="hs-identifier hs-type">GlobalIpApp</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">[</span><span class="annot"><a href="Pythia.Services.GlobalIp.Types.html#UrlSource"><span class="hs-identifier hs-type">UrlSource</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679255833"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">]</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">[</span><span class="annot"><a href="Pythia.Services.GlobalIp.Types.html#UrlSource"><span class="hs-identifier hs-type">UrlSource</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679255833"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">]</span></span><span>
+</span><span id="line-134"></span><span id="prependApp"><span class="annot"><span class="annottext">prependApp :: forall (a :: IpType). GlobalIpApp -&gt; [UrlSource a] -&gt; [UrlSource a]
+</span><a href="Pythia.Services.GlobalIp.html#prependApp"><span class="hs-identifier hs-var hs-var">prependApp</span></a></span></span><span> </span><span class="annot"><span class="annottext">GlobalIpApp
+</span><a href="Pythia.Services.GlobalIp.Types.html#GlobalIpAppCurl"><span class="hs-identifier hs-var">GlobalIpAppCurl</span></a></span><span> </span><span id="local-6989586621679256077"><span class="annot"><span class="annottext">[UrlSource a]
+</span><a href="#local-6989586621679256077"><span class="hs-identifier hs-var">srcs</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">(UrlSource a -&gt; UrlSource a) -&gt; [UrlSource a] -&gt; [UrlSource a]
+forall a b. (a -&gt; b) -&gt; [a] -&gt; [b]
+forall (f :: Type -&gt; Type) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span><span class="hs-identifier hs-var">fmap</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Optic An_Iso '[] (UrlSource a) (UrlSource a) Text Text
+</span><span class="">#unUrlSource</span></span><span> </span><span class="annot"><span class="annottext">Optic An_Iso '[] (UrlSource a) (UrlSource a) Text Text
+-&gt; (Text -&gt; Text) -&gt; UrlSource a -&gt; UrlSource a
+forall k (is :: IxList) s t a b.
+Is k A_Setter =&gt;
+Optic k is s t a b -&gt; (a -&gt; b) -&gt; s -&gt; t
+</span><a href="file:///nix/store/yiyd960cyn3zg283hgrwi5m0ilr7bcpb-optics-core-0.4.1.1-doc/share/doc/optics-core-0.4.1.1/html/src/Optics.Operators.html#%25~"><span class="hs-operator hs-var">%~</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Text
+</span><span class="hs-string">&quot;curl &quot;</span></span><span> </span><span class="annot"><span class="annottext">Text -&gt; Text -&gt; Text
+forall a. Semigroup a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-operator hs-var">&lt;&gt;</span></span><span class="hs-special">)</span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">[UrlSource a]
+</span><a href="#local-6989586621679256077"><span class="hs-identifier hs-var">srcs</span></a></span><span>
+</span><span id="line-135"></span><span class="annot"><a href="Pythia.Services.GlobalIp.html#prependApp"><span class="hs-identifier hs-var">prependApp</span></a></span><span> </span><span class="annot"><span class="annottext">GlobalIpApp
+</span><a href="Pythia.Services.GlobalIp.Types.html#GlobalIpAppDig"><span class="hs-identifier hs-var">GlobalIpAppDig</span></a></span><span> </span><span id="local-6989586621679256079"><span class="annot"><span class="annottext">[UrlSource a]
+</span><a href="#local-6989586621679256079"><span class="hs-identifier hs-var">srcs</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">(UrlSource a -&gt; UrlSource a) -&gt; [UrlSource a] -&gt; [UrlSource a]
+forall a b. (a -&gt; b) -&gt; [a] -&gt; [b]
+forall (f :: Type -&gt; Type) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span><span class="hs-identifier hs-var">fmap</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Optic An_Iso '[] (UrlSource a) (UrlSource a) Text Text
+</span><span class="">#unUrlSource</span></span><span> </span><span class="annot"><span class="annottext">Optic An_Iso '[] (UrlSource a) (UrlSource a) Text Text
+-&gt; (Text -&gt; Text) -&gt; UrlSource a -&gt; UrlSource a
+forall k (is :: IxList) s t a b.
+Is k A_Setter =&gt;
+Optic k is s t a b -&gt; (a -&gt; b) -&gt; s -&gt; t
+</span><a href="file:///nix/store/yiyd960cyn3zg283hgrwi5m0ilr7bcpb-optics-core-0.4.1.1-doc/share/doc/optics-core-0.4.1.1/html/src/Optics.Operators.html#%25~"><span class="hs-operator hs-var">%~</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">\</span><span id="local-6989586621679256080"><span class="annot"><span class="annottext">Text
+</span><a href="#local-6989586621679256080"><span class="hs-identifier hs-var">s</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Text
+</span><span class="hs-string">&quot;dig &quot;</span></span><span> </span><span class="annot"><span class="annottext">Text -&gt; Text -&gt; Text
+forall a. Semigroup a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-operator hs-var">&lt;&gt;</span></span><span> </span><span class="annot"><span class="annottext">Text
+</span><a href="#local-6989586621679256080"><span class="hs-identifier hs-var">s</span></a></span><span> </span><span class="annot"><span class="annottext">Text -&gt; Text -&gt; Text
+forall a. Semigroup a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-operator hs-var">&lt;&gt;</span></span><span> </span><span class="annot"><span class="annottext">Text
+</span><span class="hs-string">&quot; +short&quot;</span></span><span class="hs-special">)</span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">[UrlSource a]
+</span><a href="#local-6989586621679256079"><span class="hs-identifier hs-var">srcs</span></a></span><span>
+</span><span id="line-136"></span><span class="hs-pragma">{-# INLINEABLE</span><span> </span><span class="annot"><a href="Pythia.Services.GlobalIp.html#prependApp"><span class="hs-pragma hs-type">prependApp</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-137"></span><span>
+</span><span id="line-138"></span><span class="annot"><a href="Pythia.Services.GlobalIp.html#ipv4Defaults"><span class="hs-identifier hs-type">ipv4Defaults</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Pythia.Services.GlobalIp.Types.html#GlobalIpApp"><span class="hs-identifier hs-type">GlobalIpApp</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">[</span><span class="annot"><a href="Pythia.Services.GlobalIp.Types.html#UrlSource"><span class="hs-identifier hs-type">UrlSource</span></a></span><span> </span><span class="annot"><a href="Pythia.Services.Types.Network.html#Ipv4"><span class="hs-identifier hs-type">Ipv4</span></a></span><span class="hs-special">]</span><span>
+</span><span id="line-139"></span><span id="ipv4Defaults"><span class="annot"><span class="annottext">ipv4Defaults :: GlobalIpApp -&gt; [UrlSource 'Ipv4]
+</span><a href="Pythia.Services.GlobalIp.html#ipv4Defaults"><span class="hs-identifier hs-var hs-var">ipv4Defaults</span></a></span></span><span> </span><span class="annot"><span class="annottext">GlobalIpApp
+</span><a href="Pythia.Services.GlobalIp.Types.html#GlobalIpAppCurl"><span class="hs-identifier hs-var">GlobalIpAppCurl</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">([UrlSource 'Ipv4], [UrlSource 'Ipv6])
+</span><a href="Pythia.Services.GlobalIp.html#curlDefaults"><span class="hs-identifier hs-var">curlDefaults</span></a></span><span> </span><span class="annot"><span class="annottext">([UrlSource 'Ipv4], [UrlSource 'Ipv6])
+-&gt; Optic'
+     A_Lens '[] ([UrlSource 'Ipv4], [UrlSource 'Ipv6]) [UrlSource 'Ipv4]
+-&gt; [UrlSource 'Ipv4]
+forall k s (is :: IxList) a.
+Is k A_Getter =&gt;
+s -&gt; Optic' k is s a -&gt; a
+</span><a href="file:///nix/store/yiyd960cyn3zg283hgrwi5m0ilr7bcpb-optics-core-0.4.1.1-doc/share/doc/optics-core-0.4.1.1/html/src/Optics.Operators.html#%5E."><span class="hs-operator hs-var">^.</span></a></span><span> </span><span class="annot"><span class="annottext">Optic'
+  A_Lens '[] ([UrlSource 'Ipv4], [UrlSource 'Ipv6]) [UrlSource 'Ipv4]
+forall s t a b. Field1 s t a b =&gt; Lens s t a b
+</span><a href="file:///nix/store/yiyd960cyn3zg283hgrwi5m0ilr7bcpb-optics-core-0.4.1.1-doc/share/doc/optics-core-0.4.1.1/html/src/Data.Tuple.Optics.html#_1"><span class="hs-identifier hs-var">_1</span></a></span><span>
+</span><span id="line-140"></span><span class="annot"><a href="Pythia.Services.GlobalIp.html#ipv4Defaults"><span class="hs-identifier hs-var">ipv4Defaults</span></a></span><span> </span><span class="annot"><span class="annottext">GlobalIpApp
+</span><a href="Pythia.Services.GlobalIp.Types.html#GlobalIpAppDig"><span class="hs-identifier hs-var">GlobalIpAppDig</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">([UrlSource 'Ipv4], [UrlSource 'Ipv6])
+</span><a href="Pythia.Services.GlobalIp.html#digDefaults"><span class="hs-identifier hs-var">digDefaults</span></a></span><span> </span><span class="annot"><span class="annottext">([UrlSource 'Ipv4], [UrlSource 'Ipv6])
+-&gt; Optic'
+     A_Lens '[] ([UrlSource 'Ipv4], [UrlSource 'Ipv6]) [UrlSource 'Ipv4]
+-&gt; [UrlSource 'Ipv4]
+forall k s (is :: IxList) a.
+Is k A_Getter =&gt;
+s -&gt; Optic' k is s a -&gt; a
+</span><a href="file:///nix/store/yiyd960cyn3zg283hgrwi5m0ilr7bcpb-optics-core-0.4.1.1-doc/share/doc/optics-core-0.4.1.1/html/src/Optics.Operators.html#%5E."><span class="hs-operator hs-var">^.</span></a></span><span> </span><span class="annot"><span class="annottext">Optic'
+  A_Lens '[] ([UrlSource 'Ipv4], [UrlSource 'Ipv6]) [UrlSource 'Ipv4]
+forall s t a b. Field1 s t a b =&gt; Lens s t a b
+</span><a href="file:///nix/store/yiyd960cyn3zg283hgrwi5m0ilr7bcpb-optics-core-0.4.1.1-doc/share/doc/optics-core-0.4.1.1/html/src/Data.Tuple.Optics.html#_1"><span class="hs-identifier hs-var">_1</span></a></span><span>
+</span><span id="line-141"></span><span class="hs-pragma">{-# INLINEABLE</span><span> </span><span class="annot"><a href="Pythia.Services.GlobalIp.html#ipv4Defaults"><span class="hs-pragma hs-type">ipv4Defaults</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-142"></span><span>
+</span><span id="line-143"></span><span class="annot"><a href="Pythia.Services.GlobalIp.html#ipv6Defaults"><span class="hs-identifier hs-type">ipv6Defaults</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Pythia.Services.GlobalIp.Types.html#GlobalIpApp"><span class="hs-identifier hs-type">GlobalIpApp</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">[</span><span class="annot"><a href="Pythia.Services.GlobalIp.Types.html#UrlSource"><span class="hs-identifier hs-type">UrlSource</span></a></span><span> </span><span class="annot"><a href="Pythia.Services.Types.Network.html#Ipv6"><span class="hs-identifier hs-type">Ipv6</span></a></span><span class="hs-special">]</span><span>
+</span><span id="line-144"></span><span id="ipv6Defaults"><span class="annot"><span class="annottext">ipv6Defaults :: GlobalIpApp -&gt; [UrlSource 'Ipv6]
+</span><a href="Pythia.Services.GlobalIp.html#ipv6Defaults"><span class="hs-identifier hs-var hs-var">ipv6Defaults</span></a></span></span><span> </span><span class="annot"><span class="annottext">GlobalIpApp
+</span><a href="Pythia.Services.GlobalIp.Types.html#GlobalIpAppCurl"><span class="hs-identifier hs-var">GlobalIpAppCurl</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">([UrlSource 'Ipv4], [UrlSource 'Ipv6])
+</span><a href="Pythia.Services.GlobalIp.html#curlDefaults"><span class="hs-identifier hs-var">curlDefaults</span></a></span><span> </span><span class="annot"><span class="annottext">([UrlSource 'Ipv4], [UrlSource 'Ipv6])
+-&gt; Optic'
+     A_Lens '[] ([UrlSource 'Ipv4], [UrlSource 'Ipv6]) [UrlSource 'Ipv6]
+-&gt; [UrlSource 'Ipv6]
+forall k s (is :: IxList) a.
+Is k A_Getter =&gt;
+s -&gt; Optic' k is s a -&gt; a
+</span><a href="file:///nix/store/yiyd960cyn3zg283hgrwi5m0ilr7bcpb-optics-core-0.4.1.1-doc/share/doc/optics-core-0.4.1.1/html/src/Optics.Operators.html#%5E."><span class="hs-operator hs-var">^.</span></a></span><span> </span><span class="annot"><span class="annottext">Optic'
+  A_Lens '[] ([UrlSource 'Ipv4], [UrlSource 'Ipv6]) [UrlSource 'Ipv6]
+forall s t a b. Field2 s t a b =&gt; Lens s t a b
+</span><a href="file:///nix/store/yiyd960cyn3zg283hgrwi5m0ilr7bcpb-optics-core-0.4.1.1-doc/share/doc/optics-core-0.4.1.1/html/src/Data.Tuple.Optics.html#_2"><span class="hs-identifier hs-var">_2</span></a></span><span>
+</span><span id="line-145"></span><span class="annot"><a href="Pythia.Services.GlobalIp.html#ipv6Defaults"><span class="hs-identifier hs-var">ipv6Defaults</span></a></span><span> </span><span class="annot"><span class="annottext">GlobalIpApp
+</span><a href="Pythia.Services.GlobalIp.Types.html#GlobalIpAppDig"><span class="hs-identifier hs-var">GlobalIpAppDig</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">([UrlSource 'Ipv4], [UrlSource 'Ipv6])
+</span><a href="Pythia.Services.GlobalIp.html#digDefaults"><span class="hs-identifier hs-var">digDefaults</span></a></span><span> </span><span class="annot"><span class="annottext">([UrlSource 'Ipv4], [UrlSource 'Ipv6])
+-&gt; Optic'
+     A_Lens '[] ([UrlSource 'Ipv4], [UrlSource 'Ipv6]) [UrlSource 'Ipv6]
+-&gt; [UrlSource 'Ipv6]
+forall k s (is :: IxList) a.
+Is k A_Getter =&gt;
+s -&gt; Optic' k is s a -&gt; a
+</span><a href="file:///nix/store/yiyd960cyn3zg283hgrwi5m0ilr7bcpb-optics-core-0.4.1.1-doc/share/doc/optics-core-0.4.1.1/html/src/Optics.Operators.html#%5E."><span class="hs-operator hs-var">^.</span></a></span><span> </span><span class="annot"><span class="annottext">Optic'
+  A_Lens '[] ([UrlSource 'Ipv4], [UrlSource 'Ipv6]) [UrlSource 'Ipv6]
+forall s t a b. Field2 s t a b =&gt; Lens s t a b
+</span><a href="file:///nix/store/yiyd960cyn3zg283hgrwi5m0ilr7bcpb-optics-core-0.4.1.1-doc/share/doc/optics-core-0.4.1.1/html/src/Data.Tuple.Optics.html#_2"><span class="hs-identifier hs-var">_2</span></a></span><span>
+</span><span id="line-146"></span><span class="hs-pragma">{-# INLINEABLE</span><span> </span><span class="annot"><a href="Pythia.Services.GlobalIp.html#ipv6Defaults"><span class="hs-pragma hs-type">ipv6Defaults</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-147"></span><span>
+</span><span id="line-148"></span><span class="annot"><a href="Pythia.Services.GlobalIp.html#curlDefaults"><span class="hs-identifier hs-type">curlDefaults</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">(</span><span class="hs-special">[</span><span class="annot"><a href="Pythia.Services.GlobalIp.Types.html#UrlSource"><span class="hs-identifier hs-type">UrlSource</span></a></span><span> </span><span class="annot"><a href="Pythia.Services.Types.Network.html#Ipv4"><span class="hs-identifier hs-type">Ipv4</span></a></span><span class="hs-special">]</span><span class="hs-special">,</span><span> </span><span class="hs-special">[</span><span class="annot"><a href="Pythia.Services.GlobalIp.Types.html#UrlSource"><span class="hs-identifier hs-type">UrlSource</span></a></span><span> </span><span class="annot"><a href="Pythia.Services.Types.Network.html#Ipv6"><span class="hs-identifier hs-type">Ipv6</span></a></span><span class="hs-special">]</span><span class="hs-special">)</span><span>
+</span><span id="line-149"></span><span id="curlDefaults"><span class="annot"><span class="annottext">curlDefaults :: ([UrlSource 'Ipv4], [UrlSource 'Ipv6])
+</span><a href="Pythia.Services.GlobalIp.html#curlDefaults"><span class="hs-identifier hs-var hs-var">curlDefaults</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">[UrlSource 'Ipv4]
+</span><a href="#local-6989586621679256085"><span class="hs-identifier hs-var">ipv4s</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">[UrlSource 'Ipv6]
+forall {a}. [a]
+</span><a href="#local-6989586621679256086"><span class="hs-identifier hs-var">ipv6s</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-150"></span><span>  </span><span class="hs-keyword">where</span><span>
+</span><span id="line-151"></span><span>    </span><span id="local-6989586621679256085"><span class="annot"><span class="annottext">ipv4s :: [UrlSource 'Ipv4]
+</span><a href="#local-6989586621679256085"><span class="hs-identifier hs-var hs-var">ipv4s</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-152"></span><span>      </span><span class="hs-special">[</span><span> </span><span class="annot"><span class="annottext">UrlSource 'Ipv4
+</span><span class="hs-string">&quot;curl http://whatismyip.akamai.com/&quot;</span></span><span class="hs-special">,</span><span>
+</span><span id="line-153"></span><span>        </span><span class="annot"><span class="annottext">UrlSource 'Ipv4
+</span><span class="hs-string">&quot;curl http://ifconfig.me/ip&quot;</span></span><span class="hs-special">,</span><span>
+</span><span id="line-154"></span><span>        </span><span class="annot"><span class="annottext">UrlSource 'Ipv4
+</span><span class="hs-string">&quot;curl http://myexternalip.com/raw&quot;</span></span><span class="hs-special">,</span><span>
+</span><span id="line-155"></span><span>        </span><span class="annot"><span class="annottext">UrlSource 'Ipv4
+</span><span class="hs-string">&quot;curl http://checkip.amazonaws.com/&quot;</span></span><span>
+</span><span id="line-156"></span><span>      </span><span class="hs-special">]</span><span>
+</span><span id="line-157"></span><span>    </span><span id="local-6989586621679256086"><span class="annot"><span class="annottext">ipv6s :: [a]
+</span><a href="#local-6989586621679256086"><span class="hs-identifier hs-var hs-var">ipv6s</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">[</span><span class="hs-special">]</span><span>
+</span><span id="line-158"></span><span class="hs-pragma">{-# INLINEABLE</span><span> </span><span class="annot"><a href="Pythia.Services.GlobalIp.html#curlDefaults"><span class="hs-pragma hs-type">curlDefaults</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-159"></span><span>
+</span><span id="line-160"></span><span class="annot"><a href="Pythia.Services.GlobalIp.html#digDefaults"><span class="hs-identifier hs-type">digDefaults</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">(</span><span class="hs-special">[</span><span class="annot"><a href="Pythia.Services.GlobalIp.Types.html#UrlSource"><span class="hs-identifier hs-type">UrlSource</span></a></span><span> </span><span class="annot"><a href="Pythia.Services.Types.Network.html#Ipv4"><span class="hs-identifier hs-type">Ipv4</span></a></span><span class="hs-special">]</span><span class="hs-special">,</span><span> </span><span class="hs-special">[</span><span class="annot"><a href="Pythia.Services.GlobalIp.Types.html#UrlSource"><span class="hs-identifier hs-type">UrlSource</span></a></span><span> </span><span class="annot"><a href="Pythia.Services.Types.Network.html#Ipv6"><span class="hs-identifier hs-type">Ipv6</span></a></span><span class="hs-special">]</span><span class="hs-special">)</span><span>
+</span><span id="line-161"></span><span id="digDefaults"><span class="annot"><span class="annottext">digDefaults :: ([UrlSource 'Ipv4], [UrlSource 'Ipv6])
+</span><a href="Pythia.Services.GlobalIp.html#digDefaults"><span class="hs-identifier hs-var hs-var">digDefaults</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">[UrlSource 'Ipv4]
+</span><a href="#local-6989586621679256092"><span class="hs-identifier hs-var">ipv4s</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">[UrlSource 'Ipv6]
+forall {a}. [a]
+</span><a href="#local-6989586621679256093"><span class="hs-identifier hs-var">ipv6s</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-162"></span><span>  </span><span class="hs-keyword">where</span><span>
+</span><span id="line-163"></span><span>    </span><span id="local-6989586621679256092"><span class="annot"><span class="annottext">ipv4s :: [UrlSource 'Ipv4]
+</span><a href="#local-6989586621679256092"><span class="hs-identifier hs-var hs-var">ipv4s</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-164"></span><span>      </span><span class="hs-special">[</span><span> </span><span class="annot"><span class="annottext">UrlSource 'Ipv4
+</span><span class="hs-string">&quot;dig @resolver1.opendns.com myip.opendns.com +short&quot;</span></span><span class="hs-special">,</span><span>
+</span><span id="line-165"></span><span>        </span><span class="annot"><span class="annottext">UrlSource 'Ipv4
+</span><span class="hs-string">&quot;dig @resolver2.opendns.com myip.opendns.com +short&quot;</span></span><span class="hs-special">,</span><span>
+</span><span id="line-166"></span><span>        </span><span class="annot"><span class="annottext">UrlSource 'Ipv4
+</span><span class="hs-string">&quot;dig @resolver3.opendns.com myip.opendns.com +short&quot;</span></span><span class="hs-special">,</span><span>
+</span><span id="line-167"></span><span>        </span><span class="annot"><span class="annottext">UrlSource 'Ipv4
+</span><span class="hs-string">&quot;dig @resolver4.opendns.com myip.opendns.com +short&quot;</span></span><span class="hs-special">,</span><span>
+</span><span id="line-168"></span><span>        </span><span class="annot"><span class="annottext">UrlSource 'Ipv4
+</span><span class="hs-string">&quot;dig @ns1-1.akamaitech.net ANY whoami.akamai.net +short&quot;</span></span><span class="hs-special">,</span><span>
+</span><span id="line-169"></span><span>        </span><span class="annot"><span class="annottext">UrlSource 'Ipv4
+</span><span class="hs-string">&quot;dig -4 TXT o-o.myaddr.l.google.com @ns1.google.com +short&quot;</span></span><span>
+</span><span id="line-170"></span><span>      </span><span class="hs-special">]</span><span>
+</span><span id="line-171"></span><span>    </span><span id="local-6989586621679256093"><span class="annot"><span class="annottext">ipv6s :: [a]
+</span><a href="#local-6989586621679256093"><span class="hs-identifier hs-var hs-var">ipv6s</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">[</span><span class="hs-special">]</span><span>
+</span><span id="line-172"></span><span class="hs-pragma">{-# INLINEABLE</span><span> </span><span class="annot"><a href="Pythia.Services.GlobalIp.html#digDefaults"><span class="hs-pragma hs-type">digDefaults</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-173"></span><span>
+</span><span id="line-174"></span><span id="local-6989586621679255834"><span id="local-6989586621679255835"><span class="annot"><a href="Pythia.Services.GlobalIp.html#getIpFromSources"><span class="hs-identifier hs-type">getIpFromSources</span></a></span><span> </span><span class="hs-glyph">::</span><span>
+</span><span id="line-175"></span><span>  </span><span class="hs-special">(</span><span> </span><span class="annot"><span class="hs-identifier hs-type">MonadCatch</span></span><span> </span><span class="annot"><a href="#local-6989586621679255834"><span class="hs-identifier hs-type">m</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-176"></span><span>    </span><span class="annot"><a href="file:///home/tommy/.local/state/cabal/store/ghc-9.6.3/effects-typed-process-0.1-9aab0d7122e26327440e15170619fab59878f147f1d369dd46812a2ece43b118/share/doc/html/src/Effects.Process.Typed.html#MonadTypedProcess"><span class="hs-identifier hs-type">MonadTypedProcess</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679255834"><span class="hs-identifier hs-type">m</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-177"></span><span>    </span><span class="annot"><a href="file:///nix/store/89p55d22k6d0gk18g32vfj0wzrnlwxj0-refined-0.8.1-doc/share/doc/refined-0.8.1/html/src/Refined.html#Predicate"><span class="hs-identifier hs-type">Predicate</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Pythia.Services.Types.Network.html#IpRefinement"><span class="hs-identifier hs-type">IpRefinement</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679255835"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Text</span></span><span>
+</span><span id="line-178"></span><span>  </span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span>
+</span><span id="line-179"></span><span>  </span><span class="hs-special">[</span><span class="annot"><a href="Pythia.Services.GlobalIp.Types.html#UrlSource"><span class="hs-identifier hs-type">UrlSource</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679255835"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">]</span><span> </span><span class="hs-glyph">-&gt;</span><span>
+</span><span id="line-180"></span><span>  </span><span class="annot"><a href="#local-6989586621679255834"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Pythia.Services.Types.Network.html#IpAddress"><span class="hs-identifier hs-type">IpAddress</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679255835"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">)</span></span></span><span>
+</span><span id="line-181"></span><span id="getIpFromSources"><span class="annot"><span class="annottext">getIpFromSources :: forall (m :: Type -&gt; Type) (a :: IpType).
+(MonadCatch m, MonadTypedProcess m,
+ Predicate (IpRefinement a) Text) =&gt;
+[UrlSource a] -&gt; m (IpAddress a)
+</span><a href="Pythia.Services.GlobalIp.html#getIpFromSources"><span class="hs-identifier hs-var hs-var">getIpFromSources</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">(Refined (IpRefinement a) Text -&gt; IpAddress a)
+-&gt; m (Refined (IpRefinement a) Text) -&gt; m (IpAddress a)
+forall a b. (a -&gt; b) -&gt; m a -&gt; m b
+forall (f :: Type -&gt; Type) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span><span class="hs-identifier hs-var">fmap</span></span><span> </span><span class="annot"><span class="annottext">Refined (IpRefinement a) Text -&gt; IpAddress a
+forall (a :: IpType). Refined (IpRefinement a) Text -&gt; IpAddress a
+</span><a href="Pythia.Services.Types.Network.html#MkIpAddress"><span class="hs-identifier hs-var">MkIpAddress</span></a></span><span> </span><span class="annot"><span class="annottext">(m (Refined (IpRefinement a) Text) -&gt; m (IpAddress a))
+-&gt; ([UrlSource a] -&gt; m (Refined (IpRefinement a) Text))
+-&gt; [UrlSource a]
+-&gt; m (IpAddress a)
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">Iso' (UrlSource a) Command
+-&gt; [UrlSource a] -&gt; m (Refined (IpRefinement a) Text)
+forall (m :: Type -&gt; Type) p a.
+(MonadCatch m, MonadTypedProcess m, Predicate p Text) =&gt;
+Iso' a Command -&gt; [a] -&gt; m (Refined p Text)
+</span><a href="Pythia.Services.GlobalIp.html#getIp"><span class="hs-identifier hs-var">getIp</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Optic An_Iso '[] (UrlSource a) (UrlSource a) Text Text
+</span><span class="">#unUrlSource</span></span><span> </span><span class="annot"><span class="annottext">Optic An_Iso '[] (UrlSource a) (UrlSource a) Text Text
+-&gt; Optic (ReversedOptic An_Iso) '[] Text Text Command Command
+-&gt; Iso' (UrlSource a) Command
+forall k l m (is :: IxList) (js :: IxList) (ks :: IxList) s t u v a
+       b.
+(JoinKinds k l m, AppendIndices is js ks) =&gt;
+Optic k is s t u v -&gt; Optic l js u v a b -&gt; Optic m ks s t a b
+</span><a href="file:///nix/store/yiyd960cyn3zg283hgrwi5m0ilr7bcpb-optics-core-0.4.1.1-doc/share/doc/optics-core-0.4.1.1/html/src/Optics.Internal.Optic.html#%25"><span class="hs-operator hs-var">%</span></a></span><span> </span><span class="annot"><span class="annottext">Optic An_Iso '[] Command Command Text Text
+-&gt; Optic (ReversedOptic An_Iso) '[] Text Text Command Command
+forall (is :: IxList) s t a b.
+AcceptsEmptyIndices &quot;re&quot; is =&gt;
+Optic An_Iso is s t a b -&gt; Optic (ReversedOptic An_Iso) is b a t s
+forall k (is :: IxList) s t a b.
+(ReversibleOptic k, AcceptsEmptyIndices &quot;re&quot; is) =&gt;
+Optic k is s t a b -&gt; Optic (ReversedOptic k) is b a t s
+</span><a href="file:///nix/store/yiyd960cyn3zg283hgrwi5m0ilr7bcpb-optics-core-0.4.1.1-doc/share/doc/optics-core-0.4.1.1/html/src/Optics.Re.html#re"><span class="hs-identifier hs-var">re</span></a></span><span> </span><span class="annot"><span class="annottext">Optic An_Iso '[] Command Command Text Text
+</span><span class="">#unCommand</span></span><span class="hs-special">)</span><span>
+</span><span id="line-182"></span><span class="hs-pragma">{-# INLINEABLE</span><span> </span><span class="annot"><a href="Pythia.Services.GlobalIp.html#getIpFromSources"><span class="hs-pragma hs-type">getIpFromSources</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-183"></span><span>
+</span><span id="line-184"></span><span class="annot"><a href="Pythia.Services.GlobalIp.html#getIp"><span class="hs-identifier hs-type">getIp</span></a></span><span> </span><span class="hs-glyph">::</span><span>
+</span><span id="line-185"></span><span>  </span><span class="hs-keyword">forall</span><span> </span><span id="local-6989586621679255888"><span class="annot"><a href="#local-6989586621679255888"><span class="hs-identifier hs-type">m</span></a></span></span><span> </span><span id="local-6989586621679255889"><span class="annot"><a href="#local-6989586621679255889"><span class="hs-identifier hs-type">p</span></a></span></span><span> </span><span id="local-6989586621679255890"><span class="annot"><a href="#local-6989586621679255890"><span class="hs-identifier hs-type">a</span></a></span></span><span class="hs-operator">.</span><span>
+</span><span id="line-186"></span><span>  </span><span class="hs-special">(</span><span> </span><span class="annot"><span class="hs-identifier hs-type">MonadCatch</span></span><span> </span><span class="annot"><a href="#local-6989586621679255888"><span class="hs-identifier hs-type">m</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-187"></span><span>    </span><span class="annot"><a href="file:///home/tommy/.local/state/cabal/store/ghc-9.6.3/effects-typed-process-0.1-9aab0d7122e26327440e15170619fab59878f147f1d369dd46812a2ece43b118/share/doc/html/src/Effects.Process.Typed.html#MonadTypedProcess"><span class="hs-identifier hs-type">MonadTypedProcess</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679255888"><span class="hs-identifier hs-type">m</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-188"></span><span>    </span><span class="annot"><a href="file:///nix/store/89p55d22k6d0gk18g32vfj0wzrnlwxj0-refined-0.8.1-doc/share/doc/refined-0.8.1/html/src/Refined.html#Predicate"><span class="hs-identifier hs-type">Predicate</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679255889"><span class="hs-identifier hs-type">p</span></a></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Text</span></span><span>
+</span><span id="line-189"></span><span>  </span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span>
+</span><span id="line-190"></span><span>  </span><span class="annot"><a href="file:///nix/store/yiyd960cyn3zg283hgrwi5m0ilr7bcpb-optics-core-0.4.1.1-doc/share/doc/optics-core-0.4.1.1/html/src/Optics.Iso.html#Iso%27"><span class="hs-identifier hs-type">Iso'</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679255890"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="annot"><a href="Pythia.Data.Command.html#Command"><span class="hs-identifier hs-type">Command</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span>
+</span><span id="line-191"></span><span>  </span><span class="hs-special">[</span><span class="annot"><a href="#local-6989586621679255890"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">]</span><span> </span><span class="hs-glyph">-&gt;</span><span>
+</span><span id="line-192"></span><span>  </span><span class="annot"><a href="#local-6989586621679255888"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="file:///nix/store/89p55d22k6d0gk18g32vfj0wzrnlwxj0-refined-0.8.1-doc/share/doc/refined-0.8.1/html/src/Refined.Unsafe.Type.html#Refined"><span class="hs-identifier hs-type">Refined</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679255889"><span class="hs-identifier hs-type">p</span></a></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Text</span></span><span class="hs-special">)</span><span>
+</span><span id="line-193"></span><span id="getIp"><span class="annot"><span class="annottext">getIp :: forall (m :: Type -&gt; Type) p a.
+(MonadCatch m, MonadTypedProcess m, Predicate p Text) =&gt;
+Iso' a Command -&gt; [a] -&gt; m (Refined p Text)
+</span><a href="Pythia.Services.GlobalIp.html#getIp"><span class="hs-identifier hs-var hs-var">getIp</span></a></span></span><span> </span><span id="local-6989586621679256153"><span class="annot"><span class="annottext">Iso' a Command
+</span><a href="#local-6989586621679256153"><span class="hs-identifier hs-var">cmdIso</span></a></span></span><span> </span><span id="local-6989586621679256154"><span class="annot"><span class="annottext">[a]
+</span><a href="#local-6989586621679256154"><span class="hs-identifier hs-var">cmds</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">[m (Refined p Text)] -&gt; m (Refined p Text)
+forall (m :: Type -&gt; Type) result.
+MonadCatch m =&gt;
+[m result] -&gt; m result
+</span><a href="Pythia.Internal.ShellApp.html#tryIOs"><span class="hs-identifier hs-var">ShellApp.tryIOs</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">(a -&gt; m (Refined p Text)) -&gt; [a] -&gt; [m (Refined p Text)]
+forall a b. (a -&gt; b) -&gt; [a] -&gt; [b]
+forall (f :: Type -&gt; Type) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span><span class="hs-identifier hs-var">fmap</span></span><span> </span><span class="annot"><span class="annottext">a -&gt; m (Refined p Text)
+</span><a href="#local-6989586621679256156"><span class="hs-identifier hs-var">go</span></a></span><span> </span><span class="annot"><span class="annottext">[a]
+</span><a href="#local-6989586621679256154"><span class="hs-identifier hs-var">cmds</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-194"></span><span>  </span><span class="hs-keyword">where</span><span>
+</span><span id="line-195"></span><span>    </span><span id="local-6989586621679256156"><span class="annot"><span class="annottext">go :: a -&gt; m (Refined p Text)
+</span><a href="#local-6989586621679256156"><span class="hs-identifier hs-var hs-var">go</span></a></span></span><span> </span><span id="local-6989586621679256157"><span class="annot"><span class="annottext">a
+</span><a href="#local-6989586621679256157"><span class="hs-identifier hs-var">cmd</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">do</span><span>
+</span><span id="line-196"></span><span>      </span><span id="local-6989586621679256158"><span class="annot"><span class="annottext">Text
+</span><a href="#local-6989586621679256158"><span class="hs-identifier hs-var">txt</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">Command -&gt; m Text
+forall (m :: Type -&gt; Type).
+(MonadThrow m, MonadTypedProcess m) =&gt;
+Command -&gt; m Text
+</span><a href="Pythia.Internal.ShellApp.html#runCommand"><span class="hs-identifier hs-var">ShellApp.runCommand</span></a></span><span> </span><span class="annot"><span class="annottext">(Command -&gt; m Text) -&gt; Command -&gt; m Text
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">a
+</span><a href="#local-6989586621679256157"><span class="hs-identifier hs-var">cmd</span></a></span><span> </span><span class="annot"><span class="annottext">a -&gt; Iso' a Command -&gt; Command
+forall k s (is :: IxList) a.
+Is k A_Getter =&gt;
+s -&gt; Optic' k is s a -&gt; a
+</span><a href="file:///nix/store/yiyd960cyn3zg283hgrwi5m0ilr7bcpb-optics-core-0.4.1.1-doc/share/doc/optics-core-0.4.1.1/html/src/Optics.Operators.html#%5E."><span class="hs-operator hs-var">^.</span></a></span><span> </span><span class="annot"><span class="annottext">Iso' a Command
+</span><a href="#local-6989586621679256153"><span class="hs-identifier hs-var">cmdIso</span></a></span><span>
+</span><span id="line-197"></span><span>      </span><span class="annot"><span class="annottext">Text -&gt; m (Refined p Text)
+forall {k} (p :: k) x (m :: Type -&gt; Type).
+(Predicate p x, MonadThrow m) =&gt;
+x -&gt; m (Refined p x)
+</span><a href="file:///nix/store/89p55d22k6d0gk18g32vfj0wzrnlwxj0-refined-0.8.1-doc/share/doc/refined-0.8.1/html/src/Refined.html#refineThrow"><span class="hs-identifier hs-var">R.refineThrow</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Text -&gt; Text
+</span><a href="Pythia.Services.GlobalIp.html#trim"><span class="hs-identifier hs-var">trim</span></a></span><span> </span><span class="annot"><span class="annottext">Text
+</span><a href="#local-6989586621679256158"><span class="hs-identifier hs-var">txt</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-198"></span><span class="hs-pragma">{-# INLINEABLE</span><span> </span><span class="annot"><a href="Pythia.Services.GlobalIp.html#getIp"><span class="hs-pragma hs-type">getIp</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-199"></span><span>
+</span><span id="line-200"></span><span class="annot"><a href="Pythia.Services.GlobalIp.html#trim"><span class="hs-identifier hs-type">trim</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Text</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Text</span></span><span>
+</span><span id="line-201"></span><span id="trim"><span class="annot"><span class="annottext">trim :: Text -&gt; Text
+</span><a href="Pythia.Services.GlobalIp.html#trim"><span class="hs-identifier hs-var hs-var">trim</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">(Char -&gt; Bool) -&gt; Text -&gt; Text
+</span><span class="hs-identifier hs-var">T.dropAround</span></span><span> </span><span class="annot"><span class="annottext">Char -&gt; Bool
+</span><span class="hs-identifier hs-var">Char.isSpace</span></span><span>
+</span><span id="line-202"></span><span class="hs-pragma">{-# INLINEABLE</span><span> </span><span class="annot"><a href="Pythia.Services.GlobalIp.html#trim"><span class="hs-pragma hs-type">trim</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-203"></span></pre></body></html>

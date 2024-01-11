@@ -1,0 +1,618 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><link rel="stylesheet" type="text/css" href="style.css" /><script type="text/javascript" src="highlight.js"></script></head><body><pre><span id="local-6989586621679251614"><span id="local-6989586621679251615"></span></span><span class="hs-pragma">{-# LANGUAGE UndecidableInstances #-}</span><span>
+</span><span id="line-2"></span><span>
+</span><span id="line-3"></span><span class="hs-comment">-- | This module provides the core types describing the battery.</span><span>
+</span><span id="line-4"></span><span class="hs-comment">--</span><span>
+</span><span id="line-5"></span><span class="hs-comment">-- @since 0.1</span><span>
+</span><span id="line-6"></span><span class="hs-keyword">module</span><span> </span><span class="hs-identifier">Pythia.Services.Battery.Types</span><span>
+</span><span id="line-7"></span><span>  </span><span class="hs-special">(</span><span> </span><span class="annot"><span class="hs-comment">-- * Configuration</span></span><span>
+</span><span id="line-8"></span><span>    </span><span class="annot"><a href="Pythia.Services.Battery.Types.html#BatteryApp"><span class="hs-identifier">BatteryApp</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span class="hs-special">,</span><span>
+</span><span id="line-9"></span><span>
+</span><span id="line-10"></span><span>    </span><span class="annot"><span class="hs-comment">-- * Battery Fields</span></span><span>
+</span><span id="line-11"></span><span>    </span><span class="annot"><a href="Pythia.Services.Battery.Types.html#BatteryStatus"><span class="hs-identifier">BatteryStatus</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span class="hs-special">,</span><span>
+</span><span id="line-12"></span><span>    </span><span class="annot"><a href="Pythia.Services.Battery.Types.html#Battery"><span class="hs-identifier">Battery</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span class="hs-special">,</span><span>
+</span><span id="line-13"></span><span>
+</span><span id="line-14"></span><span>    </span><span class="annot"><span class="hs-comment">-- * Optics</span></span><span>
+</span><span id="line-15"></span><span>    </span><span class="annot"><a href="Pythia.Services.Battery.Types.html#_BatteryAppAcpi"><span class="hs-identifier">_BatteryAppAcpi</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-16"></span><span>    </span><span class="annot"><a href="Pythia.Services.Battery.Types.html#_BatteryAppSysFs"><span class="hs-identifier">_BatteryAppSysFs</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-17"></span><span>    </span><span class="annot"><a href="Pythia.Services.Battery.Types.html#_BatteryAppUPower"><span class="hs-identifier">_BatteryAppUPower</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-18"></span><span>    </span><span class="annot"><a href="Pythia.Services.Battery.Types.html#_Charging"><span class="hs-identifier">_Charging</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-19"></span><span>    </span><span class="annot"><a href="Pythia.Services.Battery.Types.html#_Discharging"><span class="hs-identifier">_Discharging</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-20"></span><span>    </span><span class="annot"><a href="Pythia.Services.Battery.Types.html#_Full"><span class="hs-identifier">_Full</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-21"></span><span>    </span><span class="annot"><a href="Pythia.Services.Battery.Types.html#_Pending"><span class="hs-identifier">_Pending</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-22"></span><span>  </span><span class="hs-special">)</span><span>
+</span><span id="line-23"></span><span class="hs-keyword">where</span><span>
+</span><span id="line-24"></span><span>
+</span><span id="line-25"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Pythia.Data.Percentage.html"><span class="hs-identifier">Pythia.Data.Percentage</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Pythia.Data.Percentage.Internal.html#Percentage"><span class="hs-identifier">Percentage</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-26"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Pythia.Prelude.html"><span class="hs-identifier">Pythia.Prelude</span></a></span><span>
+</span><span id="line-27"></span><span>
+</span><span id="line-28"></span><span class="hs-comment">-- $setup</span><span>
+</span><span id="line-29"></span><span class="hs-comment">-- &gt;&gt;&gt; import Pythia.Prelude</span><span>
+</span><span id="line-30"></span><span>
+</span><span id="line-31"></span><span class="hs-comment">-- | Determines how we should query the system for battery state information.</span><span>
+</span><span id="line-32"></span><span class="hs-comment">--</span><span>
+</span><span id="line-33"></span><span class="hs-comment">-- @since 0.1</span><span>
+</span><span id="line-34"></span><span class="hs-keyword">type</span><span> </span><span class="annot"><a href="Pythia.Services.Battery.Types.html#BatteryApp"><span class="hs-identifier hs-type">BatteryApp</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Type</span></span><span>
+</span><span id="line-35"></span><span class="hs-keyword">data</span><span> </span><span id="BatteryApp"><span class="annot"><a href="Pythia.Services.Battery.Types.html#BatteryApp"><span class="hs-identifier hs-var">BatteryApp</span></a></span></span><span>
+</span><span id="line-36"></span><span>  </span><span class="hs-glyph">=</span><span> </span><span class="hs-comment">-- | Uses the sysfs interface i.e. /sys.</span><span>
+</span><span id="line-37"></span><span>    </span><span class="hs-comment">--</span><span>
+</span><span id="line-38"></span><span>    </span><span class="hs-comment">-- @since 0.1</span><span>
+</span><span id="line-39"></span><span>    </span><span id="BatteryAppSysFs"><span class="annot"><a href="Pythia.Services.Battery.Types.html#BatteryAppSysFs"><span class="hs-identifier hs-var">BatteryAppSysFs</span></a></span></span><span>
+</span><span id="line-40"></span><span>  </span><span class="hs-glyph">|</span><span> </span><span class="hs-comment">-- | Uses the ACPI utility.</span><span>
+</span><span id="line-41"></span><span>    </span><span class="hs-comment">--</span><span>
+</span><span id="line-42"></span><span>    </span><span class="hs-comment">-- @since 0.1</span><span>
+</span><span id="line-43"></span><span>    </span><span id="BatteryAppAcpi"><span class="annot"><a href="Pythia.Services.Battery.Types.html#BatteryAppAcpi"><span class="hs-identifier hs-var">BatteryAppAcpi</span></a></span></span><span>
+</span><span id="line-44"></span><span>  </span><span class="hs-glyph">|</span><span> </span><span class="hs-comment">-- | Uses the UPower utility.</span><span>
+</span><span id="line-45"></span><span>    </span><span class="hs-comment">--</span><span>
+</span><span id="line-46"></span><span>    </span><span class="hs-comment">-- @since 0.1</span><span>
+</span><span id="line-47"></span><span>    </span><span id="BatteryAppUPower"><span class="annot"><a href="Pythia.Services.Battery.Types.html#BatteryAppUPower"><span class="hs-identifier hs-var">BatteryAppUPower</span></a></span></span><span>
+</span><span id="line-48"></span><span>  </span><span class="hs-keyword">deriving</span><span> </span><span class="annot"><span class="hs-keyword">stock</span></span><span>
+</span><span id="line-49"></span><span>    </span><span class="hs-special">(</span><span> </span><span class="annot"><span class="hs-comment">-- | @since 0.1</span></span><span>
+</span><span id="line-50"></span><span>      </span><span id="local-6989586621679251627"><span id="local-6989586621679251629"><span class="annot"><span class="annottext">BatteryApp
+BatteryApp -&gt; BatteryApp -&gt; Bounded BatteryApp
+forall a. a -&gt; a -&gt; Bounded a
+$cminBound :: BatteryApp
+minBound :: BatteryApp
+$cmaxBound :: BatteryApp
+maxBound :: BatteryApp
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Bounded</span></span></span></span><span class="hs-special">,</span><span>
+</span><span id="line-51"></span><span>      </span><span class="annot"><span class="hs-comment">-- | @since 0.1</span></span><span>
+</span><span id="line-52"></span><span>      </span><span id="local-6989586621679251633"><span id="local-6989586621679251641"><span id="local-6989586621679251647"><span id="local-6989586621679251661"><span id="local-6989586621679251663"><span id="local-6989586621679251667"><span id="local-6989586621679251671"><span id="local-6989586621679251675"><span class="annot"><span class="annottext">Int -&gt; BatteryApp
+BatteryApp -&gt; Int
+BatteryApp -&gt; [BatteryApp]
+BatteryApp -&gt; BatteryApp
+BatteryApp -&gt; BatteryApp -&gt; [BatteryApp]
+BatteryApp -&gt; BatteryApp -&gt; BatteryApp -&gt; [BatteryApp]
+(BatteryApp -&gt; BatteryApp)
+-&gt; (BatteryApp -&gt; BatteryApp)
+-&gt; (Int -&gt; BatteryApp)
+-&gt; (BatteryApp -&gt; Int)
+-&gt; (BatteryApp -&gt; [BatteryApp])
+-&gt; (BatteryApp -&gt; BatteryApp -&gt; [BatteryApp])
+-&gt; (BatteryApp -&gt; BatteryApp -&gt; [BatteryApp])
+-&gt; (BatteryApp -&gt; BatteryApp -&gt; BatteryApp -&gt; [BatteryApp])
+-&gt; Enum BatteryApp
+forall a.
+(a -&gt; a)
+-&gt; (a -&gt; a)
+-&gt; (Int -&gt; a)
+-&gt; (a -&gt; Int)
+-&gt; (a -&gt; [a])
+-&gt; (a -&gt; a -&gt; [a])
+-&gt; (a -&gt; a -&gt; [a])
+-&gt; (a -&gt; a -&gt; a -&gt; [a])
+-&gt; Enum a
+$csucc :: BatteryApp -&gt; BatteryApp
+succ :: BatteryApp -&gt; BatteryApp
+$cpred :: BatteryApp -&gt; BatteryApp
+pred :: BatteryApp -&gt; BatteryApp
+$ctoEnum :: Int -&gt; BatteryApp
+toEnum :: Int -&gt; BatteryApp
+$cfromEnum :: BatteryApp -&gt; Int
+fromEnum :: BatteryApp -&gt; Int
+$cenumFrom :: BatteryApp -&gt; [BatteryApp]
+enumFrom :: BatteryApp -&gt; [BatteryApp]
+$cenumFromThen :: BatteryApp -&gt; BatteryApp -&gt; [BatteryApp]
+enumFromThen :: BatteryApp -&gt; BatteryApp -&gt; [BatteryApp]
+$cenumFromTo :: BatteryApp -&gt; BatteryApp -&gt; [BatteryApp]
+enumFromTo :: BatteryApp -&gt; BatteryApp -&gt; [BatteryApp]
+$cenumFromThenTo :: BatteryApp -&gt; BatteryApp -&gt; BatteryApp -&gt; [BatteryApp]
+enumFromThenTo :: BatteryApp -&gt; BatteryApp -&gt; BatteryApp -&gt; [BatteryApp]
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Enum</span></span></span></span></span></span></span></span></span></span><span class="hs-special">,</span><span>
+</span><span id="line-53"></span><span>      </span><span class="annot"><span class="hs-comment">-- | @since 0.1</span></span><span>
+</span><span id="line-54"></span><span>      </span><span id="local-6989586621679251679"><span id="local-6989586621679251681"><span class="annot"><span class="annottext">BatteryApp -&gt; BatteryApp -&gt; Bool
+(BatteryApp -&gt; BatteryApp -&gt; Bool)
+-&gt; (BatteryApp -&gt; BatteryApp -&gt; Bool) -&gt; Eq BatteryApp
+forall a. (a -&gt; a -&gt; Bool) -&gt; (a -&gt; a -&gt; Bool) -&gt; Eq a
+$c== :: BatteryApp -&gt; BatteryApp -&gt; Bool
+== :: BatteryApp -&gt; BatteryApp -&gt; Bool
+$c/= :: BatteryApp -&gt; BatteryApp -&gt; Bool
+/= :: BatteryApp -&gt; BatteryApp -&gt; Bool
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Eq</span></span></span></span><span class="hs-special">,</span><span>
+</span><span id="line-55"></span><span>      </span><span class="annot"><span class="hs-comment">-- | @since 0.1</span></span><span>
+</span><span id="line-56"></span><span>      </span><span id="local-6989586621679251686"><span id="local-6989586621679251688"><span class="annot"><span class="annottext">(forall x. BatteryApp -&gt; Rep BatteryApp x)
+-&gt; (forall x. Rep BatteryApp x -&gt; BatteryApp) -&gt; Generic BatteryApp
+forall x. Rep BatteryApp x -&gt; BatteryApp
+forall x. BatteryApp -&gt; Rep BatteryApp x
+forall a.
+(forall x. a -&gt; Rep a x) -&gt; (forall x. Rep a x -&gt; a) -&gt; Generic a
+$cfrom :: forall x. BatteryApp -&gt; Rep BatteryApp x
+from :: forall x. BatteryApp -&gt; Rep BatteryApp x
+$cto :: forall x. Rep BatteryApp x -&gt; BatteryApp
+to :: forall x. Rep BatteryApp x -&gt; BatteryApp
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Generic</span></span></span></span><span class="hs-special">,</span><span>
+</span><span id="line-57"></span><span>      </span><span class="annot"><span class="hs-comment">-- | @since 0.1</span></span><span>
+</span><span id="line-58"></span><span>      </span><span id="local-6989586621679251694"><span id="local-6989586621679251696"><span id="local-6989586621679251698"><span id="local-6989586621679251702"><span id="local-6989586621679251705"><span id="local-6989586621679251708"><span id="local-6989586621679251711"><span class="annot"><span class="annottext">Eq BatteryApp
+Eq BatteryApp =&gt;
+(BatteryApp -&gt; BatteryApp -&gt; Ordering)
+-&gt; (BatteryApp -&gt; BatteryApp -&gt; Bool)
+-&gt; (BatteryApp -&gt; BatteryApp -&gt; Bool)
+-&gt; (BatteryApp -&gt; BatteryApp -&gt; Bool)
+-&gt; (BatteryApp -&gt; BatteryApp -&gt; Bool)
+-&gt; (BatteryApp -&gt; BatteryApp -&gt; BatteryApp)
+-&gt; (BatteryApp -&gt; BatteryApp -&gt; BatteryApp)
+-&gt; Ord BatteryApp
+BatteryApp -&gt; BatteryApp -&gt; Bool
+BatteryApp -&gt; BatteryApp -&gt; Ordering
+BatteryApp -&gt; BatteryApp -&gt; BatteryApp
+forall a.
+Eq a =&gt;
+(a -&gt; a -&gt; Ordering)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; a)
+-&gt; (a -&gt; a -&gt; a)
+-&gt; Ord a
+$ccompare :: BatteryApp -&gt; BatteryApp -&gt; Ordering
+compare :: BatteryApp -&gt; BatteryApp -&gt; Ordering
+$c&lt; :: BatteryApp -&gt; BatteryApp -&gt; Bool
+&lt; :: BatteryApp -&gt; BatteryApp -&gt; Bool
+$c&lt;= :: BatteryApp -&gt; BatteryApp -&gt; Bool
+&lt;= :: BatteryApp -&gt; BatteryApp -&gt; Bool
+$c&gt; :: BatteryApp -&gt; BatteryApp -&gt; Bool
+&gt; :: BatteryApp -&gt; BatteryApp -&gt; Bool
+$c&gt;= :: BatteryApp -&gt; BatteryApp -&gt; Bool
+&gt;= :: BatteryApp -&gt; BatteryApp -&gt; Bool
+$cmax :: BatteryApp -&gt; BatteryApp -&gt; BatteryApp
+max :: BatteryApp -&gt; BatteryApp -&gt; BatteryApp
+$cmin :: BatteryApp -&gt; BatteryApp -&gt; BatteryApp
+min :: BatteryApp -&gt; BatteryApp -&gt; BatteryApp
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Ord</span></span></span></span></span></span></span></span></span><span class="hs-special">,</span><span>
+</span><span id="line-59"></span><span>      </span><span class="annot"><span class="hs-comment">-- | @since 0.1</span></span><span>
+</span><span id="line-60"></span><span>      </span><span id="local-6989586621679251715"><span id="local-6989586621679251717"><span id="local-6989586621679251721"><span class="annot"><span class="annottext">Int -&gt; BatteryApp -&gt; ShowS
+[BatteryApp] -&gt; ShowS
+BatteryApp -&gt; [Char]
+(Int -&gt; BatteryApp -&gt; ShowS)
+-&gt; (BatteryApp -&gt; [Char])
+-&gt; ([BatteryApp] -&gt; ShowS)
+-&gt; Show BatteryApp
+forall a.
+(Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; [Char]) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+$cshowsPrec :: Int -&gt; BatteryApp -&gt; ShowS
+showsPrec :: Int -&gt; BatteryApp -&gt; ShowS
+$cshow :: BatteryApp -&gt; [Char]
+show :: BatteryApp -&gt; [Char]
+$cshowList :: [BatteryApp] -&gt; ShowS
+showList :: [BatteryApp] -&gt; ShowS
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Show</span></span></span></span></span><span>
+</span><span id="line-61"></span><span>    </span><span class="hs-special">)</span><span>
+</span><span id="line-62"></span><span>  </span><span class="hs-keyword">deriving</span><span> </span><span class="annot"><span class="hs-keyword">anyclass</span></span><span>
+</span><span id="line-63"></span><span>    </span><span class="hs-special">(</span><span> </span><span class="annot"><span class="hs-comment">-- | @since 0.1.0.0</span></span><span>
+</span><span id="line-64"></span><span>      </span><span id="local-6989586621679251725"><span class="annot"><span class="annottext">BatteryApp -&gt; ()
+(BatteryApp -&gt; ()) -&gt; NFData BatteryApp
+forall a. (a -&gt; ()) -&gt; NFData a
+$crnf :: BatteryApp -&gt; ()
+rnf :: BatteryApp -&gt; ()
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var">NFData</span></span></span><span>
+</span><span id="line-65"></span><span>    </span><span class="hs-special">)</span><span>
+</span><span id="line-66"></span><span>
+</span><span id="line-67"></span><span class="annot"><span class="hs-comment">-- | @since 0.1</span></span><span>
+</span><span id="line-68"></span><span class="annot"><a href="Pythia.Services.Battery.Types.html#_BatteryAppSysFs"><span class="hs-identifier hs-type">_BatteryAppSysFs</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="file:///nix/store/yiyd960cyn3zg283hgrwi5m0ilr7bcpb-optics-core-0.4.1.1-doc/share/doc/optics-core-0.4.1.1/html/src/Optics.Prism.html#Prism%27"><span class="hs-identifier hs-type">Prism'</span></a></span><span> </span><span class="annot"><a href="Pythia.Services.Battery.Types.html#BatteryApp"><span class="hs-identifier hs-type">BatteryApp</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span>
+</span><span id="line-69"></span><span id="_BatteryAppSysFs"><span class="annot"><span class="annottext">_BatteryAppSysFs :: Prism' BatteryApp ()
+</span><a href="Pythia.Services.Battery.Types.html#_BatteryAppSysFs"><span class="hs-identifier hs-var hs-var">_BatteryAppSysFs</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-70"></span><span>  </span><span class="annot"><span class="annottext">(() -&gt; BatteryApp)
+-&gt; (BatteryApp -&gt; Either BatteryApp ()) -&gt; Prism' BatteryApp ()
+forall b t s a. (b -&gt; t) -&gt; (s -&gt; Either t a) -&gt; Prism s t a b
+</span><a href="file:///nix/store/yiyd960cyn3zg283hgrwi5m0ilr7bcpb-optics-core-0.4.1.1-doc/share/doc/optics-core-0.4.1.1/html/src/Optics.Prism.html#prism"><span class="hs-identifier hs-var">prism</span></a></span><span>
+</span><span id="line-71"></span><span>    </span><span class="hs-special">(</span><span class="annot"><span class="annottext">BatteryApp -&gt; () -&gt; BatteryApp
+forall a b. a -&gt; b -&gt; a
+</span><span class="hs-identifier hs-var">const</span></span><span> </span><span class="annot"><span class="annottext">BatteryApp
+</span><a href="Pythia.Services.Battery.Types.html#BatteryAppSysFs"><span class="hs-identifier hs-var">BatteryAppSysFs</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-72"></span><span>    </span><span class="hs-special">(</span><span> </span><span class="hs-glyph">\</span><span id="local-6989586621679251743"><span class="annot"><span class="annottext">BatteryApp
+</span><a href="#local-6989586621679251743"><span class="hs-identifier hs-var">x</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-keyword">case</span><span> </span><span class="annot"><span class="annottext">BatteryApp
+</span><a href="#local-6989586621679251743"><span class="hs-identifier hs-var">x</span></a></span><span> </span><span class="hs-keyword">of</span><span>
+</span><span id="line-73"></span><span>        </span><span class="annot"><span class="annottext">BatteryApp
+</span><a href="Pythia.Services.Battery.Types.html#BatteryAppSysFs"><span class="hs-identifier hs-var">BatteryAppSysFs</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">() -&gt; Either BatteryApp ()
+forall a b. b -&gt; Either a b
+</span><span class="hs-identifier hs-var">Right</span></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span>
+</span><span id="line-74"></span><span>        </span><span class="annot"><span class="annottext">BatteryApp
+</span><span class="hs-identifier">_</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">BatteryApp -&gt; Either BatteryApp ()
+forall a b. a -&gt; Either a b
+</span><span class="hs-identifier hs-var">Left</span></span><span> </span><span class="annot"><span class="annottext">BatteryApp
+</span><a href="#local-6989586621679251743"><span class="hs-identifier hs-var">x</span></a></span><span>
+</span><span id="line-75"></span><span>    </span><span class="hs-special">)</span><span>
+</span><span id="line-76"></span><span class="hs-pragma">{-# INLINE</span><span> </span><span class="annot"><a href="Pythia.Services.Battery.Types.html#_BatteryAppSysFs"><span class="hs-pragma hs-type">_BatteryAppSysFs</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-77"></span><span>
+</span><span id="line-78"></span><span class="annot"><span class="hs-comment">-- | @since 0.1</span></span><span>
+</span><span id="line-79"></span><span class="annot"><a href="Pythia.Services.Battery.Types.html#_BatteryAppAcpi"><span class="hs-identifier hs-type">_BatteryAppAcpi</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="file:///nix/store/yiyd960cyn3zg283hgrwi5m0ilr7bcpb-optics-core-0.4.1.1-doc/share/doc/optics-core-0.4.1.1/html/src/Optics.Prism.html#Prism%27"><span class="hs-identifier hs-type">Prism'</span></a></span><span> </span><span class="annot"><a href="Pythia.Services.Battery.Types.html#BatteryApp"><span class="hs-identifier hs-type">BatteryApp</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span>
+</span><span id="line-80"></span><span id="_BatteryAppAcpi"><span class="annot"><span class="annottext">_BatteryAppAcpi :: Prism' BatteryApp ()
+</span><a href="Pythia.Services.Battery.Types.html#_BatteryAppAcpi"><span class="hs-identifier hs-var hs-var">_BatteryAppAcpi</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-81"></span><span>  </span><span class="annot"><span class="annottext">(() -&gt; BatteryApp)
+-&gt; (BatteryApp -&gt; Either BatteryApp ()) -&gt; Prism' BatteryApp ()
+forall b t s a. (b -&gt; t) -&gt; (s -&gt; Either t a) -&gt; Prism s t a b
+</span><a href="file:///nix/store/yiyd960cyn3zg283hgrwi5m0ilr7bcpb-optics-core-0.4.1.1-doc/share/doc/optics-core-0.4.1.1/html/src/Optics.Prism.html#prism"><span class="hs-identifier hs-var">prism</span></a></span><span>
+</span><span id="line-82"></span><span>    </span><span class="hs-special">(</span><span class="annot"><span class="annottext">BatteryApp -&gt; () -&gt; BatteryApp
+forall a b. a -&gt; b -&gt; a
+</span><span class="hs-identifier hs-var">const</span></span><span> </span><span class="annot"><span class="annottext">BatteryApp
+</span><a href="Pythia.Services.Battery.Types.html#BatteryAppAcpi"><span class="hs-identifier hs-var">BatteryAppAcpi</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-83"></span><span>    </span><span class="hs-special">(</span><span> </span><span class="hs-glyph">\</span><span id="local-6989586621679251744"><span class="annot"><span class="annottext">BatteryApp
+</span><a href="#local-6989586621679251744"><span class="hs-identifier hs-var">x</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-keyword">case</span><span> </span><span class="annot"><span class="annottext">BatteryApp
+</span><a href="#local-6989586621679251744"><span class="hs-identifier hs-var">x</span></a></span><span> </span><span class="hs-keyword">of</span><span>
+</span><span id="line-84"></span><span>        </span><span class="annot"><span class="annottext">BatteryApp
+</span><a href="Pythia.Services.Battery.Types.html#BatteryAppAcpi"><span class="hs-identifier hs-var">BatteryAppAcpi</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">() -&gt; Either BatteryApp ()
+forall a b. b -&gt; Either a b
+</span><span class="hs-identifier hs-var">Right</span></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span>
+</span><span id="line-85"></span><span>        </span><span class="annot"><span class="annottext">BatteryApp
+</span><span class="hs-identifier">_</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">BatteryApp -&gt; Either BatteryApp ()
+forall a b. a -&gt; Either a b
+</span><span class="hs-identifier hs-var">Left</span></span><span> </span><span class="annot"><span class="annottext">BatteryApp
+</span><a href="#local-6989586621679251744"><span class="hs-identifier hs-var">x</span></a></span><span>
+</span><span id="line-86"></span><span>    </span><span class="hs-special">)</span><span>
+</span><span id="line-87"></span><span class="hs-pragma">{-# INLINE</span><span> </span><span class="annot"><a href="Pythia.Services.Battery.Types.html#_BatteryAppAcpi"><span class="hs-pragma hs-type">_BatteryAppAcpi</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-88"></span><span>
+</span><span id="line-89"></span><span class="annot"><span class="hs-comment">-- | @since 0.1</span></span><span>
+</span><span id="line-90"></span><span class="annot"><a href="Pythia.Services.Battery.Types.html#_BatteryAppUPower"><span class="hs-identifier hs-type">_BatteryAppUPower</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="file:///nix/store/yiyd960cyn3zg283hgrwi5m0ilr7bcpb-optics-core-0.4.1.1-doc/share/doc/optics-core-0.4.1.1/html/src/Optics.Prism.html#Prism%27"><span class="hs-identifier hs-type">Prism'</span></a></span><span> </span><span class="annot"><a href="Pythia.Services.Battery.Types.html#BatteryApp"><span class="hs-identifier hs-type">BatteryApp</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span>
+</span><span id="line-91"></span><span id="_BatteryAppUPower"><span class="annot"><span class="annottext">_BatteryAppUPower :: Prism' BatteryApp ()
+</span><a href="Pythia.Services.Battery.Types.html#_BatteryAppUPower"><span class="hs-identifier hs-var hs-var">_BatteryAppUPower</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-92"></span><span>  </span><span class="annot"><span class="annottext">(() -&gt; BatteryApp)
+-&gt; (BatteryApp -&gt; Either BatteryApp ()) -&gt; Prism' BatteryApp ()
+forall b t s a. (b -&gt; t) -&gt; (s -&gt; Either t a) -&gt; Prism s t a b
+</span><a href="file:///nix/store/yiyd960cyn3zg283hgrwi5m0ilr7bcpb-optics-core-0.4.1.1-doc/share/doc/optics-core-0.4.1.1/html/src/Optics.Prism.html#prism"><span class="hs-identifier hs-var">prism</span></a></span><span>
+</span><span id="line-93"></span><span>    </span><span class="hs-special">(</span><span class="annot"><span class="annottext">BatteryApp -&gt; () -&gt; BatteryApp
+forall a b. a -&gt; b -&gt; a
+</span><span class="hs-identifier hs-var">const</span></span><span> </span><span class="annot"><span class="annottext">BatteryApp
+</span><a href="Pythia.Services.Battery.Types.html#BatteryAppUPower"><span class="hs-identifier hs-var">BatteryAppUPower</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-94"></span><span>    </span><span class="hs-special">(</span><span> </span><span class="hs-glyph">\</span><span id="local-6989586621679251745"><span class="annot"><span class="annottext">BatteryApp
+</span><a href="#local-6989586621679251745"><span class="hs-identifier hs-var">x</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-keyword">case</span><span> </span><span class="annot"><span class="annottext">BatteryApp
+</span><a href="#local-6989586621679251745"><span class="hs-identifier hs-var">x</span></a></span><span> </span><span class="hs-keyword">of</span><span>
+</span><span id="line-95"></span><span>        </span><span class="annot"><span class="annottext">BatteryApp
+</span><a href="Pythia.Services.Battery.Types.html#BatteryAppUPower"><span class="hs-identifier hs-var">BatteryAppUPower</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">() -&gt; Either BatteryApp ()
+forall a b. b -&gt; Either a b
+</span><span class="hs-identifier hs-var">Right</span></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span>
+</span><span id="line-96"></span><span>        </span><span class="annot"><span class="annottext">BatteryApp
+</span><span class="hs-identifier">_</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">BatteryApp -&gt; Either BatteryApp ()
+forall a b. a -&gt; Either a b
+</span><span class="hs-identifier hs-var">Left</span></span><span> </span><span class="annot"><span class="annottext">BatteryApp
+</span><a href="#local-6989586621679251745"><span class="hs-identifier hs-var">x</span></a></span><span>
+</span><span id="line-97"></span><span>    </span><span class="hs-special">)</span><span>
+</span><span id="line-98"></span><span class="hs-pragma">{-# INLINE</span><span> </span><span class="annot"><a href="Pythia.Services.Battery.Types.html#_BatteryAppUPower"><span class="hs-pragma hs-type">_BatteryAppUPower</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-99"></span><span>
+</span><span id="line-100"></span><span class="hs-comment">-- | Represents battery charging status.</span><span>
+</span><span id="line-101"></span><span class="hs-comment">--</span><span>
+</span><span id="line-102"></span><span class="hs-comment">-- @since 0.1</span><span>
+</span><span id="line-103"></span><span class="hs-keyword">type</span><span> </span><span class="annot"><a href="Pythia.Services.Battery.Types.html#BatteryStatus"><span class="hs-identifier hs-type">BatteryStatus</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Type</span></span><span>
+</span><span id="line-104"></span><span class="hs-keyword">data</span><span> </span><span id="BatteryStatus"><span class="annot"><a href="Pythia.Services.Battery.Types.html#BatteryStatus"><span class="hs-identifier hs-var">BatteryStatus</span></a></span></span><span>
+</span><span id="line-105"></span><span>  </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="hs-comment">-- | @since 0.1</span></span><span>
+</span><span id="line-106"></span><span>    </span><span id="Charging"><span class="annot"><a href="Pythia.Services.Battery.Types.html#Charging"><span class="hs-identifier hs-var">Charging</span></a></span></span><span>
+</span><span id="line-107"></span><span>  </span><span class="hs-glyph">|</span><span> </span><span class="annot"><span class="hs-comment">-- | @since 0.1</span></span><span>
+</span><span id="line-108"></span><span>    </span><span id="Discharging"><span class="annot"><a href="Pythia.Services.Battery.Types.html#Discharging"><span class="hs-identifier hs-var">Discharging</span></a></span></span><span>
+</span><span id="line-109"></span><span>  </span><span class="hs-glyph">|</span><span> </span><span class="annot"><span class="hs-comment">-- | @since 0.1</span></span><span>
+</span><span id="line-110"></span><span>    </span><span id="Full"><span class="annot"><a href="Pythia.Services.Battery.Types.html#Full"><span class="hs-identifier hs-var">Full</span></a></span></span><span>
+</span><span id="line-111"></span><span>  </span><span class="hs-glyph">|</span><span> </span><span class="annot"><span class="hs-comment">-- | @since 0.1</span></span><span>
+</span><span id="line-112"></span><span>    </span><span id="Pending"><span class="annot"><a href="Pythia.Services.Battery.Types.html#Pending"><span class="hs-identifier hs-var">Pending</span></a></span></span><span>
+</span><span id="line-113"></span><span>  </span><span class="hs-keyword">deriving</span><span> </span><span class="annot"><span class="hs-keyword">stock</span></span><span>
+</span><span id="line-114"></span><span>    </span><span class="hs-special">(</span><span> </span><span class="annot"><span class="hs-comment">-- | @since 0.1</span></span><span>
+</span><span id="line-115"></span><span>      </span><span id="local-6989586621679251751"><span id="local-6989586621679251753"><span class="annot"><span class="annottext">BatteryStatus -&gt; BatteryStatus -&gt; Bool
+(BatteryStatus -&gt; BatteryStatus -&gt; Bool)
+-&gt; (BatteryStatus -&gt; BatteryStatus -&gt; Bool) -&gt; Eq BatteryStatus
+forall a. (a -&gt; a -&gt; Bool) -&gt; (a -&gt; a -&gt; Bool) -&gt; Eq a
+$c== :: BatteryStatus -&gt; BatteryStatus -&gt; Bool
+== :: BatteryStatus -&gt; BatteryStatus -&gt; Bool
+$c/= :: BatteryStatus -&gt; BatteryStatus -&gt; Bool
+/= :: BatteryStatus -&gt; BatteryStatus -&gt; Bool
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Eq</span></span></span></span><span class="hs-special">,</span><span>
+</span><span id="line-116"></span><span>      </span><span class="annot"><span class="hs-comment">-- | @since 0.1</span></span><span>
+</span><span id="line-117"></span><span>      </span><span id="local-6989586621679251757"><span id="local-6989586621679251759"><span class="annot"><span class="annottext">(forall x. BatteryStatus -&gt; Rep BatteryStatus x)
+-&gt; (forall x. Rep BatteryStatus x -&gt; BatteryStatus)
+-&gt; Generic BatteryStatus
+forall x. Rep BatteryStatus x -&gt; BatteryStatus
+forall x. BatteryStatus -&gt; Rep BatteryStatus x
+forall a.
+(forall x. a -&gt; Rep a x) -&gt; (forall x. Rep a x -&gt; a) -&gt; Generic a
+$cfrom :: forall x. BatteryStatus -&gt; Rep BatteryStatus x
+from :: forall x. BatteryStatus -&gt; Rep BatteryStatus x
+$cto :: forall x. Rep BatteryStatus x -&gt; BatteryStatus
+to :: forall x. Rep BatteryStatus x -&gt; BatteryStatus
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Generic</span></span></span></span><span class="hs-special">,</span><span>
+</span><span id="line-118"></span><span>      </span><span class="annot"><span class="hs-comment">-- | @since 0.1</span></span><span>
+</span><span id="line-119"></span><span>      </span><span id="local-6989586621679251762"><span id="local-6989586621679251764"><span id="local-6989586621679251768"><span class="annot"><span class="annottext">Int -&gt; BatteryStatus -&gt; ShowS
+[BatteryStatus] -&gt; ShowS
+BatteryStatus -&gt; [Char]
+(Int -&gt; BatteryStatus -&gt; ShowS)
+-&gt; (BatteryStatus -&gt; [Char])
+-&gt; ([BatteryStatus] -&gt; ShowS)
+-&gt; Show BatteryStatus
+forall a.
+(Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; [Char]) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+$cshowsPrec :: Int -&gt; BatteryStatus -&gt; ShowS
+showsPrec :: Int -&gt; BatteryStatus -&gt; ShowS
+$cshow :: BatteryStatus -&gt; [Char]
+show :: BatteryStatus -&gt; [Char]
+$cshowList :: [BatteryStatus] -&gt; ShowS
+showList :: [BatteryStatus] -&gt; ShowS
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Show</span></span></span></span></span><span>
+</span><span id="line-120"></span><span>    </span><span class="hs-special">)</span><span>
+</span><span id="line-121"></span><span>  </span><span class="hs-keyword">deriving</span><span> </span><span class="annot"><span class="hs-keyword">anyclass</span></span><span>
+</span><span id="line-122"></span><span>    </span><span class="hs-special">(</span><span> </span><span class="annot"><span class="hs-comment">-- | @since 0.1</span></span><span>
+</span><span id="line-123"></span><span>      </span><span id="local-6989586621679251771"><span class="annot"><span class="annottext">BatteryStatus -&gt; ()
+(BatteryStatus -&gt; ()) -&gt; NFData BatteryStatus
+forall a. (a -&gt; ()) -&gt; NFData a
+$crnf :: BatteryStatus -&gt; ()
+rnf :: BatteryStatus -&gt; ()
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var">NFData</span></span></span><span>
+</span><span id="line-124"></span><span>    </span><span class="hs-special">)</span><span>
+</span><span id="line-125"></span><span>
+</span><span id="line-126"></span><span class="annot"><span class="hs-comment">-- | @since 0.1</span></span><span>
+</span><span id="line-127"></span><span class="annot"><a href="Pythia.Services.Battery.Types.html#_Charging"><span class="hs-identifier hs-type">_Charging</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="file:///nix/store/yiyd960cyn3zg283hgrwi5m0ilr7bcpb-optics-core-0.4.1.1-doc/share/doc/optics-core-0.4.1.1/html/src/Optics.Prism.html#Prism%27"><span class="hs-identifier hs-type">Prism'</span></a></span><span> </span><span class="annot"><a href="Pythia.Services.Battery.Types.html#BatteryStatus"><span class="hs-identifier hs-type">BatteryStatus</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span>
+</span><span id="line-128"></span><span id="_Charging"><span class="annot"><span class="annottext">_Charging :: Prism' BatteryStatus ()
+</span><a href="Pythia.Services.Battery.Types.html#_Charging"><span class="hs-identifier hs-var hs-var">_Charging</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-129"></span><span>  </span><span class="annot"><span class="annottext">(() -&gt; BatteryStatus)
+-&gt; (BatteryStatus -&gt; Either BatteryStatus ())
+-&gt; Prism' BatteryStatus ()
+forall b t s a. (b -&gt; t) -&gt; (s -&gt; Either t a) -&gt; Prism s t a b
+</span><a href="file:///nix/store/yiyd960cyn3zg283hgrwi5m0ilr7bcpb-optics-core-0.4.1.1-doc/share/doc/optics-core-0.4.1.1/html/src/Optics.Prism.html#prism"><span class="hs-identifier hs-var">prism</span></a></span><span>
+</span><span id="line-130"></span><span>    </span><span class="hs-special">(</span><span class="annot"><span class="annottext">BatteryStatus -&gt; () -&gt; BatteryStatus
+forall a b. a -&gt; b -&gt; a
+</span><span class="hs-identifier hs-var">const</span></span><span> </span><span class="annot"><span class="annottext">BatteryStatus
+</span><a href="Pythia.Services.Battery.Types.html#Charging"><span class="hs-identifier hs-var">Charging</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-131"></span><span>    </span><span class="hs-special">(</span><span> </span><span class="hs-glyph">\</span><span id="local-6989586621679251785"><span class="annot"><span class="annottext">BatteryStatus
+</span><a href="#local-6989586621679251785"><span class="hs-identifier hs-var">x</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-keyword">case</span><span> </span><span class="annot"><span class="annottext">BatteryStatus
+</span><a href="#local-6989586621679251785"><span class="hs-identifier hs-var">x</span></a></span><span> </span><span class="hs-keyword">of</span><span>
+</span><span id="line-132"></span><span>        </span><span class="annot"><span class="annottext">BatteryStatus
+</span><a href="Pythia.Services.Battery.Types.html#Charging"><span class="hs-identifier hs-var">Charging</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">() -&gt; Either BatteryStatus ()
+forall a b. b -&gt; Either a b
+</span><span class="hs-identifier hs-var">Right</span></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span>
+</span><span id="line-133"></span><span>        </span><span class="annot"><span class="annottext">BatteryStatus
+</span><span class="hs-identifier">_</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">BatteryStatus -&gt; Either BatteryStatus ()
+forall a b. a -&gt; Either a b
+</span><span class="hs-identifier hs-var">Left</span></span><span> </span><span class="annot"><span class="annottext">BatteryStatus
+</span><a href="#local-6989586621679251785"><span class="hs-identifier hs-var">x</span></a></span><span>
+</span><span id="line-134"></span><span>    </span><span class="hs-special">)</span><span>
+</span><span id="line-135"></span><span class="hs-pragma">{-# INLINE</span><span> </span><span class="annot"><a href="Pythia.Services.Battery.Types.html#_Charging"><span class="hs-pragma hs-type">_Charging</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-136"></span><span>
+</span><span id="line-137"></span><span class="annot"><span class="hs-comment">-- | @since 0.1</span></span><span>
+</span><span id="line-138"></span><span class="annot"><a href="Pythia.Services.Battery.Types.html#_Discharging"><span class="hs-identifier hs-type">_Discharging</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="file:///nix/store/yiyd960cyn3zg283hgrwi5m0ilr7bcpb-optics-core-0.4.1.1-doc/share/doc/optics-core-0.4.1.1/html/src/Optics.Prism.html#Prism%27"><span class="hs-identifier hs-type">Prism'</span></a></span><span> </span><span class="annot"><a href="Pythia.Services.Battery.Types.html#BatteryStatus"><span class="hs-identifier hs-type">BatteryStatus</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span>
+</span><span id="line-139"></span><span id="_Discharging"><span class="annot"><span class="annottext">_Discharging :: Prism' BatteryStatus ()
+</span><a href="Pythia.Services.Battery.Types.html#_Discharging"><span class="hs-identifier hs-var hs-var">_Discharging</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-140"></span><span>  </span><span class="annot"><span class="annottext">(() -&gt; BatteryStatus)
+-&gt; (BatteryStatus -&gt; Either BatteryStatus ())
+-&gt; Prism' BatteryStatus ()
+forall b t s a. (b -&gt; t) -&gt; (s -&gt; Either t a) -&gt; Prism s t a b
+</span><a href="file:///nix/store/yiyd960cyn3zg283hgrwi5m0ilr7bcpb-optics-core-0.4.1.1-doc/share/doc/optics-core-0.4.1.1/html/src/Optics.Prism.html#prism"><span class="hs-identifier hs-var">prism</span></a></span><span>
+</span><span id="line-141"></span><span>    </span><span class="hs-special">(</span><span class="annot"><span class="annottext">BatteryStatus -&gt; () -&gt; BatteryStatus
+forall a b. a -&gt; b -&gt; a
+</span><span class="hs-identifier hs-var">const</span></span><span> </span><span class="annot"><span class="annottext">BatteryStatus
+</span><a href="Pythia.Services.Battery.Types.html#Discharging"><span class="hs-identifier hs-var">Discharging</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-142"></span><span>    </span><span class="hs-special">(</span><span> </span><span class="hs-glyph">\</span><span id="local-6989586621679251786"><span class="annot"><span class="annottext">BatteryStatus
+</span><a href="#local-6989586621679251786"><span class="hs-identifier hs-var">x</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-keyword">case</span><span> </span><span class="annot"><span class="annottext">BatteryStatus
+</span><a href="#local-6989586621679251786"><span class="hs-identifier hs-var">x</span></a></span><span> </span><span class="hs-keyword">of</span><span>
+</span><span id="line-143"></span><span>        </span><span class="annot"><span class="annottext">BatteryStatus
+</span><a href="Pythia.Services.Battery.Types.html#Discharging"><span class="hs-identifier hs-var">Discharging</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">() -&gt; Either BatteryStatus ()
+forall a b. b -&gt; Either a b
+</span><span class="hs-identifier hs-var">Right</span></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span>
+</span><span id="line-144"></span><span>        </span><span class="annot"><span class="annottext">BatteryStatus
+</span><span class="hs-identifier">_</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">BatteryStatus -&gt; Either BatteryStatus ()
+forall a b. a -&gt; Either a b
+</span><span class="hs-identifier hs-var">Left</span></span><span> </span><span class="annot"><span class="annottext">BatteryStatus
+</span><a href="#local-6989586621679251786"><span class="hs-identifier hs-var">x</span></a></span><span>
+</span><span id="line-145"></span><span>    </span><span class="hs-special">)</span><span>
+</span><span id="line-146"></span><span class="hs-pragma">{-# INLINE</span><span> </span><span class="annot"><a href="Pythia.Services.Battery.Types.html#_Discharging"><span class="hs-pragma hs-type">_Discharging</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-147"></span><span>
+</span><span id="line-148"></span><span class="annot"><span class="hs-comment">-- | @since 0.1</span></span><span>
+</span><span id="line-149"></span><span class="annot"><a href="Pythia.Services.Battery.Types.html#_Full"><span class="hs-identifier hs-type">_Full</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="file:///nix/store/yiyd960cyn3zg283hgrwi5m0ilr7bcpb-optics-core-0.4.1.1-doc/share/doc/optics-core-0.4.1.1/html/src/Optics.Prism.html#Prism%27"><span class="hs-identifier hs-type">Prism'</span></a></span><span> </span><span class="annot"><a href="Pythia.Services.Battery.Types.html#BatteryStatus"><span class="hs-identifier hs-type">BatteryStatus</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span>
+</span><span id="line-150"></span><span id="_Full"><span class="annot"><span class="annottext">_Full :: Prism' BatteryStatus ()
+</span><a href="Pythia.Services.Battery.Types.html#_Full"><span class="hs-identifier hs-var hs-var">_Full</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-151"></span><span>  </span><span class="annot"><span class="annottext">(() -&gt; BatteryStatus)
+-&gt; (BatteryStatus -&gt; Either BatteryStatus ())
+-&gt; Prism' BatteryStatus ()
+forall b t s a. (b -&gt; t) -&gt; (s -&gt; Either t a) -&gt; Prism s t a b
+</span><a href="file:///nix/store/yiyd960cyn3zg283hgrwi5m0ilr7bcpb-optics-core-0.4.1.1-doc/share/doc/optics-core-0.4.1.1/html/src/Optics.Prism.html#prism"><span class="hs-identifier hs-var">prism</span></a></span><span>
+</span><span id="line-152"></span><span>    </span><span class="hs-special">(</span><span class="annot"><span class="annottext">BatteryStatus -&gt; () -&gt; BatteryStatus
+forall a b. a -&gt; b -&gt; a
+</span><span class="hs-identifier hs-var">const</span></span><span> </span><span class="annot"><span class="annottext">BatteryStatus
+</span><a href="Pythia.Services.Battery.Types.html#Full"><span class="hs-identifier hs-var">Full</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-153"></span><span>    </span><span class="hs-special">(</span><span> </span><span class="hs-glyph">\</span><span id="local-6989586621679251787"><span class="annot"><span class="annottext">BatteryStatus
+</span><a href="#local-6989586621679251787"><span class="hs-identifier hs-var">x</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-keyword">case</span><span> </span><span class="annot"><span class="annottext">BatteryStatus
+</span><a href="#local-6989586621679251787"><span class="hs-identifier hs-var">x</span></a></span><span> </span><span class="hs-keyword">of</span><span>
+</span><span id="line-154"></span><span>        </span><span class="annot"><span class="annottext">BatteryStatus
+</span><a href="Pythia.Services.Battery.Types.html#Full"><span class="hs-identifier hs-var">Full</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">() -&gt; Either BatteryStatus ()
+forall a b. b -&gt; Either a b
+</span><span class="hs-identifier hs-var">Right</span></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span>
+</span><span id="line-155"></span><span>        </span><span class="annot"><span class="annottext">BatteryStatus
+</span><span class="hs-identifier">_</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">BatteryStatus -&gt; Either BatteryStatus ()
+forall a b. a -&gt; Either a b
+</span><span class="hs-identifier hs-var">Left</span></span><span> </span><span class="annot"><span class="annottext">BatteryStatus
+</span><a href="#local-6989586621679251787"><span class="hs-identifier hs-var">x</span></a></span><span>
+</span><span id="line-156"></span><span>    </span><span class="hs-special">)</span><span>
+</span><span id="line-157"></span><span class="hs-pragma">{-# INLINE</span><span> </span><span class="annot"><a href="Pythia.Services.Battery.Types.html#_Full"><span class="hs-pragma hs-type">_Full</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-158"></span><span>
+</span><span id="line-159"></span><span class="annot"><span class="hs-comment">-- | @since 0.1</span></span><span>
+</span><span id="line-160"></span><span class="annot"><a href="Pythia.Services.Battery.Types.html#_Pending"><span class="hs-identifier hs-type">_Pending</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="file:///nix/store/yiyd960cyn3zg283hgrwi5m0ilr7bcpb-optics-core-0.4.1.1-doc/share/doc/optics-core-0.4.1.1/html/src/Optics.Prism.html#Prism%27"><span class="hs-identifier hs-type">Prism'</span></a></span><span> </span><span class="annot"><a href="Pythia.Services.Battery.Types.html#BatteryStatus"><span class="hs-identifier hs-type">BatteryStatus</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span>
+</span><span id="line-161"></span><span id="_Pending"><span class="annot"><span class="annottext">_Pending :: Prism' BatteryStatus ()
+</span><a href="Pythia.Services.Battery.Types.html#_Pending"><span class="hs-identifier hs-var hs-var">_Pending</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-162"></span><span>  </span><span class="annot"><span class="annottext">(() -&gt; BatteryStatus)
+-&gt; (BatteryStatus -&gt; Either BatteryStatus ())
+-&gt; Prism' BatteryStatus ()
+forall b t s a. (b -&gt; t) -&gt; (s -&gt; Either t a) -&gt; Prism s t a b
+</span><a href="file:///nix/store/yiyd960cyn3zg283hgrwi5m0ilr7bcpb-optics-core-0.4.1.1-doc/share/doc/optics-core-0.4.1.1/html/src/Optics.Prism.html#prism"><span class="hs-identifier hs-var">prism</span></a></span><span>
+</span><span id="line-163"></span><span>    </span><span class="hs-special">(</span><span class="annot"><span class="annottext">BatteryStatus -&gt; () -&gt; BatteryStatus
+forall a b. a -&gt; b -&gt; a
+</span><span class="hs-identifier hs-var">const</span></span><span> </span><span class="annot"><span class="annottext">BatteryStatus
+</span><a href="Pythia.Services.Battery.Types.html#Pending"><span class="hs-identifier hs-var">Pending</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-164"></span><span>    </span><span class="hs-special">(</span><span> </span><span class="hs-glyph">\</span><span id="local-6989586621679251788"><span class="annot"><span class="annottext">BatteryStatus
+</span><a href="#local-6989586621679251788"><span class="hs-identifier hs-var">x</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-keyword">case</span><span> </span><span class="annot"><span class="annottext">BatteryStatus
+</span><a href="#local-6989586621679251788"><span class="hs-identifier hs-var">x</span></a></span><span> </span><span class="hs-keyword">of</span><span>
+</span><span id="line-165"></span><span>        </span><span class="annot"><span class="annottext">BatteryStatus
+</span><a href="Pythia.Services.Battery.Types.html#Pending"><span class="hs-identifier hs-var">Pending</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">() -&gt; Either BatteryStatus ()
+forall a b. b -&gt; Either a b
+</span><span class="hs-identifier hs-var">Right</span></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span>
+</span><span id="line-166"></span><span>        </span><span class="annot"><span class="annottext">BatteryStatus
+</span><span class="hs-identifier">_</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">BatteryStatus -&gt; Either BatteryStatus ()
+forall a b. a -&gt; Either a b
+</span><span class="hs-identifier hs-var">Left</span></span><span> </span><span class="annot"><span class="annottext">BatteryStatus
+</span><a href="#local-6989586621679251788"><span class="hs-identifier hs-var">x</span></a></span><span>
+</span><span id="line-167"></span><span>    </span><span class="hs-special">)</span><span>
+</span><span id="line-168"></span><span class="hs-pragma">{-# INLINE</span><span> </span><span class="annot"><a href="Pythia.Services.Battery.Types.html#_Pending"><span class="hs-pragma hs-type">_Pending</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-169"></span><span>
+</span><span id="line-170"></span><span class="annot"><span class="hs-comment">-- | @since 0.1</span></span><span>
+</span><span id="line-171"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621679251791"><span id="local-6989586621679251795"><span class="annot"><a href="file:///nix/store/c4qqygkxvzxxbb0xarjssql1bzgr0nq9-text-display-0.0.5.1-doc/share/doc/text-display-0.0.5.1/html/src/Data.Text.Display.Core.html#Display"><span class="hs-identifier hs-type">Display</span></a></span><span> </span><span class="annot"><a href="Pythia.Services.Battery.Types.html#BatteryStatus"><span class="hs-identifier hs-type">BatteryStatus</span></a></span></span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-172"></span><span>  </span><span id="local-6989586621679251803"><span class="annot"><span class="annottext">displayBuilder :: BatteryStatus -&gt; Builder
+</span><a href="#local-6989586621679251803"><span class="hs-identifier hs-var hs-var hs-var hs-var">displayBuilder</span></a></span></span><span> </span><span class="annot"><span class="annottext">BatteryStatus
+</span><a href="Pythia.Services.Battery.Types.html#Charging"><span class="hs-identifier hs-var">Charging</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Builder
+</span><span class="hs-string">&quot;Charging&quot;</span></span><span>
+</span><span id="line-173"></span><span>  </span><span class="annot"><a href="file:///nix/store/c4qqygkxvzxxbb0xarjssql1bzgr0nq9-text-display-0.0.5.1-doc/share/doc/text-display-0.0.5.1/html/src/Data.Text.Display.Core.html#displayBuilder"><span class="hs-identifier hs-var">displayBuilder</span></a></span><span> </span><span class="annot"><span class="annottext">BatteryStatus
+</span><a href="Pythia.Services.Battery.Types.html#Discharging"><span class="hs-identifier hs-var">Discharging</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Builder
+</span><span class="hs-string">&quot;Discharging&quot;</span></span><span>
+</span><span id="line-174"></span><span>  </span><span class="annot"><a href="file:///nix/store/c4qqygkxvzxxbb0xarjssql1bzgr0nq9-text-display-0.0.5.1-doc/share/doc/text-display-0.0.5.1/html/src/Data.Text.Display.Core.html#displayBuilder"><span class="hs-identifier hs-var">displayBuilder</span></a></span><span> </span><span class="annot"><span class="annottext">BatteryStatus
+</span><a href="Pythia.Services.Battery.Types.html#Full"><span class="hs-identifier hs-var">Full</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Builder
+</span><span class="hs-string">&quot;Full&quot;</span></span><span>
+</span><span id="line-175"></span><span>  </span><span class="annot"><a href="file:///nix/store/c4qqygkxvzxxbb0xarjssql1bzgr0nq9-text-display-0.0.5.1-doc/share/doc/text-display-0.0.5.1/html/src/Data.Text.Display.Core.html#displayBuilder"><span class="hs-identifier hs-var">displayBuilder</span></a></span><span> </span><span class="annot"><span class="annottext">BatteryStatus
+</span><a href="Pythia.Services.Battery.Types.html#Pending"><span class="hs-identifier hs-var">Pending</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Builder
+</span><span class="hs-string">&quot;Pending&quot;</span></span><span>
+</span><span id="line-176"></span><span>
+</span><span id="line-177"></span><span class="hs-comment">-- | Full battery state, including percentage and status data.</span><span>
+</span><span id="line-178"></span><span class="hs-comment">--</span><span>
+</span><span id="line-179"></span><span class="hs-comment">-- @since 0.1</span><span>
+</span><span id="line-180"></span><span class="hs-keyword">type</span><span> </span><span class="annot"><a href="Pythia.Services.Battery.Types.html#Battery"><span class="hs-identifier hs-type">Battery</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Type</span></span><span>
+</span><span id="line-181"></span><span class="hs-keyword">data</span><span> </span><span id="Battery"><span class="annot"><a href="Pythia.Services.Battery.Types.html#Battery"><span class="hs-identifier hs-var">Battery</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span id="MkBattery"><span class="annot"><a href="Pythia.Services.Battery.Types.html#MkBattery"><span class="hs-identifier hs-var">MkBattery</span></a></span></span><span>
+</span><span id="line-182"></span><span>  </span><span class="hs-special">{</span><span> </span><span class="annot"><span class="hs-comment">-- | @since 0.1</span></span><span>
+</span><span id="line-183"></span><span>    </span><span id="%24sel%3Apercentage%3AMkBattery"><span class="annot"><span class="annottext">Battery -&gt; Percentage
+</span><a href="Pythia.Services.Battery.Types.html#%24sel%3Apercentage%3AMkBattery"><span class="hs-identifier hs-var hs-var">percentage</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Pythia.Data.Percentage.Internal.html#Percentage"><span class="hs-identifier hs-type">Percentage</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-184"></span><span>    </span><span class="annot"><span class="hs-comment">-- | @since 0.1</span></span><span>
+</span><span id="line-185"></span><span>    </span><span id="%24sel%3Astatus%3AMkBattery"><span class="annot"><span class="annottext">Battery -&gt; BatteryStatus
+</span><a href="Pythia.Services.Battery.Types.html#%24sel%3Astatus%3AMkBattery"><span class="hs-identifier hs-var hs-var">status</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Pythia.Services.Battery.Types.html#BatteryStatus"><span class="hs-identifier hs-type">BatteryStatus</span></a></span><span>
+</span><span id="line-186"></span><span>  </span><span class="hs-special">}</span><span>
+</span><span id="line-187"></span><span>  </span><span class="hs-keyword">deriving</span><span> </span><span class="annot"><span class="hs-keyword">stock</span></span><span>
+</span><span id="line-188"></span><span>    </span><span class="hs-special">(</span><span> </span><span class="annot"><span class="hs-comment">-- | @since 0.1</span></span><span>
+</span><span id="line-189"></span><span>      </span><span id="local-6989586621679251809"><span id="local-6989586621679251814"><span class="annot"><span class="annottext">Battery -&gt; Battery -&gt; Bool
+(Battery -&gt; Battery -&gt; Bool)
+-&gt; (Battery -&gt; Battery -&gt; Bool) -&gt; Eq Battery
+forall a. (a -&gt; a -&gt; Bool) -&gt; (a -&gt; a -&gt; Bool) -&gt; Eq a
+$c== :: Battery -&gt; Battery -&gt; Bool
+== :: Battery -&gt; Battery -&gt; Bool
+$c/= :: Battery -&gt; Battery -&gt; Bool
+/= :: Battery -&gt; Battery -&gt; Bool
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Eq</span></span></span></span><span class="hs-special">,</span><span>
+</span><span id="line-190"></span><span>      </span><span class="annot"><span class="hs-comment">-- | @since 0.1</span></span><span>
+</span><span id="line-191"></span><span>      </span><span id="local-6989586621679251818"><span id="local-6989586621679251820"><span class="annot"><span class="annottext">(forall x. Battery -&gt; Rep Battery x)
+-&gt; (forall x. Rep Battery x -&gt; Battery) -&gt; Generic Battery
+forall x. Rep Battery x -&gt; Battery
+forall x. Battery -&gt; Rep Battery x
+forall a.
+(forall x. a -&gt; Rep a x) -&gt; (forall x. Rep a x -&gt; a) -&gt; Generic a
+$cfrom :: forall x. Battery -&gt; Rep Battery x
+from :: forall x. Battery -&gt; Rep Battery x
+$cto :: forall x. Rep Battery x -&gt; Battery
+to :: forall x. Rep Battery x -&gt; Battery
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Generic</span></span></span></span><span class="hs-special">,</span><span>
+</span><span id="line-192"></span><span>      </span><span class="annot"><span class="hs-comment">-- | @since 0.1</span></span><span>
+</span><span id="line-193"></span><span>      </span><span id="local-6989586621679251823"><span id="local-6989586621679251829"><span id="local-6989586621679251833"><span class="annot"><span class="annottext">Int -&gt; Battery -&gt; ShowS
+[Battery] -&gt; ShowS
+Battery -&gt; [Char]
+(Int -&gt; Battery -&gt; ShowS)
+-&gt; (Battery -&gt; [Char]) -&gt; ([Battery] -&gt; ShowS) -&gt; Show Battery
+forall a.
+(Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; [Char]) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+$cshowsPrec :: Int -&gt; Battery -&gt; ShowS
+showsPrec :: Int -&gt; Battery -&gt; ShowS
+$cshow :: Battery -&gt; [Char]
+show :: Battery -&gt; [Char]
+$cshowList :: [Battery] -&gt; ShowS
+showList :: [Battery] -&gt; ShowS
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Show</span></span></span></span></span><span>
+</span><span id="line-194"></span><span>    </span><span class="hs-special">)</span><span>
+</span><span id="line-195"></span><span>  </span><span class="hs-keyword">deriving</span><span> </span><span class="annot"><span class="hs-keyword">anyclass</span></span><span>
+</span><span id="line-196"></span><span>    </span><span class="hs-special">(</span><span> </span><span class="annot"><span class="hs-comment">-- | @since 0.1</span></span><span>
+</span><span id="line-197"></span><span>      </span><span id="local-6989586621679251836"><span class="annot"><span class="annottext">Battery -&gt; ()
+(Battery -&gt; ()) -&gt; NFData Battery
+forall a. (a -&gt; ()) -&gt; NFData a
+$crnf :: Battery -&gt; ()
+rnf :: Battery -&gt; ()
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var">NFData</span></span></span><span>
+</span><span id="line-198"></span><span>    </span><span class="hs-special">)</span><span>
+</span><span id="line-199"></span><span>
+</span><span id="line-200"></span><span class="annot"><span class="hs-comment">-- | @since 0.1</span></span><span>
+</span><span id="line-201"></span><span class="hs-keyword">instance</span><span>
+</span><span id="line-202"></span><span>  </span><span id="local-6989586621679251574"><span id="local-6989586621679251575"><span id="local-6989586621679251576"><span class="hs-special">(</span><span class="annot"><a href="#local-6989586621679251574"><span class="hs-identifier hs-type">k</span></a></span><span> </span><span class="annot"><span class="hs-operator hs-type">~</span></span><span> </span><span class="annot"><a href="file:///nix/store/yiyd960cyn3zg283hgrwi5m0ilr7bcpb-optics-core-0.4.1.1-doc/share/doc/optics-core-0.4.1.1/html/src/Optics.Internal.Optic.Types.html#A_Lens"><span class="hs-identifier hs-type">A_Lens</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="#local-6989586621679251575"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="annot"><span class="hs-operator hs-type">~</span></span><span> </span><span class="annot"><a href="Pythia.Data.Percentage.Internal.html#Percentage"><span class="hs-identifier hs-type">Percentage</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="#local-6989586621679251576"><span class="hs-identifier hs-type">b</span></a></span><span> </span><span class="annot"><span class="hs-operator hs-type">~</span></span><span> </span><span class="annot"><a href="Pythia.Data.Percentage.Internal.html#Percentage"><span class="hs-identifier hs-type">Percentage</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span>
+</span><span id="line-203"></span><span>  </span><span class="annot"><a href="file:///nix/store/yiyd960cyn3zg283hgrwi5m0ilr7bcpb-optics-core-0.4.1.1-doc/share/doc/optics-core-0.4.1.1/html/src/Optics.Label.html#LabelOptic"><span class="hs-identifier hs-type">LabelOptic</span></a></span><span> </span><span class="annot"><span class="hs-string">&quot;percentage&quot;</span></span><span> </span><span class="annot"><a href="#local-6989586621679251574"><span class="hs-identifier hs-type">k</span></a></span><span> </span><span class="annot"><a href="Pythia.Services.Battery.Types.html#Battery"><span class="hs-identifier hs-type">Battery</span></a></span><span> </span><span class="annot"><a href="Pythia.Services.Battery.Types.html#Battery"><span class="hs-identifier hs-type">Battery</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679251575"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679251576"><span class="hs-identifier hs-type">b</span></a></span></span></span></span><span>
+</span><span id="line-204"></span><span>  </span><span class="hs-keyword">where</span><span>
+</span><span id="line-205"></span><span>  </span><span id="local-6989586621679251862"><span class="annot"><span class="annottext">labelOptic :: Optic k NoIx Battery Battery a b
+</span><a href="#local-6989586621679251862"><span class="hs-identifier hs-var hs-var hs-var hs-var">labelOptic</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">LensVL Battery Battery a b -&gt; Lens Battery Battery a b
+forall s t a b. LensVL s t a b -&gt; Lens s t a b
+</span><a href="file:///nix/store/yiyd960cyn3zg283hgrwi5m0ilr7bcpb-optics-core-0.4.1.1-doc/share/doc/optics-core-0.4.1.1/html/src/Optics.Lens.html#lensVL"><span class="hs-identifier hs-var">lensVL</span></a></span><span> </span><span class="annot"><span class="annottext">(LensVL Battery Battery a b -&gt; Lens Battery Battery a b)
+-&gt; LensVL Battery Battery a b -&gt; Lens Battery Battery a b
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="hs-glyph">\</span><span id="local-6989586621679251867"><span class="annot"><span class="annottext">a -&gt; f b
+</span><a href="#local-6989586621679251867"><span class="hs-identifier hs-var">f</span></a></span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Pythia.Services.Battery.Types.html#MkBattery"><span class="hs-identifier hs-type">MkBattery</span></a></span><span> </span><span id="local-6989586621679251868"><span class="annot"><span class="annottext">Percentage
+</span><a href="#local-6989586621679251868"><span class="hs-identifier hs-var">_percentage</span></a></span></span><span> </span><span id="local-6989586621679251869"><span class="annot"><span class="annottext">BatteryStatus
+</span><a href="#local-6989586621679251869"><span class="hs-identifier hs-var">_status</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span>
+</span><span id="line-206"></span><span>    </span><span class="annot"><span class="annottext">(Percentage -&gt; Battery) -&gt; f Percentage -&gt; f Battery
+forall a b. (a -&gt; b) -&gt; f a -&gt; f b
+forall (f :: Type -&gt; Type) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span><span class="hs-identifier hs-var">fmap</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Percentage -&gt; BatteryStatus -&gt; Battery
+</span><a href="Pythia.Services.Battery.Types.html#MkBattery"><span class="hs-operator hs-var">`MkBattery`</span></a></span><span> </span><span class="annot"><span class="annottext">BatteryStatus
+</span><a href="#local-6989586621679251869"><span class="hs-identifier hs-var">_status</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">a -&gt; f b
+</span><a href="#local-6989586621679251867"><span class="hs-identifier hs-var">f</span></a></span><span> </span><span class="annot"><span class="annottext">a
+Percentage
+</span><a href="#local-6989586621679251868"><span class="hs-identifier hs-var">_percentage</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-207"></span><span>  </span><span class="hs-pragma">{-# INLINE</span><span> </span><span class="annot"><a href="file:///nix/store/yiyd960cyn3zg283hgrwi5m0ilr7bcpb-optics-core-0.4.1.1-doc/share/doc/optics-core-0.4.1.1/html/src/Optics.Label.html#labelOptic"><span class="hs-pragma hs-type">labelOptic</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-208"></span><span>
+</span><span id="line-209"></span><span class="annot"><span class="hs-comment">-- | @since 0.1</span></span><span>
+</span><span id="line-210"></span><span class="hs-keyword">instance</span><span>
+</span><span id="line-211"></span><span>  </span><span id="local-6989586621679251593"><span id="local-6989586621679251594"><span id="local-6989586621679251595"><span class="hs-special">(</span><span class="annot"><a href="#local-6989586621679251593"><span class="hs-identifier hs-type">k</span></a></span><span> </span><span class="annot"><span class="hs-operator hs-type">~</span></span><span> </span><span class="annot"><a href="file:///nix/store/yiyd960cyn3zg283hgrwi5m0ilr7bcpb-optics-core-0.4.1.1-doc/share/doc/optics-core-0.4.1.1/html/src/Optics.Internal.Optic.Types.html#A_Lens"><span class="hs-identifier hs-type">A_Lens</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="#local-6989586621679251594"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="annot"><span class="hs-operator hs-type">~</span></span><span> </span><span class="annot"><a href="Pythia.Services.Battery.Types.html#BatteryStatus"><span class="hs-identifier hs-type">BatteryStatus</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="#local-6989586621679251595"><span class="hs-identifier hs-type">b</span></a></span><span> </span><span class="annot"><span class="hs-operator hs-type">~</span></span><span> </span><span class="annot"><a href="Pythia.Services.Battery.Types.html#BatteryStatus"><span class="hs-identifier hs-type">BatteryStatus</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span>
+</span><span id="line-212"></span><span>  </span><span class="annot"><a href="file:///nix/store/yiyd960cyn3zg283hgrwi5m0ilr7bcpb-optics-core-0.4.1.1-doc/share/doc/optics-core-0.4.1.1/html/src/Optics.Label.html#LabelOptic"><span class="hs-identifier hs-type">LabelOptic</span></a></span><span> </span><span class="annot"><span class="hs-string">&quot;status&quot;</span></span><span> </span><span class="annot"><a href="#local-6989586621679251593"><span class="hs-identifier hs-type">k</span></a></span><span> </span><span class="annot"><a href="Pythia.Services.Battery.Types.html#Battery"><span class="hs-identifier hs-type">Battery</span></a></span><span> </span><span class="annot"><a href="Pythia.Services.Battery.Types.html#Battery"><span class="hs-identifier hs-type">Battery</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679251594"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679251595"><span class="hs-identifier hs-type">b</span></a></span></span></span></span><span>
+</span><span id="line-213"></span><span>  </span><span class="hs-keyword">where</span><span>
+</span><span id="line-214"></span><span>  </span><span id="local-6989586621679251878"><span class="annot"><span class="annottext">labelOptic :: Optic k NoIx Battery Battery a b
+</span><a href="file:///nix/store/yiyd960cyn3zg283hgrwi5m0ilr7bcpb-optics-core-0.4.1.1-doc/share/doc/optics-core-0.4.1.1/html/src/Optics.Label.html#labelOptic"><span class="hs-identifier hs-var hs-var hs-var hs-var">labelOptic</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">LensVL Battery Battery a b -&gt; Lens Battery Battery a b
+forall s t a b. LensVL s t a b -&gt; Lens s t a b
+</span><a href="file:///nix/store/yiyd960cyn3zg283hgrwi5m0ilr7bcpb-optics-core-0.4.1.1-doc/share/doc/optics-core-0.4.1.1/html/src/Optics.Lens.html#lensVL"><span class="hs-identifier hs-var">lensVL</span></a></span><span> </span><span class="annot"><span class="annottext">(LensVL Battery Battery a b -&gt; Lens Battery Battery a b)
+-&gt; LensVL Battery Battery a b -&gt; Lens Battery Battery a b
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="hs-glyph">\</span><span id="local-6989586621679251881"><span class="annot"><span class="annottext">a -&gt; f b
+</span><a href="#local-6989586621679251881"><span class="hs-identifier hs-var">f</span></a></span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Pythia.Services.Battery.Types.html#MkBattery"><span class="hs-identifier hs-type">MkBattery</span></a></span><span> </span><span id="local-6989586621679251882"><span class="annot"><span class="annottext">Percentage
+</span><a href="#local-6989586621679251882"><span class="hs-identifier hs-var">_percentage</span></a></span></span><span> </span><span id="local-6989586621679251883"><span class="annot"><span class="annottext">BatteryStatus
+</span><a href="#local-6989586621679251883"><span class="hs-identifier hs-var">_status</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span>
+</span><span id="line-215"></span><span>    </span><span class="annot"><span class="annottext">(BatteryStatus -&gt; Battery) -&gt; f BatteryStatus -&gt; f Battery
+forall a b. (a -&gt; b) -&gt; f a -&gt; f b
+forall (f :: Type -&gt; Type) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span><span class="hs-identifier hs-var">fmap</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Percentage -&gt; BatteryStatus -&gt; Battery
+</span><a href="Pythia.Services.Battery.Types.html#MkBattery"><span class="hs-identifier hs-var">MkBattery</span></a></span><span> </span><span class="annot"><span class="annottext">Percentage
+</span><a href="#local-6989586621679251882"><span class="hs-identifier hs-var">_percentage</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">a -&gt; f b
+</span><a href="#local-6989586621679251881"><span class="hs-identifier hs-var">f</span></a></span><span> </span><span class="annot"><span class="annottext">a
+BatteryStatus
+</span><a href="#local-6989586621679251883"><span class="hs-identifier hs-var">_status</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-216"></span><span>  </span><span class="hs-pragma">{-# INLINE</span><span> </span><span class="annot"><a href="file:///nix/store/yiyd960cyn3zg283hgrwi5m0ilr7bcpb-optics-core-0.4.1.1-doc/share/doc/optics-core-0.4.1.1/html/src/Optics.Label.html#labelOptic"><span class="hs-pragma hs-type">labelOptic</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-217"></span><span>
+</span><span id="line-218"></span><span class="annot"><span class="hs-comment">-- | @since 0.1</span></span><span>
+</span><span id="line-219"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621679251886"><span id="local-6989586621679251890"><span class="annot"><a href="file:///nix/store/c4qqygkxvzxxbb0xarjssql1bzgr0nq9-text-display-0.0.5.1-doc/share/doc/text-display-0.0.5.1/html/src/Data.Text.Display.Core.html#Display"><span class="hs-identifier hs-type">Display</span></a></span><span> </span><span class="annot"><a href="Pythia.Services.Battery.Types.html#Battery"><span class="hs-identifier hs-type">Battery</span></a></span></span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-220"></span><span>  </span><span id="local-6989586621679251914"><span class="annot"><span class="annottext">displayBuilder :: Battery -&gt; Builder
+</span><a href="file:///nix/store/c4qqygkxvzxxbb0xarjssql1bzgr0nq9-text-display-0.0.5.1-doc/share/doc/text-display-0.0.5.1/html/src/Data.Text.Display.Core.html#displayBuilder"><span class="hs-identifier hs-var hs-var hs-var hs-var">displayBuilder</span></a></span></span><span> </span><span id="local-6989586621679251915"><span class="annot"><span class="annottext">Battery
+</span><a href="#local-6989586621679251915"><span class="hs-identifier hs-var">bs</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-221"></span><span>    </span><span class="annot"><span class="annottext">[Builder] -&gt; Builder
+forall a. Monoid a =&gt; [a] -&gt; a
+</span><span class="hs-identifier hs-var">mconcat</span></span><span>
+</span><span id="line-222"></span><span>      </span><span class="hs-special">[</span><span> </span><span class="annot"><span class="annottext">Builder
+</span><a href="#local-6989586621679251916"><span class="hs-identifier hs-var">status</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-223"></span><span>        </span><span class="annot"><span class="annottext">Builder
+</span><span class="hs-string">&quot;: &quot;</span></span><span class="hs-special">,</span><span>
+</span><span id="line-224"></span><span>        </span><span class="annot"><span class="annottext">Builder
+</span><a href="#local-6989586621679251917"><span class="hs-identifier hs-var">percentage</span></a></span><span>
+</span><span id="line-225"></span><span>      </span><span class="hs-special">]</span><span>
+</span><span id="line-226"></span><span>    </span><span class="hs-keyword">where</span><span>
+</span><span id="line-227"></span><span>      </span><span id="local-6989586621679251916"><span class="annot"><span class="annottext">status :: Builder
+</span><a href="#local-6989586621679251916"><span class="hs-identifier hs-var hs-var">status</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">BatteryStatus -&gt; Builder
+forall a. Display a =&gt; a -&gt; Builder
+</span><a href="file:///nix/store/c4qqygkxvzxxbb0xarjssql1bzgr0nq9-text-display-0.0.5.1-doc/share/doc/text-display-0.0.5.1/html/src/Data.Text.Display.Core.html#displayBuilder"><span class="hs-identifier hs-var">displayBuilder</span></a></span><span> </span><span class="annot"><span class="annottext">(BatteryStatus -&gt; Builder) -&gt; BatteryStatus -&gt; Builder
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">Battery
+</span><a href="#local-6989586621679251915"><span class="hs-identifier hs-var">bs</span></a></span><span> </span><span class="annot"><span class="annottext">Battery
+-&gt; Optic' A_Lens NoIx Battery BatteryStatus -&gt; BatteryStatus
+forall k s (is :: IxList) a.
+Is k A_Getter =&gt;
+s -&gt; Optic' k is s a -&gt; a
+</span><a href="file:///nix/store/yiyd960cyn3zg283hgrwi5m0ilr7bcpb-optics-core-0.4.1.1-doc/share/doc/optics-core-0.4.1.1/html/src/Optics.Operators.html#%5E."><span class="hs-operator hs-var">^.</span></a></span><span> </span><span class="annot"><span class="annottext">Optic' A_Lens NoIx Battery BatteryStatus
+</span><span class="">#status</span></span><span>
+</span><span id="line-228"></span><span>      </span><span id="local-6989586621679251917"><span class="annot"><span class="annottext">percentage :: Builder
+</span><a href="#local-6989586621679251917"><span class="hs-identifier hs-var hs-var">percentage</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Percentage -&gt; Builder
+forall a. Display a =&gt; a -&gt; Builder
+</span><a href="file:///nix/store/c4qqygkxvzxxbb0xarjssql1bzgr0nq9-text-display-0.0.5.1-doc/share/doc/text-display-0.0.5.1/html/src/Data.Text.Display.Core.html#displayBuilder"><span class="hs-identifier hs-var">displayBuilder</span></a></span><span> </span><span class="annot"><span class="annottext">(Percentage -&gt; Builder) -&gt; Percentage -&gt; Builder
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">Battery
+</span><a href="#local-6989586621679251915"><span class="hs-identifier hs-var">bs</span></a></span><span> </span><span class="annot"><span class="annottext">Battery -&gt; Optic' A_Lens NoIx Battery Percentage -&gt; Percentage
+forall k s (is :: IxList) a.
+Is k A_Getter =&gt;
+s -&gt; Optic' k is s a -&gt; a
+</span><a href="file:///nix/store/yiyd960cyn3zg283hgrwi5m0ilr7bcpb-optics-core-0.4.1.1-doc/share/doc/optics-core-0.4.1.1/html/src/Optics.Operators.html#%5E."><span class="hs-operator hs-var">^.</span></a></span><span> </span><span class="annot"><span class="annottext">Optic' A_Lens NoIx Battery Percentage
+</span><span class="">#percentage</span></span><span>
+</span><span id="line-229"></span></pre></body></html>

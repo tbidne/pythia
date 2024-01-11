@@ -1,0 +1,555 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><link rel="stylesheet" type="text/css" href="style.css" /><script type="text/javascript" src="highlight.js"></script></head><body><pre><span class="hs-pragma">{-# LANGUAGE UndecidableInstances #-}</span><span>
+</span><span id="line-2"></span><span>
+</span><span id="line-3"></span><span class="hs-comment">-- | This module provides the functionality for running shell</span><span>
+</span><span id="line-4"></span><span class="hs-comment">-- commands and parsing the result.</span><span>
+</span><span id="line-5"></span><span class="hs-comment">--</span><span>
+</span><span id="line-6"></span><span class="hs-comment">-- @since 0.1</span><span>
+</span><span id="line-7"></span><span class="hs-keyword">module</span><span> </span><span class="hs-identifier">Pythia.Internal.ShellApp</span><span>
+</span><span id="line-8"></span><span>  </span><span class="hs-special">(</span><span> </span><span class="annot"><span class="hs-comment">-- * SimpleShell</span></span><span>
+</span><span id="line-9"></span><span>    </span><span class="annot"><a href="Pythia.Internal.ShellApp.html#SimpleShell"><span class="hs-identifier">SimpleShell</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span class="hs-special">,</span><span>
+</span><span id="line-10"></span><span>    </span><span class="annot"><a href="Pythia.Internal.ShellApp.html#runSimple"><span class="hs-identifier">runSimple</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-11"></span><span>
+</span><span id="line-12"></span><span>    </span><span class="annot"><span class="hs-comment">-- * Trying Multiple IO</span></span><span>
+</span><span id="line-13"></span><span>    </span><span class="annot"><a href="Pythia.Internal.ShellApp.html#tryIOs"><span class="hs-identifier">tryIOs</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-14"></span><span>
+</span><span id="line-15"></span><span>    </span><span class="annot"><span class="hs-comment">-- * Utilities</span></span><span>
+</span><span id="line-16"></span><span>    </span><span class="annot"><a href="Pythia.Internal.ShellApp.html#runCommand"><span class="hs-identifier">runCommand</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-17"></span><span>  </span><span class="hs-special">)</span><span>
+</span><span id="line-18"></span><span class="hs-keyword">where</span><span>
+</span><span id="line-19"></span><span>
+</span><span id="line-20"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Data.ByteString.Lazy</span></span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="hs-keyword">as</span><span> </span><span class="annot"><span class="hs-identifier">LBS</span></span><span>
+</span><span id="line-21"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Data.Text</span></span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="hs-keyword">as</span><span> </span><span class="annot"><span class="hs-identifier">T</span></span><span>
+</span><span id="line-22"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="file:///home/tommy/.local/state/cabal/store/ghc-9.6.3/effects-typed-process-0.1-9aab0d7122e26327440e15170619fab59878f147f1d369dd46812a2ece43b118/share/doc/html/src/Effects.Process.Typed.html"><span class="hs-identifier">Effects.Process.Typed</span></a></span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="hs-keyword">as</span><span> </span><span class="annot"><span class="hs-identifier">TP</span></span><span>
+</span><span id="line-23"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">GHC.IO.Exception</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">ExitCode</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">ExitFailure</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier">ExitSuccess</span></span><span class="hs-special">)</span><span class="hs-special">)</span><span>
+</span><span id="line-24"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Pythia.Control.Exception.html"><span class="hs-identifier">Pythia.Control.Exception</span></a></span><span>
+</span><span id="line-25"></span><span>  </span><span class="hs-special">(</span><span> </span><span class="annot"><a href="Pythia.Control.Exception.html#CommandException"><span class="hs-identifier">CommandException</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Pythia.Control.Exception.html#MkCommandException"><span class="hs-identifier">MkCommandException</span></a></span><span class="hs-special">)</span><span class="hs-special">,</span><span>
+</span><span id="line-26"></span><span>    </span><span class="annot"><a href="Pythia.Control.Exception.html#NoActionsRunException"><span class="hs-identifier">NoActionsRunException</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Pythia.Control.Exception.html#MkNoActionsRunException"><span class="hs-identifier">MkNoActionsRunException</span></a></span><span class="hs-special">)</span><span class="hs-special">,</span><span>
+</span><span id="line-27"></span><span>    </span><span class="annot"><a href="Pythia.Control.Exception.html#NotSupportedException"><span class="hs-identifier">NotSupportedException</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Pythia.Control.Exception.html#MkNotSupportedException"><span class="hs-identifier">MkNotSupportedException</span></a></span><span class="hs-special">)</span><span class="hs-special">,</span><span>
+</span><span id="line-28"></span><span>    </span><span class="annot"><a href="Pythia.Control.Exception.html#SomeExceptions"><span class="hs-identifier">SomeExceptions</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Pythia.Control.Exception.html#MkSomeExceptions"><span class="hs-identifier">MkSomeExceptions</span></a></span><span class="hs-special">)</span><span class="hs-special">,</span><span>
+</span><span id="line-29"></span><span>  </span><span class="hs-special">)</span><span>
+</span><span id="line-30"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Pythia.Data.Command.html"><span class="hs-identifier">Pythia.Data.Command</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Pythia.Data.Command.html#Command"><span class="hs-identifier">Command</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-31"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Pythia.Prelude.html"><span class="hs-identifier">Pythia.Prelude</span></a></span><span>
+</span><span id="line-32"></span><span>
+</span><span id="line-33"></span><span class="hs-comment">-- | Type for running a &quot;simple&quot; shell command given by 'Command'.</span><span>
+</span><span id="line-34"></span><span class="hs-comment">-- The 'parser' is used to parse the result.</span><span>
+</span><span id="line-35"></span><span class="hs-comment">--</span><span>
+</span><span id="line-36"></span><span class="hs-comment">-- @since 0.1</span><span>
+</span><span id="line-37"></span><span class="hs-keyword">type</span><span> </span><span class="annot"><a href="Pythia.Internal.ShellApp.html#SimpleShell"><span class="hs-identifier hs-type">SimpleShell</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Type</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Type</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Type</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Type</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Type</span></span><span>
+</span><span id="line-38"></span><span class="hs-keyword">data</span><span> </span><span id="SimpleShell"><span class="annot"><a href="Pythia.Internal.ShellApp.html#SimpleShell"><span class="hs-identifier hs-var">SimpleShell</span></a></span></span><span> </span><span id="local-6989586621679251098"><span class="annot"><a href="#local-6989586621679251098"><span class="hs-identifier hs-type">m</span></a></span></span><span> </span><span id="local-6989586621679251099"><span class="annot"><a href="#local-6989586621679251099"><span class="hs-identifier hs-type">err</span></a></span></span><span> </span><span id="local-6989586621679251100"><span class="annot"><a href="#local-6989586621679251100"><span class="hs-identifier hs-type">result</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span id="MkSimpleShell"><span class="annot"><a href="Pythia.Internal.ShellApp.html#MkSimpleShell"><span class="hs-identifier hs-var">MkSimpleShell</span></a></span></span><span>
+</span><span id="line-39"></span><span>  </span><span class="hs-special">{</span><span> </span><span class="hs-comment">-- | The shell command to run.</span><span>
+</span><span id="line-40"></span><span>    </span><span class="hs-comment">--</span><span>
+</span><span id="line-41"></span><span>    </span><span class="hs-comment">-- @since 0.1</span><span>
+</span><span id="line-42"></span><span>    </span><span id="%24sel%3Acommand%3AMkSimpleShell"><span class="annot"><span class="annottext">forall (m :: Type -&gt; Type) err result.
+SimpleShell m err result -&gt; Command
+</span><a href="Pythia.Internal.ShellApp.html#%24sel%3Acommand%3AMkSimpleShell"><span class="hs-identifier hs-var hs-var">command</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Pythia.Data.Command.html#Command"><span class="hs-identifier hs-type">Command</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-43"></span><span>    </span><span class="hs-comment">-- | Determines if the shell command is supported on this system.</span><span>
+</span><span id="line-44"></span><span>    </span><span class="hs-comment">--</span><span>
+</span><span id="line-45"></span><span>    </span><span class="hs-comment">-- @since 0.1</span><span>
+</span><span id="line-46"></span><span>    </span><span id="%24sel%3AisSupported%3AMkSimpleShell"><span class="annot"><span class="annottext">forall (m :: Type -&gt; Type) err result.
+SimpleShell m err result -&gt; m Bool
+</span><a href="Pythia.Internal.ShellApp.html#%24sel%3AisSupported%3AMkSimpleShell"><span class="hs-identifier hs-var hs-var">isSupported</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="#local-6989586621679251098"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Bool</span></span><span class="hs-special">,</span><span>
+</span><span id="line-47"></span><span>    </span><span class="hs-comment">-- | The parser for the result of running the command.</span><span>
+</span><span id="line-48"></span><span>    </span><span class="hs-comment">--</span><span>
+</span><span id="line-49"></span><span>    </span><span class="hs-comment">-- @since 0.1</span><span>
+</span><span id="line-50"></span><span>    </span><span id="parser"><span class="annot"><span class="annottext">forall (m :: Type -&gt; Type) err result.
+SimpleShell m err result -&gt; Text -&gt; Either err result
+</span><a href="Pythia.Internal.ShellApp.html#parser"><span class="hs-identifier hs-var hs-var">parser</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Text</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Either</span></span><span> </span><span class="annot"><a href="#local-6989586621679251099"><span class="hs-identifier hs-type">err</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679251100"><span class="hs-identifier hs-type">result</span></a></span><span>
+</span><span id="line-51"></span><span>  </span><span class="hs-special">}</span><span>
+</span><span id="line-52"></span><span>
+</span><span id="line-53"></span><span class="annot"><span class="hs-comment">-- | @since 0.1</span></span><span>
+</span><span id="line-54"></span><span class="hs-keyword">instance</span><span>
+</span><span id="line-55"></span><span>  </span><span id="local-6989586621679251129"><span id="local-6989586621679251130"><span id="local-6989586621679251131"><span id="local-6989586621679251132"><span id="local-6989586621679251133"><span id="local-6989586621679251134"><span class="hs-special">(</span><span class="annot"><a href="#local-6989586621679251129"><span class="hs-identifier hs-type">k</span></a></span><span> </span><span class="annot"><span class="hs-operator hs-type">~</span></span><span> </span><span class="annot"><a href="file:///nix/store/yiyd960cyn3zg283hgrwi5m0ilr7bcpb-optics-core-0.4.1.1-doc/share/doc/optics-core-0.4.1.1/html/src/Optics.Internal.Optic.Types.html#A_Lens"><span class="hs-identifier hs-type">A_Lens</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="#local-6989586621679251130"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="annot"><span class="hs-operator hs-type">~</span></span><span> </span><span class="annot"><a href="Pythia.Data.Command.html#Command"><span class="hs-identifier hs-type">Command</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="#local-6989586621679251131"><span class="hs-identifier hs-type">b</span></a></span><span> </span><span class="annot"><span class="hs-operator hs-type">~</span></span><span> </span><span class="annot"><a href="Pythia.Data.Command.html#Command"><span class="hs-identifier hs-type">Command</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span>
+</span><span id="line-56"></span><span>  </span><span class="annot"><a href="file:///nix/store/yiyd960cyn3zg283hgrwi5m0ilr7bcpb-optics-core-0.4.1.1-doc/share/doc/optics-core-0.4.1.1/html/src/Optics.Label.html#LabelOptic"><span class="hs-identifier hs-type">LabelOptic</span></a></span><span> </span><span class="annot"><span class="hs-string">&quot;command&quot;</span></span><span> </span><span class="annot"><a href="#local-6989586621679251129"><span class="hs-identifier hs-type">k</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Pythia.Internal.ShellApp.html#SimpleShell"><span class="hs-identifier hs-type">SimpleShell</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679251132"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679251133"><span class="hs-identifier hs-type">err</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679251134"><span class="hs-identifier hs-type">result</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Pythia.Internal.ShellApp.html#SimpleShell"><span class="hs-identifier hs-type">SimpleShell</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679251132"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679251133"><span class="hs-identifier hs-type">err</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679251134"><span class="hs-identifier hs-type">result</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><a href="#local-6989586621679251130"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679251131"><span class="hs-identifier hs-type">b</span></a></span></span></span></span></span></span></span><span>
+</span><span id="line-57"></span><span>  </span><span class="hs-keyword">where</span><span>
+</span><span id="line-58"></span><span>  </span><span id="local-6989586621679251292"><span class="annot"><span class="annottext">labelOptic :: Optic
+  k NoIx (SimpleShell m err result) (SimpleShell m err result) a b
+</span><a href="#local-6989586621679251292"><span class="hs-identifier hs-var hs-var hs-var hs-var">labelOptic</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">LensVL (SimpleShell m err result) (SimpleShell m err result) a b
+-&gt; Lens (SimpleShell m err result) (SimpleShell m err result) a b
+forall s t a b. LensVL s t a b -&gt; Lens s t a b
+</span><a href="file:///nix/store/yiyd960cyn3zg283hgrwi5m0ilr7bcpb-optics-core-0.4.1.1-doc/share/doc/optics-core-0.4.1.1/html/src/Optics.Lens.html#lensVL"><span class="hs-identifier hs-var">lensVL</span></a></span><span> </span><span class="annot"><span class="annottext">(LensVL (SimpleShell m err result) (SimpleShell m err result) a b
+ -&gt; Lens (SimpleShell m err result) (SimpleShell m err result) a b)
+-&gt; LensVL (SimpleShell m err result) (SimpleShell m err result) a b
+-&gt; Lens (SimpleShell m err result) (SimpleShell m err result) a b
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="hs-glyph">\</span><span id="local-6989586621679251297"><span class="annot"><span class="annottext">a -&gt; f b
+</span><a href="#local-6989586621679251297"><span class="hs-identifier hs-var">f</span></a></span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Pythia.Internal.ShellApp.html#MkSimpleShell"><span class="hs-identifier hs-type">MkSimpleShell</span></a></span><span> </span><span id="local-6989586621679251298"><span class="annot"><span class="annottext">Command
+</span><a href="#local-6989586621679251298"><span class="hs-identifier hs-var">_command</span></a></span></span><span> </span><span id="local-6989586621679251299"><span class="annot"><span class="annottext">m Bool
+</span><a href="#local-6989586621679251299"><span class="hs-identifier hs-var">_isSupported</span></a></span></span><span> </span><span id="local-6989586621679251300"><span class="annot"><span class="annottext">Text -&gt; Either err result
+</span><a href="#local-6989586621679251300"><span class="hs-identifier hs-var">_parser</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span>
+</span><span id="line-59"></span><span>    </span><span class="annot"><span class="annottext">(Command -&gt; SimpleShell m err result)
+-&gt; f Command -&gt; f (SimpleShell m err result)
+forall a b. (a -&gt; b) -&gt; f a -&gt; f b
+forall (f :: Type -&gt; Type) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span><span class="hs-identifier hs-var">fmap</span></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">\</span><span id="local-6989586621679251301"><span class="annot"><span class="annottext">Command
+</span><a href="#local-6989586621679251301"><span class="hs-identifier hs-var">command'</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Command
+-&gt; m Bool
+-&gt; (Text -&gt; Either err result)
+-&gt; SimpleShell m err result
+forall (m :: Type -&gt; Type) err result.
+Command
+-&gt; m Bool
+-&gt; (Text -&gt; Either err result)
+-&gt; SimpleShell m err result
+</span><a href="Pythia.Internal.ShellApp.html#MkSimpleShell"><span class="hs-identifier hs-var">MkSimpleShell</span></a></span><span> </span><span class="annot"><span class="annottext">Command
+</span><a href="#local-6989586621679251301"><span class="hs-identifier hs-var">command'</span></a></span><span> </span><span class="annot"><span class="annottext">m Bool
+</span><a href="#local-6989586621679251299"><span class="hs-identifier hs-var">_isSupported</span></a></span><span> </span><span class="annot"><span class="annottext">Text -&gt; Either err result
+</span><a href="#local-6989586621679251300"><span class="hs-identifier hs-var">_parser</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">a -&gt; f b
+</span><a href="#local-6989586621679251297"><span class="hs-identifier hs-var">f</span></a></span><span> </span><span class="annot"><span class="annottext">a
+Command
+</span><a href="#local-6989586621679251298"><span class="hs-identifier hs-var">_command</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-60"></span><span>  </span><span class="hs-pragma">{-# INLINE</span><span> </span><span class="annot"><a href="file:///nix/store/yiyd960cyn3zg283hgrwi5m0ilr7bcpb-optics-core-0.4.1.1-doc/share/doc/optics-core-0.4.1.1/html/src/Optics.Label.html#labelOptic"><span class="hs-pragma hs-type">labelOptic</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-61"></span><span>
+</span><span id="line-62"></span><span class="annot"><span class="hs-comment">-- | @since 0.1</span></span><span>
+</span><span id="line-63"></span><span class="hs-keyword">instance</span><span>
+</span><span id="line-64"></span><span>  </span><span id="local-6989586621679251157"><span id="local-6989586621679251158"><span id="local-6989586621679251159"><span id="local-6989586621679251160"><span id="local-6989586621679251161"><span id="local-6989586621679251162"><span class="hs-special">(</span><span class="annot"><a href="#local-6989586621679251157"><span class="hs-identifier hs-type">k</span></a></span><span> </span><span class="annot"><span class="hs-operator hs-type">~</span></span><span> </span><span class="annot"><a href="file:///nix/store/yiyd960cyn3zg283hgrwi5m0ilr7bcpb-optics-core-0.4.1.1-doc/share/doc/optics-core-0.4.1.1/html/src/Optics.Internal.Optic.Types.html#A_Lens"><span class="hs-identifier hs-type">A_Lens</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="#local-6989586621679251158"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="annot"><span class="hs-operator hs-type">~</span></span><span> </span><span class="annot"><a href="#local-6989586621679251159"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Bool</span></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="#local-6989586621679251160"><span class="hs-identifier hs-type">b</span></a></span><span> </span><span class="annot"><span class="hs-operator hs-type">~</span></span><span> </span><span class="annot"><a href="#local-6989586621679251159"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Bool</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span>
+</span><span id="line-65"></span><span>  </span><span class="annot"><a href="file:///nix/store/yiyd960cyn3zg283hgrwi5m0ilr7bcpb-optics-core-0.4.1.1-doc/share/doc/optics-core-0.4.1.1/html/src/Optics.Label.html#LabelOptic"><span class="hs-identifier hs-type">LabelOptic</span></a></span><span> </span><span class="annot"><span class="hs-string">&quot;isSupported&quot;</span></span><span> </span><span class="annot"><a href="#local-6989586621679251157"><span class="hs-identifier hs-type">k</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Pythia.Internal.ShellApp.html#SimpleShell"><span class="hs-identifier hs-type">SimpleShell</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679251159"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679251161"><span class="hs-identifier hs-type">err</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679251162"><span class="hs-identifier hs-type">result</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Pythia.Internal.ShellApp.html#SimpleShell"><span class="hs-identifier hs-type">SimpleShell</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679251159"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679251161"><span class="hs-identifier hs-type">err</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679251162"><span class="hs-identifier hs-type">result</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><a href="#local-6989586621679251158"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679251160"><span class="hs-identifier hs-type">b</span></a></span></span></span></span></span></span></span><span>
+</span><span id="line-66"></span><span>  </span><span class="hs-keyword">where</span><span>
+</span><span id="line-67"></span><span>  </span><span id="local-6989586621679251310"><span class="annot"><span class="annottext">labelOptic :: Optic
+  k NoIx (SimpleShell m err result) (SimpleShell m err result) a b
+</span><a href="file:///nix/store/yiyd960cyn3zg283hgrwi5m0ilr7bcpb-optics-core-0.4.1.1-doc/share/doc/optics-core-0.4.1.1/html/src/Optics.Label.html#labelOptic"><span class="hs-identifier hs-var hs-var hs-var hs-var">labelOptic</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">LensVL (SimpleShell m err result) (SimpleShell m err result) a b
+-&gt; Lens (SimpleShell m err result) (SimpleShell m err result) a b
+forall s t a b. LensVL s t a b -&gt; Lens s t a b
+</span><a href="file:///nix/store/yiyd960cyn3zg283hgrwi5m0ilr7bcpb-optics-core-0.4.1.1-doc/share/doc/optics-core-0.4.1.1/html/src/Optics.Lens.html#lensVL"><span class="hs-identifier hs-var">lensVL</span></a></span><span> </span><span class="annot"><span class="annottext">(LensVL (SimpleShell m err result) (SimpleShell m err result) a b
+ -&gt; Lens (SimpleShell m err result) (SimpleShell m err result) a b)
+-&gt; LensVL (SimpleShell m err result) (SimpleShell m err result) a b
+-&gt; Lens (SimpleShell m err result) (SimpleShell m err result) a b
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="hs-glyph">\</span><span id="local-6989586621679251313"><span class="annot"><span class="annottext">a -&gt; f b
+</span><a href="#local-6989586621679251313"><span class="hs-identifier hs-var">f</span></a></span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Pythia.Internal.ShellApp.html#MkSimpleShell"><span class="hs-identifier hs-type">MkSimpleShell</span></a></span><span> </span><span id="local-6989586621679251314"><span class="annot"><span class="annottext">Command
+</span><a href="#local-6989586621679251314"><span class="hs-identifier hs-var">_command</span></a></span></span><span> </span><span id="local-6989586621679251315"><span class="annot"><span class="annottext">m Bool
+</span><a href="#local-6989586621679251315"><span class="hs-identifier hs-var">_isSupported</span></a></span></span><span> </span><span id="local-6989586621679251316"><span class="annot"><span class="annottext">Text -&gt; Either err result
+</span><a href="#local-6989586621679251316"><span class="hs-identifier hs-var">_parser</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span>
+</span><span id="line-68"></span><span>    </span><span class="annot"><span class="annottext">(m Bool -&gt; SimpleShell m err result)
+-&gt; f (m Bool) -&gt; f (SimpleShell m err result)
+forall a b. (a -&gt; b) -&gt; f a -&gt; f b
+forall (f :: Type -&gt; Type) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span><span class="hs-identifier hs-var">fmap</span></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">\</span><span id="local-6989586621679251317"><span class="annot"><span class="annottext">m Bool
+</span><a href="#local-6989586621679251317"><span class="hs-identifier hs-var">isSupported'</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Command
+-&gt; m Bool
+-&gt; (Text -&gt; Either err result)
+-&gt; SimpleShell m err result
+forall (m :: Type -&gt; Type) err result.
+Command
+-&gt; m Bool
+-&gt; (Text -&gt; Either err result)
+-&gt; SimpleShell m err result
+</span><a href="Pythia.Internal.ShellApp.html#MkSimpleShell"><span class="hs-identifier hs-var">MkSimpleShell</span></a></span><span> </span><span class="annot"><span class="annottext">Command
+</span><a href="#local-6989586621679251314"><span class="hs-identifier hs-var">_command</span></a></span><span> </span><span class="annot"><span class="annottext">m Bool
+</span><a href="#local-6989586621679251317"><span class="hs-identifier hs-var">isSupported'</span></a></span><span> </span><span class="annot"><span class="annottext">Text -&gt; Either err result
+</span><a href="#local-6989586621679251316"><span class="hs-identifier hs-var">_parser</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">a -&gt; f b
+</span><a href="#local-6989586621679251313"><span class="hs-identifier hs-var">f</span></a></span><span> </span><span class="annot"><span class="annottext">a
+m Bool
+</span><a href="#local-6989586621679251315"><span class="hs-identifier hs-var">_isSupported</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-69"></span><span>  </span><span class="hs-pragma">{-# INLINE</span><span> </span><span class="annot"><a href="file:///nix/store/yiyd960cyn3zg283hgrwi5m0ilr7bcpb-optics-core-0.4.1.1-doc/share/doc/optics-core-0.4.1.1/html/src/Optics.Label.html#labelOptic"><span class="hs-pragma hs-type">labelOptic</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-70"></span><span>
+</span><span id="line-71"></span><span class="annot"><span class="hs-comment">-- | @since 0.1</span></span><span>
+</span><span id="line-72"></span><span class="hs-keyword">instance</span><span>
+</span><span id="line-73"></span><span>  </span><span id="local-6989586621679251170"><span id="local-6989586621679251171"><span id="local-6989586621679251172"><span id="local-6989586621679251173"><span id="local-6989586621679251174"><span id="local-6989586621679251175"><span class="hs-special">(</span><span class="annot"><a href="#local-6989586621679251170"><span class="hs-identifier hs-type">k</span></a></span><span> </span><span class="annot"><span class="hs-operator hs-type">~</span></span><span> </span><span class="annot"><a href="file:///nix/store/yiyd960cyn3zg283hgrwi5m0ilr7bcpb-optics-core-0.4.1.1-doc/share/doc/optics-core-0.4.1.1/html/src/Optics.Internal.Optic.Types.html#A_Lens"><span class="hs-identifier hs-type">A_Lens</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="#local-6989586621679251171"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="annot"><span class="hs-operator hs-type">~</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Text</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Either</span></span><span> </span><span class="annot"><a href="#local-6989586621679251172"><span class="hs-identifier hs-type">err</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679251173"><span class="hs-identifier hs-type">result</span></a></span><span class="hs-special">)</span><span class="hs-special">,</span><span> </span><span class="annot"><a href="#local-6989586621679251174"><span class="hs-identifier hs-type">b</span></a></span><span> </span><span class="annot"><span class="hs-operator hs-type">~</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Text</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Either</span></span><span> </span><span class="annot"><a href="#local-6989586621679251172"><span class="hs-identifier hs-type">err</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679251173"><span class="hs-identifier hs-type">result</span></a></span><span class="hs-special">)</span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span>
+</span><span id="line-74"></span><span>  </span><span class="annot"><a href="file:///nix/store/yiyd960cyn3zg283hgrwi5m0ilr7bcpb-optics-core-0.4.1.1-doc/share/doc/optics-core-0.4.1.1/html/src/Optics.Label.html#LabelOptic"><span class="hs-identifier hs-type">LabelOptic</span></a></span><span> </span><span class="annot"><span class="hs-string">&quot;parser&quot;</span></span><span> </span><span class="annot"><a href="#local-6989586621679251170"><span class="hs-identifier hs-type">k</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Pythia.Internal.ShellApp.html#SimpleShell"><span class="hs-identifier hs-type">SimpleShell</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679251175"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679251172"><span class="hs-identifier hs-type">err</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679251173"><span class="hs-identifier hs-type">result</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Pythia.Internal.ShellApp.html#SimpleShell"><span class="hs-identifier hs-type">SimpleShell</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679251175"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679251172"><span class="hs-identifier hs-type">err</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679251173"><span class="hs-identifier hs-type">result</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><a href="#local-6989586621679251171"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679251174"><span class="hs-identifier hs-type">b</span></a></span></span></span></span></span></span></span><span>
+</span><span id="line-75"></span><span>  </span><span class="hs-keyword">where</span><span>
+</span><span id="line-76"></span><span>  </span><span id="local-6989586621679251326"><span class="annot"><span class="annottext">labelOptic :: Optic
+  k NoIx (SimpleShell m err result) (SimpleShell m err result) a b
+</span><a href="file:///nix/store/yiyd960cyn3zg283hgrwi5m0ilr7bcpb-optics-core-0.4.1.1-doc/share/doc/optics-core-0.4.1.1/html/src/Optics.Label.html#labelOptic"><span class="hs-identifier hs-var hs-var hs-var hs-var">labelOptic</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">LensVL (SimpleShell m err result) (SimpleShell m err result) a b
+-&gt; Lens (SimpleShell m err result) (SimpleShell m err result) a b
+forall s t a b. LensVL s t a b -&gt; Lens s t a b
+</span><a href="file:///nix/store/yiyd960cyn3zg283hgrwi5m0ilr7bcpb-optics-core-0.4.1.1-doc/share/doc/optics-core-0.4.1.1/html/src/Optics.Lens.html#lensVL"><span class="hs-identifier hs-var">lensVL</span></a></span><span> </span><span class="annot"><span class="annottext">(LensVL (SimpleShell m err result) (SimpleShell m err result) a b
+ -&gt; Lens (SimpleShell m err result) (SimpleShell m err result) a b)
+-&gt; LensVL (SimpleShell m err result) (SimpleShell m err result) a b
+-&gt; Lens (SimpleShell m err result) (SimpleShell m err result) a b
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="hs-glyph">\</span><span id="local-6989586621679251329"><span class="annot"><span class="annottext">a -&gt; f b
+</span><a href="#local-6989586621679251329"><span class="hs-identifier hs-var">f</span></a></span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Pythia.Internal.ShellApp.html#MkSimpleShell"><span class="hs-identifier hs-type">MkSimpleShell</span></a></span><span> </span><span id="local-6989586621679251330"><span class="annot"><span class="annottext">Command
+</span><a href="#local-6989586621679251330"><span class="hs-identifier hs-var">_command</span></a></span></span><span> </span><span id="local-6989586621679251331"><span class="annot"><span class="annottext">m Bool
+</span><a href="#local-6989586621679251331"><span class="hs-identifier hs-var">_isSupported</span></a></span></span><span> </span><span id="local-6989586621679251332"><span class="annot"><span class="annottext">Text -&gt; Either err result
+</span><a href="#local-6989586621679251332"><span class="hs-identifier hs-var">_parser</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span>
+</span><span id="line-77"></span><span>    </span><span class="annot"><span class="annottext">((Text -&gt; Either err result) -&gt; SimpleShell m err result)
+-&gt; f (Text -&gt; Either err result) -&gt; f (SimpleShell m err result)
+forall a b. (a -&gt; b) -&gt; f a -&gt; f b
+forall (f :: Type -&gt; Type) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span><span class="hs-identifier hs-var">fmap</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Command
+-&gt; m Bool
+-&gt; (Text -&gt; Either err result)
+-&gt; SimpleShell m err result
+forall (m :: Type -&gt; Type) err result.
+Command
+-&gt; m Bool
+-&gt; (Text -&gt; Either err result)
+-&gt; SimpleShell m err result
+</span><a href="Pythia.Internal.ShellApp.html#MkSimpleShell"><span class="hs-identifier hs-var">MkSimpleShell</span></a></span><span> </span><span class="annot"><span class="annottext">Command
+</span><a href="#local-6989586621679251330"><span class="hs-identifier hs-var">_command</span></a></span><span> </span><span class="annot"><span class="annottext">m Bool
+</span><a href="#local-6989586621679251331"><span class="hs-identifier hs-var">_isSupported</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">a -&gt; f b
+</span><a href="#local-6989586621679251329"><span class="hs-identifier hs-var">f</span></a></span><span> </span><span class="annot"><span class="annottext">a
+Text -&gt; Either err result
+</span><a href="#local-6989586621679251332"><span class="hs-identifier hs-var">_parser</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-78"></span><span>  </span><span class="hs-pragma">{-# INLINE</span><span> </span><span class="annot"><a href="file:///nix/store/yiyd960cyn3zg283hgrwi5m0ilr7bcpb-optics-core-0.4.1.1-doc/share/doc/optics-core-0.4.1.1/html/src/Optics.Label.html#labelOptic"><span class="hs-pragma hs-type">labelOptic</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-79"></span><span>
+</span><span id="line-80"></span><span class="hs-comment">-- | Runs a simple shell.</span><span>
+</span><span id="line-81"></span><span class="hs-comment">--</span><span>
+</span><span id="line-82"></span><span class="hs-comment">-- __Throws:__</span><span>
+</span><span id="line-83"></span><span class="hs-comment">--</span><span>
+</span><span id="line-84"></span><span class="hs-comment">-- * @'NotSupportedException'@: if the command is not supported on this system.</span><span>
+</span><span id="line-85"></span><span class="hs-comment">-- * @err@: if running the command throws 'SomeException' or a parse</span><span>
+</span><span id="line-86"></span><span class="hs-comment">-- error is encountered.</span><span>
+</span><span id="line-87"></span><span class="hs-comment">--</span><span>
+</span><span id="line-88"></span><span class="hs-comment">-- @since 0.1</span><span>
+</span><span id="line-89"></span><span class="annot"><a href="Pythia.Internal.ShellApp.html#runSimple"><span class="hs-identifier hs-type">runSimple</span></a></span><span> </span><span class="hs-glyph">::</span><span>
+</span><span id="line-90"></span><span>  </span><span class="hs-keyword">forall</span><span> </span><span id="local-6989586621679251179"><span class="annot"><a href="#local-6989586621679251179"><span class="hs-identifier hs-type">m</span></a></span></span><span> </span><span id="local-6989586621679251177"><span class="annot"><a href="#local-6989586621679251177"><span class="hs-identifier hs-type">err</span></a></span></span><span> </span><span id="local-6989586621679251182"><span class="annot"><a href="#local-6989586621679251182"><span class="hs-identifier hs-type">result</span></a></span></span><span class="hs-operator">.</span><span>
+</span><span id="line-91"></span><span>  </span><span class="hs-special">(</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Exception</span></span><span> </span><span class="annot"><a href="#local-6989586621679251177"><span class="hs-identifier hs-type">err</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-92"></span><span>    </span><span class="annot"><span class="hs-identifier hs-type">MonadThrow</span></span><span> </span><span class="annot"><a href="#local-6989586621679251179"><span class="hs-identifier hs-type">m</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-93"></span><span>    </span><span class="annot"><a href="file:///home/tommy/.local/state/cabal/store/ghc-9.6.3/effects-typed-process-0.1-9aab0d7122e26327440e15170619fab59878f147f1d369dd46812a2ece43b118/share/doc/html/src/Effects.Process.Typed.html#MonadTypedProcess"><span class="hs-identifier hs-type">MonadTypedProcess</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679251179"><span class="hs-identifier hs-type">m</span></a></span><span>
+</span><span id="line-94"></span><span>  </span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span>
+</span><span id="line-95"></span><span>  </span><span class="annot"><a href="Pythia.Internal.ShellApp.html#SimpleShell"><span class="hs-identifier hs-type">SimpleShell</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679251179"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679251177"><span class="hs-identifier hs-type">err</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679251182"><span class="hs-identifier hs-type">result</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span>
+</span><span id="line-96"></span><span>  </span><span class="annot"><a href="#local-6989586621679251179"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679251182"><span class="hs-identifier hs-type">result</span></a></span><span>
+</span><span id="line-97"></span><span id="runSimple"><span class="annot"><span class="annottext">runSimple :: forall (m :: Type -&gt; Type) err result.
+(Exception err, MonadThrow m, MonadTypedProcess m) =&gt;
+SimpleShell m err result -&gt; m result
+</span><a href="Pythia.Internal.ShellApp.html#runSimple"><span class="hs-identifier hs-var hs-var">runSimple</span></a></span></span><span> </span><span id="local-6989586621679251381"><span class="annot"><span class="annottext">SimpleShell m err result
+</span><a href="#local-6989586621679251381"><span class="hs-identifier hs-var">simple</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">do</span><span>
+</span><span id="line-98"></span><span>  </span><span id="local-6989586621679251382"><span class="annot"><span class="annottext">Bool
+</span><a href="#local-6989586621679251382"><span class="hs-identifier hs-var">supported</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">SimpleShell m err result
+</span><a href="#local-6989586621679251381"><span class="hs-identifier hs-var">simple</span></a></span><span> </span><span class="annot"><span class="annottext">SimpleShell m err result
+-&gt; Optic' A_Lens NoIx (SimpleShell m err result) (m Bool) -&gt; m Bool
+forall k s (is :: IxList) a.
+Is k A_Getter =&gt;
+s -&gt; Optic' k is s a -&gt; a
+</span><a href="file:///nix/store/yiyd960cyn3zg283hgrwi5m0ilr7bcpb-optics-core-0.4.1.1-doc/share/doc/optics-core-0.4.1.1/html/src/Optics.Operators.html#%5E."><span class="hs-operator hs-var">^.</span></a></span><span> </span><span class="annot"><span class="annottext">Optic' A_Lens NoIx (SimpleShell m err result) (m Bool)
+</span><span class="">#isSupported</span></span><span>
+</span><span id="line-99"></span><span>  </span><span class="hs-keyword">if</span><span> </span><span class="annot"><span class="annottext">Bool
+</span><a href="#local-6989586621679251382"><span class="hs-identifier hs-var">supported</span></a></span><span>
+</span><span id="line-100"></span><span>    </span><span class="hs-keyword">then</span><span> </span><span class="annot"><span class="annottext">Command -&gt; m Text
+forall (m :: Type -&gt; Type).
+(MonadThrow m, MonadTypedProcess m) =&gt;
+Command -&gt; m Text
+</span><a href="Pythia.Internal.ShellApp.html#runCommand"><span class="hs-identifier hs-var">runCommand</span></a></span><span> </span><span class="annot"><span class="annottext">Command
+</span><a href="#local-6989586621679251384"><span class="hs-identifier hs-var">command</span></a></span><span> </span><span class="annot"><span class="annottext">m Text -&gt; (Text -&gt; m result) -&gt; m result
+forall a b. m a -&gt; (a -&gt; m b) -&gt; m b
+forall (m :: Type -&gt; Type) a b. Monad m =&gt; m a -&gt; (a -&gt; m b) -&gt; m b
+</span><span class="hs-operator hs-var">&gt;&gt;=</span></span><span> </span><span class="annot"><span class="annottext">Text -&gt; m result
+</span><a href="#local-6989586621679251385"><span class="hs-identifier hs-var">parseAndThrow</span></a></span><span>
+</span><span id="line-101"></span><span>    </span><span class="hs-keyword">else</span><span> </span><span class="annot"><span class="annottext">NotSupportedException -&gt; m result
+forall (m :: Type -&gt; Type) e a.
+(Exception e, HasCallStack, MonadThrow m) =&gt;
+e -&gt; m a
+</span><a href="file:///home/tommy/.local/state/cabal/store/ghc-9.6.3/effects-exceptions-0.1-a63cba32a5fecf1f4a27935779245ad27eac11931e2e7d7243bce7482f6bd7d9/share/doc/html/src/Effects.Exception.html#throwCS"><span class="hs-identifier hs-var">throwCS</span></a></span><span> </span><span class="annot"><span class="annottext">(NotSupportedException -&gt; m result)
+-&gt; NotSupportedException -&gt; m result
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">Text -&gt; NotSupportedException
+</span><a href="Pythia.Control.Exception.html#MkNotSupportedException"><span class="hs-identifier hs-var">MkNotSupportedException</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Command
+</span><a href="#local-6989586621679251384"><span class="hs-identifier hs-var">command</span></a></span><span> </span><span class="annot"><span class="annottext">Command -&gt; Optic' An_Iso NoIx Command Text -&gt; Text
+forall k s (is :: IxList) a.
+Is k A_Getter =&gt;
+s -&gt; Optic' k is s a -&gt; a
+</span><a href="file:///nix/store/yiyd960cyn3zg283hgrwi5m0ilr7bcpb-optics-core-0.4.1.1-doc/share/doc/optics-core-0.4.1.1/html/src/Optics.Operators.html#%5E."><span class="hs-operator hs-var">^.</span></a></span><span> </span><span class="annot"><span class="annottext">Optic' An_Iso NoIx Command Text
+</span><span class="">#unCommand</span></span><span class="hs-special">)</span><span>
+</span><span id="line-102"></span><span>  </span><span class="hs-keyword">where</span><span>
+</span><span id="line-103"></span><span>    </span><span id="local-6989586621679251384"><span class="annot"><span class="annottext">command :: Command
+</span><a href="#local-6989586621679251384"><span class="hs-identifier hs-var hs-var">command</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">SimpleShell m err result
+</span><a href="#local-6989586621679251381"><span class="hs-identifier hs-var">simple</span></a></span><span> </span><span class="annot"><span class="annottext">SimpleShell m err result
+-&gt; Optic' A_Lens NoIx (SimpleShell m err result) Command -&gt; Command
+forall k s (is :: IxList) a.
+Is k A_Getter =&gt;
+s -&gt; Optic' k is s a -&gt; a
+</span><a href="file:///nix/store/yiyd960cyn3zg283hgrwi5m0ilr7bcpb-optics-core-0.4.1.1-doc/share/doc/optics-core-0.4.1.1/html/src/Optics.Operators.html#%5E."><span class="hs-operator hs-var">^.</span></a></span><span> </span><span class="annot"><span class="annottext">Optic' A_Lens NoIx (SimpleShell m err result) Command
+</span><span class="">#command</span></span><span>
+</span><span id="line-104"></span><span>
+</span><span id="line-105"></span><span>    </span><span class="annot"><a href="#local-6989586621679251385"><span class="hs-identifier hs-type">parseAndThrow</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Text</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679251179"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679251182"><span class="hs-identifier hs-type">result</span></a></span><span>
+</span><span id="line-106"></span><span>    </span><span id="local-6989586621679251385"><span class="annot"><span class="annottext">parseAndThrow :: Text -&gt; m result
+</span><a href="#local-6989586621679251385"><span class="hs-identifier hs-var hs-var">parseAndThrow</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Either err result -&gt; m result
+forall (m :: Type -&gt; Type) e a.
+(Exception e, MonadThrow m) =&gt;
+Either e a -&gt; m a
+</span><a href="Pythia.Prelude.html#throwLeft"><span class="hs-identifier hs-var">throwLeft</span></a></span><span> </span><span class="annot"><span class="annottext">(Either err result -&gt; m result)
+-&gt; (Text -&gt; Either err result) -&gt; Text -&gt; m result
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">SimpleShell m err result
+</span><a href="#local-6989586621679251381"><span class="hs-identifier hs-var">simple</span></a></span><span> </span><span class="annot"><span class="annottext">SimpleShell m err result
+-&gt; Optic'
+     A_Lens NoIx (SimpleShell m err result) (Text -&gt; Either err result)
+-&gt; Text
+-&gt; Either err result
+forall k s (is :: IxList) a.
+Is k A_Getter =&gt;
+s -&gt; Optic' k is s a -&gt; a
+</span><a href="file:///nix/store/yiyd960cyn3zg283hgrwi5m0ilr7bcpb-optics-core-0.4.1.1-doc/share/doc/optics-core-0.4.1.1/html/src/Optics.Operators.html#%5E."><span class="hs-operator hs-var">^.</span></a></span><span> </span><span class="annot"><span class="annottext">Optic'
+  A_Lens NoIx (SimpleShell m err result) (Text -&gt; Either err result)
+</span><span class="">#parser</span></span><span class="hs-special">)</span><span>
+</span><span id="line-107"></span><span class="hs-pragma">{-# INLINEABLE</span><span> </span><span class="annot"><a href="Pythia.Internal.ShellApp.html#runSimple"><span class="hs-pragma hs-type">runSimple</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-108"></span><span>
+</span><span id="line-109"></span><span class="hs-comment">-- | Runs a 'Command' and returns either the text result or error encountered.</span><span>
+</span><span id="line-110"></span><span class="hs-comment">-- This is used by 'SimpleShell' to run its command before the result is</span><span>
+</span><span id="line-111"></span><span class="hs-comment">-- parsed. This function is exported for convenience.</span><span>
+</span><span id="line-112"></span><span class="hs-comment">--</span><span>
+</span><span id="line-113"></span><span class="hs-comment">-- __Throws:__</span><span>
+</span><span id="line-114"></span><span class="hs-comment">--</span><span>
+</span><span id="line-115"></span><span class="hs-comment">-- * 'CommandException': if running the command returns 'ExitFailure' exit</span><span>
+</span><span id="line-116"></span><span class="hs-comment">-- code.</span><span>
+</span><span id="line-117"></span><span class="hs-comment">--</span><span>
+</span><span id="line-118"></span><span class="hs-comment">-- @since 0.1</span><span>
+</span><span id="line-119"></span><span id="local-6989586621679251209"><span class="annot"><a href="Pythia.Internal.ShellApp.html#runCommand"><span class="hs-identifier hs-type">runCommand</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">MonadThrow</span></span><span> </span><span class="annot"><a href="#local-6989586621679251209"><span class="hs-identifier hs-type">m</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="file:///home/tommy/.local/state/cabal/store/ghc-9.6.3/effects-typed-process-0.1-9aab0d7122e26327440e15170619fab59878f147f1d369dd46812a2ece43b118/share/doc/html/src/Effects.Process.Typed.html#MonadTypedProcess"><span class="hs-identifier hs-type">MonadTypedProcess</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679251209"><span class="hs-identifier hs-type">m</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><a href="Pythia.Data.Command.html#Command"><span class="hs-identifier hs-type">Command</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679251209"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Text</span></span></span><span>
+</span><span id="line-120"></span><span id="runCommand"><span class="annot"><span class="annottext">runCommand :: forall (m :: Type -&gt; Type).
+(MonadThrow m, MonadTypedProcess m) =&gt;
+Command -&gt; m Text
+</span><a href="Pythia.Internal.ShellApp.html#runCommand"><span class="hs-identifier hs-var hs-var">runCommand</span></a></span></span><span> </span><span id="local-6989586621679251413"><span class="annot"><span class="annottext">Command
+</span><a href="#local-6989586621679251413"><span class="hs-identifier hs-var">command</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">do</span><span>
+</span><span id="line-121"></span><span>  </span><span class="hs-special">(</span><span id="local-6989586621679251414"><span class="annot"><span class="annottext">ExitCode
+</span><a href="#local-6989586621679251414"><span class="hs-identifier hs-var">exitCode</span></a></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679251415"><span class="annot"><span class="annottext">ByteString
+</span><a href="#local-6989586621679251415"><span class="hs-identifier hs-var">out</span></a></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679251416"><span class="annot"><span class="annottext">ByteString
+</span><a href="#local-6989586621679251416"><span class="hs-identifier hs-var">err</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">ProcessConfig () () () -&gt; m (ExitCode, ByteString, ByteString)
+forall stdin stdoutIgnored stderrIgnored.
+HasCallStack =&gt;
+ProcessConfig stdin stdoutIgnored stderrIgnored
+-&gt; m (ExitCode, ByteString, ByteString)
+forall (m :: Type -&gt; Type) stdin stdoutIgnored stderrIgnored.
+(MonadTypedProcess m, HasCallStack) =&gt;
+ProcessConfig stdin stdoutIgnored stderrIgnored
+-&gt; m (ExitCode, ByteString, ByteString)
+</span><a href="file:///home/tommy/.local/state/cabal/store/ghc-9.6.3/effects-typed-process-0.1-9aab0d7122e26327440e15170619fab59878f147f1d369dd46812a2ece43b118/share/doc/html/src/Effects.Process.Typed.html#readProcess"><span class="hs-identifier hs-var">TP.readProcess</span></a></span><span> </span><span class="annot"><span class="annottext">(ProcessConfig () () () -&gt; m (ExitCode, ByteString, ByteString))
+-&gt; ProcessConfig () () () -&gt; m (ExitCode, ByteString, ByteString)
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; ProcessConfig () () ()
+</span><a href="file:///nix/store/gp53w8f4wjcp5xgbbq3y8qp61w1wmzsr-typed-process-0.2.11.1-doc/share/doc/typed-process-0.2.11.1/html/src/System.Process.Typed.Internal.html#shell"><span class="hs-identifier hs-var">TP.shell</span></a></span><span> </span><span class="annot"><span class="annottext">(String -&gt; ProcessConfig () () ())
+-&gt; String -&gt; ProcessConfig () () ()
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">Text -&gt; String
+</span><span class="hs-identifier hs-var">T.unpack</span></span><span> </span><span class="annot"><span class="annottext">Text
+</span><a href="#local-6989586621679251420"><span class="hs-identifier hs-var">cmdStr</span></a></span><span>
+</span><span id="line-122"></span><span>  </span><span class="hs-keyword">case</span><span> </span><span class="annot"><span class="annottext">ExitCode
+</span><a href="#local-6989586621679251414"><span class="hs-identifier hs-var">exitCode</span></a></span><span> </span><span class="hs-keyword">of</span><span>
+</span><span id="line-123"></span><span>    </span><span class="annot"><span class="annottext">ExitCode
+</span><span class="hs-identifier hs-var">ExitSuccess</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Text -&gt; m Text
+forall a. a -&gt; m a
+forall (f :: Type -&gt; Type) a. Applicative f =&gt; a -&gt; f a
+</span><span class="hs-identifier hs-var">pure</span></span><span> </span><span class="annot"><span class="annottext">(Text -&gt; m Text) -&gt; Text -&gt; m Text
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">ByteString -&gt; Text
+</span><a href="file:///home/tommy/.local/state/cabal/store/ghc-9.6.3/effects-fs-0.1-5841411f1c8e259b2cf3c993222ef4c2c136f1e315fe1b2c92965a1bea2a7701/share/doc/html/src/Effects.FileSystem.Utils.html#decodeUtf8Lenient"><span class="hs-identifier hs-var">decodeUtf8Lenient</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">ByteString -&gt; ByteString
+</span><span class="hs-identifier hs-var">LBS.toStrict</span></span><span> </span><span class="annot"><span class="annottext">ByteString
+</span><a href="#local-6989586621679251415"><span class="hs-identifier hs-var">out</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-124"></span><span>    </span><span class="annot"><span class="hs-identifier hs-type">ExitFailure</span></span><span> </span><span class="annot"><span class="annottext">Int
+</span><span class="hs-identifier">_</span></span><span> </span><span class="hs-glyph">-&gt;</span><span>
+</span><span id="line-125"></span><span>      </span><span class="annot"><span class="annottext">CommandException -&gt; m Text
+forall (m :: Type -&gt; Type) e a.
+(Exception e, HasCallStack, MonadThrow m) =&gt;
+e -&gt; m a
+</span><a href="file:///home/tommy/.local/state/cabal/store/ghc-9.6.3/effects-exceptions-0.1-a63cba32a5fecf1f4a27935779245ad27eac11931e2e7d7243bce7482f6bd7d9/share/doc/html/src/Effects.Exception.html#throwCS"><span class="hs-identifier hs-var">throwCS</span></a></span><span> </span><span class="annot"><span class="annottext">(CommandException -&gt; m Text) -&gt; CommandException -&gt; m Text
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">Command -&gt; Text -&gt; CommandException
+</span><a href="Pythia.Control.Exception.html#MkCommandException"><span class="hs-identifier hs-var">MkCommandException</span></a></span><span> </span><span class="annot"><span class="annottext">Command
+</span><a href="#local-6989586621679251413"><span class="hs-identifier hs-var">command</span></a></span><span> </span><span class="annot"><span class="annottext">(Text -&gt; CommandException) -&gt; Text -&gt; CommandException
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; Text
+</span><span class="hs-identifier hs-var">T.pack</span></span><span> </span><span class="annot"><span class="annottext">(String -&gt; Text) -&gt; String -&gt; Text
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">ByteString -&gt; String
+forall a. Show a =&gt; a -&gt; String
+</span><span class="hs-identifier hs-var">show</span></span><span> </span><span class="annot"><span class="annottext">(ByteString -&gt; String) -&gt; ByteString -&gt; String
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">ByteString -&gt; ByteString
+</span><span class="hs-identifier hs-var">LBS.toStrict</span></span><span> </span><span class="annot"><span class="annottext">ByteString
+</span><a href="#local-6989586621679251416"><span class="hs-identifier hs-var">err</span></a></span><span>
+</span><span id="line-126"></span><span>  </span><span class="hs-keyword">where</span><span>
+</span><span id="line-127"></span><span>    </span><span id="local-6989586621679251420"><span class="annot"><span class="annottext">cmdStr :: Text
+</span><a href="#local-6989586621679251420"><span class="hs-identifier hs-var hs-var">cmdStr</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Command
+</span><a href="#local-6989586621679251413"><span class="hs-identifier hs-var">command</span></a></span><span> </span><span class="annot"><span class="annottext">Command -&gt; Optic' An_Iso NoIx Command Text -&gt; Text
+forall k s (is :: IxList) a.
+Is k A_Getter =&gt;
+s -&gt; Optic' k is s a -&gt; a
+</span><a href="file:///nix/store/yiyd960cyn3zg283hgrwi5m0ilr7bcpb-optics-core-0.4.1.1-doc/share/doc/optics-core-0.4.1.1/html/src/Optics.Operators.html#%5E."><span class="hs-operator hs-var">^.</span></a></span><span> </span><span class="annot"><span class="annottext">Optic' An_Iso NoIx Command Text
+</span><span class="">#unCommand</span></span><span>
+</span><span id="line-128"></span><span class="hs-pragma">{-# INLINEABLE</span><span> </span><span class="annot"><a href="Pythia.Internal.ShellApp.html#runCommand"><span class="hs-pragma hs-type">runCommand</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-129"></span><span>
+</span><span id="line-130"></span><span class="hs-comment">-- Three possible results when running actions:</span><span>
+</span><span id="line-131"></span><span class="hs-comment">--</span><span>
+</span><span id="line-132"></span><span class="hs-comment">-- 1. None are given/supported, so none are run.</span><span>
+</span><span id="line-133"></span><span class="hs-comment">-- 2. We encounter at least one error.</span><span>
+</span><span id="line-134"></span><span class="hs-comment">-- 3. We have a success.</span><span>
+</span><span id="line-135"></span><span class="hs-comment">--</span><span>
+</span><span id="line-136"></span><span class="hs-comment">-- The semigroup takes the first success, as that gives us the semantics we</span><span>
+</span><span id="line-137"></span><span class="hs-comment">-- want.</span><span>
+</span><span id="line-138"></span><span class="hs-keyword">type</span><span> </span><span class="annot"><a href="Pythia.Internal.ShellApp.html#ActionsResult"><span class="hs-identifier hs-type">ActionsResult</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Type</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Type</span></span><span>
+</span><span id="line-139"></span><span class="hs-keyword">data</span><span> </span><span id="ActionsResult"><span class="annot"><a href="Pythia.Internal.ShellApp.html#ActionsResult"><span class="hs-identifier hs-var">ActionsResult</span></a></span></span><span> </span><span id="local-6989586621679251243"><span class="annot"><a href="#local-6989586621679251243"><span class="hs-identifier hs-type">r</span></a></span></span><span>
+</span><span id="line-140"></span><span>  </span><span class="hs-glyph">=</span><span> </span><span id="NoRuns"><span class="annot"><a href="Pythia.Internal.ShellApp.html#NoRuns"><span class="hs-identifier hs-var">NoRuns</span></a></span></span><span>
+</span><span id="line-141"></span><span>  </span><span class="hs-glyph">|</span><span> </span><span id="Errs"><span class="annot"><a href="Pythia.Internal.ShellApp.html#Errs"><span class="hs-identifier hs-var">Errs</span></a></span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">NonEmpty</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">SomeException</span></span><span class="hs-special">)</span><span>
+</span><span id="line-142"></span><span>  </span><span class="hs-glyph">|</span><span> </span><span id="Success"><span class="annot"><a href="Pythia.Internal.ShellApp.html#Success"><span class="hs-identifier hs-var">Success</span></a></span></span><span> </span><span class="annot"><a href="#local-6989586621679251243"><span class="hs-identifier hs-type">r</span></a></span><span>
+</span><span id="line-143"></span><span>
+</span><span id="line-144"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621679251240"><span id="local-6989586621679251430"><span id="local-6989586621679251434"><span class="annot"><span class="hs-identifier hs-type">Semigroup</span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Pythia.Internal.ShellApp.html#ActionsResult"><span class="hs-identifier hs-type">ActionsResult</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679251240"><span class="hs-identifier hs-type">r</span></a></span><span class="hs-special">)</span></span></span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-145"></span><span>  </span><span class="annot"><a href="Pythia.Internal.ShellApp.html#Success"><span class="hs-identifier hs-type">Success</span></a></span><span> </span><span id="local-6989586621679251441"><span class="annot"><span class="annottext">r
+</span><a href="#local-6989586621679251441"><span class="hs-identifier hs-var">x</span></a></span></span><span> </span><span id="local-6989586621679251442"><span class="annot"><span class="annottext">&lt;&gt; :: ActionsResult r -&gt; ActionsResult r -&gt; ActionsResult r
+</span><span class="hs-operator hs-var hs-var hs-var hs-var">&lt;&gt;</span></span></span><span> </span><span class="annot"><span class="annottext">ActionsResult r
+</span><span class="hs-identifier">_</span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">r -&gt; ActionsResult r
+forall r. r -&gt; ActionsResult r
+</span><a href="Pythia.Internal.ShellApp.html#Success"><span class="hs-identifier hs-var">Success</span></a></span><span> </span><span class="annot"><span class="annottext">r
+</span><a href="#local-6989586621679251441"><span class="hs-identifier hs-var">x</span></a></span><span>
+</span><span id="line-146"></span><span>  </span><span class="annot"><span class="annottext">ActionsResult r
+</span><span class="hs-identifier">_</span></span><span> </span><span class="annot"><span class="hs-operator hs-var">&lt;&gt;</span></span><span> </span><span class="annot"><a href="Pythia.Internal.ShellApp.html#Success"><span class="hs-identifier hs-type">Success</span></a></span><span> </span><span id="local-6989586621679251443"><span class="annot"><span class="annottext">r
+</span><a href="#local-6989586621679251443"><span class="hs-identifier hs-var">x</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">r -&gt; ActionsResult r
+forall r. r -&gt; ActionsResult r
+</span><a href="Pythia.Internal.ShellApp.html#Success"><span class="hs-identifier hs-var">Success</span></a></span><span> </span><span class="annot"><span class="annottext">r
+</span><a href="#local-6989586621679251443"><span class="hs-identifier hs-var">x</span></a></span><span>
+</span><span id="line-147"></span><span>  </span><span class="annot"><span class="annottext">ActionsResult r
+</span><a href="Pythia.Internal.ShellApp.html#NoRuns"><span class="hs-identifier hs-var">NoRuns</span></a></span><span> </span><span class="annot"><span class="hs-operator hs-var">&lt;&gt;</span></span><span> </span><span id="local-6989586621679251444"><span class="annot"><span class="annottext">ActionsResult r
+</span><a href="#local-6989586621679251444"><span class="hs-identifier hs-var">r</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">ActionsResult r
+</span><a href="#local-6989586621679251444"><span class="hs-identifier hs-var">r</span></a></span><span>
+</span><span id="line-148"></span><span>  </span><span id="local-6989586621679251445"><span class="annot"><span class="annottext">ActionsResult r
+</span><a href="#local-6989586621679251445"><span class="hs-identifier hs-var">l</span></a></span></span><span> </span><span class="annot"><span class="hs-operator hs-var">&lt;&gt;</span></span><span> </span><span class="annot"><span class="annottext">ActionsResult r
+</span><a href="Pythia.Internal.ShellApp.html#NoRuns"><span class="hs-identifier hs-var">NoRuns</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">ActionsResult r
+</span><a href="#local-6989586621679251445"><span class="hs-identifier hs-var">l</span></a></span><span>
+</span><span id="line-149"></span><span>  </span><span class="annot"><a href="Pythia.Internal.ShellApp.html#Errs"><span class="hs-identifier hs-type">Errs</span></a></span><span> </span><span id="local-6989586621679251446"><span class="annot"><span class="annottext">NonEmpty SomeException
+</span><a href="#local-6989586621679251446"><span class="hs-identifier hs-var">x</span></a></span></span><span> </span><span class="annot"><span class="hs-operator hs-var">&lt;&gt;</span></span><span> </span><span class="annot"><a href="Pythia.Internal.ShellApp.html#Errs"><span class="hs-identifier hs-type">Errs</span></a></span><span> </span><span id="local-6989586621679251447"><span class="annot"><span class="annottext">NonEmpty SomeException
+</span><a href="#local-6989586621679251447"><span class="hs-identifier hs-var">y</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">NonEmpty SomeException -&gt; ActionsResult r
+forall r. NonEmpty SomeException -&gt; ActionsResult r
+</span><a href="Pythia.Internal.ShellApp.html#Errs"><span class="hs-identifier hs-var">Errs</span></a></span><span> </span><span class="annot"><span class="annottext">(NonEmpty SomeException -&gt; ActionsResult r)
+-&gt; NonEmpty SomeException -&gt; ActionsResult r
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">NonEmpty SomeException
+</span><a href="#local-6989586621679251446"><span class="hs-identifier hs-var">x</span></a></span><span> </span><span class="annot"><span class="annottext">NonEmpty SomeException
+-&gt; NonEmpty SomeException -&gt; NonEmpty SomeException
+forall a. Semigroup a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-operator hs-var">&lt;&gt;</span></span><span> </span><span class="annot"><span class="annottext">NonEmpty SomeException
+</span><a href="#local-6989586621679251447"><span class="hs-identifier hs-var">y</span></a></span><span>
+</span><span id="line-150"></span><span>  </span><span class="hs-pragma">{-# INLINEABLE</span><span> </span><span class="hs-pragma">(</span><span class="hs-pragma">&lt;&gt;</span><span class="hs-pragma">)</span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-151"></span><span>
+</span><span id="line-152"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621679251246"><span id="local-6989586621679251452"><span id="local-6989586621679251456"><span class="annot"><span class="hs-identifier hs-type">Monoid</span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Pythia.Internal.ShellApp.html#ActionsResult"><span class="hs-identifier hs-type">ActionsResult</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679251246"><span class="hs-identifier hs-type">r</span></a></span><span class="hs-special">)</span></span></span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-153"></span><span>  </span><span id="local-6989586621679251459"><span class="annot"><span class="annottext">mempty :: ActionsResult r
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var">mempty</span></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">ActionsResult r
+forall r. ActionsResult r
+</span><a href="Pythia.Internal.ShellApp.html#NoRuns"><span class="hs-identifier hs-var">NoRuns</span></a></span><span>
+</span><span id="line-154"></span><span>  </span><span class="hs-pragma">{-# INLINEABLE</span><span> </span><span class="annot"><span class="hs-pragma hs-type">mempty</span></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-155"></span><span>
+</span><span id="line-156"></span><span class="hs-comment">-- | Generalized 'tryAppActions' to any 'IO'. Has the same semantics</span><span>
+</span><span id="line-157"></span><span class="hs-comment">-- (i.e. returns the first success or throws an exception if none</span><span>
+</span><span id="line-158"></span><span class="hs-comment">-- succeeds) without checking for &quot;support&quot;.</span><span>
+</span><span id="line-159"></span><span class="hs-comment">--</span><span>
+</span><span id="line-160"></span><span class="hs-comment">-- __Throws:__</span><span>
+</span><span id="line-161"></span><span class="hs-comment">--</span><span>
+</span><span id="line-162"></span><span class="hs-comment">-- * 'NoActionsRunException': if no actions are run (i.e. the list is empty).</span><span>
+</span><span id="line-163"></span><span class="hs-comment">--</span><span>
+</span><span id="line-164"></span><span class="hs-comment">-- * 'SomeExceptions': if at least one command is run yet there were no</span><span>
+</span><span id="line-165"></span><span class="hs-comment">--       successes.</span><span>
+</span><span id="line-166"></span><span class="hs-comment">--</span><span>
+</span><span id="line-167"></span><span class="hs-comment">-- @since 0.1</span><span>
+</span><span id="line-168"></span><span id="local-6989586621679251247"><span id="local-6989586621679251249"><span class="annot"><a href="Pythia.Internal.ShellApp.html#tryIOs"><span class="hs-identifier hs-type">tryIOs</span></a></span><span> </span><span class="hs-glyph">::</span><span>
+</span><span id="line-169"></span><span>  </span><span class="hs-special">(</span><span> </span><span class="annot"><span class="hs-identifier hs-type">MonadCatch</span></span><span> </span><span class="annot"><a href="#local-6989586621679251247"><span class="hs-identifier hs-type">m</span></a></span><span>
+</span><span id="line-170"></span><span>  </span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span>
+</span><span id="line-171"></span><span>  </span><span class="hs-special">[</span><span class="annot"><a href="#local-6989586621679251247"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679251249"><span class="hs-identifier hs-type">result</span></a></span><span class="hs-special">]</span><span> </span><span class="hs-glyph">-&gt;</span><span>
+</span><span id="line-172"></span><span>  </span><span class="annot"><a href="#local-6989586621679251247"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679251249"><span class="hs-identifier hs-type">result</span></a></span></span></span><span>
+</span><span id="line-173"></span><span id="tryIOs"><span class="annot"><span class="annottext">tryIOs :: forall (m :: Type -&gt; Type) result.
+MonadCatch m =&gt;
+[m result] -&gt; m result
+</span><a href="Pythia.Internal.ShellApp.html#tryIOs"><span class="hs-identifier hs-var hs-var">tryIOs</span></a></span></span><span> </span><span id="local-6989586621679251482"><span class="annot"><span class="annottext">[m result]
+</span><a href="#local-6989586621679251482"><span class="hs-identifier hs-var">actions</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-174"></span><span>  </span><span class="annot"><span class="annottext">(m result -&gt; m (ActionsResult result) -&gt; m (ActionsResult result))
+-&gt; m (ActionsResult result)
+-&gt; [m result]
+-&gt; m (ActionsResult result)
+forall a b. (a -&gt; b -&gt; b) -&gt; b -&gt; [a] -&gt; b
+forall (t :: Type -&gt; Type) a b.
+Foldable t =&gt;
+(a -&gt; b -&gt; b) -&gt; b -&gt; t a -&gt; b
+</span><span class="hs-identifier hs-var">foldr</span></span><span> </span><span class="annot"><span class="annottext">m result -&gt; m (ActionsResult result) -&gt; m (ActionsResult result)
+forall (m :: Type -&gt; Type) result.
+MonadCatch m =&gt;
+m result -&gt; m (ActionsResult result) -&gt; m (ActionsResult result)
+</span><a href="Pythia.Internal.ShellApp.html#tryIO"><span class="hs-identifier hs-var">tryIO</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">ActionsResult result -&gt; m (ActionsResult result)
+forall a. a -&gt; m a
+forall (f :: Type -&gt; Type) a. Applicative f =&gt; a -&gt; f a
+</span><span class="hs-identifier hs-var">pure</span></span><span> </span><span class="annot"><span class="annottext">ActionsResult result
+forall a. Monoid a =&gt; a
+</span><span class="hs-identifier hs-var">mempty</span></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">[m result]
+</span><a href="#local-6989586621679251482"><span class="hs-identifier hs-var">actions</span></a></span><span> </span><span class="annot"><span class="annottext">m (ActionsResult result)
+-&gt; (ActionsResult result -&gt; m result) -&gt; m result
+forall a b. m a -&gt; (a -&gt; m b) -&gt; m b
+forall (m :: Type -&gt; Type) a b. Monad m =&gt; m a -&gt; (a -&gt; m b) -&gt; m b
+</span><span class="hs-operator hs-var">&gt;&gt;=</span></span><span> </span><span class="hs-glyph">\</span><span class="hs-glyph">case</span><span>
+</span><span id="line-175"></span><span>    </span><span class="annot"><a href="Pythia.Internal.ShellApp.html#Success"><span class="hs-identifier hs-type">Success</span></a></span><span> </span><span id="local-6989586621679251485"><span class="annot"><span class="annottext">result
+</span><a href="#local-6989586621679251485"><span class="hs-identifier hs-var">result</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">result -&gt; m result
+forall a. a -&gt; m a
+forall (f :: Type -&gt; Type) a. Applicative f =&gt; a -&gt; f a
+</span><span class="hs-identifier hs-var">pure</span></span><span> </span><span class="annot"><span class="annottext">result
+</span><a href="#local-6989586621679251485"><span class="hs-identifier hs-var">result</span></a></span><span>
+</span><span id="line-176"></span><span>    </span><span class="annot"><a href="Pythia.Internal.ShellApp.html#Errs"><span class="hs-identifier hs-type">Errs</span></a></span><span> </span><span id="local-6989586621679251486"><span class="annot"><span class="annottext">NonEmpty SomeException
+</span><a href="#local-6989586621679251486"><span class="hs-identifier hs-var">errs</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">SomeExceptions -&gt; m result
+forall (m :: Type -&gt; Type) e a.
+(Exception e, HasCallStack, MonadThrow m) =&gt;
+e -&gt; m a
+</span><a href="file:///home/tommy/.local/state/cabal/store/ghc-9.6.3/effects-exceptions-0.1-a63cba32a5fecf1f4a27935779245ad27eac11931e2e7d7243bce7482f6bd7d9/share/doc/html/src/Effects.Exception.html#throwCS"><span class="hs-identifier hs-var">throwCS</span></a></span><span> </span><span class="annot"><span class="annottext">(SomeExceptions -&gt; m result) -&gt; SomeExceptions -&gt; m result
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">NonEmpty SomeException -&gt; SomeExceptions
+</span><a href="Pythia.Control.Exception.html#MkSomeExceptions"><span class="hs-identifier hs-var">MkSomeExceptions</span></a></span><span> </span><span class="annot"><span class="annottext">NonEmpty SomeException
+</span><a href="#local-6989586621679251486"><span class="hs-identifier hs-var">errs</span></a></span><span>
+</span><span id="line-177"></span><span>    </span><span class="annot"><span class="annottext">ActionsResult result
+</span><a href="Pythia.Internal.ShellApp.html#NoRuns"><span class="hs-identifier hs-var">NoRuns</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">NoActionsRunException -&gt; m result
+forall (m :: Type -&gt; Type) e a.
+(Exception e, HasCallStack, MonadThrow m) =&gt;
+e -&gt; m a
+</span><a href="file:///home/tommy/.local/state/cabal/store/ghc-9.6.3/effects-exceptions-0.1-a63cba32a5fecf1f4a27935779245ad27eac11931e2e7d7243bce7482f6bd7d9/share/doc/html/src/Effects.Exception.html#throwCS"><span class="hs-identifier hs-var">throwCS</span></a></span><span> </span><span class="annot"><span class="annottext">NoActionsRunException
+</span><a href="Pythia.Control.Exception.html#MkNoActionsRunException"><span class="hs-identifier hs-var">MkNoActionsRunException</span></a></span><span>
+</span><span id="line-178"></span><span class="hs-pragma">{-# INLINEABLE</span><span> </span><span class="annot"><a href="Pythia.Internal.ShellApp.html#tryIOs"><span class="hs-pragma hs-type">tryIOs</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-179"></span><span>
+</span><span id="line-180"></span><span id="local-6989586621679251258"><span id="local-6989586621679251259"><span class="annot"><a href="Pythia.Internal.ShellApp.html#tryIO"><span class="hs-identifier hs-type">tryIO</span></a></span><span> </span><span class="hs-glyph">::</span><span>
+</span><span id="line-181"></span><span>  </span><span class="hs-special">(</span><span> </span><span class="annot"><span class="hs-identifier hs-type">MonadCatch</span></span><span> </span><span class="annot"><a href="#local-6989586621679251258"><span class="hs-identifier hs-type">m</span></a></span><span>
+</span><span id="line-182"></span><span>  </span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span>
+</span><span id="line-183"></span><span>  </span><span class="annot"><a href="#local-6989586621679251258"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679251259"><span class="hs-identifier hs-type">result</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span>
+</span><span id="line-184"></span><span>  </span><span class="annot"><a href="#local-6989586621679251258"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Pythia.Internal.ShellApp.html#ActionsResult"><span class="hs-identifier hs-type">ActionsResult</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679251259"><span class="hs-identifier hs-type">result</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span>
+</span><span id="line-185"></span><span>  </span><span class="annot"><a href="#local-6989586621679251258"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Pythia.Internal.ShellApp.html#ActionsResult"><span class="hs-identifier hs-type">ActionsResult</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679251259"><span class="hs-identifier hs-type">result</span></a></span><span class="hs-special">)</span></span></span><span>
+</span><span id="line-186"></span><span id="tryIO"><span class="annot"><span class="annottext">tryIO :: forall (m :: Type -&gt; Type) result.
+MonadCatch m =&gt;
+m result -&gt; m (ActionsResult result) -&gt; m (ActionsResult result)
+</span><a href="Pythia.Internal.ShellApp.html#tryIO"><span class="hs-identifier hs-var hs-var">tryIO</span></a></span></span><span> </span><span id="local-6989586621679251499"><span class="annot"><span class="annottext">m result
+</span><a href="#local-6989586621679251499"><span class="hs-identifier hs-var">action</span></a></span></span><span> </span><span id="local-6989586621679251500"><span class="annot"><span class="annottext">m (ActionsResult result)
+</span><a href="#local-6989586621679251500"><span class="hs-identifier hs-var">acc</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-187"></span><span>  </span><span class="annot"><span class="annottext">m result -&gt; m (Either SomeException result)
+forall (m :: Type -&gt; Type) a.
+(HasCallStack, MonadCatch m) =&gt;
+m a -&gt; m (Either SomeException a)
+</span><a href="file:///home/tommy/.local/state/cabal/store/ghc-9.6.3/effects-exceptions-0.1-a63cba32a5fecf1f4a27935779245ad27eac11931e2e7d7243bce7482f6bd7d9/share/doc/html/src/Effects.Exception.html#tryAny"><span class="hs-identifier hs-var">tryAny</span></a></span><span> </span><span class="annot"><span class="annottext">m result
+</span><a href="#local-6989586621679251499"><span class="hs-identifier hs-var">action</span></a></span><span> </span><span class="annot"><span class="annottext">m (Either SomeException result)
+-&gt; (Either SomeException result -&gt; m (ActionsResult result))
+-&gt; m (ActionsResult result)
+forall a b. m a -&gt; (a -&gt; m b) -&gt; m b
+forall (m :: Type -&gt; Type) a b. Monad m =&gt; m a -&gt; (a -&gt; m b) -&gt; m b
+</span><span class="hs-operator hs-var">&gt;&gt;=</span></span><span> </span><span class="hs-glyph">\</span><span class="hs-glyph">case</span><span>
+</span><span id="line-188"></span><span>    </span><span class="annot"><span class="hs-identifier hs-type">Right</span></span><span> </span><span id="local-6989586621679251502"><span class="annot"><span class="annottext">result
+</span><a href="#local-6989586621679251502"><span class="hs-identifier hs-var">result</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">ActionsResult result -&gt; m (ActionsResult result)
+forall a. a -&gt; m a
+forall (f :: Type -&gt; Type) a. Applicative f =&gt; a -&gt; f a
+</span><span class="hs-identifier hs-var">pure</span></span><span> </span><span class="annot"><span class="annottext">(ActionsResult result -&gt; m (ActionsResult result))
+-&gt; ActionsResult result -&gt; m (ActionsResult result)
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">result -&gt; ActionsResult result
+forall r. r -&gt; ActionsResult r
+</span><a href="Pythia.Internal.ShellApp.html#Success"><span class="hs-identifier hs-var">Success</span></a></span><span> </span><span class="annot"><span class="annottext">result
+</span><a href="#local-6989586621679251502"><span class="hs-identifier hs-var">result</span></a></span><span>
+</span><span id="line-189"></span><span>    </span><span class="annot"><span class="hs-identifier hs-type">Left</span></span><span> </span><span id="local-6989586621679251503"><span class="annot"><span class="annottext">SomeException
+</span><a href="#local-6989586621679251503"><span class="hs-identifier hs-var">ex</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">SomeException -&gt; ActionsResult result -&gt; ActionsResult result
+forall r. SomeException -&gt; ActionsResult r -&gt; ActionsResult r
+</span><a href="Pythia.Internal.ShellApp.html#appendEx"><span class="hs-identifier hs-var">appendEx</span></a></span><span> </span><span class="annot"><span class="annottext">SomeException
+</span><a href="#local-6989586621679251503"><span class="hs-identifier hs-var">ex</span></a></span><span> </span><span class="annot"><span class="annottext">(ActionsResult result -&gt; ActionsResult result)
+-&gt; m (ActionsResult result) -&gt; m (ActionsResult result)
+forall (f :: Type -&gt; Type) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span><span class="hs-operator hs-var">&lt;$&gt;</span></span><span> </span><span class="annot"><span class="annottext">m (ActionsResult result)
+</span><a href="#local-6989586621679251500"><span class="hs-identifier hs-var">acc</span></a></span><span>
+</span><span id="line-190"></span><span class="hs-pragma">{-# INLINEABLE</span><span> </span><span class="annot"><a href="Pythia.Internal.ShellApp.html#tryIO"><span class="hs-pragma hs-type">tryIO</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-191"></span><span>
+</span><span id="line-192"></span><span id="local-6989586621679251264"><span class="annot"><a href="Pythia.Internal.ShellApp.html#appendEx"><span class="hs-identifier hs-type">appendEx</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">SomeException</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Pythia.Internal.ShellApp.html#ActionsResult"><span class="hs-identifier hs-type">ActionsResult</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679251264"><span class="hs-identifier hs-type">r</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Pythia.Internal.ShellApp.html#ActionsResult"><span class="hs-identifier hs-type">ActionsResult</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679251264"><span class="hs-identifier hs-type">r</span></a></span></span><span>
+</span><span id="line-193"></span><span id="appendEx"><span class="annot"><span class="annottext">appendEx :: forall r. SomeException -&gt; ActionsResult r -&gt; ActionsResult r
+</span><a href="Pythia.Internal.ShellApp.html#appendEx"><span class="hs-identifier hs-var hs-var">appendEx</span></a></span></span><span> </span><span id="local-6989586621679251507"><span class="annot"><span class="annottext">SomeException
+</span><a href="#local-6989586621679251507"><span class="hs-identifier hs-var">e</span></a></span></span><span> </span><span id="local-6989586621679251508"><span class="annot"><span class="annottext">ActionsResult r
+</span><a href="#local-6989586621679251508"><span class="hs-identifier hs-var">x</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">ActionsResult r
+</span><a href="#local-6989586621679251509"><span class="hs-identifier hs-var">errs</span></a></span><span> </span><span class="annot"><span class="annottext">ActionsResult r -&gt; ActionsResult r -&gt; ActionsResult r
+forall a. Semigroup a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-operator hs-var">&lt;&gt;</span></span><span> </span><span class="annot"><span class="annottext">ActionsResult r
+</span><a href="#local-6989586621679251508"><span class="hs-identifier hs-var">x</span></a></span><span>
+</span><span id="line-194"></span><span>  </span><span class="hs-keyword">where</span><span>
+</span><span id="line-195"></span><span>    </span><span id="local-6989586621679251509"><span class="annot"><span class="annottext">errs :: ActionsResult r
+</span><a href="#local-6989586621679251509"><span class="hs-identifier hs-var hs-var">errs</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">NonEmpty SomeException -&gt; ActionsResult r
+forall r. NonEmpty SomeException -&gt; ActionsResult r
+</span><a href="Pythia.Internal.ShellApp.html#Errs"><span class="hs-identifier hs-var">Errs</span></a></span><span> </span><span class="annot"><span class="annottext">(NonEmpty SomeException -&gt; ActionsResult r)
+-&gt; NonEmpty SomeException -&gt; ActionsResult r
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">SomeException
+</span><a href="#local-6989586621679251507"><span class="hs-identifier hs-var">e</span></a></span><span> </span><span class="annot"><span class="annottext">SomeException -&gt; [SomeException] -&gt; NonEmpty SomeException
+forall a. a -&gt; [a] -&gt; NonEmpty a
+</span><span class="hs-operator hs-var">:|</span></span><span> </span><span class="hs-special">[</span><span class="hs-special">]</span><span>
+</span><span id="line-196"></span><span class="hs-pragma">{-# INLINEABLE</span><span> </span><span class="annot"><a href="Pythia.Internal.ShellApp.html#appendEx"><span class="hs-pragma hs-type">appendEx</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-197"></span></pre></body></html>

@@ -1,0 +1,134 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><link rel="stylesheet" type="text/css" href="style.css" /><script type="text/javascript" src="highlight.js"></script></head><body><pre><span class="hs-pragma">{-# LANGUAGE UndecidableInstances #-}</span><span>
+</span><span id="line-2"></span><span>
+</span><span id="line-3"></span><span class="hs-comment">-- | This module provides the 'Command' type.</span><span>
+</span><span id="line-4"></span><span class="hs-comment">--</span><span>
+</span><span id="line-5"></span><span class="hs-comment">-- @since 0.1</span><span>
+</span><span id="line-6"></span><span class="hs-keyword">module</span><span> </span><span class="hs-identifier">Pythia.Data.Command</span><span>
+</span><span id="line-7"></span><span>  </span><span class="hs-special">(</span><span> </span><span class="annot"><a href="Pythia.Data.Command.html#Command"><span class="hs-identifier">Command</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span class="hs-special">,</span><span>
+</span><span id="line-8"></span><span>  </span><span class="hs-special">)</span><span>
+</span><span id="line-9"></span><span class="hs-keyword">where</span><span>
+</span><span id="line-10"></span><span>
+</span><span id="line-11"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Pythia.Prelude.html"><span class="hs-identifier">Pythia.Prelude</span></a></span><span>
+</span><span id="line-12"></span><span>
+</span><span id="line-13"></span><span class="hs-comment">-- | Newtype wrapper over a shell command.</span><span>
+</span><span id="line-14"></span><span class="hs-comment">--</span><span>
+</span><span id="line-15"></span><span class="hs-comment">-- @since 0.1</span><span>
+</span><span id="line-16"></span><span class="hs-keyword">type</span><span> </span><span class="annot"><a href="Pythia.Data.Command.html#Command"><span class="hs-identifier hs-type">Command</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Type</span></span><span>
+</span><span id="line-17"></span><span class="hs-keyword">newtype</span><span> </span><span id="Command"><span class="annot"><a href="Pythia.Data.Command.html#Command"><span class="hs-identifier hs-var">Command</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span id="MkCommand"><span class="annot"><a href="Pythia.Data.Command.html#MkCommand"><span class="hs-identifier hs-var">MkCommand</span></a></span></span><span>
+</span><span id="line-18"></span><span>  </span><span class="hs-special">{</span><span> </span><span id="%24sel%3AunCommand%3AMkCommand"><span class="annot"><span class="annottext">Command -&gt; Text
+</span><a href="Pythia.Data.Command.html#%24sel%3AunCommand%3AMkCommand"><span class="hs-identifier hs-var hs-var">unCommand</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Text</span></span><span>
+</span><span id="line-19"></span><span>  </span><span class="hs-special">}</span><span>
+</span><span id="line-20"></span><span>  </span><span class="hs-keyword">deriving</span><span> </span><span class="annot"><span class="hs-keyword">stock</span></span><span>
+</span><span id="line-21"></span><span>    </span><span class="hs-special">(</span><span> </span><span class="annot"><span class="hs-comment">-- | @since 0.1</span></span><span>
+</span><span id="line-22"></span><span>      </span><span id="local-6989586621679250748"><span id="local-6989586621679250752"><span class="annot"><span class="annottext">Command -&gt; Command -&gt; Bool
+(Command -&gt; Command -&gt; Bool)
+-&gt; (Command -&gt; Command -&gt; Bool) -&gt; Eq Command
+forall a. (a -&gt; a -&gt; Bool) -&gt; (a -&gt; a -&gt; Bool) -&gt; Eq a
+$c== :: Command -&gt; Command -&gt; Bool
+== :: Command -&gt; Command -&gt; Bool
+$c/= :: Command -&gt; Command -&gt; Bool
+/= :: Command -&gt; Command -&gt; Bool
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Eq</span></span></span></span><span class="hs-special">,</span><span>
+</span><span id="line-23"></span><span>      </span><span class="annot"><span class="hs-comment">-- | @since 0.1</span></span><span>
+</span><span id="line-24"></span><span>      </span><span id="local-6989586621679250757"><span id="local-6989586621679250759"><span class="annot"><span class="annottext">(forall x. Command -&gt; Rep Command x)
+-&gt; (forall x. Rep Command x -&gt; Command) -&gt; Generic Command
+forall x. Rep Command x -&gt; Command
+forall x. Command -&gt; Rep Command x
+forall a.
+(forall x. a -&gt; Rep a x) -&gt; (forall x. Rep a x -&gt; a) -&gt; Generic a
+$cfrom :: forall x. Command -&gt; Rep Command x
+from :: forall x. Command -&gt; Rep Command x
+$cto :: forall x. Rep Command x -&gt; Command
+to :: forall x. Rep Command x -&gt; Command
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Generic</span></span></span></span><span class="hs-special">,</span><span>
+</span><span id="line-25"></span><span>      </span><span class="annot"><span class="hs-comment">-- | @since 0.1</span></span><span>
+</span><span id="line-26"></span><span>      </span><span id="local-6989586621679250765"><span id="local-6989586621679250769"><span id="local-6989586621679250772"><span id="local-6989586621679250776"><span id="local-6989586621679250779"><span id="local-6989586621679250782"><span id="local-6989586621679250785"><span class="annot"><span class="annottext">Eq Command
+Eq Command =&gt;
+(Command -&gt; Command -&gt; Ordering)
+-&gt; (Command -&gt; Command -&gt; Bool)
+-&gt; (Command -&gt; Command -&gt; Bool)
+-&gt; (Command -&gt; Command -&gt; Bool)
+-&gt; (Command -&gt; Command -&gt; Bool)
+-&gt; (Command -&gt; Command -&gt; Command)
+-&gt; (Command -&gt; Command -&gt; Command)
+-&gt; Ord Command
+Command -&gt; Command -&gt; Bool
+Command -&gt; Command -&gt; Ordering
+Command -&gt; Command -&gt; Command
+forall a.
+Eq a =&gt;
+(a -&gt; a -&gt; Ordering)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; a)
+-&gt; (a -&gt; a -&gt; a)
+-&gt; Ord a
+$ccompare :: Command -&gt; Command -&gt; Ordering
+compare :: Command -&gt; Command -&gt; Ordering
+$c&lt; :: Command -&gt; Command -&gt; Bool
+&lt; :: Command -&gt; Command -&gt; Bool
+$c&lt;= :: Command -&gt; Command -&gt; Bool
+&lt;= :: Command -&gt; Command -&gt; Bool
+$c&gt; :: Command -&gt; Command -&gt; Bool
+&gt; :: Command -&gt; Command -&gt; Bool
+$c&gt;= :: Command -&gt; Command -&gt; Bool
+&gt;= :: Command -&gt; Command -&gt; Bool
+$cmax :: Command -&gt; Command -&gt; Command
+max :: Command -&gt; Command -&gt; Command
+$cmin :: Command -&gt; Command -&gt; Command
+min :: Command -&gt; Command -&gt; Command
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Ord</span></span></span></span></span></span></span></span></span><span class="hs-special">,</span><span>
+</span><span id="line-27"></span><span>      </span><span class="annot"><span class="hs-comment">-- | @since 0.1</span></span><span>
+</span><span id="line-28"></span><span>      </span><span id="local-6989586621679250789"><span id="local-6989586621679250795"><span id="local-6989586621679250799"><span class="annot"><span class="annottext">Int -&gt; Command -&gt; ShowS
+[Command] -&gt; ShowS
+Command -&gt; String
+(Int -&gt; Command -&gt; ShowS)
+-&gt; (Command -&gt; String) -&gt; ([Command] -&gt; ShowS) -&gt; Show Command
+forall a.
+(Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; String) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+$cshowsPrec :: Int -&gt; Command -&gt; ShowS
+showsPrec :: Int -&gt; Command -&gt; ShowS
+$cshow :: Command -&gt; String
+show :: Command -&gt; String
+$cshowList :: [Command] -&gt; ShowS
+showList :: [Command] -&gt; ShowS
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Show</span></span></span></span></span><span>
+</span><span id="line-29"></span><span>    </span><span class="hs-special">)</span><span>
+</span><span id="line-30"></span><span>  </span><span class="hs-keyword">deriving</span><span>
+</span><span id="line-31"></span><span>    </span><span class="hs-special">(</span><span> </span><span class="annot"><span class="hs-comment">-- | @since 0.1</span></span><span>
+</span><span id="line-32"></span><span>      </span><span id="local-6989586621679250803"><span class="annot"><span class="annottext">String -&gt; Command
+(String -&gt; Command) -&gt; IsString Command
+forall a. (String -&gt; a) -&gt; IsString a
+$cfromString :: String -&gt; Command
+fromString :: String -&gt; Command
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var">IsString</span></span></span><span>
+</span><span id="line-33"></span><span>    </span><span class="hs-special">)</span><span>
+</span><span id="line-34"></span><span>    </span><span class="hs-keyword">via</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Text</span></span><span>
+</span><span id="line-35"></span><span>  </span><span class="hs-keyword">deriving</span><span> </span><span class="annot"><span class="hs-keyword">anyclass</span></span><span>
+</span><span id="line-36"></span><span>    </span><span class="hs-special">(</span><span> </span><span class="annot"><span class="hs-comment">-- | @since 0.1</span></span><span>
+</span><span id="line-37"></span><span>      </span><span id="local-6989586621679250810"><span class="annot"><span class="annottext">Command -&gt; ()
+(Command -&gt; ()) -&gt; NFData Command
+forall a. (a -&gt; ()) -&gt; NFData a
+$crnf :: Command -&gt; ()
+rnf :: Command -&gt; ()
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var">NFData</span></span></span><span>
+</span><span id="line-38"></span><span>    </span><span class="hs-special">)</span><span>
+</span><span id="line-39"></span><span>
+</span><span id="line-40"></span><span class="annot"><span class="hs-comment">-- | @since 0.1</span></span><span>
+</span><span id="line-41"></span><span class="hs-keyword">instance</span><span>
+</span><span id="line-42"></span><span>  </span><span id="local-6989586621679250737"><span id="local-6989586621679250738"><span id="local-6989586621679250739"><span class="hs-special">(</span><span class="annot"><a href="#local-6989586621679250737"><span class="hs-identifier hs-type">k</span></a></span><span> </span><span class="annot"><span class="hs-operator hs-type">~</span></span><span> </span><span class="annot"><a href="file:///nix/store/yiyd960cyn3zg283hgrwi5m0ilr7bcpb-optics-core-0.4.1.1-doc/share/doc/optics-core-0.4.1.1/html/src/Optics.Internal.Optic.Types.html#An_Iso"><span class="hs-identifier hs-type">An_Iso</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="#local-6989586621679250738"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="annot"><span class="hs-operator hs-type">~</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Text</span></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="#local-6989586621679250739"><span class="hs-identifier hs-type">b</span></a></span><span> </span><span class="annot"><span class="hs-operator hs-type">~</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Text</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span>
+</span><span id="line-43"></span><span>  </span><span class="annot"><a href="file:///nix/store/yiyd960cyn3zg283hgrwi5m0ilr7bcpb-optics-core-0.4.1.1-doc/share/doc/optics-core-0.4.1.1/html/src/Optics.Label.html#LabelOptic"><span class="hs-identifier hs-type">LabelOptic</span></a></span><span> </span><span class="annot"><span class="hs-string">&quot;unCommand&quot;</span></span><span> </span><span class="annot"><a href="#local-6989586621679250737"><span class="hs-identifier hs-type">k</span></a></span><span> </span><span class="annot"><a href="Pythia.Data.Command.html#Command"><span class="hs-identifier hs-type">Command</span></a></span><span> </span><span class="annot"><a href="Pythia.Data.Command.html#Command"><span class="hs-identifier hs-type">Command</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679250738"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679250739"><span class="hs-identifier hs-type">b</span></a></span></span></span></span><span>
+</span><span id="line-44"></span><span>  </span><span class="hs-keyword">where</span><span>
+</span><span id="line-45"></span><span>  </span><span id="local-6989586621679250833"><span class="annot"><span class="annottext">labelOptic :: Optic k NoIx Command Command a b
+</span><a href="#local-6989586621679250833"><span class="hs-identifier hs-var hs-var hs-var hs-var">labelOptic</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">(Command -&gt; a) -&gt; (b -&gt; Command) -&gt; Iso Command Command a b
+forall s a b t. (s -&gt; a) -&gt; (b -&gt; t) -&gt; Iso s t a b
+</span><a href="file:///nix/store/yiyd960cyn3zg283hgrwi5m0ilr7bcpb-optics-core-0.4.1.1-doc/share/doc/optics-core-0.4.1.1/html/src/Optics.Iso.html#iso"><span class="hs-identifier hs-var">iso</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">\</span><span class="hs-special">(</span><span class="annot"><a href="Pythia.Data.Command.html#MkCommand"><span class="hs-identifier hs-type">MkCommand</span></a></span><span> </span><span id="local-6989586621679250836"><span class="annot"><span class="annottext">Text
+</span><a href="#local-6989586621679250836"><span class="hs-identifier hs-var">t</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">a
+Text
+</span><a href="#local-6989586621679250836"><span class="hs-identifier hs-var">t</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">b -&gt; Command
+Text -&gt; Command
+</span><a href="Pythia.Data.Command.html#MkCommand"><span class="hs-identifier hs-var">MkCommand</span></a></span><span>
+</span><span id="line-46"></span><span>  </span><span class="hs-pragma">{-# INLINE</span><span> </span><span class="annot"><a href="file:///nix/store/yiyd960cyn3zg283hgrwi5m0ilr7bcpb-optics-core-0.4.1.1-doc/share/doc/optics-core-0.4.1.1/html/src/Optics.Label.html#labelOptic"><span class="hs-pragma hs-type">labelOptic</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-47"></span></pre></body></html>

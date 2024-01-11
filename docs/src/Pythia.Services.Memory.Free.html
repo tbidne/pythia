@@ -1,0 +1,307 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><link rel="stylesheet" type="text/css" href="style.css" /><script type="text/javascript" src="highlight.js"></script></head><body><pre><span class="hs-pragma">{-# LANGUAGE QuasiQuotes #-}</span><span>
+</span><span id="line-2"></span><span>
+</span><span id="line-3"></span><span class="hs-comment">-- | This module provides functionality for retrieving memory usage using Free.</span><span>
+</span><span id="line-4"></span><span class="hs-comment">--</span><span>
+</span><span id="line-5"></span><span class="hs-comment">-- @since 0.1</span><span>
+</span><span id="line-6"></span><span class="hs-keyword">module</span><span> </span><span class="hs-identifier">Pythia.Services.Memory.Free</span><span>
+</span><span id="line-7"></span><span>  </span><span class="hs-special">(</span><span> </span><span class="annot"><span class="hs-comment">-- * Query</span></span><span>
+</span><span id="line-8"></span><span>    </span><span class="annot"><a href="Pythia.Services.Memory.Free.html#memoryShellApp"><span class="hs-identifier">memoryShellApp</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-9"></span><span>    </span><span class="annot"><a href="Pythia.Services.Memory.Free.html#supported"><span class="hs-identifier">supported</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-10"></span><span>
+</span><span id="line-11"></span><span>    </span><span class="annot"><span class="hs-comment">-- * Misc</span></span><span>
+</span><span id="line-12"></span><span>    </span><span class="annot"><a href="Pythia.Services.Memory.Free.html#FreeParseError"><span class="hs-identifier">FreeParseError</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span class="hs-special">,</span><span>
+</span><span id="line-13"></span><span>    </span><span class="annot"><a href="Pythia.Services.Memory.Free.html#parseMemory"><span class="hs-identifier">parseMemory</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-14"></span><span>  </span><span class="hs-special">)</span><span>
+</span><span id="line-15"></span><span class="hs-keyword">where</span><span>
+</span><span id="line-16"></span><span>
+</span><span id="line-17"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="file:///home/tommy/.local/state/cabal/store/ghc-9.6.3/si-bytes-0.1-6dd2852c5b292486df6d37da50d656b440f5cd0614a02acad3d991af4bc774c2/share/doc/html/src/Data.Bytes.html"><span class="hs-identifier">Data.Bytes</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="file:///home/tommy/.local/state/cabal/store/ghc-9.6.3/si-bytes-0.1-6dd2852c5b292486df6d37da50d656b440f5cd0614a02acad3d991af4bc774c2/share/doc/html/src/Data.Bytes.Internal.html#Bytes"><span class="hs-identifier">Bytes</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="file:///home/tommy/.local/state/cabal/store/ghc-9.6.3/si-bytes-0.1-6dd2852c5b292486df6d37da50d656b440f5cd0614a02acad3d991af4bc774c2/share/doc/html/src/Data.Bytes.Internal.html#MkBytes"><span class="hs-identifier">MkBytes</span></a></span><span class="hs-special">)</span><span class="hs-special">)</span><span>
+</span><span id="line-18"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Data.Char</span></span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="hs-keyword">as</span><span> </span><span class="annot"><span class="hs-identifier">Char</span></span><span>
+</span><span id="line-19"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Data.Text</span></span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="hs-keyword">as</span><span> </span><span class="annot"><span class="hs-identifier">T</span></span><span>
+</span><span id="line-20"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Pythia.Internal.ShellApp.html"><span class="hs-identifier">Pythia.Internal.ShellApp</span></a></span><span>
+</span><span id="line-21"></span><span>  </span><span class="hs-special">(</span><span> </span><span class="annot"><a href="Pythia.Internal.ShellApp.html#SimpleShell"><span class="hs-identifier">SimpleShell</span></a></span><span>
+</span><span id="line-22"></span><span>      </span><span class="hs-special">(</span><span> </span><span class="annot"><a href="Pythia.Internal.ShellApp.html#MkSimpleShell"><span class="hs-identifier">MkSimpleShell</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-23"></span><span>        </span><span class="annot"><a href="Pythia.Internal.ShellApp.html#%24sel%3Acommand%3AMkSimpleShell"><span class="hs-identifier">command</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-24"></span><span>        </span><span class="annot"><a href="Pythia.Internal.ShellApp.html#%24sel%3AisSupported%3AMkSimpleShell"><span class="hs-identifier">isSupported</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-25"></span><span>        </span><span class="annot"><a href="Pythia.Internal.ShellApp.html#%24sel%3Aparser%3AMkSimpleShell"><span class="hs-identifier">parser</span></a></span><span>
+</span><span id="line-26"></span><span>      </span><span class="hs-special">)</span><span class="hs-special">,</span><span>
+</span><span id="line-27"></span><span>  </span><span class="hs-special">)</span><span>
+</span><span id="line-28"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Pythia.Internal.ShellApp.html"><span class="hs-identifier">Pythia.Internal.ShellApp</span></a></span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="hs-keyword">as</span><span> </span><span class="annot"><span class="hs-identifier">ShellApp</span></span><span>
+</span><span id="line-29"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Pythia.Prelude.html"><span class="hs-identifier">Pythia.Prelude</span></a></span><span>
+</span><span id="line-30"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Pythia.Services.Memory.Types.html"><span class="hs-identifier">Pythia.Services.Memory.Types</span></a></span><span>
+</span><span id="line-31"></span><span>  </span><span class="hs-special">(</span><span> </span><span class="annot"><a href="Pythia.Services.Memory.Types.html#Memory"><span class="hs-identifier">Memory</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Pythia.Services.Memory.Types.html#MkMemory"><span class="hs-identifier">MkMemory</span></a></span><span class="hs-special">)</span><span class="hs-special">,</span><span>
+</span><span id="line-32"></span><span>    </span><span class="annot"><a href="Pythia.Services.Memory.Types.html#SystemMemory"><span class="hs-identifier">SystemMemory</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Pythia.Services.Memory.Types.html#MkSystemMemory"><span class="hs-identifier">MkSystemMemory</span></a></span><span class="hs-special">)</span><span class="hs-special">,</span><span>
+</span><span id="line-33"></span><span>  </span><span class="hs-special">)</span><span>
+</span><span id="line-34"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Pythia.Utils.html"><span class="hs-identifier">Pythia.Utils</span></a></span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="hs-keyword">as</span><span> </span><span class="annot"><span class="hs-identifier">U</span></span><span>
+</span><span id="line-35"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="file:///nix/store/1q3ppvr9mmkrs06x300jgm09mh0gvjx0-megaparsec-9.3.1-doc/share/doc/megaparsec-9.3.1/html/src/Text.Megaparsec.html"><span class="hs-identifier">Text.Megaparsec</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="file:///nix/store/1q3ppvr9mmkrs06x300jgm09mh0gvjx0-megaparsec-9.3.1-doc/share/doc/megaparsec-9.3.1/html/src/Text.Megaparsec.html#Parsec"><span class="hs-identifier">Parsec</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-36"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="file:///nix/store/1q3ppvr9mmkrs06x300jgm09mh0gvjx0-megaparsec-9.3.1-doc/share/doc/megaparsec-9.3.1/html/src/Text.Megaparsec.html"><span class="hs-identifier">Text.Megaparsec</span></a></span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="hs-keyword">as</span><span> </span><span class="annot"><span class="hs-identifier">MP</span></span><span>
+</span><span id="line-37"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="file:///nix/store/1q3ppvr9mmkrs06x300jgm09mh0gvjx0-megaparsec-9.3.1-doc/share/doc/megaparsec-9.3.1/html/src/Text.Megaparsec.Char.html"><span class="hs-identifier">Text.Megaparsec.Char</span></a></span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="hs-keyword">as</span><span> </span><span class="annot"><span class="hs-identifier">MPC</span></span><span>
+</span><span id="line-38"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Text.Read</span></span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="hs-keyword">as</span><span> </span><span class="annot"><span class="hs-identifier">TR</span></span><span>
+</span><span id="line-39"></span><span>
+</span><span id="line-40"></span><span class="hs-comment">-- $setup</span><span>
+</span><span id="line-41"></span><span class="hs-comment">-- &gt;&gt;&gt; import Control.Exception (displayException)</span><span>
+</span><span id="line-42"></span><span class="hs-comment">-- &gt;&gt;&gt; import Pythia.Prelude</span><span>
+</span><span id="line-43"></span><span>
+</span><span id="line-44"></span><span class="hs-comment">-- | Errors that can occur with acpi.</span><span>
+</span><span id="line-45"></span><span class="hs-comment">--</span><span>
+</span><span id="line-46"></span><span class="hs-comment">-- ==== __Examples__</span><span>
+</span><span id="line-47"></span><span class="hs-comment">--</span><span>
+</span><span id="line-48"></span><span class="hs-comment">-- &gt;&gt;&gt; displayException $ MkFreeParseError &quot;parse error&quot;</span><span>
+</span><span id="line-49"></span><span class="hs-comment">-- &quot;Could not parse memory from: parse error&quot;</span><span>
+</span><span id="line-50"></span><span class="hs-comment">--</span><span>
+</span><span id="line-51"></span><span class="hs-comment">-- @since 0.1</span><span>
+</span><span id="line-52"></span><span class="hs-keyword">type</span><span> </span><span class="annot"><a href="Pythia.Services.Memory.Free.html#FreeParseError"><span class="hs-identifier hs-type">FreeParseError</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Type</span></span><span>
+</span><span id="line-53"></span><span class="hs-keyword">newtype</span><span> </span><span id="FreeParseError"><span class="annot"><a href="Pythia.Services.Memory.Free.html#FreeParseError"><span class="hs-identifier hs-var">FreeParseError</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span id="MkFreeParseError"><span class="annot"><a href="Pythia.Services.Memory.Free.html#MkFreeParseError"><span class="hs-identifier hs-var">MkFreeParseError</span></a></span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Text</span></span><span>
+</span><span id="line-54"></span><span>  </span><span class="hs-keyword">deriving</span><span> </span><span class="annot"><span class="hs-keyword">stock</span></span><span>
+</span><span id="line-55"></span><span>    </span><span class="hs-special">(</span><span> </span><span class="annot"><span class="hs-comment">-- | @since 0.1</span></span><span>
+</span><span id="line-56"></span><span>      </span><span id="local-6989586621679258216"><span id="local-6989586621679258220"><span class="annot"><span class="annottext">FreeParseError -&gt; FreeParseError -&gt; Bool
+(FreeParseError -&gt; FreeParseError -&gt; Bool)
+-&gt; (FreeParseError -&gt; FreeParseError -&gt; Bool) -&gt; Eq FreeParseError
+forall a. (a -&gt; a -&gt; Bool) -&gt; (a -&gt; a -&gt; Bool) -&gt; Eq a
+$c== :: FreeParseError -&gt; FreeParseError -&gt; Bool
+== :: FreeParseError -&gt; FreeParseError -&gt; Bool
+$c/= :: FreeParseError -&gt; FreeParseError -&gt; Bool
+/= :: FreeParseError -&gt; FreeParseError -&gt; Bool
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Eq</span></span></span></span><span class="hs-special">,</span><span>
+</span><span id="line-57"></span><span>      </span><span class="annot"><span class="hs-comment">-- | @since 0.1</span></span><span>
+</span><span id="line-58"></span><span>      </span><span id="local-6989586621679258225"><span id="local-6989586621679258231"><span id="local-6989586621679258235"><span class="annot"><span class="annottext">Int -&gt; FreeParseError -&gt; ShowS
+[FreeParseError] -&gt; ShowS
+FreeParseError -&gt; String
+(Int -&gt; FreeParseError -&gt; ShowS)
+-&gt; (FreeParseError -&gt; String)
+-&gt; ([FreeParseError] -&gt; ShowS)
+-&gt; Show FreeParseError
+forall a.
+(Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; String) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+$cshowsPrec :: Int -&gt; FreeParseError -&gt; ShowS
+showsPrec :: Int -&gt; FreeParseError -&gt; ShowS
+$cshow :: FreeParseError -&gt; String
+show :: FreeParseError -&gt; String
+$cshowList :: [FreeParseError] -&gt; ShowS
+showList :: [FreeParseError] -&gt; ShowS
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Show</span></span></span></span></span><span>
+</span><span id="line-59"></span><span>    </span><span class="hs-special">)</span><span>
+</span><span id="line-60"></span><span>
+</span><span id="line-61"></span><span class="annot"><span class="hs-comment">-- | @since 0.1</span></span><span>
+</span><span id="line-62"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621679258243"><span id="local-6989586621679258247"><span class="annot"><span class="hs-identifier hs-type">Exception</span></span><span> </span><span class="annot"><a href="Pythia.Services.Memory.Free.html#FreeParseError"><span class="hs-identifier hs-type">FreeParseError</span></a></span></span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-63"></span><span>  </span><span id="local-6989586621679258253"><span class="annot"><span class="annottext">displayException :: FreeParseError -&gt; String
+</span><a href="#local-6989586621679258253"><span class="hs-identifier hs-var hs-var hs-var hs-var">displayException</span></a></span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Pythia.Services.Memory.Free.html#MkFreeParseError"><span class="hs-identifier hs-type">MkFreeParseError</span></a></span><span> </span><span id="local-6989586621679258255"><span class="annot"><span class="annottext">Text
+</span><a href="#local-6989586621679258255"><span class="hs-identifier hs-var">e</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-64"></span><span>    </span><span class="hs-special">(</span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;Could not parse memory from: &quot;</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; ShowS
+forall a. Semigroup a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-operator hs-var">&lt;&gt;</span></span><span class="hs-special">)</span><span>
+</span><span id="line-65"></span><span>      </span><span class="annot"><span class="annottext">ShowS -&gt; (Text -&gt; String) -&gt; Text -&gt; String
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">Text -&gt; String
+</span><span class="hs-identifier hs-var">T.unpack</span></span><span>
+</span><span id="line-66"></span><span>      </span><span class="annot"><span class="annottext">(Text -&gt; String) -&gt; Text -&gt; String
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">Text
+</span><a href="#local-6989586621679258255"><span class="hs-identifier hs-var">e</span></a></span><span>
+</span><span id="line-67"></span><span>
+</span><span id="line-68"></span><span class="hs-comment">-- | Free query for 'Memory'.</span><span>
+</span><span id="line-69"></span><span class="hs-comment">--</span><span>
+</span><span id="line-70"></span><span class="hs-comment">-- @since 0.1</span><span>
+</span><span id="line-71"></span><span id="local-6989586621679258114"><span class="annot"><a href="Pythia.Services.Memory.Free.html#memoryShellApp"><span class="hs-identifier hs-type">memoryShellApp</span></a></span><span> </span><span class="hs-glyph">::</span><span>
+</span><span id="line-72"></span><span>  </span><span class="hs-special">(</span><span> </span><span class="annot"><a href="file:///home/tommy/.local/state/cabal/store/ghc-9.6.3/effects-fs-0.1-5841411f1c8e259b2cf3c993222ef4c2c136f1e315fe1b2c92965a1bea2a7701/share/doc/html/src/Effects.FileSystem.PathReader.html#MonadPathReader"><span class="hs-identifier hs-type">MonadPathReader</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679258114"><span class="hs-identifier hs-type">m</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-73"></span><span>    </span><span class="annot"><span class="hs-identifier hs-type">MonadThrow</span></span><span> </span><span class="annot"><a href="#local-6989586621679258114"><span class="hs-identifier hs-type">m</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-74"></span><span>    </span><span class="annot"><a href="file:///home/tommy/.local/state/cabal/store/ghc-9.6.3/effects-typed-process-0.1-9aab0d7122e26327440e15170619fab59878f147f1d369dd46812a2ece43b118/share/doc/html/src/Effects.Process.Typed.html#MonadTypedProcess"><span class="hs-identifier hs-type">MonadTypedProcess</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679258114"><span class="hs-identifier hs-type">m</span></a></span><span>
+</span><span id="line-75"></span><span>  </span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span>
+</span><span id="line-76"></span><span>  </span><span class="annot"><a href="#local-6989586621679258114"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="annot"><a href="Pythia.Services.Memory.Types.html#SystemMemory"><span class="hs-identifier hs-type">SystemMemory</span></a></span></span><span>
+</span><span id="line-77"></span><span id="memoryShellApp"><span class="annot"><span class="annottext">memoryShellApp :: forall (m :: Type -&gt; Type).
+(MonadPathReader m, MonadThrow m, MonadTypedProcess m) =&gt;
+m SystemMemory
+</span><a href="Pythia.Services.Memory.Free.html#memoryShellApp"><span class="hs-identifier hs-var hs-var">memoryShellApp</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">SimpleShell m FreeParseError SystemMemory -&gt; m SystemMemory
+forall (m :: Type -&gt; Type) err result.
+(Exception err, MonadThrow m, MonadTypedProcess m) =&gt;
+SimpleShell m err result -&gt; m result
+</span><a href="Pythia.Internal.ShellApp.html#runSimple"><span class="hs-identifier hs-var">ShellApp.runSimple</span></a></span><span> </span><span class="annot"><span class="annottext">SimpleShell m FreeParseError SystemMemory
+</span><a href="#local-6989586621679258271"><span class="hs-identifier hs-var">shell</span></a></span><span>
+</span><span id="line-78"></span><span>  </span><span class="hs-keyword">where</span><span>
+</span><span id="line-79"></span><span>    </span><span id="local-6989586621679258271"><span class="annot"><span class="annottext">shell :: SimpleShell m FreeParseError SystemMemory
+</span><a href="#local-6989586621679258271"><span class="hs-identifier hs-var hs-var">shell</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-80"></span><span>      </span><span class="annot"><a href="Pythia.Internal.ShellApp.html#MkSimpleShell"><span class="hs-identifier hs-type">MkSimpleShell</span></a></span><span>
+</span><span id="line-81"></span><span>        </span><span class="hs-special">{</span><span> </span><span class="annot"><span class="annottext">$sel:command:MkSimpleShell :: Command
+</span><a href="Pythia.Internal.ShellApp.html#%24sel%3Acommand%3AMkSimpleShell"><span class="hs-identifier hs-var">command</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Command
+</span><span class="hs-string">&quot;free --bytes&quot;</span></span><span class="hs-special">,</span><span>
+</span><span id="line-82"></span><span>          </span><span class="annot"><span class="annottext">$sel:isSupported:MkSimpleShell :: m Bool
+</span><a href="Pythia.Internal.ShellApp.html#%24sel%3AisSupported%3AMkSimpleShell"><span class="hs-identifier hs-var">isSupported</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">m Bool
+forall (m :: Type -&gt; Type). MonadPathReader m =&gt; m Bool
+</span><a href="Pythia.Services.Memory.Free.html#supported"><span class="hs-identifier hs-var">supported</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-83"></span><span>          </span><span class="annot"><span class="annottext">$sel:parser:MkSimpleShell :: Text -&gt; Either FreeParseError SystemMemory
+</span><a href="Pythia.Internal.ShellApp.html#%24sel%3Aparser%3AMkSimpleShell"><span class="hs-identifier hs-var">parser</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Text -&gt; Either FreeParseError SystemMemory
+</span><a href="Pythia.Services.Memory.Free.html#parseMemory"><span class="hs-identifier hs-var">parseMemory</span></a></span><span>
+</span><span id="line-84"></span><span>        </span><span class="hs-special">}</span><span>
+</span><span id="line-85"></span><span class="hs-pragma">{-# INLINEABLE</span><span> </span><span class="annot"><a href="Pythia.Services.Memory.Free.html#memoryShellApp"><span class="hs-pragma hs-type">memoryShellApp</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-86"></span><span>
+</span><span id="line-87"></span><span class="hs-comment">-- | Returns a boolean determining if this program is supported on the</span><span>
+</span><span id="line-88"></span><span class="hs-comment">-- current system.</span><span>
+</span><span id="line-89"></span><span class="hs-comment">--</span><span>
+</span><span id="line-90"></span><span class="hs-comment">-- @since 0.1</span><span>
+</span><span id="line-91"></span><span id="local-6989586621679258128"><span class="annot"><a href="Pythia.Services.Memory.Free.html#supported"><span class="hs-identifier hs-type">supported</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">(</span><span class="annot"><a href="file:///home/tommy/.local/state/cabal/store/ghc-9.6.3/effects-fs-0.1-5841411f1c8e259b2cf3c993222ef4c2c136f1e315fe1b2c92965a1bea2a7701/share/doc/html/src/Effects.FileSystem.PathReader.html#MonadPathReader"><span class="hs-identifier hs-type">MonadPathReader</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679258128"><span class="hs-identifier hs-type">m</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679258128"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Bool</span></span></span><span>
+</span><span id="line-92"></span><span id="supported"><span class="annot"><span class="annottext">supported :: forall (m :: Type -&gt; Type). MonadPathReader m =&gt; m Bool
+</span><a href="Pythia.Services.Memory.Free.html#supported"><span class="hs-identifier hs-var hs-var">supported</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">OsPath -&gt; m Bool
+forall (m :: Type -&gt; Type). MonadPathReader m =&gt; OsPath -&gt; m Bool
+</span><a href="Pythia.Utils.html#exeSupported"><span class="hs-identifier hs-var">U.exeSupported</span></a></span><span> </span><span class="annot"><span class="">[osp|free|]</span></span><span>
+</span><span id="line-93"></span><span class="hs-pragma">{-# INLINEABLE</span><span> </span><span class="annot"><a href="Pythia.Services.Memory.Free.html#supported"><span class="hs-pragma hs-type">supported</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-94"></span><span>
+</span><span id="line-95"></span><span class="hs-comment">-- | Attempts to parse the output of free.</span><span>
+</span><span id="line-96"></span><span class="hs-comment">--</span><span>
+</span><span id="line-97"></span><span class="hs-comment">-- @since 0.1</span><span>
+</span><span id="line-98"></span><span class="annot"><a href="Pythia.Services.Memory.Free.html#parseMemory"><span class="hs-identifier hs-type">parseMemory</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Text</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Either</span></span><span> </span><span class="annot"><a href="Pythia.Services.Memory.Free.html#FreeParseError"><span class="hs-identifier hs-type">FreeParseError</span></a></span><span> </span><span class="annot"><a href="Pythia.Services.Memory.Types.html#SystemMemory"><span class="hs-identifier hs-type">SystemMemory</span></a></span><span>
+</span><span id="line-99"></span><span id="parseMemory"><span class="annot"><span class="annottext">parseMemory :: Text -&gt; Either FreeParseError SystemMemory
+</span><a href="Pythia.Services.Memory.Free.html#parseMemory"><span class="hs-identifier hs-var hs-var">parseMemory</span></a></span></span><span> </span><span id="local-6989586621679258290"><span class="annot"><span class="annottext">Text
+</span><a href="#local-6989586621679258290"><span class="hs-identifier hs-var">txt</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">case</span><span> </span><span class="annot"><span class="annottext">(Text -&gt; Maybe SystemMemory) -&gt; [Text] -&gt; Maybe SystemMemory
+forall (t :: Type -&gt; Type) (f :: Type -&gt; Type) a b.
+(Foldable t, Alternative f) =&gt;
+(a -&gt; f b) -&gt; t a -&gt; f b
+</span><a href="Pythia.Utils.html#foldAlt"><span class="hs-identifier hs-var">U.foldAlt</span></a></span><span> </span><span class="annot"><span class="annottext">Text -&gt; Maybe SystemMemory
+</span><a href="Pythia.Services.Memory.Free.html#parseLine"><span class="hs-identifier hs-var">parseLine</span></a></span><span> </span><span class="annot"><span class="annottext">[Text]
+</span><a href="#local-6989586621679258293"><span class="hs-identifier hs-var">ts</span></a></span><span> </span><span class="hs-keyword">of</span><span>
+</span><span id="line-100"></span><span>  </span><span class="annot"><span class="annottext">Maybe SystemMemory
+</span><span class="hs-identifier hs-var">Nothing</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">FreeParseError -&gt; Either FreeParseError SystemMemory
+forall a b. a -&gt; Either a b
+</span><span class="hs-identifier hs-var">Left</span></span><span> </span><span class="annot"><span class="annottext">(FreeParseError -&gt; Either FreeParseError SystemMemory)
+-&gt; FreeParseError -&gt; Either FreeParseError SystemMemory
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">Text -&gt; FreeParseError
+</span><a href="Pythia.Services.Memory.Free.html#MkFreeParseError"><span class="hs-identifier hs-var">MkFreeParseError</span></a></span><span> </span><span class="annot"><span class="annottext">Text
+</span><a href="#local-6989586621679258290"><span class="hs-identifier hs-var">txt</span></a></span><span>
+</span><span id="line-101"></span><span>  </span><span class="annot"><span class="hs-identifier hs-type">Just</span></span><span> </span><span id="local-6989586621679258294"><span class="annot"><span class="annottext">SystemMemory
+</span><a href="#local-6989586621679258294"><span class="hs-identifier hs-var">mem</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">SystemMemory -&gt; Either FreeParseError SystemMemory
+forall a b. b -&gt; Either a b
+</span><span class="hs-identifier hs-var">Right</span></span><span> </span><span class="annot"><span class="annottext">SystemMemory
+</span><a href="#local-6989586621679258294"><span class="hs-identifier hs-var">mem</span></a></span><span>
+</span><span id="line-102"></span><span>  </span><span class="hs-keyword">where</span><span>
+</span><span id="line-103"></span><span>    </span><span id="local-6989586621679258293"><span class="annot"><span class="annottext">ts :: [Text]
+</span><a href="#local-6989586621679258293"><span class="hs-identifier hs-var hs-var">ts</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Text -&gt; [Text]
+</span><span class="hs-identifier hs-var">T.lines</span></span><span> </span><span class="annot"><span class="annottext">Text
+</span><a href="#local-6989586621679258290"><span class="hs-identifier hs-var">txt</span></a></span><span>
+</span><span id="line-104"></span><span class="hs-pragma">{-# INLINEABLE</span><span> </span><span class="annot"><a href="Pythia.Services.Memory.Free.html#parseMemory"><span class="hs-pragma hs-type">parseMemory</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-105"></span><span>
+</span><span id="line-106"></span><span class="annot"><a href="Pythia.Services.Memory.Free.html#parseLine"><span class="hs-identifier hs-type">parseLine</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Text</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="annot"><a href="Pythia.Services.Memory.Types.html#SystemMemory"><span class="hs-identifier hs-type">SystemMemory</span></a></span><span>
+</span><span id="line-107"></span><span id="parseLine"><span class="annot"><span class="annottext">parseLine :: Text -&gt; Maybe SystemMemory
+</span><a href="Pythia.Services.Memory.Free.html#parseLine"><span class="hs-identifier hs-var hs-var">parseLine</span></a></span></span><span> </span><span id="local-6989586621679258296"><span class="annot"><span class="annottext">Text
+</span><a href="#local-6989586621679258296"><span class="hs-identifier hs-var">ln</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">case</span><span> </span><span class="annot"><span class="annottext">Parsec Void Text SystemMemory
+-&gt; String
+-&gt; Text
+-&gt; Either (ParseErrorBundle Text Void) SystemMemory
+forall e s a.
+Parsec e s a -&gt; String -&gt; s -&gt; Either (ParseErrorBundle s e) a
+</span><a href="file:///nix/store/1q3ppvr9mmkrs06x300jgm09mh0gvjx0-megaparsec-9.3.1-doc/share/doc/megaparsec-9.3.1/html/src/Text.Megaparsec.html#parse"><span class="hs-identifier hs-var">MP.parse</span></a></span><span> </span><span class="annot"><span class="annottext">Parsec Void Text SystemMemory
+</span><a href="Pythia.Services.Memory.Free.html#mparseMemory"><span class="hs-identifier hs-var">mparseMemory</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;Memory.hs&quot;</span></span><span> </span><span class="annot"><span class="annottext">Text
+</span><a href="#local-6989586621679258296"><span class="hs-identifier hs-var">ln</span></a></span><span> </span><span class="hs-keyword">of</span><span>
+</span><span id="line-108"></span><span>  </span><span class="annot"><span class="hs-identifier hs-type">Right</span></span><span> </span><span id="local-6989586621679258299"><span class="annot"><span class="annottext">SystemMemory
+</span><a href="#local-6989586621679258299"><span class="hs-identifier hs-var">mem</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">SystemMemory -&gt; Maybe SystemMemory
+forall a. a -&gt; Maybe a
+</span><span class="hs-identifier hs-var">Just</span></span><span> </span><span class="annot"><span class="annottext">SystemMemory
+</span><a href="#local-6989586621679258299"><span class="hs-identifier hs-var">mem</span></a></span><span>
+</span><span id="line-109"></span><span>  </span><span class="annot"><span class="hs-identifier hs-type">Left</span></span><span> </span><span class="annot"><span class="annottext">ParseErrorBundle Text Void
+</span><span class="hs-identifier">_</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Maybe SystemMemory
+forall a. Maybe a
+</span><span class="hs-identifier hs-var">Nothing</span></span><span>
+</span><span id="line-110"></span><span class="hs-pragma">{-# INLINEABLE</span><span> </span><span class="annot"><a href="Pythia.Services.Memory.Free.html#parseLine"><span class="hs-pragma hs-type">parseLine</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-111"></span><span>
+</span><span id="line-112"></span><span class="hs-keyword">type</span><span> </span><span class="annot"><a href="Pythia.Services.Memory.Free.html#MParser"><span class="hs-identifier hs-type">MParser</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Type</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Type</span></span><span>
+</span><span id="line-113"></span><span class="hs-keyword">type</span><span> </span><span id="MParser"><span class="annot"><a href="Pythia.Services.Memory.Free.html#MParser"><span class="hs-identifier hs-var">MParser</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><a href="file:///nix/store/1q3ppvr9mmkrs06x300jgm09mh0gvjx0-megaparsec-9.3.1-doc/share/doc/megaparsec-9.3.1/html/src/Text.Megaparsec.html#Parsec"><span class="hs-identifier hs-type">Parsec</span></a></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Void</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Text</span></span><span>
+</span><span id="line-114"></span><span>
+</span><span id="line-115"></span><span class="annot"><a href="Pythia.Services.Memory.Free.html#mparseMemory"><span class="hs-identifier hs-type">mparseMemory</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Pythia.Services.Memory.Free.html#MParser"><span class="hs-identifier hs-type">MParser</span></a></span><span> </span><span class="annot"><a href="Pythia.Services.Memory.Types.html#SystemMemory"><span class="hs-identifier hs-type">SystemMemory</span></a></span><span>
+</span><span id="line-116"></span><span id="mparseMemory"><span class="annot"><span class="annottext">mparseMemory :: Parsec Void Text SystemMemory
+</span><a href="Pythia.Services.Memory.Free.html#mparseMemory"><span class="hs-identifier hs-var hs-var">mparseMemory</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">do</span><span>
+</span><span id="line-117"></span><span>  </span><span class="annot"><span class="annottext">Tokens Text -&gt; ParsecT Void Text Identity (Tokens Text)
+forall e s (m :: Type -&gt; Type).
+(MonadParsec e s m, FoldCase (Tokens s)) =&gt;
+Tokens s -&gt; m (Tokens s)
+</span><a href="file:///nix/store/1q3ppvr9mmkrs06x300jgm09mh0gvjx0-megaparsec-9.3.1-doc/share/doc/megaparsec-9.3.1/html/src/Text.Megaparsec.Common.html#string%27"><span class="hs-identifier hs-var">MPC.string'</span></a></span><span> </span><span class="annot"><span class="annottext">Tokens Text
+</span><span class="hs-string">&quot;Mem:&quot;</span></span><span>
+</span><span id="line-118"></span><span>  </span><span id="local-6989586621679258302"><span class="annot"><span class="annottext">Natural
+</span><a href="#local-6989586621679258302"><span class="hs-identifier hs-var">total</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">ParsecT Void Text Identity Natural
+</span><a href="#local-6989586621679258303"><span class="hs-identifier hs-var">parsePos</span></a></span><span>
+</span><span id="line-119"></span><span>  </span><span id="local-6989586621679258304"><span class="annot"><span class="annottext">Natural
+</span><a href="#local-6989586621679258304"><span class="hs-identifier hs-var">used</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">ParsecT Void Text Identity Natural
+</span><a href="#local-6989586621679258305"><span class="hs-identifier hs-var">parseNat</span></a></span><span>
+</span><span id="line-120"></span><span>  </span><span class="annot"><span class="annottext">ParsecT Void Text Identity Natural
+</span><a href="#local-6989586621679258305"><span class="hs-identifier hs-var">parseNat</span></a></span><span>
+</span><span id="line-121"></span><span>  </span><span id="local-6989586621679258306"><span class="annot"><span class="annottext">Natural
+</span><a href="#local-6989586621679258306"><span class="hs-identifier hs-var">shared</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">ParsecT Void Text Identity Natural
+</span><a href="#local-6989586621679258305"><span class="hs-identifier hs-var">parseNat</span></a></span><span>
+</span><span id="line-122"></span><span>  </span><span class="hs-identifier">pure</span><span> </span><span class="hs-operator">$</span><span> </span><span class="annot"><span class="annottext">Memory -&gt; Memory -&gt; SystemMemory
+</span><a href="Pythia.Services.Memory.Types.html#MkSystemMemory"><span class="hs-identifier hs-var">MkSystemMemory</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Bytes 'B Natural -&gt; Memory
+</span><a href="Pythia.Services.Memory.Types.html#MkMemory"><span class="hs-identifier hs-var">MkMemory</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Natural -&gt; Bytes 'B Natural
+forall (s :: Size) n. n -&gt; Bytes s n
+</span><a href="file:///home/tommy/.local/state/cabal/store/ghc-9.6.3/si-bytes-0.1-6dd2852c5b292486df6d37da50d656b440f5cd0614a02acad3d991af4bc774c2/share/doc/html/src/Data.Bytes.Internal.html#MkBytes"><span class="hs-identifier hs-var">MkBytes</span></a></span><span> </span><span class="annot"><span class="annottext">Natural
+</span><a href="#local-6989586621679258302"><span class="hs-identifier hs-var">total</span></a></span><span class="hs-special">)</span><span class="hs-special">)</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Bytes 'B Natural -&gt; Memory
+</span><a href="Pythia.Services.Memory.Types.html#MkMemory"><span class="hs-identifier hs-var">MkMemory</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Natural -&gt; Bytes 'B Natural
+forall (s :: Size) n. n -&gt; Bytes s n
+</span><a href="file:///home/tommy/.local/state/cabal/store/ghc-9.6.3/si-bytes-0.1-6dd2852c5b292486df6d37da50d656b440f5cd0614a02acad3d991af4bc774c2/share/doc/html/src/Data.Bytes.Internal.html#MkBytes"><span class="hs-identifier hs-var">MkBytes</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Natural
+</span><a href="#local-6989586621679258304"><span class="hs-identifier hs-var">used</span></a></span><span> </span><span class="annot"><span class="annottext">Natural -&gt; Natural -&gt; Natural
+forall a. Num a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-operator hs-var">+</span></span><span> </span><span class="annot"><span class="annottext">Natural
+</span><a href="#local-6989586621679258306"><span class="hs-identifier hs-var">shared</span></a></span><span class="hs-special">)</span><span class="hs-special">)</span><span class="hs-special">)</span><span>
+</span><span id="line-123"></span><span>  </span><span class="hs-keyword">where</span><span>
+</span><span id="line-124"></span><span>    </span><span id="local-6989586621679258305"><span class="annot"><span class="annottext">parseNat :: ParsecT Void Text Identity Natural
+</span><a href="#local-6989586621679258305"><span class="hs-identifier hs-var hs-var">parseNat</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">(Tokens Text -&gt; Maybe Natural)
+-&gt; ParsecT Void Text Identity Natural
+forall {s} {m :: Type -&gt; Type} {e} {a}.
+(Token s ~ Char, MonadParsec e s m) =&gt;
+(Tokens s -&gt; Maybe a) -&gt; m a
+</span><a href="#local-6989586621679258308"><span class="hs-identifier hs-var">parseBytes</span></a></span><span> </span><span class="annot"><span class="annottext">Text -&gt; Maybe Natural
+Tokens Text -&gt; Maybe Natural
+</span><a href="#local-6989586621679258309"><span class="hs-identifier hs-var">readNat</span></a></span><span>
+</span><span id="line-125"></span><span>    </span><span id="local-6989586621679258303"><span class="annot"><span class="annottext">parsePos :: ParsecT Void Text Identity Natural
+</span><a href="#local-6989586621679258303"><span class="hs-identifier hs-var hs-var">parsePos</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">(Tokens Text -&gt; Maybe Natural)
+-&gt; ParsecT Void Text Identity Natural
+forall {s} {m :: Type -&gt; Type} {e} {a}.
+(Token s ~ Char, MonadParsec e s m) =&gt;
+(Tokens s -&gt; Maybe a) -&gt; m a
+</span><a href="#local-6989586621679258308"><span class="hs-identifier hs-var">parseBytes</span></a></span><span> </span><span class="annot"><span class="annottext">Text -&gt; Maybe Natural
+Tokens Text -&gt; Maybe Natural
+</span><a href="#local-6989586621679258310"><span class="hs-identifier hs-var">readPos</span></a></span><span>
+</span><span id="line-126"></span><span>    </span><span id="local-6989586621679258308"><span class="annot"><span class="annottext">parseBytes :: (Tokens s -&gt; Maybe a) -&gt; m a
+</span><a href="#local-6989586621679258308"><span class="hs-identifier hs-var hs-var">parseBytes</span></a></span></span><span> </span><span id="local-6989586621679258358"><span class="annot"><span class="annottext">Tokens s -&gt; Maybe a
+</span><a href="#local-6989586621679258358"><span class="hs-identifier hs-var">parseFn</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">do</span><span>
+</span><span id="line-127"></span><span>      </span><span class="annot"><span class="annottext">m ()
+forall e s (m :: Type -&gt; Type).
+(MonadParsec e s m, Token s ~ Char) =&gt;
+m ()
+</span><a href="file:///nix/store/1q3ppvr9mmkrs06x300jgm09mh0gvjx0-megaparsec-9.3.1-doc/share/doc/megaparsec-9.3.1/html/src/Text.Megaparsec.Char.html#space1"><span class="hs-identifier hs-var">MPC.space1</span></a></span><span>
+</span><span id="line-128"></span><span>      </span><span id="local-6989586621679258360"><span class="annot"><span class="annottext">Tokens s
+</span><a href="#local-6989586621679258360"><span class="hs-identifier hs-var">num</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">Maybe String -&gt; (Token s -&gt; Bool) -&gt; m (Tokens s)
+forall e s (m :: Type -&gt; Type).
+MonadParsec e s m =&gt;
+Maybe String -&gt; (Token s -&gt; Bool) -&gt; m (Tokens s)
+</span><a href="file:///nix/store/1q3ppvr9mmkrs06x300jgm09mh0gvjx0-megaparsec-9.3.1-doc/share/doc/megaparsec-9.3.1/html/src/Text.Megaparsec.Class.html#takeWhile1P"><span class="hs-identifier hs-var">MP.takeWhile1P</span></a></span><span> </span><span class="annot"><span class="annottext">Maybe String
+forall a. Maybe a
+</span><span class="hs-identifier hs-var">Nothing</span></span><span> </span><span class="annot"><span class="annottext">Char -&gt; Bool
+Token s -&gt; Bool
+</span><span class="hs-identifier hs-var">Char.isDigit</span></span><span>
+</span><span id="line-129"></span><span>      </span><span class="annot"><span class="annottext">m a -&gt; (a -&gt; m a) -&gt; Maybe a -&gt; m a
+forall b a. b -&gt; (a -&gt; b) -&gt; Maybe a -&gt; b
+</span><span class="hs-identifier hs-var">maybe</span></span><span> </span><span class="annot"><span class="annottext">m a
+forall a. m a
+forall (f :: Type -&gt; Type) a. Alternative f =&gt; f a
+</span><span class="hs-identifier hs-var">empty</span></span><span> </span><span class="annot"><span class="annottext">a -&gt; m a
+forall a. a -&gt; m a
+forall (f :: Type -&gt; Type) a. Applicative f =&gt; a -&gt; f a
+</span><span class="hs-identifier hs-var">pure</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Tokens s -&gt; Maybe a
+</span><a href="#local-6989586621679258358"><span class="hs-identifier hs-var">parseFn</span></a></span><span> </span><span class="annot"><span class="annottext">Tokens s
+</span><a href="#local-6989586621679258360"><span class="hs-identifier hs-var">num</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-130"></span><span>    </span><span id="local-6989586621679258309"><span class="annot"><span class="annottext">readNat :: Text -&gt; Maybe Natural
+</span><a href="#local-6989586621679258309"><span class="hs-identifier hs-var hs-var">readNat</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String -&gt; Maybe Natural
+forall a. Read a =&gt; String -&gt; Maybe a
+</span><span class="hs-identifier hs-var">TR.readMaybe</span></span><span> </span><span class="annot"><span class="annottext">(String -&gt; Maybe Natural)
+-&gt; (Text -&gt; String) -&gt; Text -&gt; Maybe Natural
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">Text -&gt; String
+</span><span class="hs-identifier hs-var">T.unpack</span></span><span>
+</span><span id="line-131"></span><span>    </span><span id="local-6989586621679258310"><span class="annot"><span class="annottext">readPos :: Text -&gt; Maybe Natural
+</span><a href="#local-6989586621679258310"><span class="hs-identifier hs-var hs-var">readPos</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String -&gt; Maybe Natural
+forall a. Read a =&gt; String -&gt; Maybe a
+</span><span class="hs-identifier hs-var">TR.readMaybe</span></span><span> </span><span class="annot"><span class="annottext">(String -&gt; Maybe Natural)
+-&gt; (Text -&gt; String) -&gt; Text -&gt; Maybe Natural
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">Text -&gt; String
+</span><span class="hs-identifier hs-var">T.unpack</span></span><span>
+</span><span id="line-132"></span><span class="hs-pragma">{-# INLINEABLE</span><span> </span><span class="annot"><a href="Pythia.Services.Memory.Free.html#mparseMemory"><span class="hs-pragma hs-type">mparseMemory</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-133"></span></pre></body></html>

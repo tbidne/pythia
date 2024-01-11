@@ -1,0 +1,935 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><link rel="stylesheet" type="text/css" href="style.css" /><script type="text/javascript" src="highlight.js"></script></head><body><pre><span class="hs-pragma">{-# LANGUAGE CPP #-}</span><span>
+</span><span id="line-2"></span><span class="hs-pragma">{-# LANGUAGE UndecidableInstances #-}</span><span>
+</span><span id="line-3"></span><span>
+</span><span id="line-4"></span><span class="hs-comment">-- | Provides common network types.</span><span>
+</span><span id="line-5"></span><span class="hs-comment">--</span><span>
+</span><span id="line-6"></span><span class="hs-comment">-- @since 0.1</span><span>
+</span><span id="line-7"></span><span class="hs-keyword">module</span><span> </span><span class="hs-identifier">Pythia.Services.Types.Network</span><span>
+</span><span id="line-8"></span><span>  </span><span class="hs-special">(</span><span> </span><span class="annot"><span class="hs-comment">-- * IP Types</span></span><span>
+</span><span id="line-9"></span><span>    </span><span class="annot"><a href="Pythia.Services.Types.Network.html#IpType"><span class="hs-identifier">IpType</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span class="hs-special">,</span><span>
+</span><span id="line-10"></span><span>    </span><span class="annot"><a href="Pythia.Services.Types.Network.html#IpAddress"><span class="hs-identifier">IpAddress</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span class="hs-special">,</span><span>
+</span><span id="line-11"></span><span>    </span><span class="annot"><a href="Pythia.Services.Types.Network.html#IpAddresses"><span class="hs-identifier">IpAddresses</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span class="hs-special">,</span><span>
+</span><span id="line-12"></span><span>
+</span><span id="line-13"></span><span>    </span><span class="annot"><span class="hs-comment">-- ** Refinements</span></span><span>
+</span><span id="line-14"></span><span>    </span><span class="annot"><a href="Pythia.Services.Types.Network.html#IpRefinement"><span class="hs-identifier">IpRefinement</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-15"></span><span>    </span><span class="annot"><a href="Pythia.Services.Types.Network.html#Ipv4Refinement"><span class="hs-identifier">Ipv4Refinement</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-16"></span><span>    </span><span class="annot"><a href="Pythia.Services.Types.Network.html#Ipv6Refinement"><span class="hs-identifier">Ipv6Refinement</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-17"></span><span>
+</span><span id="line-18"></span><span>    </span><span class="annot"><span class="hs-comment">-- * Network Device</span></span><span>
+</span><span id="line-19"></span><span>    </span><span class="annot"><a href="Pythia.Services.Types.Network.html#Device"><span class="hs-identifier">Device</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span class="hs-special">,</span><span>
+</span><span id="line-20"></span><span>
+</span><span id="line-21"></span><span>    </span><span class="annot"><span class="hs-comment">-- * Optics</span></span><span>
+</span><span id="line-22"></span><span>    </span><span class="annot"><a href="Pythia.Services.Types.Network.html#_Ipv4"><span class="hs-identifier">_Ipv4</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-23"></span><span>    </span><span class="annot"><a href="Pythia.Services.Types.Network.html#_Ipv6"><span class="hs-identifier">_Ipv6</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-24"></span><span>  </span><span class="hs-special">)</span><span>
+</span><span id="line-25"></span><span class="hs-keyword">where</span><span>
+</span><span id="line-26"></span><span>
+</span><span id="line-27"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Data.Char</span></span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="hs-keyword">as</span><span> </span><span class="annot"><span class="hs-identifier">Char</span></span><span>
+</span><span id="line-28"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Data.Text</span></span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="hs-keyword">as</span><span> </span><span class="annot"><span class="hs-identifier">T</span></span><span>
+</span><span id="line-29"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Data.Typeable</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">typeRep</span></span><span class="hs-special">)</span><span class="hs-cpp">
+#if MIN_VERSION_base(4,17,0)
+</span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">GHC.IsList</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">IsList</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">Item</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier">fromList</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier">toList</span></span><span class="hs-special">)</span><span class="hs-special">)</span><span class="hs-cpp">
+#else
+</span><span class="hs-keyword">import</span><span> </span><span class="hs-identifier">GHC.Exts</span><span> </span><span class="hs-special">(</span><span class="hs-identifier">IsList</span><span> </span><span class="hs-special">(</span><span class="hs-identifier">Item</span><span class="hs-special">,</span><span> </span><span class="hs-identifier">fromList</span><span class="hs-special">,</span><span> </span><span class="hs-identifier">toList</span><span class="hs-special">)</span><span class="hs-special">)</span><span class="hs-cpp">
+#endif
+</span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Pythia.Prelude.html"><span class="hs-identifier">Pythia.Prelude</span></a></span><span>
+</span><span id="line-36"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="file:///nix/store/89p55d22k6d0gk18g32vfj0wzrnlwxj0-refined-0.8.1-doc/share/doc/refined-0.8.1/html/src/Refined.html"><span class="hs-identifier">Refined</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="file:///nix/store/89p55d22k6d0gk18g32vfj0wzrnlwxj0-refined-0.8.1-doc/share/doc/refined-0.8.1/html/src/Refined.html#Predicate"><span class="hs-identifier">Predicate</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="file:///nix/store/89p55d22k6d0gk18g32vfj0wzrnlwxj0-refined-0.8.1-doc/share/doc/refined-0.8.1/html/src/Refined.Unsafe.Type.html#Refined"><span class="hs-identifier">Refined</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-37"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="file:///nix/store/89p55d22k6d0gk18g32vfj0wzrnlwxj0-refined-0.8.1-doc/share/doc/refined-0.8.1/html/src/Refined.html"><span class="hs-identifier">Refined</span></a></span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="hs-keyword">as</span><span> </span><span class="annot"><span class="hs-identifier">R</span></span><span>
+</span><span id="line-38"></span><span>
+</span><span id="line-39"></span><span class="hs-comment">-- $setup</span><span>
+</span><span id="line-40"></span><span class="hs-comment">-- &gt;&gt;&gt; import Data.Text qualified as T</span><span>
+</span><span id="line-41"></span><span class="hs-comment">-- &gt;&gt;&gt; import Pythia.Prelude</span><span>
+</span><span id="line-42"></span><span class="hs-comment">-- &gt;&gt;&gt; import Refined qualified as R</span><span>
+</span><span id="line-43"></span><span class="hs-comment">-- &gt;&gt;&gt; :{</span><span>
+</span><span id="line-44"></span><span class="hs-comment">--   let trim :: Show a =&gt; a -&gt; String</span><span>
+</span><span id="line-45"></span><span class="hs-comment">--       trim = T.unpack . T.strip . T.pack . show</span><span>
+</span><span id="line-46"></span><span class="hs-comment">-- :}</span><span>
+</span><span id="line-47"></span><span>
+</span><span id="line-48"></span><span class="hs-comment">-- | Newtype wrapper over a network device name.</span><span>
+</span><span id="line-49"></span><span class="hs-comment">--</span><span>
+</span><span id="line-50"></span><span class="hs-comment">-- @since 0.1</span><span>
+</span><span id="line-51"></span><span class="hs-keyword">type</span><span> </span><span class="annot"><a href="Pythia.Services.Types.Network.html#Device"><span class="hs-identifier hs-type">Device</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Type</span></span><span>
+</span><span id="line-52"></span><span class="hs-keyword">newtype</span><span> </span><span id="Device"><span class="annot"><a href="Pythia.Services.Types.Network.html#Device"><span class="hs-identifier hs-var">Device</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span id="MkDevice"><span class="annot"><a href="Pythia.Services.Types.Network.html#MkDevice"><span class="hs-identifier hs-var">MkDevice</span></a></span></span><span>
+</span><span id="line-53"></span><span>  </span><span class="hs-special">{</span><span> </span><span class="annot"><span class="hs-comment">-- | @since 0.1</span></span><span>
+</span><span id="line-54"></span><span>    </span><span id="%24sel%3AunDevice%3AMkDevice"><span class="annot"><span class="annottext">Device -&gt; Text
+</span><a href="Pythia.Services.Types.Network.html#%24sel%3AunDevice%3AMkDevice"><span class="hs-identifier hs-var hs-var">unDevice</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Text</span></span><span>
+</span><span id="line-55"></span><span>  </span><span class="hs-special">}</span><span>
+</span><span id="line-56"></span><span>  </span><span class="hs-keyword">deriving</span><span> </span><span class="annot"><span class="hs-keyword">stock</span></span><span>
+</span><span id="line-57"></span><span>    </span><span class="hs-special">(</span><span> </span><span class="annot"><span class="hs-comment">-- | @since 0.1</span></span><span>
+</span><span id="line-58"></span><span>      </span><span id="local-6989586621679253773"><span id="local-6989586621679253777"><span class="annot"><span class="annottext">Device -&gt; Device -&gt; Bool
+(Device -&gt; Device -&gt; Bool)
+-&gt; (Device -&gt; Device -&gt; Bool) -&gt; Eq Device
+forall a. (a -&gt; a -&gt; Bool) -&gt; (a -&gt; a -&gt; Bool) -&gt; Eq a
+$c== :: Device -&gt; Device -&gt; Bool
+== :: Device -&gt; Device -&gt; Bool
+$c/= :: Device -&gt; Device -&gt; Bool
+/= :: Device -&gt; Device -&gt; Bool
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Eq</span></span></span></span><span class="hs-special">,</span><span>
+</span><span id="line-59"></span><span>      </span><span class="annot"><span class="hs-comment">-- | @since 0.1</span></span><span>
+</span><span id="line-60"></span><span>      </span><span id="local-6989586621679253782"><span id="local-6989586621679253784"><span class="annot"><span class="annottext">(forall x. Device -&gt; Rep Device x)
+-&gt; (forall x. Rep Device x -&gt; Device) -&gt; Generic Device
+forall x. Rep Device x -&gt; Device
+forall x. Device -&gt; Rep Device x
+forall a.
+(forall x. a -&gt; Rep a x) -&gt; (forall x. Rep a x -&gt; a) -&gt; Generic a
+$cfrom :: forall x. Device -&gt; Rep Device x
+from :: forall x. Device -&gt; Rep Device x
+$cto :: forall x. Rep Device x -&gt; Device
+to :: forall x. Rep Device x -&gt; Device
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Generic</span></span></span></span><span class="hs-special">,</span><span>
+</span><span id="line-61"></span><span>      </span><span class="annot"><span class="hs-comment">-- | @since 0.1</span></span><span>
+</span><span id="line-62"></span><span>      </span><span id="local-6989586621679253790"><span id="local-6989586621679253794"><span id="local-6989586621679253797"><span id="local-6989586621679253801"><span id="local-6989586621679253804"><span id="local-6989586621679253807"><span id="local-6989586621679253810"><span class="annot"><span class="annottext">Eq Device
+Eq Device =&gt;
+(Device -&gt; Device -&gt; Ordering)
+-&gt; (Device -&gt; Device -&gt; Bool)
+-&gt; (Device -&gt; Device -&gt; Bool)
+-&gt; (Device -&gt; Device -&gt; Bool)
+-&gt; (Device -&gt; Device -&gt; Bool)
+-&gt; (Device -&gt; Device -&gt; Device)
+-&gt; (Device -&gt; Device -&gt; Device)
+-&gt; Ord Device
+Device -&gt; Device -&gt; Bool
+Device -&gt; Device -&gt; Ordering
+Device -&gt; Device -&gt; Device
+forall a.
+Eq a =&gt;
+(a -&gt; a -&gt; Ordering)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; a)
+-&gt; (a -&gt; a -&gt; a)
+-&gt; Ord a
+$ccompare :: Device -&gt; Device -&gt; Ordering
+compare :: Device -&gt; Device -&gt; Ordering
+$c&lt; :: Device -&gt; Device -&gt; Bool
+&lt; :: Device -&gt; Device -&gt; Bool
+$c&lt;= :: Device -&gt; Device -&gt; Bool
+&lt;= :: Device -&gt; Device -&gt; Bool
+$c&gt; :: Device -&gt; Device -&gt; Bool
+&gt; :: Device -&gt; Device -&gt; Bool
+$c&gt;= :: Device -&gt; Device -&gt; Bool
+&gt;= :: Device -&gt; Device -&gt; Bool
+$cmax :: Device -&gt; Device -&gt; Device
+max :: Device -&gt; Device -&gt; Device
+$cmin :: Device -&gt; Device -&gt; Device
+min :: Device -&gt; Device -&gt; Device
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Ord</span></span></span></span></span></span></span></span></span><span class="hs-special">,</span><span>
+</span><span id="line-63"></span><span>      </span><span class="annot"><span class="hs-comment">-- | @since 0.1</span></span><span>
+</span><span id="line-64"></span><span>      </span><span id="local-6989586621679253814"><span id="local-6989586621679253818"><span id="local-6989586621679253821"><span id="local-6989586621679253831"><span class="annot"><span class="annottext">ReadPrec [Device]
+ReadPrec Device
+Int -&gt; ReadS Device
+ReadS [Device]
+(Int -&gt; ReadS Device)
+-&gt; ReadS [Device]
+-&gt; ReadPrec Device
+-&gt; ReadPrec [Device]
+-&gt; Read Device
+forall a.
+(Int -&gt; ReadS a)
+-&gt; ReadS [a] -&gt; ReadPrec a -&gt; ReadPrec [a] -&gt; Read a
+$creadsPrec :: Int -&gt; ReadS Device
+readsPrec :: Int -&gt; ReadS Device
+$creadList :: ReadS [Device]
+readList :: ReadS [Device]
+$creadPrec :: ReadPrec Device
+readPrec :: ReadPrec Device
+$creadListPrec :: ReadPrec [Device]
+readListPrec :: ReadPrec [Device]
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Read</span></span></span></span></span></span><span class="hs-special">,</span><span>
+</span><span id="line-65"></span><span>      </span><span class="annot"><span class="hs-comment">-- | @since 0.1</span></span><span>
+</span><span id="line-66"></span><span>      </span><span id="local-6989586621679253835"><span id="local-6989586621679253841"><span id="local-6989586621679253845"><span class="annot"><span class="annottext">Int -&gt; Device -&gt; ShowS
+[Device] -&gt; ShowS
+Device -&gt; String
+(Int -&gt; Device -&gt; ShowS)
+-&gt; (Device -&gt; String) -&gt; ([Device] -&gt; ShowS) -&gt; Show Device
+forall a.
+(Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; String) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+$cshowsPrec :: Int -&gt; Device -&gt; ShowS
+showsPrec :: Int -&gt; Device -&gt; ShowS
+$cshow :: Device -&gt; String
+show :: Device -&gt; String
+$cshowList :: [Device] -&gt; ShowS
+showList :: [Device] -&gt; ShowS
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Show</span></span></span></span></span><span>
+</span><span id="line-67"></span><span>    </span><span class="hs-special">)</span><span>
+</span><span id="line-68"></span><span>  </span><span class="hs-keyword">deriving</span><span>
+</span><span id="line-69"></span><span>    </span><span class="hs-special">(</span><span> </span><span class="annot"><span class="hs-comment">-- | @since 0.1</span></span><span>
+</span><span id="line-70"></span><span>      </span><span id="local-6989586621679253849"><span id="local-6989586621679253854"><span id="local-6989586621679253858"><span class="annot"><span class="annottext">Int -&gt; Device -&gt; Builder
+[Device] -&gt; Builder
+Device -&gt; Builder
+(Device -&gt; Builder)
+-&gt; ([Device] -&gt; Builder)
+-&gt; (Int -&gt; Device -&gt; Builder)
+-&gt; Display Device
+forall a.
+(a -&gt; Builder)
+-&gt; ([a] -&gt; Builder) -&gt; (Int -&gt; a -&gt; Builder) -&gt; Display a
+$cdisplayBuilder :: Device -&gt; Builder
+displayBuilder :: Device -&gt; Builder
+$cdisplayList :: [Device] -&gt; Builder
+displayList :: [Device] -&gt; Builder
+$cdisplayPrec :: Int -&gt; Device -&gt; Builder
+displayPrec :: Int -&gt; Device -&gt; Builder
+</span><a href="file:///nix/store/c4qqygkxvzxxbb0xarjssql1bzgr0nq9-text-display-0.0.5.1-doc/share/doc/text-display-0.0.5.1/html/src/Data.Text.Display.Core.html#Display"><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Display</span></a></span></span></span></span><span class="hs-special">,</span><span>
+</span><span id="line-71"></span><span>      </span><span class="annot"><span class="hs-comment">-- | @since 0.1</span></span><span>
+</span><span id="line-72"></span><span>      </span><span id="local-6989586621679253864"><span class="annot"><span class="annottext">String -&gt; Device
+(String -&gt; Device) -&gt; IsString Device
+forall a. (String -&gt; a) -&gt; IsString a
+$cfromString :: String -&gt; Device
+fromString :: String -&gt; Device
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var">IsString</span></span></span><span>
+</span><span id="line-73"></span><span>    </span><span class="hs-special">)</span><span>
+</span><span id="line-74"></span><span>    </span><span class="hs-keyword">via</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Text</span></span><span>
+</span><span id="line-75"></span><span>  </span><span class="hs-keyword">deriving</span><span> </span><span class="annot"><span class="hs-keyword">anyclass</span></span><span>
+</span><span id="line-76"></span><span>    </span><span class="hs-special">(</span><span> </span><span class="annot"><span class="hs-comment">-- | @since 0.1</span></span><span>
+</span><span id="line-77"></span><span>      </span><span id="local-6989586621679253871"><span class="annot"><span class="annottext">Device -&gt; ()
+(Device -&gt; ()) -&gt; NFData Device
+forall a. (a -&gt; ()) -&gt; NFData a
+$crnf :: Device -&gt; ()
+rnf :: Device -&gt; ()
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var">NFData</span></span></span><span>
+</span><span id="line-78"></span><span>    </span><span class="hs-special">)</span><span>
+</span><span id="line-79"></span><span>
+</span><span id="line-80"></span><span class="annot"><span class="hs-comment">-- | @since 0.1</span></span><span>
+</span><span id="line-81"></span><span class="hs-keyword">instance</span><span>
+</span><span id="line-82"></span><span>  </span><span id="local-6989586621679253629"><span id="local-6989586621679253630"><span id="local-6989586621679253631"><span class="hs-special">(</span><span class="annot"><a href="#local-6989586621679253629"><span class="hs-identifier hs-type">k</span></a></span><span> </span><span class="annot"><span class="hs-operator hs-type">~</span></span><span> </span><span class="annot"><a href="file:///nix/store/yiyd960cyn3zg283hgrwi5m0ilr7bcpb-optics-core-0.4.1.1-doc/share/doc/optics-core-0.4.1.1/html/src/Optics.Internal.Optic.Types.html#An_Iso"><span class="hs-identifier hs-type">An_Iso</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="#local-6989586621679253630"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="annot"><span class="hs-operator hs-type">~</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Text</span></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="#local-6989586621679253631"><span class="hs-identifier hs-type">b</span></a></span><span> </span><span class="annot"><span class="hs-operator hs-type">~</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Text</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span>
+</span><span id="line-83"></span><span>  </span><span class="annot"><a href="file:///nix/store/yiyd960cyn3zg283hgrwi5m0ilr7bcpb-optics-core-0.4.1.1-doc/share/doc/optics-core-0.4.1.1/html/src/Optics.Label.html#LabelOptic"><span class="hs-identifier hs-type">LabelOptic</span></a></span><span> </span><span class="annot"><span class="hs-string">&quot;unDevice&quot;</span></span><span> </span><span class="annot"><a href="#local-6989586621679253629"><span class="hs-identifier hs-type">k</span></a></span><span> </span><span class="annot"><a href="Pythia.Services.Types.Network.html#Device"><span class="hs-identifier hs-type">Device</span></a></span><span> </span><span class="annot"><a href="Pythia.Services.Types.Network.html#Device"><span class="hs-identifier hs-type">Device</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679253630"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679253631"><span class="hs-identifier hs-type">b</span></a></span></span></span></span><span>
+</span><span id="line-84"></span><span>  </span><span class="hs-keyword">where</span><span>
+</span><span id="line-85"></span><span>  </span><span id="local-6989586621679253894"><span class="annot"><span class="annottext">labelOptic :: Optic k NoIx Device Device a b
+</span><a href="#local-6989586621679253894"><span class="hs-identifier hs-var hs-var hs-var hs-var">labelOptic</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">(Device -&gt; a) -&gt; (b -&gt; Device) -&gt; Iso Device Device a b
+forall s a b t. (s -&gt; a) -&gt; (b -&gt; t) -&gt; Iso s t a b
+</span><a href="file:///nix/store/yiyd960cyn3zg283hgrwi5m0ilr7bcpb-optics-core-0.4.1.1-doc/share/doc/optics-core-0.4.1.1/html/src/Optics.Iso.html#iso"><span class="hs-identifier hs-var">iso</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">\</span><span class="hs-special">(</span><span class="annot"><a href="Pythia.Services.Types.Network.html#MkDevice"><span class="hs-identifier hs-type">MkDevice</span></a></span><span> </span><span id="local-6989586621679253897"><span class="annot"><span class="annottext">Text
+</span><a href="#local-6989586621679253897"><span class="hs-identifier hs-var">d</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">a
+Text
+</span><a href="#local-6989586621679253897"><span class="hs-identifier hs-var">d</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">b -&gt; Device
+Text -&gt; Device
+</span><a href="Pythia.Services.Types.Network.html#MkDevice"><span class="hs-identifier hs-var">MkDevice</span></a></span><span>
+</span><span id="line-86"></span><span>  </span><span class="hs-pragma">{-# INLINE</span><span> </span><span class="annot"><a href="file:///nix/store/yiyd960cyn3zg283hgrwi5m0ilr7bcpb-optics-core-0.4.1.1-doc/share/doc/optics-core-0.4.1.1/html/src/Optics.Label.html#labelOptic"><span class="hs-pragma hs-type">labelOptic</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-87"></span><span>
+</span><span id="line-88"></span><span class="hs-comment">-- | IP types.</span><span>
+</span><span id="line-89"></span><span class="hs-comment">--</span><span>
+</span><span id="line-90"></span><span class="hs-comment">-- @since 0.1</span><span>
+</span><span id="line-91"></span><span class="hs-keyword">type</span><span> </span><span class="annot"><a href="Pythia.Services.Types.Network.html#IpType"><span class="hs-identifier hs-type">IpType</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Type</span></span><span>
+</span><span id="line-92"></span><span class="hs-keyword">data</span><span> </span><span id="IpType"><span class="annot"><a href="Pythia.Services.Types.Network.html#IpType"><span class="hs-identifier hs-var">IpType</span></a></span></span><span>
+</span><span id="line-93"></span><span>  </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="hs-comment">-- | @since 0.1</span></span><span>
+</span><span id="line-94"></span><span>    </span><span id="Ipv4"><span class="annot"><a href="Pythia.Services.Types.Network.html#Ipv4"><span class="hs-identifier hs-var">Ipv4</span></a></span></span><span>
+</span><span id="line-95"></span><span>  </span><span class="hs-glyph">|</span><span> </span><span class="annot"><span class="hs-comment">-- | @since 0.1</span></span><span>
+</span><span id="line-96"></span><span>    </span><span id="Ipv6"><span class="annot"><a href="Pythia.Services.Types.Network.html#Ipv6"><span class="hs-identifier hs-var">Ipv6</span></a></span></span><span>
+</span><span id="line-97"></span><span>  </span><span class="hs-keyword">deriving</span><span> </span><span class="annot"><span class="hs-keyword">stock</span></span><span>
+</span><span id="line-98"></span><span>    </span><span class="hs-special">(</span><span> </span><span class="annot"><span class="hs-comment">-- | @since 0.1</span></span><span>
+</span><span id="line-99"></span><span>      </span><span id="local-6989586621679253901"><span id="local-6989586621679253903"><span class="annot"><span class="annottext">IpType -&gt; IpType -&gt; Bool
+(IpType -&gt; IpType -&gt; Bool)
+-&gt; (IpType -&gt; IpType -&gt; Bool) -&gt; Eq IpType
+forall a. (a -&gt; a -&gt; Bool) -&gt; (a -&gt; a -&gt; Bool) -&gt; Eq a
+$c== :: IpType -&gt; IpType -&gt; Bool
+== :: IpType -&gt; IpType -&gt; Bool
+$c/= :: IpType -&gt; IpType -&gt; Bool
+/= :: IpType -&gt; IpType -&gt; Bool
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Eq</span></span></span></span><span class="hs-special">,</span><span>
+</span><span id="line-100"></span><span>      </span><span class="annot"><span class="hs-comment">-- | @since 0.1</span></span><span>
+</span><span id="line-101"></span><span>      </span><span id="local-6989586621679253907"><span id="local-6989586621679253909"><span class="annot"><span class="annottext">(forall x. IpType -&gt; Rep IpType x)
+-&gt; (forall x. Rep IpType x -&gt; IpType) -&gt; Generic IpType
+forall x. Rep IpType x -&gt; IpType
+forall x. IpType -&gt; Rep IpType x
+forall a.
+(forall x. a -&gt; Rep a x) -&gt; (forall x. Rep a x -&gt; a) -&gt; Generic a
+$cfrom :: forall x. IpType -&gt; Rep IpType x
+from :: forall x. IpType -&gt; Rep IpType x
+$cto :: forall x. Rep IpType x -&gt; IpType
+to :: forall x. Rep IpType x -&gt; IpType
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Generic</span></span></span></span><span class="hs-special">,</span><span>
+</span><span id="line-102"></span><span>      </span><span class="annot"><span class="hs-comment">-- | @since 0.1</span></span><span>
+</span><span id="line-103"></span><span>      </span><span id="local-6989586621679253912"><span id="local-6989586621679253914"><span id="local-6989586621679253918"><span class="annot"><span class="annottext">Int -&gt; IpType -&gt; ShowS
+[IpType] -&gt; ShowS
+IpType -&gt; String
+(Int -&gt; IpType -&gt; ShowS)
+-&gt; (IpType -&gt; String) -&gt; ([IpType] -&gt; ShowS) -&gt; Show IpType
+forall a.
+(Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; String) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+$cshowsPrec :: Int -&gt; IpType -&gt; ShowS
+showsPrec :: Int -&gt; IpType -&gt; ShowS
+$cshow :: IpType -&gt; String
+show :: IpType -&gt; String
+$cshowList :: [IpType] -&gt; ShowS
+showList :: [IpType] -&gt; ShowS
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Show</span></span></span></span></span><span>
+</span><span id="line-104"></span><span>    </span><span class="hs-special">)</span><span>
+</span><span id="line-105"></span><span>  </span><span class="hs-keyword">deriving</span><span> </span><span class="annot"><span class="hs-keyword">anyclass</span></span><span>
+</span><span id="line-106"></span><span>    </span><span class="hs-special">(</span><span> </span><span class="annot"><span class="hs-comment">-- | @since 0.1</span></span><span>
+</span><span id="line-107"></span><span>      </span><span id="local-6989586621679253921"><span class="annot"><span class="annottext">IpType -&gt; ()
+(IpType -&gt; ()) -&gt; NFData IpType
+forall a. (a -&gt; ()) -&gt; NFData a
+$crnf :: IpType -&gt; ()
+rnf :: IpType -&gt; ()
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var">NFData</span></span></span><span>
+</span><span id="line-108"></span><span>    </span><span class="hs-special">)</span><span>
+</span><span id="line-109"></span><span>
+</span><span id="line-110"></span><span class="annot"><span class="hs-comment">-- | @since 0.1</span></span><span>
+</span><span id="line-111"></span><span class="annot"><a href="Pythia.Services.Types.Network.html#_Ipv4"><span class="hs-identifier hs-type">_Ipv4</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="file:///nix/store/yiyd960cyn3zg283hgrwi5m0ilr7bcpb-optics-core-0.4.1.1-doc/share/doc/optics-core-0.4.1.1/html/src/Optics.Prism.html#Prism%27"><span class="hs-identifier hs-type">Prism'</span></a></span><span> </span><span class="annot"><a href="Pythia.Services.Types.Network.html#IpType"><span class="hs-identifier hs-type">IpType</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span>
+</span><span id="line-112"></span><span id="_Ipv4"><span class="annot"><span class="annottext">_Ipv4 :: Prism' IpType ()
+</span><a href="Pythia.Services.Types.Network.html#_Ipv4"><span class="hs-identifier hs-var hs-var">_Ipv4</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-113"></span><span>  </span><span class="annot"><span class="annottext">(() -&gt; IpType) -&gt; (IpType -&gt; Either IpType ()) -&gt; Prism' IpType ()
+forall b t s a. (b -&gt; t) -&gt; (s -&gt; Either t a) -&gt; Prism s t a b
+</span><a href="file:///nix/store/yiyd960cyn3zg283hgrwi5m0ilr7bcpb-optics-core-0.4.1.1-doc/share/doc/optics-core-0.4.1.1/html/src/Optics.Prism.html#prism"><span class="hs-identifier hs-var">prism</span></a></span><span>
+</span><span id="line-114"></span><span>    </span><span class="hs-special">(</span><span class="annot"><span class="annottext">IpType -&gt; () -&gt; IpType
+forall a b. a -&gt; b -&gt; a
+</span><span class="hs-identifier hs-var">const</span></span><span> </span><span class="annot"><span class="annottext">IpType
+</span><a href="Pythia.Services.Types.Network.html#Ipv4"><span class="hs-identifier hs-var">Ipv4</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-115"></span><span>    </span><span class="hs-special">(</span><span> </span><span class="hs-glyph">\</span><span id="local-6989586621679253935"><span class="annot"><span class="annottext">IpType
+</span><a href="#local-6989586621679253935"><span class="hs-identifier hs-var">x</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-keyword">case</span><span> </span><span class="annot"><span class="annottext">IpType
+</span><a href="#local-6989586621679253935"><span class="hs-identifier hs-var">x</span></a></span><span> </span><span class="hs-keyword">of</span><span>
+</span><span id="line-116"></span><span>        </span><span class="annot"><span class="annottext">IpType
+</span><a href="Pythia.Services.Types.Network.html#Ipv4"><span class="hs-identifier hs-var">Ipv4</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">() -&gt; Either IpType ()
+forall a b. b -&gt; Either a b
+</span><span class="hs-identifier hs-var">Right</span></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span>
+</span><span id="line-117"></span><span>        </span><span class="annot"><span class="annottext">IpType
+</span><span class="hs-identifier">_</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">IpType -&gt; Either IpType ()
+forall a b. a -&gt; Either a b
+</span><span class="hs-identifier hs-var">Left</span></span><span> </span><span class="annot"><span class="annottext">IpType
+</span><a href="#local-6989586621679253935"><span class="hs-identifier hs-var">x</span></a></span><span>
+</span><span id="line-118"></span><span>    </span><span class="hs-special">)</span><span>
+</span><span id="line-119"></span><span class="hs-pragma">{-# INLINE</span><span> </span><span class="annot"><a href="Pythia.Services.Types.Network.html#_Ipv4"><span class="hs-pragma hs-type">_Ipv4</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-120"></span><span>
+</span><span id="line-121"></span><span class="annot"><span class="hs-comment">-- | @since 0.1</span></span><span>
+</span><span id="line-122"></span><span class="annot"><a href="Pythia.Services.Types.Network.html#_Ipv6"><span class="hs-identifier hs-type">_Ipv6</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="file:///nix/store/yiyd960cyn3zg283hgrwi5m0ilr7bcpb-optics-core-0.4.1.1-doc/share/doc/optics-core-0.4.1.1/html/src/Optics.Prism.html#Prism%27"><span class="hs-identifier hs-type">Prism'</span></a></span><span> </span><span class="annot"><a href="Pythia.Services.Types.Network.html#IpType"><span class="hs-identifier hs-type">IpType</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span>
+</span><span id="line-123"></span><span id="_Ipv6"><span class="annot"><span class="annottext">_Ipv6 :: Prism' IpType ()
+</span><a href="Pythia.Services.Types.Network.html#_Ipv6"><span class="hs-identifier hs-var hs-var">_Ipv6</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-124"></span><span>  </span><span class="annot"><span class="annottext">(() -&gt; IpType) -&gt; (IpType -&gt; Either IpType ()) -&gt; Prism' IpType ()
+forall b t s a. (b -&gt; t) -&gt; (s -&gt; Either t a) -&gt; Prism s t a b
+</span><a href="file:///nix/store/yiyd960cyn3zg283hgrwi5m0ilr7bcpb-optics-core-0.4.1.1-doc/share/doc/optics-core-0.4.1.1/html/src/Optics.Prism.html#prism"><span class="hs-identifier hs-var">prism</span></a></span><span>
+</span><span id="line-125"></span><span>    </span><span class="hs-special">(</span><span class="annot"><span class="annottext">IpType -&gt; () -&gt; IpType
+forall a b. a -&gt; b -&gt; a
+</span><span class="hs-identifier hs-var">const</span></span><span> </span><span class="annot"><span class="annottext">IpType
+</span><a href="Pythia.Services.Types.Network.html#Ipv6"><span class="hs-identifier hs-var">Ipv6</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-126"></span><span>    </span><span class="hs-special">(</span><span> </span><span class="hs-glyph">\</span><span id="local-6989586621679253936"><span class="annot"><span class="annottext">IpType
+</span><a href="#local-6989586621679253936"><span class="hs-identifier hs-var">x</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-keyword">case</span><span> </span><span class="annot"><span class="annottext">IpType
+</span><a href="#local-6989586621679253936"><span class="hs-identifier hs-var">x</span></a></span><span> </span><span class="hs-keyword">of</span><span>
+</span><span id="line-127"></span><span>        </span><span class="annot"><span class="annottext">IpType
+</span><a href="Pythia.Services.Types.Network.html#Ipv6"><span class="hs-identifier hs-var">Ipv6</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">() -&gt; Either IpType ()
+forall a b. b -&gt; Either a b
+</span><span class="hs-identifier hs-var">Right</span></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span>
+</span><span id="line-128"></span><span>        </span><span class="annot"><span class="annottext">IpType
+</span><span class="hs-identifier">_</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">IpType -&gt; Either IpType ()
+forall a b. a -&gt; Either a b
+</span><span class="hs-identifier hs-var">Left</span></span><span> </span><span class="annot"><span class="annottext">IpType
+</span><a href="#local-6989586621679253936"><span class="hs-identifier hs-var">x</span></a></span><span>
+</span><span id="line-129"></span><span>    </span><span class="hs-special">)</span><span>
+</span><span id="line-130"></span><span class="hs-pragma">{-# INLINE</span><span> </span><span class="annot"><a href="Pythia.Services.Types.Network.html#_Ipv6"><span class="hs-pragma hs-type">_Ipv6</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-131"></span><span>
+</span><span id="line-132"></span><span class="hs-comment">-- | Maps 'IpType' to its 'Text' refinement.</span><span>
+</span><span id="line-133"></span><span class="hs-comment">--</span><span>
+</span><span id="line-134"></span><span class="hs-comment">-- @since 0.1</span><span>
+</span><span id="line-135"></span><span class="hs-keyword">type</span><span> </span><span class="annot"><a href="Pythia.Services.Types.Network.html#IpRefinement"><span class="hs-identifier hs-type">IpRefinement</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Pythia.Services.Types.Network.html#IpType"><span class="hs-identifier hs-type">IpType</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Type</span></span><span>
+</span><span id="line-136"></span><span class="hs-keyword">type</span><span> </span><span class="hs-keyword">family</span><span> </span><span id="IpRefinement"><span class="annot"><a href="Pythia.Services.Types.Network.html#IpRefinement"><span class="hs-identifier hs-var">IpRefinement</span></a></span></span><span> </span><span id="local-6989586621679253937"><span class="annot"><a href="#local-6989586621679253937"><span class="hs-identifier hs-type">a</span></a></span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-137"></span><span>  </span><span id="IpRefinement"><span class="annot"><a href="Pythia.Services.Types.Network.html#IpRefinement"><span class="hs-identifier hs-var">IpRefinement</span></a></span></span><span> </span><span class="annot"><a href="Pythia.Services.Types.Network.html#Ipv4"><span class="hs-identifier hs-type">Ipv4</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><a href="Pythia.Services.Types.Network.html#Ipv4Refinement"><span class="hs-identifier hs-type">Ipv4Refinement</span></a></span><span>
+</span><span id="line-138"></span><span>  </span><span id="IpRefinement"><span class="annot"><a href="Pythia.Services.Types.Network.html#IpRefinement"><span class="hs-identifier hs-var">IpRefinement</span></a></span></span><span> </span><span class="annot"><a href="Pythia.Services.Types.Network.html#Ipv6"><span class="hs-identifier hs-type">Ipv6</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><a href="Pythia.Services.Types.Network.html#Ipv6Refinement"><span class="hs-identifier hs-type">Ipv6Refinement</span></a></span><span>
+</span><span id="line-139"></span><span>
+</span><span id="line-140"></span><span class="hs-comment">-- | IPv4 Refinement. We implement a custom type here so we get better error</span><span>
+</span><span id="line-141"></span><span class="hs-comment">-- messages. 'Text' must satisfy:</span><span>
+</span><span id="line-142"></span><span class="hs-comment">--</span><span>
+</span><span id="line-143"></span><span class="hs-comment">-- * Length in @(0, 16)@.</span><span>
+</span><span id="line-144"></span><span class="hs-comment">-- * Chars are all decimal digits or dots.</span><span>
+</span><span id="line-145"></span><span class="hs-comment">--</span><span>
+</span><span id="line-146"></span><span class="hs-comment">-- ==== __Examples__</span><span>
+</span><span id="line-147"></span><span class="hs-comment">-- &gt;&gt;&gt; R.refine @Ipv4Refinement @Text &quot;192.168.1.2&quot;</span><span>
+</span><span id="line-148"></span><span class="hs-comment">-- Right (Refined &quot;192.168.1.2&quot;)</span><span>
+</span><span id="line-149"></span><span class="hs-comment">--</span><span>
+</span><span id="line-150"></span><span class="hs-comment">-- &gt;&gt;&gt; trim $ R.refine @Ipv4Refinement @Text &quot;&quot;</span><span>
+</span><span id="line-151"></span><span class="hs-comment">-- &quot;Left   The predicate (Ipv4Refinement) failed with the message: Expected IPv4 with length (0, 16). Received empty.&quot;</span><span>
+</span><span id="line-152"></span><span class="hs-comment">--</span><span>
+</span><span id="line-153"></span><span class="hs-comment">-- &gt;&gt;&gt; trim $ R.refine @Ipv4Refinement @Text &quot;192.168.111.222.7&quot;</span><span>
+</span><span id="line-154"></span><span class="hs-comment">-- &quot;Left   The predicate (Ipv4Refinement) failed with the message: Expected IPv4 address with length (0, 16). Received '192.168.111.222.7' of length 17&quot;</span><span>
+</span><span id="line-155"></span><span class="hs-comment">--</span><span>
+</span><span id="line-156"></span><span class="hs-comment">-- &gt;&gt;&gt; trim $ R.refine @Ipv4Refinement @Text &quot;192.168x1.2&quot;</span><span>
+</span><span id="line-157"></span><span class="hs-comment">-- &quot;Left   The predicate (Ipv4Refinement) failed with the message: IPv4 address should only contain decimal digits or dots. Received invalid: 192.168x1.2&quot;</span><span>
+</span><span id="line-158"></span><span class="hs-comment">--</span><span>
+</span><span id="line-159"></span><span class="hs-comment">-- @since 0.1</span><span>
+</span><span id="line-160"></span><span class="hs-keyword">type</span><span> </span><span class="annot"><a href="Pythia.Services.Types.Network.html#Ipv4Refinement"><span class="hs-identifier hs-type">Ipv4Refinement</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Type</span></span><span>
+</span><span id="line-161"></span><span class="hs-keyword">data</span><span> </span><span id="Ipv4Refinement"><span class="annot"><a href="Pythia.Services.Types.Network.html#Ipv4Refinement"><span class="hs-identifier hs-var">Ipv4Refinement</span></a></span></span><span>
+</span><span id="line-162"></span><span>
+</span><span id="line-163"></span><span class="annot"><span class="hs-comment">-- | @since 0.1</span></span><span>
+</span><span id="line-164"></span><span class="hs-keyword">instance</span><span> </span><span class="annot"><a href="file:///nix/store/89p55d22k6d0gk18g32vfj0wzrnlwxj0-refined-0.8.1-doc/share/doc/refined-0.8.1/html/src/Refined.html#Predicate"><span class="hs-identifier hs-type">Predicate</span></a></span><span> </span><span class="annot"><a href="Pythia.Services.Types.Network.html#Ipv4Refinement"><span class="hs-identifier hs-type">Ipv4Refinement</span></a></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Text</span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-165"></span><span>  </span><span id="local-6989586621679253966"><span class="annot"><span class="annottext">validate :: Proxy Ipv4Refinement -&gt; Text -&gt; Maybe RefineException
+</span><a href="#local-6989586621679253966"><span class="hs-identifier hs-var hs-var hs-var hs-var">validate</span></a></span></span><span> </span><span id="local-6989586621679253968"><span class="annot"><span class="annottext">Proxy Ipv4Refinement
+</span><a href="#local-6989586621679253968"><span class="hs-identifier hs-var">p</span></a></span></span><span> </span><span id="local-6989586621679253969"><span class="annot"><span class="annottext">Text
+</span><a href="#local-6989586621679253969"><span class="hs-identifier hs-var">txt</span></a></span></span><span>
+</span><span id="line-166"></span><span>    </span><span class="hs-glyph">|</span><span> </span><span class="annot"><span class="annottext">Bool -&gt; Bool
+</span><span class="hs-identifier hs-var">not</span></span><span> </span><span class="annot"><span class="annottext">Bool
+</span><a href="#local-6989586621679253971"><span class="hs-identifier hs-var">validLen</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">TypeRep -&gt; Text -&gt; Maybe RefineException
+</span><a href="file:///nix/store/89p55d22k6d0gk18g32vfj0wzrnlwxj0-refined-0.8.1-doc/share/doc/refined-0.8.1/html/src/Refined.html#throwRefineOtherException"><span class="hs-identifier hs-var">R.throwRefineOtherException</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Proxy Ipv4Refinement -&gt; TypeRep
+forall {k} (proxy :: k -&gt; Type) (a :: k).
+Typeable a =&gt;
+proxy a -&gt; TypeRep
+</span><span class="hs-identifier hs-var">typeRep</span></span><span> </span><span class="annot"><span class="annottext">Proxy Ipv4Refinement
+</span><a href="#local-6989586621679253968"><span class="hs-identifier hs-var">p</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">Text
+</span><a href="#local-6989586621679253973"><span class="hs-identifier hs-var">errLen</span></a></span><span>
+</span><span id="line-167"></span><span>    </span><span class="hs-glyph">|</span><span> </span><span class="annot"><span class="annottext">Bool -&gt; Bool
+</span><span class="hs-identifier hs-var">not</span></span><span> </span><span class="annot"><span class="annottext">Bool
+</span><a href="#local-6989586621679253974"><span class="hs-identifier hs-var">validChars</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">TypeRep -&gt; Text -&gt; Maybe RefineException
+</span><a href="file:///nix/store/89p55d22k6d0gk18g32vfj0wzrnlwxj0-refined-0.8.1-doc/share/doc/refined-0.8.1/html/src/Refined.html#throwRefineOtherException"><span class="hs-identifier hs-var">R.throwRefineOtherException</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Proxy Ipv4Refinement -&gt; TypeRep
+forall {k} (proxy :: k -&gt; Type) (a :: k).
+Typeable a =&gt;
+proxy a -&gt; TypeRep
+</span><span class="hs-identifier hs-var">typeRep</span></span><span> </span><span class="annot"><span class="annottext">Proxy Ipv4Refinement
+</span><a href="#local-6989586621679253968"><span class="hs-identifier hs-var">p</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">Text
+</span><a href="#local-6989586621679253975"><span class="hs-identifier hs-var">errChars</span></a></span><span>
+</span><span id="line-168"></span><span>    </span><span class="hs-glyph">|</span><span> </span><span class="annot"><span class="annottext">Bool
+</span><span class="hs-identifier hs-var">otherwise</span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Maybe RefineException
+forall a. Maybe a
+</span><span class="hs-identifier hs-var">Nothing</span></span><span>
+</span><span id="line-169"></span><span>    </span><span class="hs-keyword">where</span><span>
+</span><span id="line-170"></span><span>      </span><span id="local-6989586621679253976"><span class="annot"><span class="annottext">len :: Int
+</span><a href="#local-6989586621679253976"><span class="hs-identifier hs-var hs-var">len</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Text -&gt; Int
+</span><span class="hs-identifier hs-var">T.length</span></span><span> </span><span class="annot"><span class="annottext">Text
+</span><a href="#local-6989586621679253969"><span class="hs-identifier hs-var">txt</span></a></span><span>
+</span><span id="line-171"></span><span>      </span><span id="local-6989586621679253971"><span class="annot"><span class="annottext">validLen :: Bool
+</span><a href="#local-6989586621679253971"><span class="hs-identifier hs-var hs-var">validLen</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679253976"><span class="hs-identifier hs-var">len</span></a></span><span> </span><span class="annot"><span class="annottext">Int -&gt; Int -&gt; Bool
+forall a. Ord a =&gt; a -&gt; a -&gt; Bool
+</span><span class="hs-operator hs-var">&gt;</span></span><span> </span><span class="annot"><span class="annottext">Int
+</span><span class="hs-number">0</span></span><span> </span><span class="annot"><span class="annottext">Bool -&gt; Bool -&gt; Bool
+</span><span class="hs-operator hs-var">&amp;&amp;</span></span><span> </span><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679253976"><span class="hs-identifier hs-var">len</span></a></span><span> </span><span class="annot"><span class="annottext">Int -&gt; Int -&gt; Bool
+forall a. Ord a =&gt; a -&gt; a -&gt; Bool
+</span><span class="hs-operator hs-var">&lt;</span></span><span> </span><span class="annot"><span class="annottext">Int
+</span><span class="hs-number">16</span></span><span>
+</span><span id="line-172"></span><span>      </span><span id="local-6989586621679253974"><span class="annot"><span class="annottext">validChars :: Bool
+</span><a href="#local-6989586621679253974"><span class="hs-identifier hs-var hs-var">validChars</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">(Char -&gt; Bool) -&gt; Text -&gt; Bool
+</span><span class="hs-identifier hs-var">T.all</span></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">\</span><span id="local-6989586621679253982"><span class="annot"><span class="annottext">Char
+</span><a href="#local-6989586621679253982"><span class="hs-identifier hs-var">c</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Char -&gt; Bool
+</span><span class="hs-identifier hs-var">Char.isDigit</span></span><span> </span><span class="annot"><span class="annottext">Char
+</span><a href="#local-6989586621679253982"><span class="hs-identifier hs-var">c</span></a></span><span> </span><span class="annot"><span class="annottext">Bool -&gt; Bool -&gt; Bool
+</span><span class="hs-operator hs-var">||</span></span><span> </span><span class="annot"><span class="annottext">Char
+</span><a href="#local-6989586621679253982"><span class="hs-identifier hs-var">c</span></a></span><span> </span><span class="annot"><span class="annottext">Char -&gt; Char -&gt; Bool
+forall a. Eq a =&gt; a -&gt; a -&gt; Bool
+</span><span class="hs-operator hs-var">==</span></span><span> </span><span class="annot"><span class="annottext">Char
+</span><span class="hs-char">'.'</span></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">Text
+</span><a href="#local-6989586621679253969"><span class="hs-identifier hs-var">txt</span></a></span><span>
+</span><span id="line-173"></span><span>      </span><span id="local-6989586621679253973"><span class="annot"><span class="annottext">errLen :: Text
+</span><a href="#local-6989586621679253973"><span class="hs-identifier hs-var hs-var">errLen</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-174"></span><span>        </span><span class="hs-keyword">if</span><span> </span><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679253976"><span class="hs-identifier hs-var">len</span></a></span><span> </span><span class="annot"><span class="annottext">Int -&gt; Int -&gt; Bool
+forall a. Eq a =&gt; a -&gt; a -&gt; Bool
+</span><span class="hs-operator hs-var">==</span></span><span> </span><span class="annot"><span class="annottext">Int
+</span><span class="hs-number">0</span></span><span>
+</span><span id="line-175"></span><span>          </span><span class="hs-keyword">then</span><span> </span><span class="annot"><span class="annottext">Text
+</span><span class="hs-string">&quot;Expected IPv4 with length (0, 16). Received empty.&quot;</span></span><span>
+</span><span id="line-176"></span><span>          </span><span class="hs-keyword">else</span><span>
+</span><span id="line-177"></span><span>            </span><span class="annot"><span class="annottext">Text
+</span><span class="hs-string">&quot;Expected IPv4 address with length (0, 16). Received '&quot;</span></span><span>
+</span><span id="line-178"></span><span>              </span><span class="annot"><span class="annottext">Text -&gt; Text -&gt; Text
+forall a. Semigroup a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-operator hs-var">&lt;&gt;</span></span><span> </span><span class="annot"><span class="annottext">Text
+</span><a href="#local-6989586621679253969"><span class="hs-identifier hs-var">txt</span></a></span><span>
+</span><span id="line-179"></span><span>              </span><span class="annot"><span class="annottext">Text -&gt; Text -&gt; Text
+forall a. Semigroup a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-operator hs-var">&lt;&gt;</span></span><span> </span><span class="annot"><span class="annottext">Text
+</span><span class="hs-string">&quot;' of length &quot;</span></span><span>
+</span><span id="line-180"></span><span>              </span><span class="annot"><span class="annottext">Text -&gt; Text -&gt; Text
+forall a. Semigroup a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-operator hs-var">&lt;&gt;</span></span><span> </span><span class="annot"><span class="annottext">Int -&gt; Text
+forall a. Show a =&gt; a -&gt; Text
+</span><a href="Pythia.Prelude.html#showt"><span class="hs-identifier hs-var">showt</span></a></span><span> </span><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679253976"><span class="hs-identifier hs-var">len</span></a></span><span>
+</span><span id="line-181"></span><span>      </span><span id="local-6989586621679253975"><span class="annot"><span class="annottext">errChars :: Text
+</span><a href="#local-6989586621679253975"><span class="hs-identifier hs-var hs-var">errChars</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-182"></span><span>        </span><span class="annot"><span class="annottext">Text
+</span><span class="hs-string">&quot;IPv4 address should only contain decimal digits or dots. Received invalid: &quot;</span></span><span>
+</span><span id="line-183"></span><span>          </span><span class="annot"><span class="annottext">Text -&gt; Text -&gt; Text
+forall a. Semigroup a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-operator hs-var">&lt;&gt;</span></span><span> </span><span class="annot"><span class="annottext">Text
+</span><a href="#local-6989586621679253969"><span class="hs-identifier hs-var">txt</span></a></span><span>
+</span><span id="line-184"></span><span>  </span><span class="hs-pragma">{-# INLINEABLE</span><span> </span><span class="annot"><a href="file:///nix/store/89p55d22k6d0gk18g32vfj0wzrnlwxj0-refined-0.8.1-doc/share/doc/refined-0.8.1/html/src/Refined.html#validate"><span class="hs-pragma hs-type">validate</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-185"></span><span>
+</span><span id="line-186"></span><span class="hs-comment">-- | IPv6 Refinement. We implement a custom type here so we get better error</span><span>
+</span><span id="line-187"></span><span class="hs-comment">-- messages. 'Text' must satisfy:</span><span>
+</span><span id="line-188"></span><span class="hs-comment">--</span><span>
+</span><span id="line-189"></span><span class="hs-comment">-- * Length in @(0, 40)@.</span><span>
+</span><span id="line-190"></span><span class="hs-comment">-- * Chars are all hex digits or colons.</span><span>
+</span><span id="line-191"></span><span class="hs-comment">--</span><span>
+</span><span id="line-192"></span><span class="hs-comment">-- ==== __Examples__</span><span>
+</span><span id="line-193"></span><span class="hs-comment">-- &gt;&gt;&gt; R.refine @Ipv6Refinement @Text &quot;fe80::a328:482:5263:10b8&quot;</span><span>
+</span><span id="line-194"></span><span class="hs-comment">-- Right (Refined &quot;fe80::a328:482:5263:10b8&quot;)</span><span>
+</span><span id="line-195"></span><span class="hs-comment">--</span><span>
+</span><span id="line-196"></span><span class="hs-comment">-- &gt;&gt;&gt; trim $ R.refine @Ipv6Refinement @Text &quot;&quot;</span><span>
+</span><span id="line-197"></span><span class="hs-comment">-- &quot;Left   The predicate (Ipv6Refinement) failed with the message: Expected IPv6 of length (0, 40). Received empty.&quot;</span><span>
+</span><span id="line-198"></span><span class="hs-comment">--</span><span>
+</span><span id="line-199"></span><span class="hs-comment">-- &gt;&gt;&gt; trim $ R.refine @Ipv6Refinement @Text &quot;fe80:a328:4822:5263:10b8:4062:10d3:16ac:&quot;</span><span>
+</span><span id="line-200"></span><span class="hs-comment">-- &quot;Left   The predicate (Ipv6Refinement) failed with the message: Expected IPv6 with length (0, 40). Received 'fe80:a328:4822:5263:10b8:4062:10d3:16ac:' of length 40&quot;</span><span>
+</span><span id="line-201"></span><span class="hs-comment">--</span><span>
+</span><span id="line-202"></span><span class="hs-comment">-- &gt;&gt;&gt; trim $ R.refine @Ipv6Refinement @Text &quot;fe80::a328:482:5263:10b8x&quot;</span><span>
+</span><span id="line-203"></span><span class="hs-comment">-- &quot;Left   The predicate (Ipv6Refinement) failed with the message: IPv6 address should only contain hex digits or colons. Received invalid: fe80::a328:482:5263:10b8x&quot;</span><span>
+</span><span id="line-204"></span><span class="hs-comment">--</span><span>
+</span><span id="line-205"></span><span class="hs-comment">-- @since 0.1</span><span>
+</span><span id="line-206"></span><span class="hs-keyword">type</span><span> </span><span class="annot"><a href="Pythia.Services.Types.Network.html#Ipv6Refinement"><span class="hs-identifier hs-type">Ipv6Refinement</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Type</span></span><span>
+</span><span id="line-207"></span><span class="hs-keyword">data</span><span> </span><span id="Ipv6Refinement"><span class="annot"><a href="Pythia.Services.Types.Network.html#Ipv6Refinement"><span class="hs-identifier hs-var">Ipv6Refinement</span></a></span></span><span>
+</span><span id="line-208"></span><span>
+</span><span id="line-209"></span><span class="annot"><span class="hs-comment">-- | @since 0.1</span></span><span>
+</span><span id="line-210"></span><span class="hs-keyword">instance</span><span> </span><span class="annot"><a href="file:///nix/store/89p55d22k6d0gk18g32vfj0wzrnlwxj0-refined-0.8.1-doc/share/doc/refined-0.8.1/html/src/Refined.html#Predicate"><span class="hs-identifier hs-type">Predicate</span></a></span><span> </span><span class="annot"><a href="Pythia.Services.Types.Network.html#Ipv6Refinement"><span class="hs-identifier hs-type">Ipv6Refinement</span></a></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Text</span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-211"></span><span>  </span><span id="local-6989586621679254008"><span class="annot"><span class="annottext">validate :: Proxy Ipv6Refinement -&gt; Text -&gt; Maybe RefineException
+</span><a href="file:///nix/store/89p55d22k6d0gk18g32vfj0wzrnlwxj0-refined-0.8.1-doc/share/doc/refined-0.8.1/html/src/Refined.html#validate"><span class="hs-identifier hs-var hs-var hs-var hs-var">validate</span></a></span></span><span> </span><span id="local-6989586621679254009"><span class="annot"><span class="annottext">Proxy Ipv6Refinement
+</span><a href="#local-6989586621679254009"><span class="hs-identifier hs-var">p</span></a></span></span><span> </span><span id="local-6989586621679254010"><span class="annot"><span class="annottext">Text
+</span><a href="#local-6989586621679254010"><span class="hs-identifier hs-var">txt</span></a></span></span><span>
+</span><span id="line-212"></span><span>    </span><span class="hs-glyph">|</span><span> </span><span class="annot"><span class="annottext">Bool -&gt; Bool
+</span><span class="hs-identifier hs-var">not</span></span><span> </span><span class="annot"><span class="annottext">Bool
+</span><a href="#local-6989586621679254011"><span class="hs-identifier hs-var">validLen</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">TypeRep -&gt; Text -&gt; Maybe RefineException
+</span><a href="file:///nix/store/89p55d22k6d0gk18g32vfj0wzrnlwxj0-refined-0.8.1-doc/share/doc/refined-0.8.1/html/src/Refined.html#throwRefineOtherException"><span class="hs-identifier hs-var">R.throwRefineOtherException</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Proxy Ipv6Refinement -&gt; TypeRep
+forall {k} (proxy :: k -&gt; Type) (a :: k).
+Typeable a =&gt;
+proxy a -&gt; TypeRep
+</span><span class="hs-identifier hs-var">typeRep</span></span><span> </span><span class="annot"><span class="annottext">Proxy Ipv6Refinement
+</span><a href="#local-6989586621679254009"><span class="hs-identifier hs-var">p</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">Text
+</span><a href="#local-6989586621679254012"><span class="hs-identifier hs-var">errLen</span></a></span><span>
+</span><span id="line-213"></span><span>    </span><span class="hs-glyph">|</span><span> </span><span class="annot"><span class="annottext">Bool -&gt; Bool
+</span><span class="hs-identifier hs-var">not</span></span><span> </span><span class="annot"><span class="annottext">Bool
+</span><a href="#local-6989586621679254013"><span class="hs-identifier hs-var">validChars</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">TypeRep -&gt; Text -&gt; Maybe RefineException
+</span><a href="file:///nix/store/89p55d22k6d0gk18g32vfj0wzrnlwxj0-refined-0.8.1-doc/share/doc/refined-0.8.1/html/src/Refined.html#throwRefineOtherException"><span class="hs-identifier hs-var">R.throwRefineOtherException</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Proxy Ipv6Refinement -&gt; TypeRep
+forall {k} (proxy :: k -&gt; Type) (a :: k).
+Typeable a =&gt;
+proxy a -&gt; TypeRep
+</span><span class="hs-identifier hs-var">typeRep</span></span><span> </span><span class="annot"><span class="annottext">Proxy Ipv6Refinement
+</span><a href="#local-6989586621679254009"><span class="hs-identifier hs-var">p</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">Text
+</span><a href="#local-6989586621679254014"><span class="hs-identifier hs-var">errChars</span></a></span><span>
+</span><span id="line-214"></span><span>    </span><span class="hs-glyph">|</span><span> </span><span class="annot"><span class="annottext">Bool
+</span><span class="hs-identifier hs-var">otherwise</span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Maybe RefineException
+forall a. Maybe a
+</span><span class="hs-identifier hs-var">Nothing</span></span><span>
+</span><span id="line-215"></span><span>    </span><span class="hs-keyword">where</span><span>
+</span><span id="line-216"></span><span>      </span><span id="local-6989586621679254015"><span class="annot"><span class="annottext">len :: Int
+</span><a href="#local-6989586621679254015"><span class="hs-identifier hs-var hs-var">len</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Text -&gt; Int
+</span><span class="hs-identifier hs-var">T.length</span></span><span> </span><span class="annot"><span class="annottext">Text
+</span><a href="#local-6989586621679254010"><span class="hs-identifier hs-var">txt</span></a></span><span>
+</span><span id="line-217"></span><span>      </span><span id="local-6989586621679254011"><span class="annot"><span class="annottext">validLen :: Bool
+</span><a href="#local-6989586621679254011"><span class="hs-identifier hs-var hs-var">validLen</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679254015"><span class="hs-identifier hs-var">len</span></a></span><span> </span><span class="annot"><span class="annottext">Int -&gt; Int -&gt; Bool
+forall a. Ord a =&gt; a -&gt; a -&gt; Bool
+</span><span class="hs-operator hs-var">&gt;</span></span><span> </span><span class="annot"><span class="annottext">Int
+</span><span class="hs-number">0</span></span><span> </span><span class="annot"><span class="annottext">Bool -&gt; Bool -&gt; Bool
+</span><span class="hs-operator hs-var">&amp;&amp;</span></span><span> </span><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679254015"><span class="hs-identifier hs-var">len</span></a></span><span> </span><span class="annot"><span class="annottext">Int -&gt; Int -&gt; Bool
+forall a. Ord a =&gt; a -&gt; a -&gt; Bool
+</span><span class="hs-operator hs-var">&lt;</span></span><span> </span><span class="annot"><span class="annottext">Int
+</span><span class="hs-number">40</span></span><span>
+</span><span id="line-218"></span><span>      </span><span id="local-6989586621679254013"><span class="annot"><span class="annottext">validChars :: Bool
+</span><a href="#local-6989586621679254013"><span class="hs-identifier hs-var hs-var">validChars</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">(Char -&gt; Bool) -&gt; Text -&gt; Bool
+</span><span class="hs-identifier hs-var">T.all</span></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">\</span><span id="local-6989586621679254016"><span class="annot"><span class="annottext">Char
+</span><a href="#local-6989586621679254016"><span class="hs-identifier hs-var">c</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Char -&gt; Bool
+</span><span class="hs-identifier hs-var">Char.isHexDigit</span></span><span> </span><span class="annot"><span class="annottext">Char
+</span><a href="#local-6989586621679254016"><span class="hs-identifier hs-var">c</span></a></span><span> </span><span class="annot"><span class="annottext">Bool -&gt; Bool -&gt; Bool
+</span><span class="hs-operator hs-var">||</span></span><span> </span><span class="annot"><span class="annottext">Char
+</span><a href="#local-6989586621679254016"><span class="hs-identifier hs-var">c</span></a></span><span> </span><span class="annot"><span class="annottext">Char -&gt; Char -&gt; Bool
+forall a. Eq a =&gt; a -&gt; a -&gt; Bool
+</span><span class="hs-operator hs-var">==</span></span><span> </span><span class="annot"><span class="annottext">Char
+</span><span class="hs-char">':'</span></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">Text
+</span><a href="#local-6989586621679254010"><span class="hs-identifier hs-var">txt</span></a></span><span>
+</span><span id="line-219"></span><span>      </span><span id="local-6989586621679254012"><span class="annot"><span class="annottext">errLen :: Text
+</span><a href="#local-6989586621679254012"><span class="hs-identifier hs-var hs-var">errLen</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-220"></span><span>        </span><span class="hs-keyword">if</span><span> </span><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679254015"><span class="hs-identifier hs-var">len</span></a></span><span> </span><span class="annot"><span class="annottext">Int -&gt; Int -&gt; Bool
+forall a. Eq a =&gt; a -&gt; a -&gt; Bool
+</span><span class="hs-operator hs-var">==</span></span><span> </span><span class="annot"><span class="annottext">Int
+</span><span class="hs-number">0</span></span><span>
+</span><span id="line-221"></span><span>          </span><span class="hs-keyword">then</span><span> </span><span class="annot"><span class="annottext">Text
+</span><span class="hs-string">&quot;Expected IPv6 of length (0, 40). Received empty.&quot;</span></span><span>
+</span><span id="line-222"></span><span>          </span><span class="hs-keyword">else</span><span>
+</span><span id="line-223"></span><span>            </span><span class="annot"><span class="annottext">Text
+</span><span class="hs-string">&quot;Expected IPv6 with length (0, 40). Received '&quot;</span></span><span>
+</span><span id="line-224"></span><span>              </span><span class="annot"><span class="annottext">Text -&gt; Text -&gt; Text
+forall a. Semigroup a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-operator hs-var">&lt;&gt;</span></span><span> </span><span class="annot"><span class="annottext">Text
+</span><a href="#local-6989586621679254010"><span class="hs-identifier hs-var">txt</span></a></span><span>
+</span><span id="line-225"></span><span>              </span><span class="annot"><span class="annottext">Text -&gt; Text -&gt; Text
+forall a. Semigroup a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-operator hs-var">&lt;&gt;</span></span><span> </span><span class="annot"><span class="annottext">Text
+</span><span class="hs-string">&quot;' of length &quot;</span></span><span>
+</span><span id="line-226"></span><span>              </span><span class="annot"><span class="annottext">Text -&gt; Text -&gt; Text
+forall a. Semigroup a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-operator hs-var">&lt;&gt;</span></span><span> </span><span class="annot"><span class="annottext">Int -&gt; Text
+forall a. Show a =&gt; a -&gt; Text
+</span><a href="Pythia.Prelude.html#showt"><span class="hs-identifier hs-var">showt</span></a></span><span> </span><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679254015"><span class="hs-identifier hs-var">len</span></a></span><span>
+</span><span id="line-227"></span><span>      </span><span id="local-6989586621679254014"><span class="annot"><span class="annottext">errChars :: Text
+</span><a href="#local-6989586621679254014"><span class="hs-identifier hs-var hs-var">errChars</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-228"></span><span>        </span><span class="annot"><span class="annottext">Text
+</span><span class="hs-string">&quot;IPv6 address should only contain hex digits or colons. Received invalid: &quot;</span></span><span>
+</span><span id="line-229"></span><span>          </span><span class="annot"><span class="annottext">Text -&gt; Text -&gt; Text
+forall a. Semigroup a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-operator hs-var">&lt;&gt;</span></span><span> </span><span class="annot"><span class="annottext">Text
+</span><a href="#local-6989586621679254010"><span class="hs-identifier hs-var">txt</span></a></span><span>
+</span><span id="line-230"></span><span>  </span><span class="hs-pragma">{-# INLINEABLE</span><span> </span><span class="annot"><a href="file:///nix/store/89p55d22k6d0gk18g32vfj0wzrnlwxj0-refined-0.8.1-doc/share/doc/refined-0.8.1/html/src/Refined.html#validate"><span class="hs-pragma hs-type">validate</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-231"></span><span>
+</span><span id="line-232"></span><span class="hs-comment">-- | Type for an IP address. The type family 'IpRefinement' refines the</span><span>
+</span><span id="line-233"></span><span class="hs-comment">-- underlying 'Text' according to the spec.</span><span>
+</span><span id="line-234"></span><span class="hs-comment">--</span><span>
+</span><span id="line-235"></span><span class="hs-comment">-- * 'Ipv4': All characters are digits or dots, and the length is</span><span>
+</span><span id="line-236"></span><span class="hs-comment">--           @0 &lt; l &lt; 16@.</span><span>
+</span><span id="line-237"></span><span class="hs-comment">-- * 'Ipv6': All characters are hex digits or colons, and the length is</span><span>
+</span><span id="line-238"></span><span class="hs-comment">--           @0 &lt; l &lt; 40@.</span><span>
+</span><span id="line-239"></span><span class="hs-comment">--</span><span>
+</span><span id="line-240"></span><span class="hs-comment">-- @since 0.1</span><span>
+</span><span id="line-241"></span><span class="hs-keyword">type</span><span> </span><span class="annot"><a href="Pythia.Services.Types.Network.html#IpAddress"><span class="hs-identifier hs-type">IpAddress</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Pythia.Services.Types.Network.html#IpType"><span class="hs-identifier hs-type">IpType</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Type</span></span><span>
+</span><span id="line-242"></span><span class="hs-keyword">newtype</span><span> </span><span id="IpAddress"><span class="annot"><a href="Pythia.Services.Types.Network.html#IpAddress"><span class="hs-identifier hs-var">IpAddress</span></a></span></span><span> </span><span id="local-6989586621679253666"><span class="annot"><a href="#local-6989586621679253666"><span class="hs-identifier hs-type">a</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span id="MkIpAddress"><span class="annot"><a href="Pythia.Services.Types.Network.html#MkIpAddress"><span class="hs-identifier hs-var">MkIpAddress</span></a></span></span><span>
+</span><span id="line-243"></span><span>  </span><span class="hs-special">{</span><span> </span><span class="annot"><span class="hs-comment">-- | @since 0.1</span></span><span>
+</span><span id="line-244"></span><span>    </span><span id="%24sel%3AunIpAddress%3AMkIpAddress"><span class="annot"><span class="annottext">forall (a :: IpType). IpAddress a -&gt; Refined (IpRefinement a) Text
+</span><a href="Pythia.Services.Types.Network.html#%24sel%3AunIpAddress%3AMkIpAddress"><span class="hs-identifier hs-var hs-var">unIpAddress</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="file:///nix/store/89p55d22k6d0gk18g32vfj0wzrnlwxj0-refined-0.8.1-doc/share/doc/refined-0.8.1/html/src/Refined.Unsafe.Type.html#Refined"><span class="hs-identifier hs-type">Refined</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Pythia.Services.Types.Network.html#IpRefinement"><span class="hs-identifier hs-type">IpRefinement</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679253666"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Text</span></span><span>
+</span><span id="line-245"></span><span>  </span><span class="hs-special">}</span><span>
+</span><span id="line-246"></span><span>  </span><span class="hs-keyword">deriving</span><span> </span><span class="annot"><span class="hs-keyword">stock</span></span><span>
+</span><span id="line-247"></span><span>    </span><span class="hs-special">(</span><span> </span><span class="annot"><span class="hs-comment">-- | @since 0.1</span></span><span>
+</span><span id="line-248"></span><span>      </span><span id="local-6989586621679254021"><span id="local-6989586621679254026"><span class="annot"><span class="annottext">IpAddress a -&gt; IpAddress a -&gt; Bool
+(IpAddress a -&gt; IpAddress a -&gt; Bool)
+-&gt; (IpAddress a -&gt; IpAddress a -&gt; Bool) -&gt; Eq (IpAddress a)
+forall a. (a -&gt; a -&gt; Bool) -&gt; (a -&gt; a -&gt; Bool) -&gt; Eq a
+forall (a :: IpType). IpAddress a -&gt; IpAddress a -&gt; Bool
+$c== :: forall (a :: IpType). IpAddress a -&gt; IpAddress a -&gt; Bool
+== :: IpAddress a -&gt; IpAddress a -&gt; Bool
+$c/= :: forall (a :: IpType). IpAddress a -&gt; IpAddress a -&gt; Bool
+/= :: IpAddress a -&gt; IpAddress a -&gt; Bool
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Eq</span></span></span></span><span class="hs-special">,</span><span>
+</span><span id="line-249"></span><span>      </span><span class="annot"><span class="hs-comment">-- | @since 0.1</span></span><span>
+</span><span id="line-250"></span><span>      </span><span id="local-6989586621679254030"><span id="local-6989586621679254032"><span class="annot"><span class="annottext">(forall x. IpAddress a -&gt; Rep (IpAddress a) x)
+-&gt; (forall x. Rep (IpAddress a) x -&gt; IpAddress a)
+-&gt; Generic (IpAddress a)
+forall x. Rep (IpAddress a) x -&gt; IpAddress a
+forall x. IpAddress a -&gt; Rep (IpAddress a) x
+forall a.
+(forall x. a -&gt; Rep a x) -&gt; (forall x. Rep a x -&gt; a) -&gt; Generic a
+forall (a :: IpType) x. Rep (IpAddress a) x -&gt; IpAddress a
+forall (a :: IpType) x. IpAddress a -&gt; Rep (IpAddress a) x
+$cfrom :: forall (a :: IpType) x. IpAddress a -&gt; Rep (IpAddress a) x
+from :: forall x. IpAddress a -&gt; Rep (IpAddress a) x
+$cto :: forall (a :: IpType) x. Rep (IpAddress a) x -&gt; IpAddress a
+to :: forall x. Rep (IpAddress a) x -&gt; IpAddress a
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Generic</span></span></span></span><span class="hs-special">,</span><span>
+</span><span id="line-251"></span><span>      </span><span class="annot"><span class="hs-comment">-- | @since 0.1</span></span><span>
+</span><span id="line-252"></span><span>      </span><span id="local-6989586621679254037"><span id="local-6989586621679254042"><span id="local-6989586621679254046"><span id="local-6989586621679254050"><span id="local-6989586621679254053"><span id="local-6989586621679254056"><span id="local-6989586621679254059"><span class="annot"><span class="annottext">Eq (IpAddress a)
+Eq (IpAddress a) =&gt;
+(IpAddress a -&gt; IpAddress a -&gt; Ordering)
+-&gt; (IpAddress a -&gt; IpAddress a -&gt; Bool)
+-&gt; (IpAddress a -&gt; IpAddress a -&gt; Bool)
+-&gt; (IpAddress a -&gt; IpAddress a -&gt; Bool)
+-&gt; (IpAddress a -&gt; IpAddress a -&gt; Bool)
+-&gt; (IpAddress a -&gt; IpAddress a -&gt; IpAddress a)
+-&gt; (IpAddress a -&gt; IpAddress a -&gt; IpAddress a)
+-&gt; Ord (IpAddress a)
+IpAddress a -&gt; IpAddress a -&gt; Bool
+IpAddress a -&gt; IpAddress a -&gt; Ordering
+IpAddress a -&gt; IpAddress a -&gt; IpAddress a
+forall a.
+Eq a =&gt;
+(a -&gt; a -&gt; Ordering)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; a)
+-&gt; (a -&gt; a -&gt; a)
+-&gt; Ord a
+forall (a :: IpType). Eq (IpAddress a)
+forall (a :: IpType). IpAddress a -&gt; IpAddress a -&gt; Bool
+forall (a :: IpType). IpAddress a -&gt; IpAddress a -&gt; Ordering
+forall (a :: IpType). IpAddress a -&gt; IpAddress a -&gt; IpAddress a
+$ccompare :: forall (a :: IpType). IpAddress a -&gt; IpAddress a -&gt; Ordering
+compare :: IpAddress a -&gt; IpAddress a -&gt; Ordering
+$c&lt; :: forall (a :: IpType). IpAddress a -&gt; IpAddress a -&gt; Bool
+&lt; :: IpAddress a -&gt; IpAddress a -&gt; Bool
+$c&lt;= :: forall (a :: IpType). IpAddress a -&gt; IpAddress a -&gt; Bool
+&lt;= :: IpAddress a -&gt; IpAddress a -&gt; Bool
+$c&gt; :: forall (a :: IpType). IpAddress a -&gt; IpAddress a -&gt; Bool
+&gt; :: IpAddress a -&gt; IpAddress a -&gt; Bool
+$c&gt;= :: forall (a :: IpType). IpAddress a -&gt; IpAddress a -&gt; Bool
+&gt;= :: IpAddress a -&gt; IpAddress a -&gt; Bool
+$cmax :: forall (a :: IpType). IpAddress a -&gt; IpAddress a -&gt; IpAddress a
+max :: IpAddress a -&gt; IpAddress a -&gt; IpAddress a
+$cmin :: forall (a :: IpType). IpAddress a -&gt; IpAddress a -&gt; IpAddress a
+min :: IpAddress a -&gt; IpAddress a -&gt; IpAddress a
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Ord</span></span></span></span></span></span></span></span></span><span class="hs-special">,</span><span>
+</span><span id="line-253"></span><span>      </span><span class="annot"><span class="hs-comment">-- | @since 0.1</span></span><span>
+</span><span id="line-254"></span><span>      </span><span id="local-6989586621679254062"><span id="local-6989586621679254068"><span id="local-6989586621679254072"><span class="annot"><span class="annottext">Int -&gt; IpAddress a -&gt; ShowS
+[IpAddress a] -&gt; ShowS
+IpAddress a -&gt; String
+(Int -&gt; IpAddress a -&gt; ShowS)
+-&gt; (IpAddress a -&gt; String)
+-&gt; ([IpAddress a] -&gt; ShowS)
+-&gt; Show (IpAddress a)
+forall a.
+(Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; String) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+forall (a :: IpType). Int -&gt; IpAddress a -&gt; ShowS
+forall (a :: IpType). [IpAddress a] -&gt; ShowS
+forall (a :: IpType). IpAddress a -&gt; String
+$cshowsPrec :: forall (a :: IpType). Int -&gt; IpAddress a -&gt; ShowS
+showsPrec :: Int -&gt; IpAddress a -&gt; ShowS
+$cshow :: forall (a :: IpType). IpAddress a -&gt; String
+show :: IpAddress a -&gt; String
+$cshowList :: forall (a :: IpType). [IpAddress a] -&gt; ShowS
+showList :: [IpAddress a] -&gt; ShowS
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Show</span></span></span></span></span><span>
+</span><span id="line-255"></span><span>    </span><span class="hs-special">)</span><span>
+</span><span id="line-256"></span><span>  </span><span class="hs-keyword">deriving</span><span> </span><span class="annot"><span class="hs-keyword">anyclass</span></span><span>
+</span><span id="line-257"></span><span>    </span><span class="hs-special">(</span><span> </span><span class="annot"><span class="hs-comment">-- | @since 0.1</span></span><span>
+</span><span id="line-258"></span><span>      </span><span id="local-6989586621679254075"><span class="annot"><span class="annottext">IpAddress a -&gt; ()
+(IpAddress a -&gt; ()) -&gt; NFData (IpAddress a)
+forall a. (a -&gt; ()) -&gt; NFData a
+forall (a :: IpType). IpAddress a -&gt; ()
+$crnf :: forall (a :: IpType). IpAddress a -&gt; ()
+rnf :: IpAddress a -&gt; ()
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var">NFData</span></span></span><span>
+</span><span id="line-259"></span><span>    </span><span class="hs-special">)</span><span>
+</span><span id="line-260"></span><span>
+</span><span id="line-261"></span><span class="annot"><span class="hs-comment">-- | @since 0.1</span></span><span>
+</span><span id="line-262"></span><span class="hs-keyword">instance</span><span>
+</span><span id="line-263"></span><span>  </span><span id="local-6989586621679253697"><span id="local-6989586621679253698"><span id="local-6989586621679253699"><span id="local-6989586621679253700"><span class="hs-special">(</span><span class="annot"><a href="#local-6989586621679253697"><span class="hs-identifier hs-type">k</span></a></span><span> </span><span class="annot"><span class="hs-operator hs-type">~</span></span><span> </span><span class="annot"><a href="file:///nix/store/yiyd960cyn3zg283hgrwi5m0ilr7bcpb-optics-core-0.4.1.1-doc/share/doc/optics-core-0.4.1.1/html/src/Optics.Internal.Optic.Types.html#An_Iso"><span class="hs-identifier hs-type">An_Iso</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="#local-6989586621679253698"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="annot"><span class="hs-operator hs-type">~</span></span><span> </span><span class="annot"><a href="file:///nix/store/89p55d22k6d0gk18g32vfj0wzrnlwxj0-refined-0.8.1-doc/share/doc/refined-0.8.1/html/src/Refined.Unsafe.Type.html#Refined"><span class="hs-identifier hs-type">Refined</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Pythia.Services.Types.Network.html#IpRefinement"><span class="hs-identifier hs-type">IpRefinement</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679253699"><span class="hs-identifier hs-type">s</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Text</span></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="#local-6989586621679253700"><span class="hs-identifier hs-type">b</span></a></span><span> </span><span class="annot"><span class="hs-operator hs-type">~</span></span><span> </span><span class="annot"><a href="file:///nix/store/89p55d22k6d0gk18g32vfj0wzrnlwxj0-refined-0.8.1-doc/share/doc/refined-0.8.1/html/src/Refined.Unsafe.Type.html#Refined"><span class="hs-identifier hs-type">Refined</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Pythia.Services.Types.Network.html#IpRefinement"><span class="hs-identifier hs-type">IpRefinement</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679253699"><span class="hs-identifier hs-type">s</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Text</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span>
+</span><span id="line-264"></span><span>  </span><span class="annot"><a href="file:///nix/store/yiyd960cyn3zg283hgrwi5m0ilr7bcpb-optics-core-0.4.1.1-doc/share/doc/optics-core-0.4.1.1/html/src/Optics.Label.html#LabelOptic"><span class="hs-identifier hs-type">LabelOptic</span></a></span><span> </span><span class="annot"><span class="hs-string">&quot;unIpAddress&quot;</span></span><span> </span><span class="annot"><a href="#local-6989586621679253697"><span class="hs-identifier hs-type">k</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Pythia.Services.Types.Network.html#IpAddress"><span class="hs-identifier hs-type">IpAddress</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679253699"><span class="hs-identifier hs-type">s</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Pythia.Services.Types.Network.html#IpAddress"><span class="hs-identifier hs-type">IpAddress</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679253699"><span class="hs-identifier hs-type">s</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><a href="#local-6989586621679253698"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679253700"><span class="hs-identifier hs-type">b</span></a></span></span></span></span></span><span>
+</span><span id="line-265"></span><span>  </span><span class="hs-keyword">where</span><span>
+</span><span id="line-266"></span><span>  </span><span id="local-6989586621679254095"><span class="annot"><span class="annottext">labelOptic :: Optic k NoIx (IpAddress s) (IpAddress s) a b
+</span><a href="file:///nix/store/yiyd960cyn3zg283hgrwi5m0ilr7bcpb-optics-core-0.4.1.1-doc/share/doc/optics-core-0.4.1.1/html/src/Optics.Label.html#labelOptic"><span class="hs-identifier hs-var hs-var hs-var hs-var">labelOptic</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">(IpAddress s -&gt; a)
+-&gt; (b -&gt; IpAddress s) -&gt; Iso (IpAddress s) (IpAddress s) a b
+forall s a b t. (s -&gt; a) -&gt; (b -&gt; t) -&gt; Iso s t a b
+</span><a href="file:///nix/store/yiyd960cyn3zg283hgrwi5m0ilr7bcpb-optics-core-0.4.1.1-doc/share/doc/optics-core-0.4.1.1/html/src/Optics.Iso.html#iso"><span class="hs-identifier hs-var">iso</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">\</span><span class="hs-special">(</span><span class="annot"><a href="Pythia.Services.Types.Network.html#MkIpAddress"><span class="hs-identifier hs-type">MkIpAddress</span></a></span><span> </span><span id="local-6989586621679254096"><span class="annot"><span class="annottext">Refined (IpRefinement s) Text
+</span><a href="#local-6989586621679254096"><span class="hs-identifier hs-var">a</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">a
+Refined (IpRefinement s) Text
+</span><a href="#local-6989586621679254096"><span class="hs-identifier hs-var">a</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">b -&gt; IpAddress s
+Refined (IpRefinement s) Text -&gt; IpAddress s
+forall (a :: IpType). Refined (IpRefinement a) Text -&gt; IpAddress a
+</span><a href="Pythia.Services.Types.Network.html#MkIpAddress"><span class="hs-identifier hs-var">MkIpAddress</span></a></span><span>
+</span><span id="line-267"></span><span>  </span><span class="hs-pragma">{-# INLINE</span><span> </span><span class="annot"><a href="file:///nix/store/yiyd960cyn3zg283hgrwi5m0ilr7bcpb-optics-core-0.4.1.1-doc/share/doc/optics-core-0.4.1.1/html/src/Optics.Label.html#labelOptic"><span class="hs-pragma hs-type">labelOptic</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-268"></span><span>
+</span><span id="line-269"></span><span class="annot"><span class="hs-comment">-- | @since 0.1</span></span><span>
+</span><span id="line-270"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621679253702"><span id="local-6989586621679254099"><span id="local-6989586621679254103"><span class="annot"><a href="file:///nix/store/c4qqygkxvzxxbb0xarjssql1bzgr0nq9-text-display-0.0.5.1-doc/share/doc/text-display-0.0.5.1/html/src/Data.Text.Display.Core.html#Display"><span class="hs-identifier hs-type">Display</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Pythia.Services.Types.Network.html#IpAddress"><span class="hs-identifier hs-type">IpAddress</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679253702"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">)</span></span></span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-271"></span><span>  </span><span id="local-6989586621679254106"><span class="annot"><span class="annottext">displayBuilder :: IpAddress a -&gt; Builder
+</span><a href="#local-6989586621679254106"><span class="hs-identifier hs-var hs-var hs-var hs-var">displayBuilder</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Text -&gt; Builder
+forall a. Display a =&gt; a -&gt; Builder
+</span><a href="file:///nix/store/c4qqygkxvzxxbb0xarjssql1bzgr0nq9-text-display-0.0.5.1-doc/share/doc/text-display-0.0.5.1/html/src/Data.Text.Display.Core.html#displayBuilder"><span class="hs-identifier hs-var">displayBuilder</span></a></span><span> </span><span class="annot"><span class="annottext">(Text -&gt; Builder)
+-&gt; (IpAddress a -&gt; Text) -&gt; IpAddress a -&gt; Builder
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">Refined (IpRefinement a) Text -&gt; Text
+forall {k} (p :: k) x. Refined p x -&gt; x
+</span><a href="file:///nix/store/89p55d22k6d0gk18g32vfj0wzrnlwxj0-refined-0.8.1-doc/share/doc/refined-0.8.1/html/src/Refined.html#unrefine"><span class="hs-identifier hs-var">R.unrefine</span></a></span><span> </span><span class="annot"><span class="annottext">(Refined (IpRefinement a) Text -&gt; Text)
+-&gt; (IpAddress a -&gt; Refined (IpRefinement a) Text)
+-&gt; IpAddress a
+-&gt; Text
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">IpAddress a -&gt; Refined (IpRefinement a) Text
+forall (a :: IpType). IpAddress a -&gt; Refined (IpRefinement a) Text
+</span><a href="Pythia.Services.Types.Network.html#%24sel%3AunIpAddress%3AMkIpAddress"><span class="hs-identifier hs-var">unIpAddress</span></a></span><span>
+</span><span id="line-272"></span><span>
+</span><span id="line-273"></span><span class="annot"><span class="hs-comment">-- | @since 0.1</span></span><span>
+</span><span id="line-274"></span><span class="hs-keyword">type</span><span> </span><span class="annot"><a href="Pythia.Services.Types.Network.html#IpAddresses"><span class="hs-identifier hs-type">IpAddresses</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Pythia.Services.Types.Network.html#IpType"><span class="hs-identifier hs-type">IpType</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Type</span></span><span>
+</span><span id="line-275"></span><span class="hs-keyword">newtype</span><span> </span><span id="IpAddresses"><span class="annot"><a href="Pythia.Services.Types.Network.html#IpAddresses"><span class="hs-identifier hs-var">IpAddresses</span></a></span></span><span> </span><span id="local-6989586621679253709"><span class="annot"><a href="#local-6989586621679253709"><span class="hs-identifier hs-type">a</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span id="MkIpAddresses"><span class="annot"><a href="Pythia.Services.Types.Network.html#MkIpAddresses"><span class="hs-identifier hs-var">MkIpAddresses</span></a></span></span><span>
+</span><span id="line-276"></span><span>  </span><span class="hs-special">{</span><span> </span><span class="annot"><span class="hs-comment">-- | @since 0.1</span></span><span>
+</span><span id="line-277"></span><span>    </span><span id="%24sel%3AunIpAddresses%3AMkIpAddresses"><span class="annot"><span class="annottext">forall (a :: IpType). IpAddresses a -&gt; [IpAddress a]
+</span><a href="Pythia.Services.Types.Network.html#%24sel%3AunIpAddresses%3AMkIpAddresses"><span class="hs-identifier hs-var hs-var">unIpAddresses</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">[</span><span class="annot"><a href="Pythia.Services.Types.Network.html#IpAddress"><span class="hs-identifier hs-type">IpAddress</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679253709"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">]</span><span>
+</span><span id="line-278"></span><span>  </span><span class="hs-special">}</span><span>
+</span><span id="line-279"></span><span>  </span><span class="hs-keyword">deriving</span><span> </span><span class="annot"><span class="hs-keyword">stock</span></span><span>
+</span><span id="line-280"></span><span>    </span><span class="hs-special">(</span><span> </span><span class="annot"><span class="hs-comment">-- | @since 0.1</span></span><span>
+</span><span id="line-281"></span><span>      </span><span id="local-6989586621679254113"><span id="local-6989586621679254118"><span class="annot"><span class="annottext">IpAddresses a -&gt; IpAddresses a -&gt; Bool
+(IpAddresses a -&gt; IpAddresses a -&gt; Bool)
+-&gt; (IpAddresses a -&gt; IpAddresses a -&gt; Bool) -&gt; Eq (IpAddresses a)
+forall a. (a -&gt; a -&gt; Bool) -&gt; (a -&gt; a -&gt; Bool) -&gt; Eq a
+forall (a :: IpType). IpAddresses a -&gt; IpAddresses a -&gt; Bool
+$c== :: forall (a :: IpType). IpAddresses a -&gt; IpAddresses a -&gt; Bool
+== :: IpAddresses a -&gt; IpAddresses a -&gt; Bool
+$c/= :: forall (a :: IpType). IpAddresses a -&gt; IpAddresses a -&gt; Bool
+/= :: IpAddresses a -&gt; IpAddresses a -&gt; Bool
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Eq</span></span></span></span><span class="hs-special">,</span><span>
+</span><span id="line-282"></span><span>      </span><span class="annot"><span class="hs-comment">-- | @since 0.1</span></span><span>
+</span><span id="line-283"></span><span>      </span><span id="local-6989586621679254122"><span id="local-6989586621679254124"><span class="annot"><span class="annottext">(forall x. IpAddresses a -&gt; Rep (IpAddresses a) x)
+-&gt; (forall x. Rep (IpAddresses a) x -&gt; IpAddresses a)
+-&gt; Generic (IpAddresses a)
+forall x. Rep (IpAddresses a) x -&gt; IpAddresses a
+forall x. IpAddresses a -&gt; Rep (IpAddresses a) x
+forall a.
+(forall x. a -&gt; Rep a x) -&gt; (forall x. Rep a x -&gt; a) -&gt; Generic a
+forall (a :: IpType) x. Rep (IpAddresses a) x -&gt; IpAddresses a
+forall (a :: IpType) x. IpAddresses a -&gt; Rep (IpAddresses a) x
+$cfrom :: forall (a :: IpType) x. IpAddresses a -&gt; Rep (IpAddresses a) x
+from :: forall x. IpAddresses a -&gt; Rep (IpAddresses a) x
+$cto :: forall (a :: IpType) x. Rep (IpAddresses a) x -&gt; IpAddresses a
+to :: forall x. Rep (IpAddresses a) x -&gt; IpAddresses a
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Generic</span></span></span></span><span class="hs-special">,</span><span>
+</span><span id="line-284"></span><span>      </span><span class="annot"><span class="hs-comment">-- | @since 0.1</span></span><span>
+</span><span id="line-285"></span><span>      </span><span id="local-6989586621679254129"><span id="local-6989586621679254134"><span id="local-6989586621679254138"><span id="local-6989586621679254142"><span id="local-6989586621679254145"><span id="local-6989586621679254148"><span id="local-6989586621679254151"><span class="annot"><span class="annottext">Eq (IpAddresses a)
+Eq (IpAddresses a) =&gt;
+(IpAddresses a -&gt; IpAddresses a -&gt; Ordering)
+-&gt; (IpAddresses a -&gt; IpAddresses a -&gt; Bool)
+-&gt; (IpAddresses a -&gt; IpAddresses a -&gt; Bool)
+-&gt; (IpAddresses a -&gt; IpAddresses a -&gt; Bool)
+-&gt; (IpAddresses a -&gt; IpAddresses a -&gt; Bool)
+-&gt; (IpAddresses a -&gt; IpAddresses a -&gt; IpAddresses a)
+-&gt; (IpAddresses a -&gt; IpAddresses a -&gt; IpAddresses a)
+-&gt; Ord (IpAddresses a)
+IpAddresses a -&gt; IpAddresses a -&gt; Bool
+IpAddresses a -&gt; IpAddresses a -&gt; Ordering
+IpAddresses a -&gt; IpAddresses a -&gt; IpAddresses a
+forall a.
+Eq a =&gt;
+(a -&gt; a -&gt; Ordering)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; a)
+-&gt; (a -&gt; a -&gt; a)
+-&gt; Ord a
+forall (a :: IpType). Eq (IpAddresses a)
+forall (a :: IpType). IpAddresses a -&gt; IpAddresses a -&gt; Bool
+forall (a :: IpType). IpAddresses a -&gt; IpAddresses a -&gt; Ordering
+forall (a :: IpType).
+IpAddresses a -&gt; IpAddresses a -&gt; IpAddresses a
+$ccompare :: forall (a :: IpType). IpAddresses a -&gt; IpAddresses a -&gt; Ordering
+compare :: IpAddresses a -&gt; IpAddresses a -&gt; Ordering
+$c&lt; :: forall (a :: IpType). IpAddresses a -&gt; IpAddresses a -&gt; Bool
+&lt; :: IpAddresses a -&gt; IpAddresses a -&gt; Bool
+$c&lt;= :: forall (a :: IpType). IpAddresses a -&gt; IpAddresses a -&gt; Bool
+&lt;= :: IpAddresses a -&gt; IpAddresses a -&gt; Bool
+$c&gt; :: forall (a :: IpType). IpAddresses a -&gt; IpAddresses a -&gt; Bool
+&gt; :: IpAddresses a -&gt; IpAddresses a -&gt; Bool
+$c&gt;= :: forall (a :: IpType). IpAddresses a -&gt; IpAddresses a -&gt; Bool
+&gt;= :: IpAddresses a -&gt; IpAddresses a -&gt; Bool
+$cmax :: forall (a :: IpType).
+IpAddresses a -&gt; IpAddresses a -&gt; IpAddresses a
+max :: IpAddresses a -&gt; IpAddresses a -&gt; IpAddresses a
+$cmin :: forall (a :: IpType).
+IpAddresses a -&gt; IpAddresses a -&gt; IpAddresses a
+min :: IpAddresses a -&gt; IpAddresses a -&gt; IpAddresses a
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Ord</span></span></span></span></span></span></span></span></span><span class="hs-special">,</span><span>
+</span><span id="line-286"></span><span>      </span><span class="annot"><span class="hs-comment">-- | @since 0.1</span></span><span>
+</span><span id="line-287"></span><span>      </span><span id="local-6989586621679254154"><span id="local-6989586621679254160"><span id="local-6989586621679254164"><span class="annot"><span class="annottext">Int -&gt; IpAddresses a -&gt; ShowS
+[IpAddresses a] -&gt; ShowS
+IpAddresses a -&gt; String
+(Int -&gt; IpAddresses a -&gt; ShowS)
+-&gt; (IpAddresses a -&gt; String)
+-&gt; ([IpAddresses a] -&gt; ShowS)
+-&gt; Show (IpAddresses a)
+forall a.
+(Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; String) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+forall (a :: IpType). Int -&gt; IpAddresses a -&gt; ShowS
+forall (a :: IpType). [IpAddresses a] -&gt; ShowS
+forall (a :: IpType). IpAddresses a -&gt; String
+$cshowsPrec :: forall (a :: IpType). Int -&gt; IpAddresses a -&gt; ShowS
+showsPrec :: Int -&gt; IpAddresses a -&gt; ShowS
+$cshow :: forall (a :: IpType). IpAddresses a -&gt; String
+show :: IpAddresses a -&gt; String
+$cshowList :: forall (a :: IpType). [IpAddresses a] -&gt; ShowS
+showList :: [IpAddresses a] -&gt; ShowS
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Show</span></span></span></span></span><span>
+</span><span id="line-288"></span><span>    </span><span class="hs-special">)</span><span>
+</span><span id="line-289"></span><span>  </span><span class="hs-keyword">deriving</span><span>
+</span><span id="line-290"></span><span>    </span><span class="hs-special">(</span><span> </span><span class="annot"><span class="hs-comment">-- | @since 0.1</span></span><span>
+</span><span id="line-291"></span><span>      </span><span id="local-6989586621679254167"><span id="local-6989586621679254172"><span id="local-6989586621679254178"><span class="annot"><span class="annottext">NonEmpty (IpAddresses a) -&gt; IpAddresses a
+IpAddresses a -&gt; IpAddresses a -&gt; IpAddresses a
+(IpAddresses a -&gt; IpAddresses a -&gt; IpAddresses a)
+-&gt; (NonEmpty (IpAddresses a) -&gt; IpAddresses a)
+-&gt; (forall b. Integral b =&gt; b -&gt; IpAddresses a -&gt; IpAddresses a)
+-&gt; Semigroup (IpAddresses a)
+forall b. Integral b =&gt; b -&gt; IpAddresses a -&gt; IpAddresses a
+forall a.
+(a -&gt; a -&gt; a)
+-&gt; (NonEmpty a -&gt; a)
+-&gt; (forall b. Integral b =&gt; b -&gt; a -&gt; a)
+-&gt; Semigroup a
+forall (a :: IpType). NonEmpty (IpAddresses a) -&gt; IpAddresses a
+forall (a :: IpType).
+IpAddresses a -&gt; IpAddresses a -&gt; IpAddresses a
+forall (a :: IpType) b.
+Integral b =&gt;
+b -&gt; IpAddresses a -&gt; IpAddresses a
+$c&lt;&gt; :: forall (a :: IpType).
+IpAddresses a -&gt; IpAddresses a -&gt; IpAddresses a
+&lt;&gt; :: IpAddresses a -&gt; IpAddresses a -&gt; IpAddresses a
+$csconcat :: forall (a :: IpType). NonEmpty (IpAddresses a) -&gt; IpAddresses a
+sconcat :: NonEmpty (IpAddresses a) -&gt; IpAddresses a
+$cstimes :: forall (a :: IpType) b.
+Integral b =&gt;
+b -&gt; IpAddresses a -&gt; IpAddresses a
+stimes :: forall b. Integral b =&gt; b -&gt; IpAddresses a -&gt; IpAddresses a
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Semigroup</span></span></span></span></span><span class="hs-special">,</span><span>
+</span><span id="line-292"></span><span>      </span><span class="annot"><span class="hs-comment">-- | @since 0.1</span></span><span>
+</span><span id="line-293"></span><span>      </span><span id="local-6989586621679254188"><span id="local-6989586621679254193"><span id="local-6989586621679254197"><span class="annot"><span class="annottext">Semigroup (IpAddresses a)
+IpAddresses a
+Semigroup (IpAddresses a) =&gt;
+IpAddresses a
+-&gt; (IpAddresses a -&gt; IpAddresses a -&gt; IpAddresses a)
+-&gt; ([IpAddresses a] -&gt; IpAddresses a)
+-&gt; Monoid (IpAddresses a)
+[IpAddresses a] -&gt; IpAddresses a
+IpAddresses a -&gt; IpAddresses a -&gt; IpAddresses a
+forall a.
+Semigroup a =&gt;
+a -&gt; (a -&gt; a -&gt; a) -&gt; ([a] -&gt; a) -&gt; Monoid a
+forall (a :: IpType). Semigroup (IpAddresses a)
+forall (a :: IpType). IpAddresses a
+forall (a :: IpType). [IpAddresses a] -&gt; IpAddresses a
+forall (a :: IpType).
+IpAddresses a -&gt; IpAddresses a -&gt; IpAddresses a
+$cmempty :: forall (a :: IpType). IpAddresses a
+mempty :: IpAddresses a
+$cmappend :: forall (a :: IpType).
+IpAddresses a -&gt; IpAddresses a -&gt; IpAddresses a
+mappend :: IpAddresses a -&gt; IpAddresses a -&gt; IpAddresses a
+$cmconcat :: forall (a :: IpType). [IpAddresses a] -&gt; IpAddresses a
+mconcat :: [IpAddresses a] -&gt; IpAddresses a
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Monoid</span></span></span></span></span><span>
+</span><span id="line-294"></span><span>    </span><span class="hs-special">)</span><span>
+</span><span id="line-295"></span><span>    </span><span class="hs-keyword">via</span><span> </span><span class="hs-special">[</span><span class="annot"><a href="Pythia.Services.Types.Network.html#IpAddress"><span class="hs-identifier hs-type">IpAddress</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679253709"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">]</span><span>
+</span><span id="line-296"></span><span>  </span><span class="hs-keyword">deriving</span><span> </span><span class="annot"><span class="hs-keyword">anyclass</span></span><span>
+</span><span id="line-297"></span><span>    </span><span class="hs-special">(</span><span> </span><span class="annot"><span class="hs-comment">-- | @since 0.1</span></span><span>
+</span><span id="line-298"></span><span>      </span><span id="local-6989586621679254203"><span class="annot"><span class="annottext">IpAddresses a -&gt; ()
+(IpAddresses a -&gt; ()) -&gt; NFData (IpAddresses a)
+forall a. (a -&gt; ()) -&gt; NFData a
+forall (a :: IpType). IpAddresses a -&gt; ()
+$crnf :: forall (a :: IpType). IpAddresses a -&gt; ()
+rnf :: IpAddresses a -&gt; ()
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var">NFData</span></span></span><span>
+</span><span id="line-299"></span><span>    </span><span class="hs-special">)</span><span>
+</span><span id="line-300"></span><span>
+</span><span id="line-301"></span><span class="annot"><span class="hs-comment">-- | @since 0.1</span></span><span>
+</span><span id="line-302"></span><span class="hs-keyword">instance</span><span>
+</span><span id="line-303"></span><span>  </span><span id="local-6989586621679253740"><span id="local-6989586621679253741"><span id="local-6989586621679253742"><span id="local-6989586621679253743"><span class="hs-special">(</span><span class="annot"><a href="#local-6989586621679253740"><span class="hs-identifier hs-type">k</span></a></span><span> </span><span class="annot"><span class="hs-operator hs-type">~</span></span><span> </span><span class="annot"><a href="file:///nix/store/yiyd960cyn3zg283hgrwi5m0ilr7bcpb-optics-core-0.4.1.1-doc/share/doc/optics-core-0.4.1.1/html/src/Optics.Internal.Optic.Types.html#An_Iso"><span class="hs-identifier hs-type">An_Iso</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="#local-6989586621679253741"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="annot"><span class="hs-operator hs-type">~</span></span><span> </span><span class="hs-special">[</span><span class="annot"><a href="Pythia.Services.Types.Network.html#IpAddress"><span class="hs-identifier hs-type">IpAddress</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679253742"><span class="hs-identifier hs-type">s</span></a></span><span class="hs-special">]</span><span class="hs-special">,</span><span> </span><span class="annot"><a href="#local-6989586621679253743"><span class="hs-identifier hs-type">b</span></a></span><span> </span><span class="annot"><span class="hs-operator hs-type">~</span></span><span> </span><span class="hs-special">[</span><span class="annot"><a href="Pythia.Services.Types.Network.html#IpAddress"><span class="hs-identifier hs-type">IpAddress</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679253742"><span class="hs-identifier hs-type">s</span></a></span><span class="hs-special">]</span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span>
+</span><span id="line-304"></span><span>  </span><span class="annot"><a href="file:///nix/store/yiyd960cyn3zg283hgrwi5m0ilr7bcpb-optics-core-0.4.1.1-doc/share/doc/optics-core-0.4.1.1/html/src/Optics.Label.html#LabelOptic"><span class="hs-identifier hs-type">LabelOptic</span></a></span><span> </span><span class="annot"><span class="hs-string">&quot;unIpAddresses&quot;</span></span><span> </span><span class="annot"><a href="#local-6989586621679253740"><span class="hs-identifier hs-type">k</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Pythia.Services.Types.Network.html#IpAddresses"><span class="hs-identifier hs-type">IpAddresses</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679253742"><span class="hs-identifier hs-type">s</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Pythia.Services.Types.Network.html#IpAddresses"><span class="hs-identifier hs-type">IpAddresses</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679253742"><span class="hs-identifier hs-type">s</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><a href="#local-6989586621679253741"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679253743"><span class="hs-identifier hs-type">b</span></a></span></span></span></span></span><span>
+</span><span id="line-305"></span><span>  </span><span class="hs-keyword">where</span><span>
+</span><span id="line-306"></span><span>  </span><span id="local-6989586621679254223"><span class="annot"><span class="annottext">labelOptic :: Optic k NoIx (IpAddresses s) (IpAddresses s) a b
+</span><a href="file:///nix/store/yiyd960cyn3zg283hgrwi5m0ilr7bcpb-optics-core-0.4.1.1-doc/share/doc/optics-core-0.4.1.1/html/src/Optics.Label.html#labelOptic"><span class="hs-identifier hs-var hs-var hs-var hs-var">labelOptic</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">(IpAddresses s -&gt; a)
+-&gt; (b -&gt; IpAddresses s) -&gt; Iso (IpAddresses s) (IpAddresses s) a b
+forall s a b t. (s -&gt; a) -&gt; (b -&gt; t) -&gt; Iso s t a b
+</span><a href="file:///nix/store/yiyd960cyn3zg283hgrwi5m0ilr7bcpb-optics-core-0.4.1.1-doc/share/doc/optics-core-0.4.1.1/html/src/Optics.Iso.html#iso"><span class="hs-identifier hs-var">iso</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">\</span><span class="hs-special">(</span><span class="annot"><a href="Pythia.Services.Types.Network.html#MkIpAddresses"><span class="hs-identifier hs-type">MkIpAddresses</span></a></span><span> </span><span id="local-6989586621679254224"><span class="annot"><span class="annottext">[IpAddress s]
+</span><a href="#local-6989586621679254224"><span class="hs-identifier hs-var">a</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">a
+[IpAddress s]
+</span><a href="#local-6989586621679254224"><span class="hs-identifier hs-var">a</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">b -&gt; IpAddresses s
+[IpAddress s] -&gt; IpAddresses s
+forall (a :: IpType). [IpAddress a] -&gt; IpAddresses a
+</span><a href="Pythia.Services.Types.Network.html#MkIpAddresses"><span class="hs-identifier hs-var">MkIpAddresses</span></a></span><span>
+</span><span id="line-307"></span><span>  </span><span class="hs-pragma">{-# INLINE</span><span> </span><span class="annot"><a href="file:///nix/store/yiyd960cyn3zg283hgrwi5m0ilr7bcpb-optics-core-0.4.1.1-doc/share/doc/optics-core-0.4.1.1/html/src/Optics.Label.html#labelOptic"><span class="hs-pragma hs-type">labelOptic</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-308"></span><span>
+</span><span id="line-309"></span><span class="annot"><span class="hs-comment">-- | @since 0.1</span></span><span>
+</span><span id="line-310"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621679253745"><span id="local-6989586621679254227"><span id="local-6989586621679254231"><span class="annot"><a href="file:///nix/store/c4qqygkxvzxxbb0xarjssql1bzgr0nq9-text-display-0.0.5.1-doc/share/doc/text-display-0.0.5.1/html/src/Data.Text.Display.Core.html#Display"><span class="hs-identifier hs-type">Display</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Pythia.Services.Types.Network.html#IpAddresses"><span class="hs-identifier hs-type">IpAddresses</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679253745"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">)</span></span></span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-311"></span><span>  </span><span id="local-6989586621679254243"><span class="annot"><span class="annottext">displayBuilder :: IpAddresses a -&gt; Builder
+</span><a href="file:///nix/store/c4qqygkxvzxxbb0xarjssql1bzgr0nq9-text-display-0.0.5.1-doc/share/doc/text-display-0.0.5.1/html/src/Data.Text.Display.Core.html#displayBuilder"><span class="hs-identifier hs-var hs-var hs-var hs-var">displayBuilder</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">[IpAddress a] -&gt; Builder
+forall a. Display a =&gt; [a] -&gt; Builder
+</span><a href="Pythia.Prelude.html#displayList"><span class="hs-identifier hs-var">displayList</span></a></span><span> </span><span class="annot"><span class="annottext">([IpAddress a] -&gt; Builder)
+-&gt; (IpAddresses a -&gt; [IpAddress a]) -&gt; IpAddresses a -&gt; Builder
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">Optic' An_Iso NoIx (IpAddresses a) [IpAddress a]
+-&gt; IpAddresses a -&gt; [IpAddress a]
+forall k (is :: IxList) s a.
+Is k A_Getter =&gt;
+Optic' k is s a -&gt; s -&gt; a
+</span><a href="file:///nix/store/yiyd960cyn3zg283hgrwi5m0ilr7bcpb-optics-core-0.4.1.1-doc/share/doc/optics-core-0.4.1.1/html/src/Optics.Getter.html#view"><span class="hs-identifier hs-var">view</span></a></span><span> </span><span class="annot"><span class="annottext">Optic' An_Iso NoIx (IpAddresses a) [IpAddress a]
+</span><span class="">#unIpAddresses</span></span><span>
+</span><span id="line-312"></span><span>
+</span><span id="line-313"></span><span class="annot"><span class="hs-comment">-- | @since 0.1</span></span><span>
+</span><span id="line-314"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621679253766"><span id="local-6989586621679254248"><span class="annot"><span class="hs-identifier hs-type">IsList</span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Pythia.Services.Types.Network.html#IpAddresses"><span class="hs-identifier hs-type">IpAddresses</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679253766"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">)</span></span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-315"></span><span>  </span><span class="hs-keyword">type</span><span> </span><span id="Item"><span class="annot"><span class="hs-identifier hs-var">Item</span></span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Pythia.Services.Types.Network.html#IpAddresses"><span class="hs-identifier hs-type">IpAddresses</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679253766"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><a href="Pythia.Services.Types.Network.html#IpAddress"><span class="hs-identifier hs-type">IpAddress</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679253766"><span class="hs-identifier hs-type">a</span></a></span><span>
+</span><span id="line-316"></span><span>
+</span><span id="line-317"></span><span>  </span><span id="local-6989586621679254253"><span class="annot"><span class="annottext">fromList :: [Item (IpAddresses a)] -&gt; IpAddresses a
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var">fromList</span></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">[Item (IpAddresses a)] -&gt; IpAddresses a
+[IpAddress a] -&gt; IpAddresses a
+forall (a :: IpType). [IpAddress a] -&gt; IpAddresses a
+</span><a href="Pythia.Services.Types.Network.html#MkIpAddresses"><span class="hs-identifier hs-var">MkIpAddresses</span></a></span><span>
+</span><span id="line-318"></span><span>  </span><span id="local-6989586621679254254"><span class="annot"><span class="annottext">toList :: IpAddresses a -&gt; [Item (IpAddresses a)]
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var">toList</span></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">IpAddresses a -&gt; [Item (IpAddresses a)]
+IpAddresses a -&gt; [IpAddress a]
+forall (a :: IpType). IpAddresses a -&gt; [IpAddress a]
+</span><a href="Pythia.Services.Types.Network.html#%24sel%3AunIpAddresses%3AMkIpAddresses"><span class="hs-identifier hs-var">unIpAddresses</span></a></span><span>
+</span><span id="line-319"></span></pre></body></html>

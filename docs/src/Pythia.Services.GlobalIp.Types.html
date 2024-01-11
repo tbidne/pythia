@@ -1,0 +1,544 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><link rel="stylesheet" type="text/css" href="style.css" /><script type="text/javascript" src="highlight.js"></script></head><body><pre><span id="local-6989586621679255463"><span id="local-6989586621679255464"></span></span><span class="hs-pragma">{-# LANGUAGE UndecidableInstances #-}</span><span>
+</span><span id="line-2"></span><span>
+</span><span id="line-3"></span><span class="hs-comment">-- | Provides types to be used for querying the global IP addresses.</span><span>
+</span><span id="line-4"></span><span class="hs-comment">--</span><span>
+</span><span id="line-5"></span><span class="hs-comment">-- @since 0.1</span><span>
+</span><span id="line-6"></span><span class="hs-keyword">module</span><span> </span><span class="hs-identifier">Pythia.Services.GlobalIp.Types</span><span>
+</span><span id="line-7"></span><span>  </span><span class="hs-special">(</span><span> </span><span class="annot"><span class="hs-comment">-- * Configuration</span></span><span>
+</span><span id="line-8"></span><span>    </span><span class="annot"><a href="Pythia.Services.GlobalIp.Types.html#GlobalIpv4Config"><span class="hs-identifier">GlobalIpv4Config</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-9"></span><span>    </span><span class="annot"><a href="Pythia.Services.GlobalIp.Types.html#GlobalIpv6Config"><span class="hs-identifier">GlobalIpv6Config</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-10"></span><span>    </span><span class="annot"><a href="Pythia.Services.GlobalIp.Types.html#GlobalIpBothConfig"><span class="hs-identifier">GlobalIpBothConfig</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-11"></span><span>    </span><span class="annot"><a href="Pythia.Services.GlobalIp.Types.html#GlobalIpConfig"><span class="hs-identifier">GlobalIpConfig</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span class="hs-special">,</span><span>
+</span><span id="line-12"></span><span>    </span><span class="annot"><a href="Pythia.Services.GlobalIp.Types.html#GlobalIpApp"><span class="hs-identifier">GlobalIpApp</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span class="hs-special">,</span><span>
+</span><span id="line-13"></span><span>
+</span><span id="line-14"></span><span>    </span><span class="annot"><span class="hs-comment">-- ** Extra URL sources</span></span><span>
+</span><span id="line-15"></span><span>    </span><span class="annot"><a href="Pythia.Services.GlobalIp.Types.html#UrlSource"><span class="hs-identifier">UrlSource</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span class="hs-special">,</span><span>
+</span><span id="line-16"></span><span>
+</span><span id="line-17"></span><span>    </span><span class="annot"><span class="hs-comment">-- * Optics</span></span><span>
+</span><span id="line-18"></span><span>    </span><span class="annot"><a href="Pythia.Services.GlobalIp.Types.html#_GlobalIpAppDig"><span class="hs-identifier">_GlobalIpAppDig</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-19"></span><span>    </span><span class="annot"><a href="Pythia.Services.GlobalIp.Types.html#_GlobalIpAppCurl"><span class="hs-identifier">_GlobalIpAppCurl</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-20"></span><span>  </span><span class="hs-special">)</span><span>
+</span><span id="line-21"></span><span class="hs-keyword">where</span><span>
+</span><span id="line-22"></span><span>
+</span><span id="line-23"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Pythia.Prelude.html"><span class="hs-identifier">Pythia.Prelude</span></a></span><span>
+</span><span id="line-24"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Pythia.Services.Types.Network.html"><span class="hs-identifier">Pythia.Services.Types.Network</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Pythia.Services.Types.Network.html#IpType"><span class="hs-identifier">IpType</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Pythia.Services.Types.Network.html#Ipv4"><span class="hs-identifier">Ipv4</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Pythia.Services.Types.Network.html#Ipv6"><span class="hs-identifier">Ipv6</span></a></span><span class="hs-special">)</span><span class="hs-special">)</span><span>
+</span><span id="line-25"></span><span>
+</span><span id="line-26"></span><span class="hs-comment">-- $setup</span><span>
+</span><span id="line-27"></span><span class="hs-comment">-- &gt;&gt;&gt; import Pythia.Prelude</span><span>
+</span><span id="line-28"></span><span class="hs-comment">-- &gt;&gt;&gt; import Pythia.Services.Types.Network (IpType (..))</span><span>
+</span><span id="line-29"></span><span>
+</span><span id="line-30"></span><span class="hs-comment">-- | This type determines what program we use to lookup the ip address.</span><span>
+</span><span id="line-31"></span><span class="hs-comment">--</span><span>
+</span><span id="line-32"></span><span class="hs-comment">-- @since 0.1</span><span>
+</span><span id="line-33"></span><span class="hs-keyword">type</span><span> </span><span class="annot"><a href="Pythia.Services.GlobalIp.Types.html#GlobalIpApp"><span class="hs-identifier hs-type">GlobalIpApp</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Type</span></span><span>
+</span><span id="line-34"></span><span class="hs-keyword">data</span><span> </span><span id="GlobalIpApp"><span class="annot"><a href="Pythia.Services.GlobalIp.Types.html#GlobalIpApp"><span class="hs-identifier hs-var">GlobalIpApp</span></a></span></span><span>
+</span><span id="line-35"></span><span>  </span><span class="hs-glyph">=</span><span> </span><span class="hs-comment">-- | Uses curl to lookup the ip addresses.</span><span>
+</span><span id="line-36"></span><span>    </span><span class="hs-comment">--</span><span>
+</span><span id="line-37"></span><span>    </span><span class="hs-comment">-- @since 0.1</span><span>
+</span><span id="line-38"></span><span>    </span><span id="GlobalIpAppCurl"><span class="annot"><a href="Pythia.Services.GlobalIp.Types.html#GlobalIpAppCurl"><span class="hs-identifier hs-var">GlobalIpAppCurl</span></a></span></span><span>
+</span><span id="line-39"></span><span>  </span><span class="hs-glyph">|</span><span> </span><span class="hs-comment">-- | Uses the dig command to perform a DNS lookup. This is generally the</span><span>
+</span><span id="line-40"></span><span>    </span><span class="hs-comment">-- fastest and most reliable.</span><span>
+</span><span id="line-41"></span><span>    </span><span class="hs-comment">--</span><span>
+</span><span id="line-42"></span><span>    </span><span class="hs-comment">-- @since 0.1</span><span>
+</span><span id="line-43"></span><span>    </span><span id="GlobalIpAppDig"><span class="annot"><a href="Pythia.Services.GlobalIp.Types.html#GlobalIpAppDig"><span class="hs-identifier hs-var">GlobalIpAppDig</span></a></span></span><span>
+</span><span id="line-44"></span><span>  </span><span class="hs-keyword">deriving</span><span> </span><span class="annot"><span class="hs-keyword">stock</span></span><span>
+</span><span id="line-45"></span><span>    </span><span class="hs-special">(</span><span> </span><span class="annot"><span class="hs-comment">-- | @since 0.1</span></span><span>
+</span><span id="line-46"></span><span>      </span><span id="local-6989586621679255475"><span id="local-6989586621679255477"><span class="annot"><span class="annottext">GlobalIpApp
+GlobalIpApp -&gt; GlobalIpApp -&gt; Bounded GlobalIpApp
+forall a. a -&gt; a -&gt; Bounded a
+$cminBound :: GlobalIpApp
+minBound :: GlobalIpApp
+$cmaxBound :: GlobalIpApp
+maxBound :: GlobalIpApp
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Bounded</span></span></span></span><span class="hs-special">,</span><span>
+</span><span id="line-47"></span><span>      </span><span class="annot"><span class="hs-comment">-- | @since 0.1</span></span><span>
+</span><span id="line-48"></span><span>      </span><span id="local-6989586621679255481"><span id="local-6989586621679255489"><span id="local-6989586621679255495"><span id="local-6989586621679255509"><span id="local-6989586621679255511"><span id="local-6989586621679255515"><span id="local-6989586621679255519"><span id="local-6989586621679255523"><span class="annot"><span class="annottext">Int -&gt; GlobalIpApp
+GlobalIpApp -&gt; Int
+GlobalIpApp -&gt; [GlobalIpApp]
+GlobalIpApp -&gt; GlobalIpApp
+GlobalIpApp -&gt; GlobalIpApp -&gt; [GlobalIpApp]
+GlobalIpApp -&gt; GlobalIpApp -&gt; GlobalIpApp -&gt; [GlobalIpApp]
+(GlobalIpApp -&gt; GlobalIpApp)
+-&gt; (GlobalIpApp -&gt; GlobalIpApp)
+-&gt; (Int -&gt; GlobalIpApp)
+-&gt; (GlobalIpApp -&gt; Int)
+-&gt; (GlobalIpApp -&gt; [GlobalIpApp])
+-&gt; (GlobalIpApp -&gt; GlobalIpApp -&gt; [GlobalIpApp])
+-&gt; (GlobalIpApp -&gt; GlobalIpApp -&gt; [GlobalIpApp])
+-&gt; (GlobalIpApp -&gt; GlobalIpApp -&gt; GlobalIpApp -&gt; [GlobalIpApp])
+-&gt; Enum GlobalIpApp
+forall a.
+(a -&gt; a)
+-&gt; (a -&gt; a)
+-&gt; (Int -&gt; a)
+-&gt; (a -&gt; Int)
+-&gt; (a -&gt; [a])
+-&gt; (a -&gt; a -&gt; [a])
+-&gt; (a -&gt; a -&gt; [a])
+-&gt; (a -&gt; a -&gt; a -&gt; [a])
+-&gt; Enum a
+$csucc :: GlobalIpApp -&gt; GlobalIpApp
+succ :: GlobalIpApp -&gt; GlobalIpApp
+$cpred :: GlobalIpApp -&gt; GlobalIpApp
+pred :: GlobalIpApp -&gt; GlobalIpApp
+$ctoEnum :: Int -&gt; GlobalIpApp
+toEnum :: Int -&gt; GlobalIpApp
+$cfromEnum :: GlobalIpApp -&gt; Int
+fromEnum :: GlobalIpApp -&gt; Int
+$cenumFrom :: GlobalIpApp -&gt; [GlobalIpApp]
+enumFrom :: GlobalIpApp -&gt; [GlobalIpApp]
+$cenumFromThen :: GlobalIpApp -&gt; GlobalIpApp -&gt; [GlobalIpApp]
+enumFromThen :: GlobalIpApp -&gt; GlobalIpApp -&gt; [GlobalIpApp]
+$cenumFromTo :: GlobalIpApp -&gt; GlobalIpApp -&gt; [GlobalIpApp]
+enumFromTo :: GlobalIpApp -&gt; GlobalIpApp -&gt; [GlobalIpApp]
+$cenumFromThenTo :: GlobalIpApp -&gt; GlobalIpApp -&gt; GlobalIpApp -&gt; [GlobalIpApp]
+enumFromThenTo :: GlobalIpApp -&gt; GlobalIpApp -&gt; GlobalIpApp -&gt; [GlobalIpApp]
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Enum</span></span></span></span></span></span></span></span></span></span><span class="hs-special">,</span><span>
+</span><span id="line-49"></span><span>      </span><span class="annot"><span class="hs-comment">-- | @since 0.1</span></span><span>
+</span><span id="line-50"></span><span>      </span><span id="local-6989586621679255527"><span id="local-6989586621679255529"><span class="annot"><span class="annottext">GlobalIpApp -&gt; GlobalIpApp -&gt; Bool
+(GlobalIpApp -&gt; GlobalIpApp -&gt; Bool)
+-&gt; (GlobalIpApp -&gt; GlobalIpApp -&gt; Bool) -&gt; Eq GlobalIpApp
+forall a. (a -&gt; a -&gt; Bool) -&gt; (a -&gt; a -&gt; Bool) -&gt; Eq a
+$c== :: GlobalIpApp -&gt; GlobalIpApp -&gt; Bool
+== :: GlobalIpApp -&gt; GlobalIpApp -&gt; Bool
+$c/= :: GlobalIpApp -&gt; GlobalIpApp -&gt; Bool
+/= :: GlobalIpApp -&gt; GlobalIpApp -&gt; Bool
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Eq</span></span></span></span><span class="hs-special">,</span><span>
+</span><span id="line-51"></span><span>      </span><span class="annot"><span class="hs-comment">-- | @since 0.1</span></span><span>
+</span><span id="line-52"></span><span>      </span><span id="local-6989586621679255534"><span id="local-6989586621679255536"><span class="annot"><span class="annottext">(forall x. GlobalIpApp -&gt; Rep GlobalIpApp x)
+-&gt; (forall x. Rep GlobalIpApp x -&gt; GlobalIpApp)
+-&gt; Generic GlobalIpApp
+forall x. Rep GlobalIpApp x -&gt; GlobalIpApp
+forall x. GlobalIpApp -&gt; Rep GlobalIpApp x
+forall a.
+(forall x. a -&gt; Rep a x) -&gt; (forall x. Rep a x -&gt; a) -&gt; Generic a
+$cfrom :: forall x. GlobalIpApp -&gt; Rep GlobalIpApp x
+from :: forall x. GlobalIpApp -&gt; Rep GlobalIpApp x
+$cto :: forall x. Rep GlobalIpApp x -&gt; GlobalIpApp
+to :: forall x. Rep GlobalIpApp x -&gt; GlobalIpApp
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Generic</span></span></span></span><span class="hs-special">,</span><span>
+</span><span id="line-53"></span><span>      </span><span class="annot"><span class="hs-comment">-- | @since 0.1</span></span><span>
+</span><span id="line-54"></span><span>      </span><span id="local-6989586621679255542"><span id="local-6989586621679255544"><span id="local-6989586621679255546"><span id="local-6989586621679255550"><span id="local-6989586621679255553"><span id="local-6989586621679255556"><span id="local-6989586621679255559"><span class="annot"><span class="annottext">Eq GlobalIpApp
+Eq GlobalIpApp =&gt;
+(GlobalIpApp -&gt; GlobalIpApp -&gt; Ordering)
+-&gt; (GlobalIpApp -&gt; GlobalIpApp -&gt; Bool)
+-&gt; (GlobalIpApp -&gt; GlobalIpApp -&gt; Bool)
+-&gt; (GlobalIpApp -&gt; GlobalIpApp -&gt; Bool)
+-&gt; (GlobalIpApp -&gt; GlobalIpApp -&gt; Bool)
+-&gt; (GlobalIpApp -&gt; GlobalIpApp -&gt; GlobalIpApp)
+-&gt; (GlobalIpApp -&gt; GlobalIpApp -&gt; GlobalIpApp)
+-&gt; Ord GlobalIpApp
+GlobalIpApp -&gt; GlobalIpApp -&gt; Bool
+GlobalIpApp -&gt; GlobalIpApp -&gt; Ordering
+GlobalIpApp -&gt; GlobalIpApp -&gt; GlobalIpApp
+forall a.
+Eq a =&gt;
+(a -&gt; a -&gt; Ordering)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; a)
+-&gt; (a -&gt; a -&gt; a)
+-&gt; Ord a
+$ccompare :: GlobalIpApp -&gt; GlobalIpApp -&gt; Ordering
+compare :: GlobalIpApp -&gt; GlobalIpApp -&gt; Ordering
+$c&lt; :: GlobalIpApp -&gt; GlobalIpApp -&gt; Bool
+&lt; :: GlobalIpApp -&gt; GlobalIpApp -&gt; Bool
+$c&lt;= :: GlobalIpApp -&gt; GlobalIpApp -&gt; Bool
+&lt;= :: GlobalIpApp -&gt; GlobalIpApp -&gt; Bool
+$c&gt; :: GlobalIpApp -&gt; GlobalIpApp -&gt; Bool
+&gt; :: GlobalIpApp -&gt; GlobalIpApp -&gt; Bool
+$c&gt;= :: GlobalIpApp -&gt; GlobalIpApp -&gt; Bool
+&gt;= :: GlobalIpApp -&gt; GlobalIpApp -&gt; Bool
+$cmax :: GlobalIpApp -&gt; GlobalIpApp -&gt; GlobalIpApp
+max :: GlobalIpApp -&gt; GlobalIpApp -&gt; GlobalIpApp
+$cmin :: GlobalIpApp -&gt; GlobalIpApp -&gt; GlobalIpApp
+min :: GlobalIpApp -&gt; GlobalIpApp -&gt; GlobalIpApp
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Ord</span></span></span></span></span></span></span></span></span><span class="hs-special">,</span><span>
+</span><span id="line-55"></span><span>      </span><span class="annot"><span class="hs-comment">-- | @since 0.1</span></span><span>
+</span><span id="line-56"></span><span>      </span><span id="local-6989586621679255563"><span id="local-6989586621679255565"><span id="local-6989586621679255569"><span class="annot"><span class="annottext">Int -&gt; GlobalIpApp -&gt; ShowS
+[GlobalIpApp] -&gt; ShowS
+GlobalIpApp -&gt; [Char]
+(Int -&gt; GlobalIpApp -&gt; ShowS)
+-&gt; (GlobalIpApp -&gt; [Char])
+-&gt; ([GlobalIpApp] -&gt; ShowS)
+-&gt; Show GlobalIpApp
+forall a.
+(Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; [Char]) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+$cshowsPrec :: Int -&gt; GlobalIpApp -&gt; ShowS
+showsPrec :: Int -&gt; GlobalIpApp -&gt; ShowS
+$cshow :: GlobalIpApp -&gt; [Char]
+show :: GlobalIpApp -&gt; [Char]
+$cshowList :: [GlobalIpApp] -&gt; ShowS
+showList :: [GlobalIpApp] -&gt; ShowS
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Show</span></span></span></span></span><span>
+</span><span id="line-57"></span><span>    </span><span class="hs-special">)</span><span>
+</span><span id="line-58"></span><span>  </span><span class="hs-keyword">deriving</span><span> </span><span class="annot"><span class="hs-keyword">anyclass</span></span><span>
+</span><span id="line-59"></span><span>    </span><span class="hs-special">(</span><span> </span><span class="annot"><span class="hs-comment">-- | @since 0.1</span></span><span>
+</span><span id="line-60"></span><span>      </span><span id="local-6989586621679255573"><span class="annot"><span class="annottext">GlobalIpApp -&gt; ()
+(GlobalIpApp -&gt; ()) -&gt; NFData GlobalIpApp
+forall a. (a -&gt; ()) -&gt; NFData a
+$crnf :: GlobalIpApp -&gt; ()
+rnf :: GlobalIpApp -&gt; ()
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var">NFData</span></span></span><span>
+</span><span id="line-61"></span><span>    </span><span class="hs-special">)</span><span>
+</span><span id="line-62"></span><span>
+</span><span id="line-63"></span><span class="annot"><span class="hs-comment">-- | @since 0.1</span></span><span>
+</span><span id="line-64"></span><span class="annot"><a href="Pythia.Services.GlobalIp.Types.html#_GlobalIpAppCurl"><span class="hs-identifier hs-type">_GlobalIpAppCurl</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="file:///nix/store/yiyd960cyn3zg283hgrwi5m0ilr7bcpb-optics-core-0.4.1.1-doc/share/doc/optics-core-0.4.1.1/html/src/Optics.Prism.html#Prism%27"><span class="hs-identifier hs-type">Prism'</span></a></span><span> </span><span class="annot"><a href="Pythia.Services.GlobalIp.Types.html#GlobalIpApp"><span class="hs-identifier hs-type">GlobalIpApp</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span>
+</span><span id="line-65"></span><span id="_GlobalIpAppCurl"><span class="annot"><span class="annottext">_GlobalIpAppCurl :: Prism' GlobalIpApp ()
+</span><a href="Pythia.Services.GlobalIp.Types.html#_GlobalIpAppCurl"><span class="hs-identifier hs-var hs-var">_GlobalIpAppCurl</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-66"></span><span>  </span><span class="annot"><span class="annottext">(() -&gt; GlobalIpApp)
+-&gt; (GlobalIpApp -&gt; Either GlobalIpApp ()) -&gt; Prism' GlobalIpApp ()
+forall b t s a. (b -&gt; t) -&gt; (s -&gt; Either t a) -&gt; Prism s t a b
+</span><a href="file:///nix/store/yiyd960cyn3zg283hgrwi5m0ilr7bcpb-optics-core-0.4.1.1-doc/share/doc/optics-core-0.4.1.1/html/src/Optics.Prism.html#prism"><span class="hs-identifier hs-var">prism</span></a></span><span>
+</span><span id="line-67"></span><span>    </span><span class="hs-special">(</span><span class="annot"><span class="annottext">GlobalIpApp -&gt; () -&gt; GlobalIpApp
+forall a b. a -&gt; b -&gt; a
+</span><span class="hs-identifier hs-var">const</span></span><span> </span><span class="annot"><span class="annottext">GlobalIpApp
+</span><a href="Pythia.Services.GlobalIp.Types.html#GlobalIpAppCurl"><span class="hs-identifier hs-var">GlobalIpAppCurl</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-68"></span><span>    </span><span class="hs-special">(</span><span> </span><span class="hs-glyph">\</span><span id="local-6989586621679255589"><span class="annot"><span class="annottext">GlobalIpApp
+</span><a href="#local-6989586621679255589"><span class="hs-identifier hs-var">x</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-keyword">case</span><span> </span><span class="annot"><span class="annottext">GlobalIpApp
+</span><a href="#local-6989586621679255589"><span class="hs-identifier hs-var">x</span></a></span><span> </span><span class="hs-keyword">of</span><span>
+</span><span id="line-69"></span><span>        </span><span class="annot"><span class="annottext">GlobalIpApp
+</span><a href="Pythia.Services.GlobalIp.Types.html#GlobalIpAppCurl"><span class="hs-identifier hs-var">GlobalIpAppCurl</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">() -&gt; Either GlobalIpApp ()
+forall a b. b -&gt; Either a b
+</span><span class="hs-identifier hs-var">Right</span></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span>
+</span><span id="line-70"></span><span>        </span><span class="annot"><span class="annottext">GlobalIpApp
+</span><span class="hs-identifier">_</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">GlobalIpApp -&gt; Either GlobalIpApp ()
+forall a b. a -&gt; Either a b
+</span><span class="hs-identifier hs-var">Left</span></span><span> </span><span class="annot"><span class="annottext">GlobalIpApp
+</span><a href="#local-6989586621679255589"><span class="hs-identifier hs-var">x</span></a></span><span>
+</span><span id="line-71"></span><span>    </span><span class="hs-special">)</span><span>
+</span><span id="line-72"></span><span class="hs-pragma">{-# INLINE</span><span> </span><span class="annot"><a href="Pythia.Services.GlobalIp.Types.html#_GlobalIpAppCurl"><span class="hs-pragma hs-type">_GlobalIpAppCurl</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-73"></span><span>
+</span><span id="line-74"></span><span class="annot"><span class="hs-comment">-- | @since 0.1</span></span><span>
+</span><span id="line-75"></span><span class="annot"><a href="Pythia.Services.GlobalIp.Types.html#_GlobalIpAppDig"><span class="hs-identifier hs-type">_GlobalIpAppDig</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="file:///nix/store/yiyd960cyn3zg283hgrwi5m0ilr7bcpb-optics-core-0.4.1.1-doc/share/doc/optics-core-0.4.1.1/html/src/Optics.Prism.html#Prism%27"><span class="hs-identifier hs-type">Prism'</span></a></span><span> </span><span class="annot"><a href="Pythia.Services.GlobalIp.Types.html#GlobalIpApp"><span class="hs-identifier hs-type">GlobalIpApp</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span>
+</span><span id="line-76"></span><span id="_GlobalIpAppDig"><span class="annot"><span class="annottext">_GlobalIpAppDig :: Prism' GlobalIpApp ()
+</span><a href="Pythia.Services.GlobalIp.Types.html#_GlobalIpAppDig"><span class="hs-identifier hs-var hs-var">_GlobalIpAppDig</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-77"></span><span>  </span><span class="annot"><span class="annottext">(() -&gt; GlobalIpApp)
+-&gt; (GlobalIpApp -&gt; Either GlobalIpApp ()) -&gt; Prism' GlobalIpApp ()
+forall b t s a. (b -&gt; t) -&gt; (s -&gt; Either t a) -&gt; Prism s t a b
+</span><a href="file:///nix/store/yiyd960cyn3zg283hgrwi5m0ilr7bcpb-optics-core-0.4.1.1-doc/share/doc/optics-core-0.4.1.1/html/src/Optics.Prism.html#prism"><span class="hs-identifier hs-var">prism</span></a></span><span>
+</span><span id="line-78"></span><span>    </span><span class="hs-special">(</span><span class="annot"><span class="annottext">GlobalIpApp -&gt; () -&gt; GlobalIpApp
+forall a b. a -&gt; b -&gt; a
+</span><span class="hs-identifier hs-var">const</span></span><span> </span><span class="annot"><span class="annottext">GlobalIpApp
+</span><a href="Pythia.Services.GlobalIp.Types.html#GlobalIpAppDig"><span class="hs-identifier hs-var">GlobalIpAppDig</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-79"></span><span>    </span><span class="hs-special">(</span><span> </span><span class="hs-glyph">\</span><span id="local-6989586621679255590"><span class="annot"><span class="annottext">GlobalIpApp
+</span><a href="#local-6989586621679255590"><span class="hs-identifier hs-var">x</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-keyword">case</span><span> </span><span class="annot"><span class="annottext">GlobalIpApp
+</span><a href="#local-6989586621679255590"><span class="hs-identifier hs-var">x</span></a></span><span> </span><span class="hs-keyword">of</span><span>
+</span><span id="line-80"></span><span>        </span><span class="annot"><span class="annottext">GlobalIpApp
+</span><a href="Pythia.Services.GlobalIp.Types.html#GlobalIpAppDig"><span class="hs-identifier hs-var">GlobalIpAppDig</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">() -&gt; Either GlobalIpApp ()
+forall a b. b -&gt; Either a b
+</span><span class="hs-identifier hs-var">Right</span></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span>
+</span><span id="line-81"></span><span>        </span><span class="annot"><span class="annottext">GlobalIpApp
+</span><span class="hs-identifier">_</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">GlobalIpApp -&gt; Either GlobalIpApp ()
+forall a b. a -&gt; Either a b
+</span><span class="hs-identifier hs-var">Left</span></span><span> </span><span class="annot"><span class="annottext">GlobalIpApp
+</span><a href="#local-6989586621679255590"><span class="hs-identifier hs-var">x</span></a></span><span>
+</span><span id="line-82"></span><span>    </span><span class="hs-special">)</span><span>
+</span><span id="line-83"></span><span class="hs-pragma">{-# INLINE</span><span> </span><span class="annot"><a href="Pythia.Services.GlobalIp.Types.html#_GlobalIpAppDig"><span class="hs-pragma hs-type">_GlobalIpAppDig</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-84"></span><span>
+</span><span id="line-85"></span><span class="hs-comment">-- | Additional URL source for retrieving IP information. The intended app</span><span>
+</span><span id="line-86"></span><span class="hs-comment">-- should not be included (i.e. curl or dig), but any desired flags should</span><span>
+</span><span id="line-87"></span><span class="hs-comment">-- be.</span><span>
+</span><span id="line-88"></span><span class="hs-comment">--</span><span>
+</span><span id="line-89"></span><span class="hs-comment">-- ==== __Examples__</span><span>
+</span><span id="line-90"></span><span class="hs-comment">--</span><span>
+</span><span id="line-91"></span><span class="hs-comment">-- @</span><span>
+</span><span id="line-92"></span><span class="hs-comment">-- (dig): &quot;@resolver1.opendns.com myip.opendns.com&quot;</span><span>
+</span><span id="line-93"></span><span class="hs-comment">-- (dig): -4 TXT o-o.myaddr.l.google.com @ns1.google.com</span><span>
+</span><span id="line-94"></span><span class="hs-comment">-- (curl): &quot;http://whatismyip.akamai.com/&quot;</span><span>
+</span><span id="line-95"></span><span class="hs-comment">-- ...</span><span>
+</span><span id="line-96"></span><span class="hs-comment">-- @</span><span>
+</span><span id="line-97"></span><span class="hs-comment">--</span><span>
+</span><span id="line-98"></span><span class="hs-comment">-- @since 0.1</span><span>
+</span><span id="line-99"></span><span class="hs-keyword">type</span><span> </span><span class="annot"><a href="Pythia.Services.GlobalIp.Types.html#UrlSource"><span class="hs-identifier hs-type">UrlSource</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Pythia.Services.Types.Network.html#IpType"><span class="hs-identifier hs-type">IpType</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Type</span></span><span>
+</span><span id="line-100"></span><span class="hs-keyword">newtype</span><span> </span><span id="UrlSource"><span class="annot"><a href="Pythia.Services.GlobalIp.Types.html#UrlSource"><span class="hs-identifier hs-var">UrlSource</span></a></span></span><span> </span><span id="local-6989586621679255374"><span class="annot"><a href="#local-6989586621679255374"><span class="hs-identifier hs-type">a</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span id="MkUrlSource"><span class="annot"><a href="Pythia.Services.GlobalIp.Types.html#MkUrlSource"><span class="hs-identifier hs-var">MkUrlSource</span></a></span></span><span> </span><span class="hs-special">{</span><span id="%24sel%3AunUrlSource%3AMkUrlSource"><span class="annot"><span class="annottext">forall (a :: IpType). UrlSource a -&gt; Text
+</span><a href="Pythia.Services.GlobalIp.Types.html#%24sel%3AunUrlSource%3AMkUrlSource"><span class="hs-identifier hs-var hs-var">unUrlSource</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Text</span></span><span class="hs-special">}</span><span>
+</span><span id="line-101"></span><span>  </span><span class="hs-keyword">deriving</span><span> </span><span class="annot"><span class="hs-keyword">stock</span></span><span>
+</span><span id="line-102"></span><span>    </span><span class="hs-special">(</span><span> </span><span class="annot"><span class="hs-comment">-- | @since 0.1</span></span><span>
+</span><span id="line-103"></span><span>      </span><span id="local-6989586621679255594"><span id="local-6989586621679255598"><span class="annot"><span class="annottext">UrlSource a -&gt; UrlSource a -&gt; Bool
+(UrlSource a -&gt; UrlSource a -&gt; Bool)
+-&gt; (UrlSource a -&gt; UrlSource a -&gt; Bool) -&gt; Eq (UrlSource a)
+forall a. (a -&gt; a -&gt; Bool) -&gt; (a -&gt; a -&gt; Bool) -&gt; Eq a
+forall (a :: IpType). UrlSource a -&gt; UrlSource a -&gt; Bool
+$c== :: forall (a :: IpType). UrlSource a -&gt; UrlSource a -&gt; Bool
+== :: UrlSource a -&gt; UrlSource a -&gt; Bool
+$c/= :: forall (a :: IpType). UrlSource a -&gt; UrlSource a -&gt; Bool
+/= :: UrlSource a -&gt; UrlSource a -&gt; Bool
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Eq</span></span></span></span><span class="hs-special">,</span><span>
+</span><span id="line-104"></span><span>      </span><span class="annot"><span class="hs-comment">-- | @since 0.1</span></span><span>
+</span><span id="line-105"></span><span>      </span><span id="local-6989586621679255602"><span id="local-6989586621679255604"><span class="annot"><span class="annottext">(forall x. UrlSource a -&gt; Rep (UrlSource a) x)
+-&gt; (forall x. Rep (UrlSource a) x -&gt; UrlSource a)
+-&gt; Generic (UrlSource a)
+forall x. Rep (UrlSource a) x -&gt; UrlSource a
+forall x. UrlSource a -&gt; Rep (UrlSource a) x
+forall a.
+(forall x. a -&gt; Rep a x) -&gt; (forall x. Rep a x -&gt; a) -&gt; Generic a
+forall (a :: IpType) x. Rep (UrlSource a) x -&gt; UrlSource a
+forall (a :: IpType) x. UrlSource a -&gt; Rep (UrlSource a) x
+$cfrom :: forall (a :: IpType) x. UrlSource a -&gt; Rep (UrlSource a) x
+from :: forall x. UrlSource a -&gt; Rep (UrlSource a) x
+$cto :: forall (a :: IpType) x. Rep (UrlSource a) x -&gt; UrlSource a
+to :: forall x. Rep (UrlSource a) x -&gt; UrlSource a
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Generic</span></span></span></span><span class="hs-special">,</span><span>
+</span><span id="line-106"></span><span>      </span><span class="annot"><span class="hs-comment">-- | @since 0.1</span></span><span>
+</span><span id="line-107"></span><span>      </span><span id="local-6989586621679255609"><span id="local-6989586621679255613"><span id="local-6989586621679255616"><span id="local-6989586621679255620"><span id="local-6989586621679255623"><span id="local-6989586621679255626"><span id="local-6989586621679255629"><span class="annot"><span class="annottext">Eq (UrlSource a)
+Eq (UrlSource a) =&gt;
+(UrlSource a -&gt; UrlSource a -&gt; Ordering)
+-&gt; (UrlSource a -&gt; UrlSource a -&gt; Bool)
+-&gt; (UrlSource a -&gt; UrlSource a -&gt; Bool)
+-&gt; (UrlSource a -&gt; UrlSource a -&gt; Bool)
+-&gt; (UrlSource a -&gt; UrlSource a -&gt; Bool)
+-&gt; (UrlSource a -&gt; UrlSource a -&gt; UrlSource a)
+-&gt; (UrlSource a -&gt; UrlSource a -&gt; UrlSource a)
+-&gt; Ord (UrlSource a)
+UrlSource a -&gt; UrlSource a -&gt; Bool
+UrlSource a -&gt; UrlSource a -&gt; Ordering
+UrlSource a -&gt; UrlSource a -&gt; UrlSource a
+forall a.
+Eq a =&gt;
+(a -&gt; a -&gt; Ordering)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; a)
+-&gt; (a -&gt; a -&gt; a)
+-&gt; Ord a
+forall (a :: IpType). Eq (UrlSource a)
+forall (a :: IpType). UrlSource a -&gt; UrlSource a -&gt; Bool
+forall (a :: IpType). UrlSource a -&gt; UrlSource a -&gt; Ordering
+forall (a :: IpType). UrlSource a -&gt; UrlSource a -&gt; UrlSource a
+$ccompare :: forall (a :: IpType). UrlSource a -&gt; UrlSource a -&gt; Ordering
+compare :: UrlSource a -&gt; UrlSource a -&gt; Ordering
+$c&lt; :: forall (a :: IpType). UrlSource a -&gt; UrlSource a -&gt; Bool
+&lt; :: UrlSource a -&gt; UrlSource a -&gt; Bool
+$c&lt;= :: forall (a :: IpType). UrlSource a -&gt; UrlSource a -&gt; Bool
+&lt;= :: UrlSource a -&gt; UrlSource a -&gt; Bool
+$c&gt; :: forall (a :: IpType). UrlSource a -&gt; UrlSource a -&gt; Bool
+&gt; :: UrlSource a -&gt; UrlSource a -&gt; Bool
+$c&gt;= :: forall (a :: IpType). UrlSource a -&gt; UrlSource a -&gt; Bool
+&gt;= :: UrlSource a -&gt; UrlSource a -&gt; Bool
+$cmax :: forall (a :: IpType). UrlSource a -&gt; UrlSource a -&gt; UrlSource a
+max :: UrlSource a -&gt; UrlSource a -&gt; UrlSource a
+$cmin :: forall (a :: IpType). UrlSource a -&gt; UrlSource a -&gt; UrlSource a
+min :: UrlSource a -&gt; UrlSource a -&gt; UrlSource a
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Ord</span></span></span></span></span></span></span></span></span><span class="hs-special">,</span><span>
+</span><span id="line-108"></span><span>      </span><span class="annot"><span class="hs-comment">-- | @since 0.1</span></span><span>
+</span><span id="line-109"></span><span>      </span><span id="local-6989586621679255632"><span id="local-6989586621679255637"><span id="local-6989586621679255641"><span class="annot"><span class="annottext">Int -&gt; UrlSource a -&gt; ShowS
+[UrlSource a] -&gt; ShowS
+UrlSource a -&gt; [Char]
+(Int -&gt; UrlSource a -&gt; ShowS)
+-&gt; (UrlSource a -&gt; [Char])
+-&gt; ([UrlSource a] -&gt; ShowS)
+-&gt; Show (UrlSource a)
+forall a.
+(Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; [Char]) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+forall (a :: IpType). Int -&gt; UrlSource a -&gt; ShowS
+forall (a :: IpType). [UrlSource a] -&gt; ShowS
+forall (a :: IpType). UrlSource a -&gt; [Char]
+$cshowsPrec :: forall (a :: IpType). Int -&gt; UrlSource a -&gt; ShowS
+showsPrec :: Int -&gt; UrlSource a -&gt; ShowS
+$cshow :: forall (a :: IpType). UrlSource a -&gt; [Char]
+show :: UrlSource a -&gt; [Char]
+$cshowList :: forall (a :: IpType). [UrlSource a] -&gt; ShowS
+showList :: [UrlSource a] -&gt; ShowS
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Show</span></span></span></span></span><span>
+</span><span id="line-110"></span><span>    </span><span class="hs-special">)</span><span>
+</span><span id="line-111"></span><span>  </span><span class="hs-keyword">deriving</span><span> </span><span class="annot"><span class="hs-keyword">newtype</span></span><span>
+</span><span id="line-112"></span><span>    </span><span class="hs-special">(</span><span> </span><span class="annot"><span class="hs-comment">-- | @since 0.1</span></span><span>
+</span><span id="line-113"></span><span>      </span><span id="local-6989586621679255644"><span class="annot"><span class="annottext">[Char] -&gt; UrlSource a
+([Char] -&gt; UrlSource a) -&gt; IsString (UrlSource a)
+forall a. ([Char] -&gt; a) -&gt; IsString a
+forall (a :: IpType). [Char] -&gt; UrlSource a
+$cfromString :: forall (a :: IpType). [Char] -&gt; UrlSource a
+fromString :: [Char] -&gt; UrlSource a
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var">IsString</span></span></span><span>
+</span><span id="line-114"></span><span>    </span><span class="hs-special">)</span><span>
+</span><span id="line-115"></span><span>  </span><span class="hs-keyword">deriving</span><span> </span><span class="annot"><span class="hs-keyword">anyclass</span></span><span>
+</span><span id="line-116"></span><span>    </span><span class="hs-special">(</span><span> </span><span class="annot"><span class="hs-comment">-- | @since 0.1</span></span><span>
+</span><span id="line-117"></span><span>      </span><span id="local-6989586621679255651"><span class="annot"><span class="annottext">UrlSource a -&gt; ()
+(UrlSource a -&gt; ()) -&gt; NFData (UrlSource a)
+forall a. (a -&gt; ()) -&gt; NFData a
+forall (a :: IpType). UrlSource a -&gt; ()
+$crnf :: forall (a :: IpType). UrlSource a -&gt; ()
+rnf :: UrlSource a -&gt; ()
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var">NFData</span></span></span><span>
+</span><span id="line-118"></span><span>    </span><span class="hs-special">)</span><span>
+</span><span id="line-119"></span><span>
+</span><span id="line-120"></span><span class="annot"><span class="hs-comment">-- | @since 0.1</span></span><span>
+</span><span id="line-121"></span><span class="hs-keyword">instance</span><span>
+</span><span id="line-122"></span><span>  </span><span id="local-6989586621679255408"><span id="local-6989586621679255409"><span id="local-6989586621679255410"><span id="local-6989586621679255411"><span class="hs-special">(</span><span class="annot"><a href="#local-6989586621679255408"><span class="hs-identifier hs-type">k</span></a></span><span> </span><span class="annot"><span class="hs-operator hs-type">~</span></span><span> </span><span class="annot"><a href="file:///nix/store/yiyd960cyn3zg283hgrwi5m0ilr7bcpb-optics-core-0.4.1.1-doc/share/doc/optics-core-0.4.1.1/html/src/Optics.Internal.Optic.Types.html#An_Iso"><span class="hs-identifier hs-type">An_Iso</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="#local-6989586621679255409"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="annot"><span class="hs-operator hs-type">~</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Text</span></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="#local-6989586621679255410"><span class="hs-identifier hs-type">b</span></a></span><span> </span><span class="annot"><span class="hs-operator hs-type">~</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Text</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span>
+</span><span id="line-123"></span><span>  </span><span class="annot"><a href="file:///nix/store/yiyd960cyn3zg283hgrwi5m0ilr7bcpb-optics-core-0.4.1.1-doc/share/doc/optics-core-0.4.1.1/html/src/Optics.Label.html#LabelOptic"><span class="hs-identifier hs-type">LabelOptic</span></a></span><span> </span><span class="annot"><span class="hs-string">&quot;unUrlSource&quot;</span></span><span> </span><span class="annot"><a href="#local-6989586621679255408"><span class="hs-identifier hs-type">k</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Pythia.Services.GlobalIp.Types.html#UrlSource"><span class="hs-identifier hs-type">UrlSource</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679255411"><span class="hs-identifier hs-type">p</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Pythia.Services.GlobalIp.Types.html#UrlSource"><span class="hs-identifier hs-type">UrlSource</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679255411"><span class="hs-identifier hs-type">p</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><a href="#local-6989586621679255409"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679255410"><span class="hs-identifier hs-type">b</span></a></span></span></span></span></span><span>
+</span><span id="line-124"></span><span>  </span><span class="hs-keyword">where</span><span>
+</span><span id="line-125"></span><span>  </span><span id="local-6989586621679255672"><span class="annot"><span class="annottext">labelOptic :: Optic k NoIx (UrlSource p) (UrlSource p) a b
+</span><a href="#local-6989586621679255672"><span class="hs-identifier hs-var hs-var hs-var hs-var">labelOptic</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">(UrlSource p -&gt; a)
+-&gt; (b -&gt; UrlSource p) -&gt; Iso (UrlSource p) (UrlSource p) a b
+forall s a b t. (s -&gt; a) -&gt; (b -&gt; t) -&gt; Iso s t a b
+</span><a href="file:///nix/store/yiyd960cyn3zg283hgrwi5m0ilr7bcpb-optics-core-0.4.1.1-doc/share/doc/optics-core-0.4.1.1/html/src/Optics.Iso.html#iso"><span class="hs-identifier hs-var">iso</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">\</span><span class="hs-special">(</span><span class="annot"><a href="Pythia.Services.GlobalIp.Types.html#MkUrlSource"><span class="hs-identifier hs-type">MkUrlSource</span></a></span><span> </span><span id="local-6989586621679255675"><span class="annot"><span class="annottext">Text
+</span><a href="#local-6989586621679255675"><span class="hs-identifier hs-var">s</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">a
+Text
+</span><a href="#local-6989586621679255675"><span class="hs-identifier hs-var">s</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">b -&gt; UrlSource p
+Text -&gt; UrlSource p
+forall (a :: IpType). Text -&gt; UrlSource a
+</span><a href="Pythia.Services.GlobalIp.Types.html#MkUrlSource"><span class="hs-identifier hs-var">MkUrlSource</span></a></span><span>
+</span><span id="line-126"></span><span>  </span><span class="hs-pragma">{-# INLINE</span><span> </span><span class="annot"><a href="file:///nix/store/yiyd960cyn3zg283hgrwi5m0ilr7bcpb-optics-core-0.4.1.1-doc/share/doc/optics-core-0.4.1.1/html/src/Optics.Label.html#labelOptic"><span class="hs-pragma hs-type">labelOptic</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-127"></span><span>
+</span><span id="line-128"></span><span class="hs-comment">-- | Complete configuration for querying global IP addresses.</span><span>
+</span><span id="line-129"></span><span class="hs-comment">--</span><span>
+</span><span id="line-130"></span><span class="hs-comment">-- @since 0.1</span><span>
+</span><span id="line-131"></span><span class="hs-keyword">type</span><span> </span><span class="annot"><a href="Pythia.Services.GlobalIp.Types.html#GlobalIpConfig"><span class="hs-identifier hs-type">GlobalIpConfig</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Type</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Type</span></span><span>
+</span><span id="line-132"></span><span class="hs-keyword">data</span><span> </span><span id="GlobalIpConfig"><span class="annot"><a href="Pythia.Services.GlobalIp.Types.html#GlobalIpConfig"><span class="hs-identifier hs-var">GlobalIpConfig</span></a></span></span><span> </span><span id="local-6989586621679255417"><span class="annot"><a href="#local-6989586621679255417"><span class="hs-identifier hs-type">a</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span id="MkGlobalIpConfig"><span class="annot"><a href="Pythia.Services.GlobalIp.Types.html#MkGlobalIpConfig"><span class="hs-identifier hs-var">MkGlobalIpConfig</span></a></span></span><span>
+</span><span id="line-133"></span><span>  </span><span class="hs-special">{</span><span> </span><span class="hs-comment">-- | Determines how we want to query.</span><span>
+</span><span id="line-134"></span><span>    </span><span class="hs-comment">--</span><span>
+</span><span id="line-135"></span><span>    </span><span class="hs-comment">-- @since 0.1</span><span>
+</span><span id="line-136"></span><span>    </span><span id="%24sel%3Aapp%3AMkGlobalIpConfig"><span class="annot"><span class="annottext">forall a. GlobalIpConfig a -&gt; GlobalIpApp
+</span><a href="Pythia.Services.GlobalIp.Types.html#%24sel%3Aapp%3AMkGlobalIpConfig"><span class="hs-identifier hs-var hs-var">app</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Pythia.Services.GlobalIp.Types.html#GlobalIpApp"><span class="hs-identifier hs-type">GlobalIpApp</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-137"></span><span>    </span><span class="hs-comment">-- | Extra lookup sources. This will be either a single @['UrlSource' a]@</span><span>
+</span><span id="line-138"></span><span>    </span><span class="hs-comment">-- or a pair @(['UrlSource' 'Ipv4'], ['UrlSource' 'Ipv6'])@, depending on</span><span>
+</span><span id="line-139"></span><span>    </span><span class="hs-comment">-- which address we want to retrieve.</span><span>
+</span><span id="line-140"></span><span>    </span><span class="hs-comment">--</span><span>
+</span><span id="line-141"></span><span>    </span><span class="hs-comment">-- @since 0.1</span><span>
+</span><span id="line-142"></span><span>    </span><span id="%24sel%3Asources%3AMkGlobalIpConfig"><span class="annot"><span class="annottext">forall a. GlobalIpConfig a -&gt; a
+</span><a href="Pythia.Services.GlobalIp.Types.html#%24sel%3Asources%3AMkGlobalIpConfig"><span class="hs-identifier hs-var hs-var">sources</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="#local-6989586621679255417"><span class="hs-identifier hs-type">a</span></a></span><span>
+</span><span id="line-143"></span><span>  </span><span class="hs-special">}</span><span>
+</span><span id="line-144"></span><span>  </span><span class="hs-keyword">deriving</span><span> </span><span class="annot"><span class="hs-keyword">stock</span></span><span>
+</span><span id="line-145"></span><span>    </span><span class="hs-special">(</span><span> </span><span class="annot"><span class="hs-comment">-- | @since 0.1</span></span><span>
+</span><span id="line-146"></span><span>      </span><span id="local-6989586621679255681"><span id="local-6989586621679255685"><span class="annot"><span class="annottext">GlobalIpConfig a -&gt; GlobalIpConfig a -&gt; Bool
+(GlobalIpConfig a -&gt; GlobalIpConfig a -&gt; Bool)
+-&gt; (GlobalIpConfig a -&gt; GlobalIpConfig a -&gt; Bool)
+-&gt; Eq (GlobalIpConfig a)
+forall a. Eq a =&gt; GlobalIpConfig a -&gt; GlobalIpConfig a -&gt; Bool
+forall a. (a -&gt; a -&gt; Bool) -&gt; (a -&gt; a -&gt; Bool) -&gt; Eq a
+$c== :: forall a. Eq a =&gt; GlobalIpConfig a -&gt; GlobalIpConfig a -&gt; Bool
+== :: GlobalIpConfig a -&gt; GlobalIpConfig a -&gt; Bool
+$c/= :: forall a. Eq a =&gt; GlobalIpConfig a -&gt; GlobalIpConfig a -&gt; Bool
+/= :: GlobalIpConfig a -&gt; GlobalIpConfig a -&gt; Bool
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Eq</span></span></span></span><span class="hs-special">,</span><span>
+</span><span id="line-147"></span><span>      </span><span class="annot"><span class="hs-comment">-- | @since 0.1</span></span><span>
+</span><span id="line-148"></span><span>      </span><span id="local-6989586621679255689"><span id="local-6989586621679255691"><span class="annot"><span class="annottext">(forall x. GlobalIpConfig a -&gt; Rep (GlobalIpConfig a) x)
+-&gt; (forall x. Rep (GlobalIpConfig a) x -&gt; GlobalIpConfig a)
+-&gt; Generic (GlobalIpConfig a)
+forall x. Rep (GlobalIpConfig a) x -&gt; GlobalIpConfig a
+forall x. GlobalIpConfig a -&gt; Rep (GlobalIpConfig a) x
+forall a.
+(forall x. a -&gt; Rep a x) -&gt; (forall x. Rep a x -&gt; a) -&gt; Generic a
+forall a x. Rep (GlobalIpConfig a) x -&gt; GlobalIpConfig a
+forall a x. GlobalIpConfig a -&gt; Rep (GlobalIpConfig a) x
+$cfrom :: forall a x. GlobalIpConfig a -&gt; Rep (GlobalIpConfig a) x
+from :: forall x. GlobalIpConfig a -&gt; Rep (GlobalIpConfig a) x
+$cto :: forall a x. Rep (GlobalIpConfig a) x -&gt; GlobalIpConfig a
+to :: forall x. Rep (GlobalIpConfig a) x -&gt; GlobalIpConfig a
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Generic</span></span></span></span><span class="hs-special">,</span><span>
+</span><span id="line-149"></span><span>      </span><span class="annot"><span class="hs-comment">-- | @since 0.1</span></span><span>
+</span><span id="line-150"></span><span>      </span><span id="local-6989586621679255695"><span id="local-6989586621679255700"><span id="local-6989586621679255704"><span class="annot"><span class="annottext">Int -&gt; GlobalIpConfig a -&gt; ShowS
+[GlobalIpConfig a] -&gt; ShowS
+GlobalIpConfig a -&gt; [Char]
+(Int -&gt; GlobalIpConfig a -&gt; ShowS)
+-&gt; (GlobalIpConfig a -&gt; [Char])
+-&gt; ([GlobalIpConfig a] -&gt; ShowS)
+-&gt; Show (GlobalIpConfig a)
+forall a. Show a =&gt; Int -&gt; GlobalIpConfig a -&gt; ShowS
+forall a. Show a =&gt; [GlobalIpConfig a] -&gt; ShowS
+forall a. Show a =&gt; GlobalIpConfig a -&gt; [Char]
+forall a.
+(Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; [Char]) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+$cshowsPrec :: forall a. Show a =&gt; Int -&gt; GlobalIpConfig a -&gt; ShowS
+showsPrec :: Int -&gt; GlobalIpConfig a -&gt; ShowS
+$cshow :: forall a. Show a =&gt; GlobalIpConfig a -&gt; [Char]
+show :: GlobalIpConfig a -&gt; [Char]
+$cshowList :: forall a. Show a =&gt; [GlobalIpConfig a] -&gt; ShowS
+showList :: [GlobalIpConfig a] -&gt; ShowS
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Show</span></span></span></span></span><span>
+</span><span id="line-151"></span><span>    </span><span class="hs-special">)</span><span>
+</span><span id="line-152"></span><span>  </span><span class="hs-keyword">deriving</span><span> </span><span class="annot"><span class="hs-keyword">anyclass</span></span><span>
+</span><span id="line-153"></span><span>    </span><span class="hs-special">(</span><span> </span><span class="annot"><span class="hs-comment">-- | @since 0.1</span></span><span>
+</span><span id="line-154"></span><span>      </span><span id="local-6989586621679255708"><span class="annot"><span class="annottext">GlobalIpConfig a -&gt; ()
+(GlobalIpConfig a -&gt; ()) -&gt; NFData (GlobalIpConfig a)
+forall a. NFData a =&gt; GlobalIpConfig a -&gt; ()
+forall a. (a -&gt; ()) -&gt; NFData a
+$crnf :: forall a. NFData a =&gt; GlobalIpConfig a -&gt; ()
+rnf :: GlobalIpConfig a -&gt; ()
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var">NFData</span></span></span><span>
+</span><span id="line-155"></span><span>    </span><span class="hs-special">)</span><span>
+</span><span id="line-156"></span><span>
+</span><span id="line-157"></span><span class="annot"><span class="hs-comment">-- | @since 0.1</span></span><span>
+</span><span id="line-158"></span><span class="hs-keyword">instance</span><span>
+</span><span id="line-159"></span><span>  </span><span id="local-6989586621679255437"><span id="local-6989586621679255438"><span id="local-6989586621679255439"><span id="local-6989586621679255440"><span class="hs-special">(</span><span class="annot"><a href="#local-6989586621679255437"><span class="hs-identifier hs-type">k</span></a></span><span> </span><span class="annot"><span class="hs-operator hs-type">~</span></span><span> </span><span class="annot"><a href="file:///nix/store/yiyd960cyn3zg283hgrwi5m0ilr7bcpb-optics-core-0.4.1.1-doc/share/doc/optics-core-0.4.1.1/html/src/Optics.Internal.Optic.Types.html#A_Lens"><span class="hs-identifier hs-type">A_Lens</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="#local-6989586621679255438"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="annot"><span class="hs-operator hs-type">~</span></span><span> </span><span class="annot"><a href="Pythia.Services.GlobalIp.Types.html#GlobalIpApp"><span class="hs-identifier hs-type">GlobalIpApp</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="#local-6989586621679255439"><span class="hs-identifier hs-type">b</span></a></span><span> </span><span class="annot"><span class="hs-operator hs-type">~</span></span><span> </span><span class="annot"><a href="Pythia.Services.GlobalIp.Types.html#GlobalIpApp"><span class="hs-identifier hs-type">GlobalIpApp</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span>
+</span><span id="line-160"></span><span>  </span><span class="annot"><a href="file:///nix/store/yiyd960cyn3zg283hgrwi5m0ilr7bcpb-optics-core-0.4.1.1-doc/share/doc/optics-core-0.4.1.1/html/src/Optics.Label.html#LabelOptic"><span class="hs-identifier hs-type">LabelOptic</span></a></span><span> </span><span class="annot"><span class="hs-string">&quot;app&quot;</span></span><span> </span><span class="annot"><a href="#local-6989586621679255437"><span class="hs-identifier hs-type">k</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Pythia.Services.GlobalIp.Types.html#GlobalIpConfig"><span class="hs-identifier hs-type">GlobalIpConfig</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679255440"><span class="hs-identifier hs-type">s</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Pythia.Services.GlobalIp.Types.html#GlobalIpConfig"><span class="hs-identifier hs-type">GlobalIpConfig</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679255440"><span class="hs-identifier hs-type">s</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><a href="#local-6989586621679255438"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679255439"><span class="hs-identifier hs-type">b</span></a></span></span></span></span></span><span>
+</span><span id="line-161"></span><span>  </span><span class="hs-keyword">where</span><span>
+</span><span id="line-162"></span><span>  </span><span id="local-6989586621679255730"><span class="annot"><span class="annottext">labelOptic :: Optic k NoIx (GlobalIpConfig s) (GlobalIpConfig s) a b
+</span><a href="file:///nix/store/yiyd960cyn3zg283hgrwi5m0ilr7bcpb-optics-core-0.4.1.1-doc/share/doc/optics-core-0.4.1.1/html/src/Optics.Label.html#labelOptic"><span class="hs-identifier hs-var hs-var hs-var hs-var">labelOptic</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">LensVL (GlobalIpConfig s) (GlobalIpConfig s) a b
+-&gt; Lens (GlobalIpConfig s) (GlobalIpConfig s) a b
+forall s t a b. LensVL s t a b -&gt; Lens s t a b
+</span><a href="file:///nix/store/yiyd960cyn3zg283hgrwi5m0ilr7bcpb-optics-core-0.4.1.1-doc/share/doc/optics-core-0.4.1.1/html/src/Optics.Lens.html#lensVL"><span class="hs-identifier hs-var">lensVL</span></a></span><span> </span><span class="annot"><span class="annottext">(LensVL (GlobalIpConfig s) (GlobalIpConfig s) a b
+ -&gt; Lens (GlobalIpConfig s) (GlobalIpConfig s) a b)
+-&gt; LensVL (GlobalIpConfig s) (GlobalIpConfig s) a b
+-&gt; Lens (GlobalIpConfig s) (GlobalIpConfig s) a b
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="hs-glyph">\</span><span id="local-6989586621679255734"><span class="annot"><span class="annottext">a -&gt; f b
+</span><a href="#local-6989586621679255734"><span class="hs-identifier hs-var">f</span></a></span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Pythia.Services.GlobalIp.Types.html#MkGlobalIpConfig"><span class="hs-identifier hs-type">MkGlobalIpConfig</span></a></span><span> </span><span id="local-6989586621679255735"><span class="annot"><span class="annottext">GlobalIpApp
+</span><a href="#local-6989586621679255735"><span class="hs-identifier hs-var">_app</span></a></span></span><span> </span><span id="local-6989586621679255736"><span class="annot"><span class="annottext">s
+</span><a href="#local-6989586621679255736"><span class="hs-identifier hs-var">_sources</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span>
+</span><span id="line-163"></span><span>    </span><span class="annot"><span class="annottext">(GlobalIpApp -&gt; GlobalIpConfig s)
+-&gt; f GlobalIpApp -&gt; f (GlobalIpConfig s)
+forall a b. (a -&gt; b) -&gt; f a -&gt; f b
+forall (f :: Type -&gt; Type) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span><span class="hs-identifier hs-var">fmap</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">GlobalIpApp -&gt; s -&gt; GlobalIpConfig s
+forall a. GlobalIpApp -&gt; a -&gt; GlobalIpConfig a
+</span><a href="Pythia.Services.GlobalIp.Types.html#MkGlobalIpConfig"><span class="hs-operator hs-var">`MkGlobalIpConfig`</span></a></span><span> </span><span class="annot"><span class="annottext">s
+</span><a href="#local-6989586621679255736"><span class="hs-identifier hs-var">_sources</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">a -&gt; f b
+</span><a href="#local-6989586621679255734"><span class="hs-identifier hs-var">f</span></a></span><span> </span><span class="annot"><span class="annottext">a
+GlobalIpApp
+</span><a href="#local-6989586621679255735"><span class="hs-identifier hs-var">_app</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-164"></span><span>  </span><span class="hs-pragma">{-# INLINE</span><span> </span><span class="annot"><a href="file:///nix/store/yiyd960cyn3zg283hgrwi5m0ilr7bcpb-optics-core-0.4.1.1-doc/share/doc/optics-core-0.4.1.1/html/src/Optics.Label.html#labelOptic"><span class="hs-pragma hs-type">labelOptic</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-165"></span><span>
+</span><span id="line-166"></span><span class="annot"><span class="hs-comment">-- | @since 0.1</span></span><span>
+</span><span id="line-167"></span><span class="hs-keyword">instance</span><span>
+</span><span id="line-168"></span><span>  </span><span id="local-6989586621679255458"><span id="local-6989586621679255459"><span id="local-6989586621679255460"><span id="local-6989586621679255461"><span class="hs-special">(</span><span class="annot"><a href="#local-6989586621679255458"><span class="hs-identifier hs-type">k</span></a></span><span> </span><span class="annot"><span class="hs-operator hs-type">~</span></span><span> </span><span class="annot"><a href="file:///nix/store/yiyd960cyn3zg283hgrwi5m0ilr7bcpb-optics-core-0.4.1.1-doc/share/doc/optics-core-0.4.1.1/html/src/Optics.Internal.Optic.Types.html#A_Lens"><span class="hs-identifier hs-type">A_Lens</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="#local-6989586621679255459"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="annot"><span class="hs-operator hs-type">~</span></span><span> </span><span class="annot"><a href="#local-6989586621679255460"><span class="hs-identifier hs-type">s</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="#local-6989586621679255461"><span class="hs-identifier hs-type">b</span></a></span><span> </span><span class="annot"><span class="hs-operator hs-type">~</span></span><span> </span><span class="annot"><a href="#local-6989586621679255460"><span class="hs-identifier hs-type">s</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span>
+</span><span id="line-169"></span><span>  </span><span class="annot"><a href="file:///nix/store/yiyd960cyn3zg283hgrwi5m0ilr7bcpb-optics-core-0.4.1.1-doc/share/doc/optics-core-0.4.1.1/html/src/Optics.Label.html#LabelOptic"><span class="hs-identifier hs-type">LabelOptic</span></a></span><span> </span><span class="annot"><span class="hs-string">&quot;sources&quot;</span></span><span> </span><span class="annot"><a href="#local-6989586621679255458"><span class="hs-identifier hs-type">k</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Pythia.Services.GlobalIp.Types.html#GlobalIpConfig"><span class="hs-identifier hs-type">GlobalIpConfig</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679255460"><span class="hs-identifier hs-type">s</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Pythia.Services.GlobalIp.Types.html#GlobalIpConfig"><span class="hs-identifier hs-type">GlobalIpConfig</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679255460"><span class="hs-identifier hs-type">s</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><a href="#local-6989586621679255459"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679255461"><span class="hs-identifier hs-type">b</span></a></span></span></span></span></span><span>
+</span><span id="line-170"></span><span>  </span><span class="hs-keyword">where</span><span>
+</span><span id="line-171"></span><span>  </span><span id="local-6989586621679255745"><span class="annot"><span class="annottext">labelOptic :: Optic k NoIx (GlobalIpConfig s) (GlobalIpConfig s) a b
+</span><a href="file:///nix/store/yiyd960cyn3zg283hgrwi5m0ilr7bcpb-optics-core-0.4.1.1-doc/share/doc/optics-core-0.4.1.1/html/src/Optics.Label.html#labelOptic"><span class="hs-identifier hs-var hs-var hs-var hs-var">labelOptic</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">LensVL (GlobalIpConfig s) (GlobalIpConfig s) a b
+-&gt; Lens (GlobalIpConfig s) (GlobalIpConfig s) a b
+forall s t a b. LensVL s t a b -&gt; Lens s t a b
+</span><a href="file:///nix/store/yiyd960cyn3zg283hgrwi5m0ilr7bcpb-optics-core-0.4.1.1-doc/share/doc/optics-core-0.4.1.1/html/src/Optics.Lens.html#lensVL"><span class="hs-identifier hs-var">lensVL</span></a></span><span> </span><span class="annot"><span class="annottext">(LensVL (GlobalIpConfig s) (GlobalIpConfig s) a b
+ -&gt; Lens (GlobalIpConfig s) (GlobalIpConfig s) a b)
+-&gt; LensVL (GlobalIpConfig s) (GlobalIpConfig s) a b
+-&gt; Lens (GlobalIpConfig s) (GlobalIpConfig s) a b
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="hs-glyph">\</span><span id="local-6989586621679255748"><span class="annot"><span class="annottext">a -&gt; f b
+</span><a href="#local-6989586621679255748"><span class="hs-identifier hs-var">f</span></a></span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Pythia.Services.GlobalIp.Types.html#MkGlobalIpConfig"><span class="hs-identifier hs-type">MkGlobalIpConfig</span></a></span><span> </span><span id="local-6989586621679255749"><span class="annot"><span class="annottext">GlobalIpApp
+</span><a href="#local-6989586621679255749"><span class="hs-identifier hs-var">_app</span></a></span></span><span> </span><span id="local-6989586621679255750"><span class="annot"><span class="annottext">s
+</span><a href="#local-6989586621679255750"><span class="hs-identifier hs-var">_sources</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span>
+</span><span id="line-172"></span><span>    </span><span class="annot"><span class="annottext">(s -&gt; GlobalIpConfig s) -&gt; f s -&gt; f (GlobalIpConfig s)
+forall a b. (a -&gt; b) -&gt; f a -&gt; f b
+forall (f :: Type -&gt; Type) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span><span class="hs-identifier hs-var">fmap</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">GlobalIpApp -&gt; s -&gt; GlobalIpConfig s
+forall a. GlobalIpApp -&gt; a -&gt; GlobalIpConfig a
+</span><a href="Pythia.Services.GlobalIp.Types.html#MkGlobalIpConfig"><span class="hs-identifier hs-var">MkGlobalIpConfig</span></a></span><span> </span><span class="annot"><span class="annottext">GlobalIpApp
+</span><a href="#local-6989586621679255749"><span class="hs-identifier hs-var">_app</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">a -&gt; f b
+</span><a href="#local-6989586621679255748"><span class="hs-identifier hs-var">f</span></a></span><span> </span><span class="annot"><span class="annottext">a
+s
+</span><a href="#local-6989586621679255750"><span class="hs-identifier hs-var">_sources</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-173"></span><span>  </span><span class="hs-pragma">{-# INLINE</span><span> </span><span class="annot"><a href="file:///nix/store/yiyd960cyn3zg283hgrwi5m0ilr7bcpb-optics-core-0.4.1.1-doc/share/doc/optics-core-0.4.1.1/html/src/Optics.Label.html#labelOptic"><span class="hs-pragma hs-type">labelOptic</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-174"></span><span>
+</span><span id="line-175"></span><span class="hs-comment">-- | Type alias for 'Ipv4' 'GlobalIpConfig'.</span><span>
+</span><span id="line-176"></span><span class="hs-comment">--</span><span>
+</span><span id="line-177"></span><span class="hs-comment">-- @since 0.1.0.0</span><span>
+</span><span id="line-178"></span><span class="hs-keyword">type</span><span> </span><span class="annot"><a href="Pythia.Services.GlobalIp.Types.html#GlobalIpv4Config"><span class="hs-identifier hs-type">GlobalIpv4Config</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Type</span></span><span>
+</span><span id="line-179"></span><span class="hs-keyword">type</span><span> </span><span id="GlobalIpv4Config"><span class="annot"><a href="Pythia.Services.GlobalIp.Types.html#GlobalIpv4Config"><span class="hs-identifier hs-var">GlobalIpv4Config</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><a href="Pythia.Services.GlobalIp.Types.html#GlobalIpConfig"><span class="hs-identifier hs-type">GlobalIpConfig</span></a></span><span> </span><span class="hs-special">[</span><span class="annot"><a href="Pythia.Services.GlobalIp.Types.html#UrlSource"><span class="hs-identifier hs-type">UrlSource</span></a></span><span> </span><span class="annot"><a href="Pythia.Services.Types.Network.html#Ipv4"><span class="hs-identifier hs-type">Ipv4</span></a></span><span class="hs-special">]</span><span>
+</span><span id="line-180"></span><span>
+</span><span id="line-181"></span><span class="hs-comment">-- | Type alias for 'Ipv6' 'GlobalIpConfig'.</span><span>
+</span><span id="line-182"></span><span class="hs-comment">--</span><span>
+</span><span id="line-183"></span><span class="hs-comment">-- @since 0.1.0.0</span><span>
+</span><span id="line-184"></span><span class="hs-keyword">type</span><span> </span><span class="annot"><a href="Pythia.Services.GlobalIp.Types.html#GlobalIpv6Config"><span class="hs-identifier hs-type">GlobalIpv6Config</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Type</span></span><span>
+</span><span id="line-185"></span><span class="hs-keyword">type</span><span> </span><span id="GlobalIpv6Config"><span class="annot"><a href="Pythia.Services.GlobalIp.Types.html#GlobalIpv6Config"><span class="hs-identifier hs-var">GlobalIpv6Config</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><a href="Pythia.Services.GlobalIp.Types.html#GlobalIpConfig"><span class="hs-identifier hs-type">GlobalIpConfig</span></a></span><span> </span><span class="hs-special">[</span><span class="annot"><a href="Pythia.Services.GlobalIp.Types.html#UrlSource"><span class="hs-identifier hs-type">UrlSource</span></a></span><span> </span><span class="annot"><a href="Pythia.Services.Types.Network.html#Ipv6"><span class="hs-identifier hs-type">Ipv6</span></a></span><span class="hs-special">]</span><span>
+</span><span id="line-186"></span><span>
+</span><span id="line-187"></span><span class="hs-comment">-- | Type alias for 'Ipv4' and 'Ipv6' 'GlobalIpConfig'.</span><span>
+</span><span id="line-188"></span><span class="hs-comment">--</span><span>
+</span><span id="line-189"></span><span class="hs-comment">-- @since 0.1.0.0</span><span>
+</span><span id="line-190"></span><span class="hs-keyword">type</span><span> </span><span class="annot"><a href="Pythia.Services.GlobalIp.Types.html#GlobalIpBothConfig"><span class="hs-identifier hs-type">GlobalIpBothConfig</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Type</span></span><span>
+</span><span id="line-191"></span><span class="hs-keyword">type</span><span> </span><span id="GlobalIpBothConfig"><span class="annot"><a href="Pythia.Services.GlobalIp.Types.html#GlobalIpBothConfig"><span class="hs-identifier hs-var">GlobalIpBothConfig</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><a href="Pythia.Services.GlobalIp.Types.html#GlobalIpConfig"><span class="hs-identifier hs-type">GlobalIpConfig</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-special">[</span><span class="annot"><a href="Pythia.Services.GlobalIp.Types.html#UrlSource"><span class="hs-identifier hs-type">UrlSource</span></a></span><span> </span><span class="annot"><a href="Pythia.Services.Types.Network.html#Ipv4"><span class="hs-identifier hs-type">Ipv4</span></a></span><span class="hs-special">]</span><span class="hs-special">,</span><span> </span><span class="hs-special">[</span><span class="annot"><a href="Pythia.Services.GlobalIp.Types.html#UrlSource"><span class="hs-identifier hs-type">UrlSource</span></a></span><span> </span><span class="annot"><a href="Pythia.Services.Types.Network.html#Ipv6"><span class="hs-identifier hs-type">Ipv6</span></a></span><span class="hs-special">]</span><span class="hs-special">)</span><span>
+</span><span id="line-192"></span></pre></body></html>

@@ -1,0 +1,693 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><link rel="stylesheet" type="text/css" href="style.css" /><script type="text/javascript" src="highlight.js"></script></head><body><pre><span class="hs-pragma">{-# LANGUAGE QuasiQuotes #-}</span><span>
+</span><span id="line-2"></span><span>
+</span><span id="line-3"></span><span class="hs-comment">-- | This module provides functionality for retrieving battery information</span><span>
+</span><span id="line-4"></span><span class="hs-comment">-- using SysFS.</span><span>
+</span><span id="line-5"></span><span class="hs-comment">--</span><span>
+</span><span id="line-6"></span><span class="hs-comment">-- @since 0.1</span><span>
+</span><span id="line-7"></span><span class="hs-keyword">module</span><span> </span><span class="hs-identifier">Pythia.Services.Battery.SysFs</span><span>
+</span><span id="line-8"></span><span>  </span><span class="hs-special">(</span><span> </span><span class="annot"><span class="hs-comment">-- * Query</span></span><span>
+</span><span id="line-9"></span><span>    </span><span class="annot"><a href="Pythia.Services.Battery.SysFs.html#batteryQuery"><span class="hs-identifier">batteryQuery</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-10"></span><span>    </span><span class="annot"><a href="Pythia.Services.Battery.SysFs.html#supported"><span class="hs-identifier">supported</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-11"></span><span>
+</span><span id="line-12"></span><span>    </span><span class="annot"><span class="hs-comment">-- * Misc</span></span><span>
+</span><span id="line-13"></span><span>    </span><span class="annot"><a href="Pythia.Services.Battery.SysFs.html#SysFsDirNotFound"><span class="hs-identifier">SysFsDirNotFound</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span class="hs-special">,</span><span>
+</span><span id="line-14"></span><span>    </span><span class="annot"><a href="Pythia.Services.Battery.SysFs.html#SysFsBatteryDirNotFound"><span class="hs-identifier">SysFsBatteryDirNotFound</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span class="hs-special">,</span><span>
+</span><span id="line-15"></span><span>    </span><span class="annot"><a href="Pythia.Services.Battery.SysFs.html#SysFsFileNotFound"><span class="hs-identifier">SysFsFileNotFound</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span class="hs-special">,</span><span>
+</span><span id="line-16"></span><span>    </span><span class="annot"><a href="Pythia.Services.Battery.SysFs.html#SysFsBatteryParseError"><span class="hs-identifier">SysFsBatteryParseError</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span class="hs-special">,</span><span>
+</span><span id="line-17"></span><span>  </span><span class="hs-special">)</span><span>
+</span><span id="line-18"></span><span class="hs-keyword">where</span><span>
+</span><span id="line-19"></span><span>
+</span><span id="line-20"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Data.Text</span></span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="hs-keyword">as</span><span> </span><span class="annot"><span class="hs-identifier">T</span></span><span>
+</span><span id="line-21"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="file:///home/tommy/.local/state/cabal/store/ghc-9.6.3/effects-fs-0.1-5841411f1c8e259b2cf3c993222ef4c2c136f1e315fe1b2c92965a1bea2a7701/share/doc/html/src/Effects.FileSystem.PathReader.html"><span class="hs-identifier">Effects.FileSystem.PathReader</span></a></span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="hs-keyword">as</span><span> </span><span class="annot"><span class="hs-identifier">Dir</span></span><span>
+</span><span id="line-22"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Pythia.Data.Percentage.html"><span class="hs-identifier">Pythia.Data.Percentage</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Pythia.Data.Percentage.Internal.html#Percentage"><span class="hs-identifier">Percentage</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-23"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Pythia.Data.Percentage.html"><span class="hs-identifier">Pythia.Data.Percentage</span></a></span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="hs-keyword">as</span><span> </span><span class="annot"><span class="hs-identifier">Percentage</span></span><span>
+</span><span id="line-24"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Pythia.Prelude.html"><span class="hs-identifier">Pythia.Prelude</span></a></span><span>
+</span><span id="line-25"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Pythia.Services.Battery.Types.html"><span class="hs-identifier">Pythia.Services.Battery.Types</span></a></span><span>
+</span><span id="line-26"></span><span>  </span><span class="hs-special">(</span><span> </span><span class="annot"><a href="Pythia.Services.Battery.Types.html#Battery"><span class="hs-identifier">Battery</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Pythia.Services.Battery.Types.html#MkBattery"><span class="hs-identifier">MkBattery</span></a></span><span class="hs-special">)</span><span class="hs-special">,</span><span>
+</span><span id="line-27"></span><span>    </span><span class="annot"><a href="Pythia.Services.Battery.Types.html#BatteryStatus"><span class="hs-identifier">BatteryStatus</span></a></span><span>
+</span><span id="line-28"></span><span>      </span><span class="hs-special">(</span><span> </span><span class="annot"><a href="Pythia.Services.Battery.Types.html#Charging"><span class="hs-identifier">Charging</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-29"></span><span>        </span><span class="annot"><a href="Pythia.Services.Battery.Types.html#Discharging"><span class="hs-identifier">Discharging</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-30"></span><span>        </span><span class="annot"><a href="Pythia.Services.Battery.Types.html#Full"><span class="hs-identifier">Full</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-31"></span><span>        </span><span class="annot"><a href="Pythia.Services.Battery.Types.html#Pending"><span class="hs-identifier">Pending</span></a></span><span>
+</span><span id="line-32"></span><span>      </span><span class="hs-special">)</span><span class="hs-special">,</span><span>
+</span><span id="line-33"></span><span>  </span><span class="hs-special">)</span><span>
+</span><span id="line-34"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Text.Read</span></span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="hs-keyword">as</span><span> </span><span class="annot"><span class="hs-identifier">TR</span></span><span>
+</span><span id="line-35"></span><span>
+</span><span id="line-36"></span><span class="hs-comment">-- $setup</span><span>
+</span><span id="line-37"></span><span class="hs-comment">-- &gt;&gt;&gt; import Control.Exception (displayException)</span><span>
+</span><span id="line-38"></span><span class="hs-comment">-- &gt;&gt;&gt; import Pythia.Prelude</span><span>
+</span><span id="line-39"></span><span>
+</span><span id="line-40"></span><span class="annot"><a href="Pythia.Services.Battery.SysFs.html#sysDir"><span class="hs-identifier hs-type">sysDir</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">OsPath</span></span><span>
+</span><span id="line-41"></span><span id="sysDir"><span class="annot"><span class="annottext">sysDir :: OsPath
+</span><a href="Pythia.Services.Battery.SysFs.html#sysDir"><span class="hs-identifier hs-var hs-var">sysDir</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="">[osp|/sys/class/power_supply|]</span></span><span>
+</span><span id="line-42"></span><span>
+</span><span id="line-43"></span><span class="annot"><a href="Pythia.Services.Battery.SysFs.html#sysfsDir"><span class="hs-identifier hs-type">sysfsDir</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">OsPath</span></span><span>
+</span><span id="line-44"></span><span id="sysfsDir"><span class="annot"><span class="annottext">sysfsDir :: OsPath
+</span><a href="Pythia.Services.Battery.SysFs.html#sysfsDir"><span class="hs-identifier hs-var hs-var">sysfsDir</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="">[osp|/sysfs/class/power_supply|]</span></span><span>
+</span><span id="line-45"></span><span>
+</span><span id="line-46"></span><span class="hs-comment">-- | Sysfs dir not found error.</span><span>
+</span><span id="line-47"></span><span class="hs-comment">--</span><span>
+</span><span id="line-48"></span><span class="hs-comment">-- ==== __Examples__</span><span>
+</span><span id="line-49"></span><span class="hs-comment">--</span><span>
+</span><span id="line-50"></span><span class="hs-comment">-- &gt;&gt;&gt; displayException MkSysFsDirNotFound</span><span>
+</span><span id="line-51"></span><span class="hs-comment">-- &quot;Could not find either sysfs dirs: /sys/class/power_supply, /sysfs/class/power_supply&quot;</span><span>
+</span><span id="line-52"></span><span class="hs-comment">--</span><span>
+</span><span id="line-53"></span><span class="hs-comment">-- @since 0.1</span><span>
+</span><span id="line-54"></span><span class="hs-keyword">type</span><span> </span><span class="annot"><a href="Pythia.Services.Battery.SysFs.html#SysFsDirNotFound"><span class="hs-identifier hs-type">SysFsDirNotFound</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Type</span></span><span>
+</span><span id="line-55"></span><span class="hs-keyword">data</span><span> </span><span id="SysFsDirNotFound"><span class="annot"><a href="Pythia.Services.Battery.SysFs.html#SysFsDirNotFound"><span class="hs-identifier hs-var">SysFsDirNotFound</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span id="MkSysFsDirNotFound"><span class="annot"><a href="Pythia.Services.Battery.SysFs.html#MkSysFsDirNotFound"><span class="hs-identifier hs-var">MkSysFsDirNotFound</span></a></span></span><span>
+</span><span id="line-56"></span><span>  </span><span class="hs-keyword">deriving</span><span> </span><span class="annot"><span class="hs-keyword">stock</span></span><span>
+</span><span id="line-57"></span><span>    </span><span class="hs-special">(</span><span> </span><span class="annot"><span class="hs-comment">-- | @since 0.1</span></span><span>
+</span><span id="line-58"></span><span>      </span><span id="local-6989586621679252058"><span id="local-6989586621679252060"><span class="annot"><span class="annottext">SysFsDirNotFound -&gt; SysFsDirNotFound -&gt; Bool
+(SysFsDirNotFound -&gt; SysFsDirNotFound -&gt; Bool)
+-&gt; (SysFsDirNotFound -&gt; SysFsDirNotFound -&gt; Bool)
+-&gt; Eq SysFsDirNotFound
+forall a. (a -&gt; a -&gt; Bool) -&gt; (a -&gt; a -&gt; Bool) -&gt; Eq a
+$c== :: SysFsDirNotFound -&gt; SysFsDirNotFound -&gt; Bool
+== :: SysFsDirNotFound -&gt; SysFsDirNotFound -&gt; Bool
+$c/= :: SysFsDirNotFound -&gt; SysFsDirNotFound -&gt; Bool
+/= :: SysFsDirNotFound -&gt; SysFsDirNotFound -&gt; Bool
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Eq</span></span></span></span><span class="hs-special">,</span><span>
+</span><span id="line-59"></span><span>      </span><span class="annot"><span class="hs-comment">-- | @since 0.1</span></span><span>
+</span><span id="line-60"></span><span>      </span><span id="local-6989586621679252065"><span id="local-6989586621679252067"><span id="local-6989586621679252071"><span class="annot"><span class="annottext">Int -&gt; SysFsDirNotFound -&gt; ShowS
+[SysFsDirNotFound] -&gt; ShowS
+SysFsDirNotFound -&gt; String
+(Int -&gt; SysFsDirNotFound -&gt; ShowS)
+-&gt; (SysFsDirNotFound -&gt; String)
+-&gt; ([SysFsDirNotFound] -&gt; ShowS)
+-&gt; Show SysFsDirNotFound
+forall a.
+(Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; String) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+$cshowsPrec :: Int -&gt; SysFsDirNotFound -&gt; ShowS
+showsPrec :: Int -&gt; SysFsDirNotFound -&gt; ShowS
+$cshow :: SysFsDirNotFound -&gt; String
+show :: SysFsDirNotFound -&gt; String
+$cshowList :: [SysFsDirNotFound] -&gt; ShowS
+showList :: [SysFsDirNotFound] -&gt; ShowS
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Show</span></span></span></span></span><span>
+</span><span id="line-61"></span><span>    </span><span class="hs-special">)</span><span>
+</span><span id="line-62"></span><span>
+</span><span id="line-63"></span><span class="annot"><span class="hs-comment">-- | @since 0.1</span></span><span>
+</span><span id="line-64"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621679252079"><span id="local-6989586621679252083"><span class="annot"><span class="hs-identifier hs-type">Exception</span></span><span> </span><span class="annot"><a href="Pythia.Services.Battery.SysFs.html#SysFsDirNotFound"><span class="hs-identifier hs-type">SysFsDirNotFound</span></a></span></span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-65"></span><span>  </span><span id="local-6989586621679252094"><span class="annot"><span class="annottext">displayException :: SysFsDirNotFound -&gt; String
+</span><a href="#local-6989586621679252094"><span class="hs-identifier hs-var hs-var hs-var hs-var">displayException</span></a></span></span><span> </span><span class="annot"><span class="annottext">SysFsDirNotFound
+</span><span class="hs-identifier">_</span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-66"></span><span>    </span><span class="annot"><span class="annottext">[String] -&gt; String
+forall a. Monoid a =&gt; [a] -&gt; a
+</span><span class="hs-identifier hs-var">mconcat</span></span><span>
+</span><span id="line-67"></span><span>      </span><span class="hs-special">[</span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;Could not find either sysfs dirs: '&quot;</span></span><span class="hs-special">,</span><span>
+</span><span id="line-68"></span><span>        </span><span class="annot"><span class="annottext">OsPath -&gt; String
+</span><a href="file:///home/tommy/.local/state/cabal/store/ghc-9.6.3/effects-fs-0.1-5841411f1c8e259b2cf3c993222ef4c2c136f1e315fe1b2c92965a1bea2a7701/share/doc/html/src/Effects.FileSystem.Utils.html#decodeOsToFpShow"><span class="hs-identifier hs-var">decodeOsToFpShow</span></a></span><span> </span><span class="annot"><span class="annottext">OsPath
+</span><a href="Pythia.Services.Battery.SysFs.html#sysDir"><span class="hs-identifier hs-var">sysDir</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-69"></span><span>        </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;', '&quot;</span></span><span class="hs-special">,</span><span>
+</span><span id="line-70"></span><span>        </span><span class="annot"><span class="annottext">OsPath -&gt; String
+</span><a href="file:///home/tommy/.local/state/cabal/store/ghc-9.6.3/effects-fs-0.1-5841411f1c8e259b2cf3c993222ef4c2c136f1e315fe1b2c92965a1bea2a7701/share/doc/html/src/Effects.FileSystem.Utils.html#decodeOsToFpShow"><span class="hs-identifier hs-var">decodeOsToFpShow</span></a></span><span> </span><span class="annot"><span class="annottext">OsPath
+</span><a href="Pythia.Services.Battery.SysFs.html#sysfsDir"><span class="hs-identifier hs-var">sysfsDir</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-71"></span><span>        </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;'&quot;</span></span><span>
+</span><span id="line-72"></span><span>      </span><span class="hs-special">]</span><span>
+</span><span id="line-73"></span><span>
+</span><span id="line-74"></span><span class="hs-comment">-- | Sysfs battery dir not found.</span><span>
+</span><span id="line-75"></span><span class="hs-comment">--</span><span>
+</span><span id="line-76"></span><span class="hs-comment">-- ==== __Examples__</span><span>
+</span><span id="line-77"></span><span class="hs-comment">--</span><span>
+</span><span id="line-78"></span><span class="hs-comment">-- &gt;&gt;&gt; displayException MkSysFsBatteryDirNotFound</span><span>
+</span><span id="line-79"></span><span class="hs-comment">-- &quot;Could not find BAT[0-5]? subdirectory under /sys(fs)/class/power_supply&quot;</span><span>
+</span><span id="line-80"></span><span class="hs-comment">--</span><span>
+</span><span id="line-81"></span><span class="hs-comment">-- @since 0.1</span><span>
+</span><span id="line-82"></span><span class="hs-keyword">type</span><span> </span><span class="annot"><a href="Pythia.Services.Battery.SysFs.html#SysFsBatteryDirNotFound"><span class="hs-identifier hs-type">SysFsBatteryDirNotFound</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Type</span></span><span>
+</span><span id="line-83"></span><span class="hs-keyword">data</span><span> </span><span id="SysFsBatteryDirNotFound"><span class="annot"><a href="Pythia.Services.Battery.SysFs.html#SysFsBatteryDirNotFound"><span class="hs-identifier hs-var">SysFsBatteryDirNotFound</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span id="MkSysFsBatteryDirNotFound"><span class="annot"><a href="Pythia.Services.Battery.SysFs.html#MkSysFsBatteryDirNotFound"><span class="hs-identifier hs-var">MkSysFsBatteryDirNotFound</span></a></span></span><span>
+</span><span id="line-84"></span><span>  </span><span class="hs-keyword">deriving</span><span> </span><span class="annot"><span class="hs-keyword">stock</span></span><span>
+</span><span id="line-85"></span><span>    </span><span class="hs-special">(</span><span> </span><span class="annot"><span class="hs-comment">-- | @since 0.1</span></span><span>
+</span><span id="line-86"></span><span>      </span><span id="local-6989586621679252099"><span id="local-6989586621679252101"><span class="annot"><span class="annottext">SysFsBatteryDirNotFound -&gt; SysFsBatteryDirNotFound -&gt; Bool
+(SysFsBatteryDirNotFound -&gt; SysFsBatteryDirNotFound -&gt; Bool)
+-&gt; (SysFsBatteryDirNotFound -&gt; SysFsBatteryDirNotFound -&gt; Bool)
+-&gt; Eq SysFsBatteryDirNotFound
+forall a. (a -&gt; a -&gt; Bool) -&gt; (a -&gt; a -&gt; Bool) -&gt; Eq a
+$c== :: SysFsBatteryDirNotFound -&gt; SysFsBatteryDirNotFound -&gt; Bool
+== :: SysFsBatteryDirNotFound -&gt; SysFsBatteryDirNotFound -&gt; Bool
+$c/= :: SysFsBatteryDirNotFound -&gt; SysFsBatteryDirNotFound -&gt; Bool
+/= :: SysFsBatteryDirNotFound -&gt; SysFsBatteryDirNotFound -&gt; Bool
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Eq</span></span></span></span><span class="hs-special">,</span><span>
+</span><span id="line-87"></span><span>      </span><span class="annot"><span class="hs-comment">-- | @since 0.1</span></span><span>
+</span><span id="line-88"></span><span>      </span><span id="local-6989586621679252105"><span id="local-6989586621679252107"><span id="local-6989586621679252111"><span class="annot"><span class="annottext">Int -&gt; SysFsBatteryDirNotFound -&gt; ShowS
+[SysFsBatteryDirNotFound] -&gt; ShowS
+SysFsBatteryDirNotFound -&gt; String
+(Int -&gt; SysFsBatteryDirNotFound -&gt; ShowS)
+-&gt; (SysFsBatteryDirNotFound -&gt; String)
+-&gt; ([SysFsBatteryDirNotFound] -&gt; ShowS)
+-&gt; Show SysFsBatteryDirNotFound
+forall a.
+(Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; String) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+$cshowsPrec :: Int -&gt; SysFsBatteryDirNotFound -&gt; ShowS
+showsPrec :: Int -&gt; SysFsBatteryDirNotFound -&gt; ShowS
+$cshow :: SysFsBatteryDirNotFound -&gt; String
+show :: SysFsBatteryDirNotFound -&gt; String
+$cshowList :: [SysFsBatteryDirNotFound] -&gt; ShowS
+showList :: [SysFsBatteryDirNotFound] -&gt; ShowS
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Show</span></span></span></span></span><span>
+</span><span id="line-89"></span><span>    </span><span class="hs-special">)</span><span>
+</span><span id="line-90"></span><span>
+</span><span id="line-91"></span><span class="annot"><span class="hs-comment">-- | @since 0.1</span></span><span>
+</span><span id="line-92"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621679252118"><span id="local-6989586621679252122"><span class="annot"><span class="hs-identifier hs-type">Exception</span></span><span> </span><span class="annot"><a href="Pythia.Services.Battery.SysFs.html#SysFsBatteryDirNotFound"><span class="hs-identifier hs-type">SysFsBatteryDirNotFound</span></a></span></span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-93"></span><span>  </span><span id="local-6989586621679252129"><span class="annot"><span class="annottext">displayException :: SysFsBatteryDirNotFound -&gt; String
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var">displayException</span></span></span><span> </span><span class="annot"><span class="annottext">SysFsBatteryDirNotFound
+</span><span class="hs-identifier">_</span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-94"></span><span>    </span><span class="annot"><span class="annottext">[String] -&gt; String
+forall a. Monoid a =&gt; [a] -&gt; a
+</span><span class="hs-identifier hs-var">mconcat</span></span><span>
+</span><span id="line-95"></span><span>      </span><span class="hs-special">[</span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;Could not find BAT[0-5]? subdirectory under &quot;</span></span><span class="hs-special">,</span><span>
+</span><span id="line-96"></span><span>        </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;/sys(fs)/class/power_supply&quot;</span></span><span>
+</span><span id="line-97"></span><span>      </span><span class="hs-special">]</span><span>
+</span><span id="line-98"></span><span>
+</span><span id="line-99"></span><span class="hs-comment">-- | Sysfs file not found.</span><span>
+</span><span id="line-100"></span><span class="hs-comment">--</span><span>
+</span><span id="line-101"></span><span class="hs-comment">-- ==== __Examples__</span><span>
+</span><span id="line-102"></span><span class="hs-comment">--</span><span>
+</span><span id="line-103"></span><span class="hs-comment">-- &gt;&gt;&gt; displayException $ MkSysFsFileNotFound &quot;foo&quot;</span><span>
+</span><span id="line-104"></span><span class="hs-comment">-- &quot;Could not find sysfs file: foo&quot;</span><span>
+</span><span id="line-105"></span><span class="hs-comment">--</span><span>
+</span><span id="line-106"></span><span class="hs-comment">-- @since 0.1</span><span>
+</span><span id="line-107"></span><span class="hs-keyword">type</span><span> </span><span class="annot"><a href="Pythia.Services.Battery.SysFs.html#SysFsFileNotFound"><span class="hs-identifier hs-type">SysFsFileNotFound</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Type</span></span><span>
+</span><span id="line-108"></span><span class="hs-keyword">newtype</span><span> </span><span id="SysFsFileNotFound"><span class="annot"><a href="Pythia.Services.Battery.SysFs.html#SysFsFileNotFound"><span class="hs-identifier hs-var">SysFsFileNotFound</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span id="MkSysFsFileNotFound"><span class="annot"><a href="Pythia.Services.Battery.SysFs.html#MkSysFsFileNotFound"><span class="hs-identifier hs-var">MkSysFsFileNotFound</span></a></span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">OsPath</span></span><span>
+</span><span id="line-109"></span><span>  </span><span class="hs-keyword">deriving</span><span> </span><span class="annot"><span class="hs-keyword">stock</span></span><span>
+</span><span id="line-110"></span><span>    </span><span class="hs-special">(</span><span> </span><span class="annot"><span class="hs-comment">-- | @since 0.1</span></span><span>
+</span><span id="line-111"></span><span>      </span><span id="local-6989586621679252132"><span id="local-6989586621679252136"><span class="annot"><span class="annottext">SysFsFileNotFound -&gt; SysFsFileNotFound -&gt; Bool
+(SysFsFileNotFound -&gt; SysFsFileNotFound -&gt; Bool)
+-&gt; (SysFsFileNotFound -&gt; SysFsFileNotFound -&gt; Bool)
+-&gt; Eq SysFsFileNotFound
+forall a. (a -&gt; a -&gt; Bool) -&gt; (a -&gt; a -&gt; Bool) -&gt; Eq a
+$c== :: SysFsFileNotFound -&gt; SysFsFileNotFound -&gt; Bool
+== :: SysFsFileNotFound -&gt; SysFsFileNotFound -&gt; Bool
+$c/= :: SysFsFileNotFound -&gt; SysFsFileNotFound -&gt; Bool
+/= :: SysFsFileNotFound -&gt; SysFsFileNotFound -&gt; Bool
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Eq</span></span></span></span><span class="hs-special">,</span><span>
+</span><span id="line-112"></span><span>      </span><span class="annot"><span class="hs-comment">-- | @since 0.1</span></span><span>
+</span><span id="line-113"></span><span>      </span><span id="local-6989586621679252140"><span id="local-6989586621679252146"><span id="local-6989586621679252150"><span class="annot"><span class="annottext">Int -&gt; SysFsFileNotFound -&gt; ShowS
+[SysFsFileNotFound] -&gt; ShowS
+SysFsFileNotFound -&gt; String
+(Int -&gt; SysFsFileNotFound -&gt; ShowS)
+-&gt; (SysFsFileNotFound -&gt; String)
+-&gt; ([SysFsFileNotFound] -&gt; ShowS)
+-&gt; Show SysFsFileNotFound
+forall a.
+(Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; String) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+$cshowsPrec :: Int -&gt; SysFsFileNotFound -&gt; ShowS
+showsPrec :: Int -&gt; SysFsFileNotFound -&gt; ShowS
+$cshow :: SysFsFileNotFound -&gt; String
+show :: SysFsFileNotFound -&gt; String
+$cshowList :: [SysFsFileNotFound] -&gt; ShowS
+showList :: [SysFsFileNotFound] -&gt; ShowS
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Show</span></span></span></span></span><span>
+</span><span id="line-114"></span><span>    </span><span class="hs-special">)</span><span>
+</span><span id="line-115"></span><span>
+</span><span id="line-116"></span><span class="annot"><span class="hs-comment">-- | @since 0.1</span></span><span>
+</span><span id="line-117"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621679252157"><span id="local-6989586621679252161"><span class="annot"><span class="hs-identifier hs-type">Exception</span></span><span> </span><span class="annot"><a href="Pythia.Services.Battery.SysFs.html#SysFsFileNotFound"><span class="hs-identifier hs-type">SysFsFileNotFound</span></a></span></span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-118"></span><span>  </span><span id="local-6989586621679252168"><span class="annot"><span class="annottext">displayException :: SysFsFileNotFound -&gt; String
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var">displayException</span></span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Pythia.Services.Battery.SysFs.html#MkSysFsFileNotFound"><span class="hs-identifier hs-type">MkSysFsFileNotFound</span></a></span><span> </span><span id="local-6989586621679252169"><span class="annot"><span class="annottext">OsPath
+</span><a href="#local-6989586621679252169"><span class="hs-identifier hs-var">e</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-119"></span><span>    </span><span class="annot"><span class="annottext">[String] -&gt; String
+forall a. Monoid a =&gt; [a] -&gt; a
+</span><span class="hs-identifier hs-var">mconcat</span></span><span>
+</span><span id="line-120"></span><span>      </span><span class="hs-special">[</span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;Could not find sysfs file: '&quot;</span></span><span class="hs-special">,</span><span>
+</span><span id="line-121"></span><span>        </span><span class="annot"><span class="annottext">OsPath -&gt; String
+</span><a href="file:///home/tommy/.local/state/cabal/store/ghc-9.6.3/effects-fs-0.1-5841411f1c8e259b2cf3c993222ef4c2c136f1e315fe1b2c92965a1bea2a7701/share/doc/html/src/Effects.FileSystem.Utils.html#decodeOsToFpShow"><span class="hs-identifier hs-var">decodeOsToFpShow</span></a></span><span> </span><span class="annot"><span class="annottext">OsPath
+</span><a href="#local-6989586621679252169"><span class="hs-identifier hs-var">e</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-122"></span><span>        </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;'&quot;</span></span><span>
+</span><span id="line-123"></span><span>      </span><span class="hs-special">]</span><span>
+</span><span id="line-124"></span><span>
+</span><span id="line-125"></span><span class="hs-comment">-- | Sysfs battery parse error.</span><span>
+</span><span id="line-126"></span><span class="hs-comment">--</span><span>
+</span><span id="line-127"></span><span class="hs-comment">-- ==== __Examples__</span><span>
+</span><span id="line-128"></span><span class="hs-comment">--</span><span>
+</span><span id="line-129"></span><span class="hs-comment">-- &gt;&gt;&gt; displayException $ MkSysFsBatteryParseError &quot;bad&quot;</span><span>
+</span><span id="line-130"></span><span class="hs-comment">-- &quot;SysFs parse error: bad&quot;</span><span>
+</span><span id="line-131"></span><span class="hs-comment">--</span><span>
+</span><span id="line-132"></span><span class="hs-comment">-- @since 0.1</span><span>
+</span><span id="line-133"></span><span class="hs-keyword">type</span><span> </span><span class="annot"><a href="Pythia.Services.Battery.SysFs.html#SysFsBatteryParseError"><span class="hs-identifier hs-type">SysFsBatteryParseError</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Type</span></span><span>
+</span><span id="line-134"></span><span class="hs-keyword">newtype</span><span> </span><span id="SysFsBatteryParseError"><span class="annot"><a href="Pythia.Services.Battery.SysFs.html#SysFsBatteryParseError"><span class="hs-identifier hs-var">SysFsBatteryParseError</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span id="MkSysFsBatteryParseError"><span class="annot"><a href="Pythia.Services.Battery.SysFs.html#MkSysFsBatteryParseError"><span class="hs-identifier hs-var">MkSysFsBatteryParseError</span></a></span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Text</span></span><span>
+</span><span id="line-135"></span><span>  </span><span class="hs-keyword">deriving</span><span> </span><span class="annot"><span class="hs-keyword">stock</span></span><span>
+</span><span id="line-136"></span><span>    </span><span class="hs-special">(</span><span> </span><span class="annot"><span class="hs-comment">-- | @since 0.1</span></span><span>
+</span><span id="line-137"></span><span>      </span><span id="local-6989586621679252172"><span id="local-6989586621679252176"><span class="annot"><span class="annottext">SysFsBatteryParseError -&gt; SysFsBatteryParseError -&gt; Bool
+(SysFsBatteryParseError -&gt; SysFsBatteryParseError -&gt; Bool)
+-&gt; (SysFsBatteryParseError -&gt; SysFsBatteryParseError -&gt; Bool)
+-&gt; Eq SysFsBatteryParseError
+forall a. (a -&gt; a -&gt; Bool) -&gt; (a -&gt; a -&gt; Bool) -&gt; Eq a
+$c== :: SysFsBatteryParseError -&gt; SysFsBatteryParseError -&gt; Bool
+== :: SysFsBatteryParseError -&gt; SysFsBatteryParseError -&gt; Bool
+$c/= :: SysFsBatteryParseError -&gt; SysFsBatteryParseError -&gt; Bool
+/= :: SysFsBatteryParseError -&gt; SysFsBatteryParseError -&gt; Bool
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Eq</span></span></span></span><span class="hs-special">,</span><span>
+</span><span id="line-138"></span><span>      </span><span class="annot"><span class="hs-comment">-- | @since 0.1</span></span><span>
+</span><span id="line-139"></span><span>      </span><span id="local-6989586621679252180"><span id="local-6989586621679252185"><span id="local-6989586621679252189"><span class="annot"><span class="annottext">Int -&gt; SysFsBatteryParseError -&gt; ShowS
+[SysFsBatteryParseError] -&gt; ShowS
+SysFsBatteryParseError -&gt; String
+(Int -&gt; SysFsBatteryParseError -&gt; ShowS)
+-&gt; (SysFsBatteryParseError -&gt; String)
+-&gt; ([SysFsBatteryParseError] -&gt; ShowS)
+-&gt; Show SysFsBatteryParseError
+forall a.
+(Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; String) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+$cshowsPrec :: Int -&gt; SysFsBatteryParseError -&gt; ShowS
+showsPrec :: Int -&gt; SysFsBatteryParseError -&gt; ShowS
+$cshow :: SysFsBatteryParseError -&gt; String
+show :: SysFsBatteryParseError -&gt; String
+$cshowList :: [SysFsBatteryParseError] -&gt; ShowS
+showList :: [SysFsBatteryParseError] -&gt; ShowS
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Show</span></span></span></span></span><span>
+</span><span id="line-140"></span><span>    </span><span class="hs-special">)</span><span>
+</span><span id="line-141"></span><span>
+</span><span id="line-142"></span><span class="annot"><span class="hs-comment">-- | @since 0.1</span></span><span>
+</span><span id="line-143"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621679252196"><span id="local-6989586621679252200"><span class="annot"><span class="hs-identifier hs-type">Exception</span></span><span> </span><span class="annot"><a href="Pythia.Services.Battery.SysFs.html#SysFsBatteryParseError"><span class="hs-identifier hs-type">SysFsBatteryParseError</span></a></span></span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-144"></span><span>  </span><span id="local-6989586621679252205"><span class="annot"><span class="annottext">displayException :: SysFsBatteryParseError -&gt; String
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var">displayException</span></span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Pythia.Services.Battery.SysFs.html#MkSysFsBatteryParseError"><span class="hs-identifier hs-type">MkSysFsBatteryParseError</span></a></span><span> </span><span id="local-6989586621679252206"><span class="annot"><span class="annottext">Text
+</span><a href="#local-6989586621679252206"><span class="hs-identifier hs-var">e</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-145"></span><span>    </span><span class="hs-special">(</span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;SysFs parse error: &quot;</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; ShowS
+forall a. Semigroup a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-operator hs-var">&lt;&gt;</span></span><span class="hs-special">)</span><span>
+</span><span id="line-146"></span><span>      </span><span class="annot"><span class="annottext">ShowS -&gt; (Text -&gt; String) -&gt; Text -&gt; String
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">Text -&gt; String
+</span><span class="hs-identifier hs-var">T.unpack</span></span><span>
+</span><span id="line-147"></span><span>      </span><span class="annot"><span class="annottext">(Text -&gt; String) -&gt; Text -&gt; String
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">Text
+</span><a href="#local-6989586621679252206"><span class="hs-identifier hs-var">e</span></a></span><span>
+</span><span id="line-148"></span><span>
+</span><span id="line-149"></span><span class="hs-comment">-- | @\/sys\/class@ query for 'Battery'.</span><span>
+</span><span id="line-150"></span><span class="hs-comment">--</span><span>
+</span><span id="line-151"></span><span class="hs-comment">-- @since 0.1</span><span>
+</span><span id="line-152"></span><span id="local-6989586621679251947"><span class="annot"><a href="Pythia.Services.Battery.SysFs.html#batteryQuery"><span class="hs-identifier hs-type">batteryQuery</span></a></span><span> </span><span class="hs-glyph">::</span><span>
+</span><span id="line-153"></span><span>  </span><span class="hs-special">(</span><span> </span><span class="annot"><a href="file:///home/tommy/.local/state/cabal/store/ghc-9.6.3/effects-fs-0.1-5841411f1c8e259b2cf3c993222ef4c2c136f1e315fe1b2c92965a1bea2a7701/share/doc/html/src/Effects.FileSystem.FileReader.html#MonadFileReader"><span class="hs-identifier hs-type">MonadFileReader</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679251947"><span class="hs-identifier hs-type">m</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-154"></span><span>    </span><span class="annot"><a href="file:///home/tommy/.local/state/cabal/store/ghc-9.6.3/effects-fs-0.1-5841411f1c8e259b2cf3c993222ef4c2c136f1e315fe1b2c92965a1bea2a7701/share/doc/html/src/Effects.FileSystem.PathReader.html#MonadPathReader"><span class="hs-identifier hs-type">MonadPathReader</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679251947"><span class="hs-identifier hs-type">m</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-155"></span><span>    </span><span class="annot"><span class="hs-identifier hs-type">MonadThrow</span></span><span> </span><span class="annot"><a href="#local-6989586621679251947"><span class="hs-identifier hs-type">m</span></a></span><span>
+</span><span id="line-156"></span><span>  </span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span>
+</span><span id="line-157"></span><span>  </span><span class="annot"><a href="#local-6989586621679251947"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="annot"><a href="Pythia.Services.Battery.Types.html#Battery"><span class="hs-identifier hs-type">Battery</span></a></span></span><span>
+</span><span id="line-158"></span><span id="batteryQuery"><span class="annot"><span class="annottext">batteryQuery :: forall (m :: Type -&gt; Type).
+(MonadFileReader m, MonadPathReader m, MonadThrow m) =&gt;
+m Battery
+</span><a href="Pythia.Services.Battery.SysFs.html#batteryQuery"><span class="hs-identifier hs-var hs-var">batteryQuery</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">m Battery
+forall (m :: Type -&gt; Type).
+(MonadFileReader m, MonadPathReader m, MonadThrow m) =&gt;
+m Battery
+</span><a href="Pythia.Services.Battery.SysFs.html#queryBattery"><span class="hs-identifier hs-var">queryBattery</span></a></span><span>
+</span><span id="line-159"></span><span>
+</span><span id="line-160"></span><span class="hs-comment">-- | Returns a boolean determining if this program is supported on the</span><span>
+</span><span id="line-161"></span><span class="hs-comment">-- current system. In particular, we return 'True' if the directory</span><span>
+</span><span id="line-162"></span><span class="hs-comment">--</span><span>
+</span><span id="line-163"></span><span class="hs-comment">-- @\/sys(fs)\/class\/power_supply\/BAT[0-5]+@ exists.</span><span>
+</span><span id="line-164"></span><span class="hs-comment">--</span><span>
+</span><span id="line-165"></span><span class="hs-comment">-- Example valid paths:</span><span>
+</span><span id="line-166"></span><span class="hs-comment">--</span><span>
+</span><span id="line-167"></span><span class="hs-comment">-- * @\/sys\/class\/power_supply\/BAT0@</span><span>
+</span><span id="line-168"></span><span class="hs-comment">-- * @\/sysfs\/class\/power_supply\/BAT3@</span><span>
+</span><span id="line-169"></span><span class="hs-comment">-- * @\/sys\/class\/power_supply\/BAT@</span><span>
+</span><span id="line-170"></span><span class="hs-comment">--</span><span>
+</span><span id="line-171"></span><span class="hs-comment">-- @since 0.1</span><span>
+</span><span id="line-172"></span><span id="local-6989586621679251953"><span class="annot"><a href="Pythia.Services.Battery.SysFs.html#supported"><span class="hs-identifier hs-type">supported</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">MonadCatch</span></span><span> </span><span class="annot"><a href="#local-6989586621679251953"><span class="hs-identifier hs-type">m</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="file:///home/tommy/.local/state/cabal/store/ghc-9.6.3/effects-fs-0.1-5841411f1c8e259b2cf3c993222ef4c2c136f1e315fe1b2c92965a1bea2a7701/share/doc/html/src/Effects.FileSystem.PathReader.html#MonadPathReader"><span class="hs-identifier hs-type">MonadPathReader</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679251953"><span class="hs-identifier hs-type">m</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679251953"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Bool</span></span></span><span>
+</span><span id="line-173"></span><span id="supported"><span class="annot"><span class="annottext">supported :: forall (m :: Type -&gt; Type).
+(MonadCatch m, MonadPathReader m) =&gt;
+m Bool
+</span><a href="Pythia.Services.Battery.SysFs.html#supported"><span class="hs-identifier hs-var hs-var">supported</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">do</span><span>
+</span><span id="line-174"></span><span>  </span><span id="local-6989586621679252232"><span class="annot"><span class="annottext">Either SomeException OsPath
+</span><a href="#local-6989586621679252232"><span class="hs-identifier hs-var">efp</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">m OsPath -&gt; m (Either SomeException OsPath)
+forall (m :: Type -&gt; Type) a.
+(HasCallStack, MonadCatch m) =&gt;
+m a -&gt; m (Either SomeException a)
+</span><a href="file:///home/tommy/.local/state/cabal/store/ghc-9.6.3/effects-exceptions-0.1-a63cba32a5fecf1f4a27935779245ad27eac11931e2e7d7243bce7482f6bd7d9/share/doc/html/src/Effects.Exception.html#tryAny"><span class="hs-identifier hs-var">tryAny</span></a></span><span> </span><span class="annot"><span class="annottext">m OsPath
+forall (m :: Type -&gt; Type).
+(MonadPathReader m, MonadThrow m) =&gt;
+m OsPath
+</span><a href="Pythia.Services.Battery.SysFs.html#findSysBatDir"><span class="hs-identifier hs-var">findSysBatDir</span></a></span><span>
+</span><span id="line-175"></span><span>  </span><span class="hs-keyword">case</span><span> </span><span class="annot"><span class="annottext">Either SomeException OsPath
+</span><a href="#local-6989586621679252232"><span class="hs-identifier hs-var">efp</span></a></span><span> </span><span class="hs-keyword">of</span><span>
+</span><span id="line-176"></span><span>    </span><span class="annot"><span class="hs-identifier hs-type">Left</span></span><span> </span><span class="annot"><span class="annottext">SomeException
+</span><span class="hs-identifier">_</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Bool -&gt; m Bool
+forall a. a -&gt; m a
+forall (f :: Type -&gt; Type) a. Applicative f =&gt; a -&gt; f a
+</span><span class="hs-identifier hs-var">pure</span></span><span> </span><span class="annot"><span class="annottext">Bool
+</span><span class="hs-identifier hs-var">False</span></span><span>
+</span><span id="line-177"></span><span>    </span><span class="annot"><span class="hs-identifier hs-type">Right</span></span><span> </span><span class="annot"><span class="annottext">OsPath
+</span><span class="hs-identifier">_</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Bool -&gt; m Bool
+forall a. a -&gt; m a
+forall (f :: Type -&gt; Type) a. Applicative f =&gt; a -&gt; f a
+</span><span class="hs-identifier hs-var">pure</span></span><span> </span><span class="annot"><span class="annottext">Bool
+</span><span class="hs-identifier hs-var">True</span></span><span>
+</span><span id="line-178"></span><span>
+</span><span id="line-179"></span><span id="local-6989586621679252235"><span class="annot"><a href="Pythia.Services.Battery.SysFs.html#queryBattery"><span class="hs-identifier hs-type">queryBattery</span></a></span><span> </span><span class="hs-glyph">::</span><span>
+</span><span id="line-180"></span><span>  </span><span class="hs-special">(</span><span> </span><span class="annot"><a href="file:///home/tommy/.local/state/cabal/store/ghc-9.6.3/effects-fs-0.1-5841411f1c8e259b2cf3c993222ef4c2c136f1e315fe1b2c92965a1bea2a7701/share/doc/html/src/Effects.FileSystem.FileReader.html#MonadFileReader"><span class="hs-identifier hs-type">MonadFileReader</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679252235"><span class="hs-identifier hs-type">m</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-181"></span><span>    </span><span class="annot"><a href="file:///home/tommy/.local/state/cabal/store/ghc-9.6.3/effects-fs-0.1-5841411f1c8e259b2cf3c993222ef4c2c136f1e315fe1b2c92965a1bea2a7701/share/doc/html/src/Effects.FileSystem.PathReader.html#MonadPathReader"><span class="hs-identifier hs-type">MonadPathReader</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679252235"><span class="hs-identifier hs-type">m</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-182"></span><span>    </span><span class="annot"><span class="hs-identifier hs-type">MonadThrow</span></span><span> </span><span class="annot"><a href="#local-6989586621679252235"><span class="hs-identifier hs-type">m</span></a></span><span>
+</span><span id="line-183"></span><span>  </span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span>
+</span><span id="line-184"></span><span>  </span><span class="annot"><a href="#local-6989586621679252235"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="annot"><a href="Pythia.Services.Battery.Types.html#Battery"><span class="hs-identifier hs-type">Battery</span></a></span></span><span>
+</span><span id="line-185"></span><span id="queryBattery"><span class="annot"><span class="annottext">queryBattery :: forall (m :: Type -&gt; Type).
+(MonadFileReader m, MonadPathReader m, MonadThrow m) =&gt;
+m Battery
+</span><a href="Pythia.Services.Battery.SysFs.html#queryBattery"><span class="hs-identifier hs-var hs-var">queryBattery</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">do</span><span>
+</span><span id="line-186"></span><span>  </span><span id="local-6989586621679252290"><span class="annot"><span class="annottext">OsPath
+</span><a href="#local-6989586621679252290"><span class="hs-identifier hs-var">batDir</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">m OsPath
+forall (m :: Type -&gt; Type).
+(MonadPathReader m, MonadThrow m) =&gt;
+m OsPath
+</span><a href="Pythia.Services.Battery.SysFs.html#findSysBatDir"><span class="hs-identifier hs-var">findSysBatDir</span></a></span><span>
+</span><span id="line-187"></span><span>
+</span><span id="line-188"></span><span>  </span><span class="hs-keyword">let</span><span> </span><span id="local-6989586621679252291"><span class="annot"><span class="annottext">statusPath :: OsPath
+</span><a href="#local-6989586621679252291"><span class="hs-identifier hs-var hs-var">statusPath</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">OsPath
+</span><a href="#local-6989586621679252290"><span class="hs-identifier hs-var">batDir</span></a></span><span> </span><span class="annot"><span class="annottext">OsPath -&gt; OsPath -&gt; OsPath
+</span><span class="hs-operator hs-var">&lt;/&gt;</span></span><span> </span><span class="annot"><span class="">[osp|status|]</span></span><span>
+</span><span id="line-189"></span><span>  </span><span id="local-6989586621679252293"><span class="annot"><span class="annottext">Bool
+</span><a href="#local-6989586621679252293"><span class="hs-identifier hs-var">statusPathExists</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">OsPath -&gt; m Bool
+forall (m :: Type -&gt; Type).
+(MonadPathReader m, HasCallStack) =&gt;
+OsPath -&gt; m Bool
+</span><a href="file:///home/tommy/.local/state/cabal/store/ghc-9.6.3/effects-fs-0.1-5841411f1c8e259b2cf3c993222ef4c2c136f1e315fe1b2c92965a1bea2a7701/share/doc/html/src/Effects.FileSystem.PathReader.html#doesFileExist"><span class="hs-identifier hs-var">Dir.doesFileExist</span></a></span><span> </span><span class="annot"><span class="annottext">OsPath
+</span><a href="#local-6989586621679252291"><span class="hs-identifier hs-var">statusPath</span></a></span><span>
+</span><span id="line-190"></span><span>  </span><span class="annot"><span class="annottext">Bool -&gt; m () -&gt; m ()
+forall (f :: Type -&gt; Type). Applicative f =&gt; Bool -&gt; f () -&gt; f ()
+</span><span class="hs-identifier hs-var">unless</span></span><span> </span><span class="annot"><span class="annottext">Bool
+</span><a href="#local-6989586621679252293"><span class="hs-identifier hs-var">statusPathExists</span></a></span><span> </span><span class="annot"><span class="annottext">(m () -&gt; m ()) -&gt; m () -&gt; m ()
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">SysFsFileNotFound -&gt; m ()
+forall (m :: Type -&gt; Type) e a.
+(Exception e, HasCallStack, MonadThrow m) =&gt;
+e -&gt; m a
+</span><a href="file:///home/tommy/.local/state/cabal/store/ghc-9.6.3/effects-exceptions-0.1-a63cba32a5fecf1f4a27935779245ad27eac11931e2e7d7243bce7482f6bd7d9/share/doc/html/src/Effects.Exception.html#throwCS"><span class="hs-identifier hs-var">throwCS</span></a></span><span> </span><span class="annot"><span class="annottext">(SysFsFileNotFound -&gt; m ()) -&gt; SysFsFileNotFound -&gt; m ()
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">OsPath -&gt; SysFsFileNotFound
+</span><a href="Pythia.Services.Battery.SysFs.html#MkSysFsFileNotFound"><span class="hs-identifier hs-var">MkSysFsFileNotFound</span></a></span><span> </span><span class="annot"><span class="annottext">OsPath
+</span><a href="#local-6989586621679252291"><span class="hs-identifier hs-var">statusPath</span></a></span><span>
+</span><span id="line-191"></span><span>
+</span><span id="line-192"></span><span>  </span><span class="hs-keyword">let</span><span> </span><span id="local-6989586621679252297"><span class="annot"><span class="annottext">percentPath :: OsPath
+</span><a href="#local-6989586621679252297"><span class="hs-identifier hs-var hs-var">percentPath</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">OsPath
+</span><a href="#local-6989586621679252290"><span class="hs-identifier hs-var">batDir</span></a></span><span> </span><span class="annot"><span class="annottext">OsPath -&gt; OsPath -&gt; OsPath
+</span><span class="hs-operator hs-var">&lt;/&gt;</span></span><span> </span><span class="annot"><span class="">[osp|capacity|]</span></span><span>
+</span><span id="line-193"></span><span>  </span><span id="local-6989586621679252298"><span class="annot"><span class="annottext">Bool
+</span><a href="#local-6989586621679252298"><span class="hs-identifier hs-var">percentPathExists</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">OsPath -&gt; m Bool
+forall (m :: Type -&gt; Type).
+(MonadPathReader m, HasCallStack) =&gt;
+OsPath -&gt; m Bool
+</span><a href="file:///home/tommy/.local/state/cabal/store/ghc-9.6.3/effects-fs-0.1-5841411f1c8e259b2cf3c993222ef4c2c136f1e315fe1b2c92965a1bea2a7701/share/doc/html/src/Effects.FileSystem.PathReader.html#doesFileExist"><span class="hs-identifier hs-var">Dir.doesFileExist</span></a></span><span> </span><span class="annot"><span class="annottext">OsPath
+</span><a href="#local-6989586621679252297"><span class="hs-identifier hs-var">percentPath</span></a></span><span>
+</span><span id="line-194"></span><span>  </span><span class="annot"><span class="annottext">Bool -&gt; m () -&gt; m ()
+forall (f :: Type -&gt; Type). Applicative f =&gt; Bool -&gt; f () -&gt; f ()
+</span><span class="hs-identifier hs-var">unless</span></span><span> </span><span class="annot"><span class="annottext">Bool
+</span><a href="#local-6989586621679252298"><span class="hs-identifier hs-var">percentPathExists</span></a></span><span> </span><span class="annot"><span class="annottext">(m () -&gt; m ()) -&gt; m () -&gt; m ()
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">SysFsFileNotFound -&gt; m ()
+forall (m :: Type -&gt; Type) e a.
+(Exception e, HasCallStack, MonadThrow m) =&gt;
+e -&gt; m a
+</span><a href="file:///home/tommy/.local/state/cabal/store/ghc-9.6.3/effects-exceptions-0.1-a63cba32a5fecf1f4a27935779245ad27eac11931e2e7d7243bce7482f6bd7d9/share/doc/html/src/Effects.Exception.html#throwCS"><span class="hs-identifier hs-var">throwCS</span></a></span><span> </span><span class="annot"><span class="annottext">(SysFsFileNotFound -&gt; m ()) -&gt; SysFsFileNotFound -&gt; m ()
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">OsPath -&gt; SysFsFileNotFound
+</span><a href="Pythia.Services.Battery.SysFs.html#MkSysFsFileNotFound"><span class="hs-identifier hs-var">MkSysFsFileNotFound</span></a></span><span> </span><span class="annot"><span class="annottext">OsPath
+</span><a href="#local-6989586621679252297"><span class="hs-identifier hs-var">percentPath</span></a></span><span>
+</span><span id="line-195"></span><span>
+</span><span id="line-196"></span><span>  </span><span id="local-6989586621679252299"><span class="annot"><span class="annottext">BatteryStatus
+</span><a href="#local-6989586621679252299"><span class="hs-identifier hs-var">status</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">OsPath -&gt; m BatteryStatus
+forall (m :: Type -&gt; Type).
+(MonadFileReader m, MonadThrow m) =&gt;
+OsPath -&gt; m BatteryStatus
+</span><a href="Pythia.Services.Battery.SysFs.html#parseStatus"><span class="hs-identifier hs-var">parseStatus</span></a></span><span> </span><span class="annot"><span class="annottext">OsPath
+</span><a href="#local-6989586621679252291"><span class="hs-identifier hs-var">statusPath</span></a></span><span>
+</span><span id="line-197"></span><span>  </span><span id="local-6989586621679252301"><span class="annot"><span class="annottext">Percentage
+</span><a href="#local-6989586621679252301"><span class="hs-identifier hs-var">percentage</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">OsPath -&gt; m Percentage
+forall (m :: Type -&gt; Type).
+(MonadFileReader m, MonadThrow m) =&gt;
+OsPath -&gt; m Percentage
+</span><a href="Pythia.Services.Battery.SysFs.html#parsePercentage"><span class="hs-identifier hs-var">parsePercentage</span></a></span><span> </span><span class="annot"><span class="annottext">OsPath
+</span><a href="#local-6989586621679252297"><span class="hs-identifier hs-var">percentPath</span></a></span><span>
+</span><span id="line-198"></span><span>  </span><span class="hs-identifier">pure</span><span> </span><span class="hs-operator">$</span><span> </span><span class="annot"><span class="annottext">Percentage -&gt; BatteryStatus -&gt; Battery
+</span><a href="Pythia.Services.Battery.Types.html#MkBattery"><span class="hs-identifier hs-var">MkBattery</span></a></span><span> </span><span class="annot"><span class="annottext">Percentage
+</span><a href="#local-6989586621679252301"><span class="hs-identifier hs-var">percentage</span></a></span><span> </span><span class="annot"><span class="annottext">BatteryStatus
+</span><a href="#local-6989586621679252299"><span class="hs-identifier hs-var">status</span></a></span><span>
+</span><span id="line-199"></span><span>
+</span><span id="line-200"></span><span id="local-6989586621679251962"><span class="annot"><a href="Pythia.Services.Battery.SysFs.html#findSysBatDir"><span class="hs-identifier hs-type">findSysBatDir</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">(</span><span class="annot"><a href="file:///home/tommy/.local/state/cabal/store/ghc-9.6.3/effects-fs-0.1-5841411f1c8e259b2cf3c993222ef4c2c136f1e315fe1b2c92965a1bea2a7701/share/doc/html/src/Effects.FileSystem.PathReader.html#MonadPathReader"><span class="hs-identifier hs-type">MonadPathReader</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679251962"><span class="hs-identifier hs-type">m</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier hs-type">MonadThrow</span></span><span> </span><span class="annot"><a href="#local-6989586621679251962"><span class="hs-identifier hs-type">m</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679251962"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="annot"><span class="hs-identifier hs-type">OsPath</span></span></span><span>
+</span><span id="line-201"></span><span id="findSysBatDir"><span class="annot"><span class="annottext">findSysBatDir :: forall (m :: Type -&gt; Type).
+(MonadPathReader m, MonadThrow m) =&gt;
+m OsPath
+</span><a href="Pythia.Services.Battery.SysFs.html#findSysBatDir"><span class="hs-identifier hs-var hs-var">findSysBatDir</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">do</span><span>
+</span><span id="line-202"></span><span>  </span><span id="local-6989586621679252324"><span class="annot"><span class="annottext">Bool
+</span><a href="#local-6989586621679252324"><span class="hs-identifier hs-var">sysExists</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">OsPath -&gt; m Bool
+forall (m :: Type -&gt; Type).
+(MonadPathReader m, HasCallStack) =&gt;
+OsPath -&gt; m Bool
+</span><a href="file:///home/tommy/.local/state/cabal/store/ghc-9.6.3/effects-fs-0.1-5841411f1c8e259b2cf3c993222ef4c2c136f1e315fe1b2c92965a1bea2a7701/share/doc/html/src/Effects.FileSystem.PathReader.html#doesDirectoryExist"><span class="hs-identifier hs-var">Dir.doesDirectoryExist</span></a></span><span> </span><span class="annot"><span class="annottext">OsPath
+</span><a href="Pythia.Services.Battery.SysFs.html#sysDir"><span class="hs-identifier hs-var">sysDir</span></a></span><span>
+</span><span id="line-203"></span><span>  </span><span id="local-6989586621679252326"><span class="annot"><span class="annottext">OsPath
+</span><a href="#local-6989586621679252326"><span class="hs-identifier hs-var">sysBase</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span>
+</span><span id="line-204"></span><span>    </span><span class="hs-keyword">if</span><span> </span><span class="annot"><span class="annottext">Bool
+</span><a href="#local-6989586621679252324"><span class="hs-identifier hs-var">sysExists</span></a></span><span>
+</span><span id="line-205"></span><span>      </span><span class="hs-keyword">then</span><span> </span><span class="annot"><span class="annottext">OsPath -&gt; m OsPath
+forall a. a -&gt; m a
+forall (f :: Type -&gt; Type) a. Applicative f =&gt; a -&gt; f a
+</span><span class="hs-identifier hs-var">pure</span></span><span> </span><span class="annot"><span class="annottext">OsPath
+</span><a href="Pythia.Services.Battery.SysFs.html#sysDir"><span class="hs-identifier hs-var">sysDir</span></a></span><span>
+</span><span id="line-206"></span><span>      </span><span class="hs-keyword">else</span><span> </span><span class="hs-keyword">do</span><span>
+</span><span id="line-207"></span><span>        </span><span id="local-6989586621679252327"><span class="annot"><span class="annottext">Bool
+</span><a href="#local-6989586621679252327"><span class="hs-identifier hs-var">sysFsExists</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">OsPath -&gt; m Bool
+forall (m :: Type -&gt; Type).
+(MonadPathReader m, HasCallStack) =&gt;
+OsPath -&gt; m Bool
+</span><a href="file:///home/tommy/.local/state/cabal/store/ghc-9.6.3/effects-fs-0.1-5841411f1c8e259b2cf3c993222ef4c2c136f1e315fe1b2c92965a1bea2a7701/share/doc/html/src/Effects.FileSystem.PathReader.html#doesDirectoryExist"><span class="hs-identifier hs-var">Dir.doesDirectoryExist</span></a></span><span> </span><span class="annot"><span class="annottext">OsPath
+</span><a href="Pythia.Services.Battery.SysFs.html#sysfsDir"><span class="hs-identifier hs-var">sysfsDir</span></a></span><span>
+</span><span id="line-208"></span><span>        </span><span class="hs-keyword">if</span><span> </span><span class="annot"><span class="annottext">Bool
+</span><a href="#local-6989586621679252327"><span class="hs-identifier hs-var">sysFsExists</span></a></span><span>
+</span><span id="line-209"></span><span>          </span><span class="hs-keyword">then</span><span> </span><span class="annot"><span class="annottext">OsPath -&gt; m OsPath
+forall a. a -&gt; m a
+forall (f :: Type -&gt; Type) a. Applicative f =&gt; a -&gt; f a
+</span><span class="hs-identifier hs-var">pure</span></span><span> </span><span class="annot"><span class="annottext">OsPath
+</span><a href="Pythia.Services.Battery.SysFs.html#sysfsDir"><span class="hs-identifier hs-var">sysfsDir</span></a></span><span>
+</span><span id="line-210"></span><span>          </span><span class="hs-keyword">else</span><span> </span><span class="annot"><span class="annottext">SysFsDirNotFound -&gt; m OsPath
+forall (m :: Type -&gt; Type) e a.
+(Exception e, HasCallStack, MonadThrow m) =&gt;
+e -&gt; m a
+</span><a href="file:///home/tommy/.local/state/cabal/store/ghc-9.6.3/effects-exceptions-0.1-a63cba32a5fecf1f4a27935779245ad27eac11931e2e7d7243bce7482f6bd7d9/share/doc/html/src/Effects.Exception.html#throwCS"><span class="hs-identifier hs-var">throwCS</span></a></span><span> </span><span class="annot"><span class="annottext">SysFsDirNotFound
+</span><a href="Pythia.Services.Battery.SysFs.html#MkSysFsDirNotFound"><span class="hs-identifier hs-var">MkSysFsDirNotFound</span></a></span><span>
+</span><span id="line-211"></span><span>  </span><span class="annot"><span class="annottext">OsPath -&gt; m OsPath
+forall (m :: Type -&gt; Type).
+(MonadPathReader m, MonadThrow m) =&gt;
+OsPath -&gt; m OsPath
+</span><a href="Pythia.Services.Battery.SysFs.html#findBatteryDir"><span class="hs-identifier hs-var">findBatteryDir</span></a></span><span> </span><span class="annot"><span class="annottext">OsPath
+</span><a href="#local-6989586621679252326"><span class="hs-identifier hs-var">sysBase</span></a></span><span>
+</span><span id="line-212"></span><span>
+</span><span id="line-213"></span><span id="local-6989586621679251976"><span class="annot"><a href="Pythia.Services.Battery.SysFs.html#findBatteryDir"><span class="hs-identifier hs-type">findBatteryDir</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">(</span><span class="annot"><a href="file:///home/tommy/.local/state/cabal/store/ghc-9.6.3/effects-fs-0.1-5841411f1c8e259b2cf3c993222ef4c2c136f1e315fe1b2c92965a1bea2a7701/share/doc/html/src/Effects.FileSystem.PathReader.html#MonadPathReader"><span class="hs-identifier hs-type">MonadPathReader</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679251976"><span class="hs-identifier hs-type">m</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier hs-type">MonadThrow</span></span><span> </span><span class="annot"><a href="#local-6989586621679251976"><span class="hs-identifier hs-type">m</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">OsPath</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679251976"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="annot"><span class="hs-identifier hs-type">OsPath</span></span></span><span>
+</span><span id="line-214"></span><span id="findBatteryDir"><span class="annot"><span class="annottext">findBatteryDir :: forall (m :: Type -&gt; Type).
+(MonadPathReader m, MonadThrow m) =&gt;
+OsPath -&gt; m OsPath
+</span><a href="Pythia.Services.Battery.SysFs.html#findBatteryDir"><span class="hs-identifier hs-var hs-var">findBatteryDir</span></a></span></span><span> </span><span id="local-6989586621679252345"><span class="annot"><span class="annottext">OsPath
+</span><a href="#local-6989586621679252345"><span class="hs-identifier hs-var">sysBase</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">do</span><span>
+</span><span id="line-215"></span><span>  </span><span id="local-6989586621679252346"><span class="annot"><span class="annottext">Maybe OsPath
+</span><a href="#local-6989586621679252346"><span class="hs-identifier hs-var">mResult</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">(OsPath -&gt; m (Maybe OsPath) -&gt; m (Maybe OsPath))
+-&gt; m (Maybe OsPath) -&gt; [OsPath] -&gt; m (Maybe OsPath)
+forall a b. (a -&gt; b -&gt; b) -&gt; b -&gt; [a] -&gt; b
+forall (t :: Type -&gt; Type) a b.
+Foldable t =&gt;
+(a -&gt; b -&gt; b) -&gt; b -&gt; t a -&gt; b
+</span><span class="hs-identifier hs-var">foldr</span></span><span> </span><span class="annot"><span class="annottext">OsPath -&gt; m (Maybe OsPath) -&gt; m (Maybe OsPath)
+</span><a href="#local-6989586621679252348"><span class="hs-identifier hs-var">firstExists</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Maybe OsPath -&gt; m (Maybe OsPath)
+forall a. a -&gt; m a
+forall (f :: Type -&gt; Type) a. Applicative f =&gt; a -&gt; f a
+</span><span class="hs-identifier hs-var">pure</span></span><span> </span><span class="annot"><span class="annottext">Maybe OsPath
+forall a. Maybe a
+</span><span class="hs-identifier hs-var">Nothing</span></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">[OsPath]
+</span><a href="#local-6989586621679252349"><span class="hs-identifier hs-var">batDirs</span></a></span><span>
+</span><span id="line-216"></span><span>  </span><span class="hs-keyword">case</span><span> </span><span class="annot"><span class="annottext">Maybe OsPath
+</span><a href="#local-6989586621679252346"><span class="hs-identifier hs-var">mResult</span></a></span><span> </span><span class="hs-keyword">of</span><span>
+</span><span id="line-217"></span><span>    </span><span class="annot"><span class="annottext">Maybe OsPath
+</span><span class="hs-identifier hs-var">Nothing</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">SysFsBatteryDirNotFound -&gt; m OsPath
+forall (m :: Type -&gt; Type) e a.
+(Exception e, HasCallStack, MonadThrow m) =&gt;
+e -&gt; m a
+</span><a href="file:///home/tommy/.local/state/cabal/store/ghc-9.6.3/effects-exceptions-0.1-a63cba32a5fecf1f4a27935779245ad27eac11931e2e7d7243bce7482f6bd7d9/share/doc/html/src/Effects.Exception.html#throwCS"><span class="hs-identifier hs-var">throwCS</span></a></span><span> </span><span class="annot"><span class="annottext">SysFsBatteryDirNotFound
+</span><a href="Pythia.Services.Battery.SysFs.html#MkSysFsBatteryDirNotFound"><span class="hs-identifier hs-var">MkSysFsBatteryDirNotFound</span></a></span><span>
+</span><span id="line-218"></span><span>    </span><span class="annot"><span class="hs-identifier hs-type">Just</span></span><span> </span><span id="local-6989586621679252350"><span class="annot"><span class="annottext">OsPath
+</span><a href="#local-6989586621679252350"><span class="hs-identifier hs-var">result</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">OsPath -&gt; m OsPath
+forall a. a -&gt; m a
+forall (f :: Type -&gt; Type) a. Applicative f =&gt; a -&gt; f a
+</span><span class="hs-identifier hs-var">pure</span></span><span> </span><span class="annot"><span class="annottext">OsPath
+</span><a href="#local-6989586621679252350"><span class="hs-identifier hs-var">result</span></a></span><span>
+</span><span id="line-219"></span><span>  </span><span class="hs-keyword">where</span><span>
+</span><span id="line-220"></span><span>    </span><span id="local-6989586621679252348"><span class="annot"><span class="annottext">firstExists :: OsPath -&gt; m (Maybe OsPath) -&gt; m (Maybe OsPath)
+</span><a href="#local-6989586621679252348"><span class="hs-identifier hs-var hs-var">firstExists</span></a></span></span><span> </span><span id="local-6989586621679252351"><span class="annot"><span class="annottext">OsPath
+</span><a href="#local-6989586621679252351"><span class="hs-identifier hs-var">batDir</span></a></span></span><span> </span><span id="local-6989586621679252352"><span class="annot"><span class="annottext">m (Maybe OsPath)
+</span><a href="#local-6989586621679252352"><span class="hs-identifier hs-var">acc</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">do</span><span>
+</span><span id="line-221"></span><span>      </span><span id="local-6989586621679252353"><span class="annot"><span class="annottext">Maybe OsPath
+</span><a href="#local-6989586621679252353"><span class="hs-identifier hs-var">e</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">OsPath -&gt; m (Maybe OsPath)
+forall (m :: Type -&gt; Type).
+MonadPathReader m =&gt;
+OsPath -&gt; m (Maybe OsPath)
+</span><a href="Pythia.Services.Battery.SysFs.html#maybeDirExists"><span class="hs-identifier hs-var">maybeDirExists</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">OsPath
+</span><a href="#local-6989586621679252345"><span class="hs-identifier hs-var">sysBase</span></a></span><span> </span><span class="annot"><span class="annottext">OsPath -&gt; OsPath -&gt; OsPath
+</span><span class="hs-operator hs-var">&lt;/&gt;</span></span><span> </span><span class="annot"><span class="annottext">OsPath
+</span><a href="#local-6989586621679252351"><span class="hs-identifier hs-var">batDir</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-222"></span><span>      </span><span class="hs-keyword">case</span><span> </span><span class="annot"><span class="annottext">Maybe OsPath
+</span><a href="#local-6989586621679252353"><span class="hs-identifier hs-var">e</span></a></span><span> </span><span class="hs-keyword">of</span><span>
+</span><span id="line-223"></span><span>        </span><span class="annot"><span class="annottext">Maybe OsPath
+</span><span class="hs-identifier hs-var">Nothing</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">m (Maybe OsPath)
+</span><a href="#local-6989586621679252352"><span class="hs-identifier hs-var">acc</span></a></span><span>
+</span><span id="line-224"></span><span>        </span><span class="annot"><span class="hs-identifier hs-type">Just</span></span><span> </span><span id="local-6989586621679252355"><span class="annot"><span class="annottext">OsPath
+</span><a href="#local-6989586621679252355"><span class="hs-identifier hs-var">e'</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Maybe OsPath -&gt; m (Maybe OsPath)
+forall a. a -&gt; m a
+forall (f :: Type -&gt; Type) a. Applicative f =&gt; a -&gt; f a
+</span><span class="hs-identifier hs-var">pure</span></span><span> </span><span class="annot"><span class="annottext">(Maybe OsPath -&gt; m (Maybe OsPath))
+-&gt; Maybe OsPath -&gt; m (Maybe OsPath)
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">OsPath -&gt; Maybe OsPath
+forall a. a -&gt; Maybe a
+</span><span class="hs-identifier hs-var">Just</span></span><span> </span><span class="annot"><span class="annottext">OsPath
+</span><a href="#local-6989586621679252355"><span class="hs-identifier hs-var">e'</span></a></span><span>
+</span><span id="line-225"></span><span>    </span><span id="local-6989586621679252349"><span class="annot"><span class="annottext">batDirs :: [OsPath]
+</span><a href="#local-6989586621679252349"><span class="hs-identifier hs-var hs-var">batDirs</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-226"></span><span>      </span><span class="hs-special">[</span><span> </span><span class="annot"><span class="">[osp|BAT0|]</span></span><span class="hs-special">,</span><span>
+</span><span id="line-227"></span><span>        </span><span class="annot"><span class="">[osp|BAT1|]</span></span><span class="hs-special">,</span><span>
+</span><span id="line-228"></span><span>        </span><span class="annot"><span class="">[osp|BAT2|]</span></span><span class="hs-special">,</span><span>
+</span><span id="line-229"></span><span>        </span><span class="annot"><span class="">[osp|BAT3|]</span></span><span class="hs-special">,</span><span>
+</span><span id="line-230"></span><span>        </span><span class="annot"><span class="">[osp|BAT4|]</span></span><span class="hs-special">,</span><span>
+</span><span id="line-231"></span><span>        </span><span class="annot"><span class="">[osp|BAT5|]</span></span><span class="hs-special">,</span><span>
+</span><span id="line-232"></span><span>        </span><span class="annot"><span class="">[osp|BAT|]</span></span><span>
+</span><span id="line-233"></span><span>      </span><span class="hs-special">]</span><span>
+</span><span id="line-234"></span><span>
+</span><span id="line-235"></span><span id="local-6989586621679251981"><span class="annot"><a href="Pythia.Services.Battery.SysFs.html#maybeDirExists"><span class="hs-identifier hs-type">maybeDirExists</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">(</span><span class="annot"><a href="file:///home/tommy/.local/state/cabal/store/ghc-9.6.3/effects-fs-0.1-5841411f1c8e259b2cf3c993222ef4c2c136f1e315fe1b2c92965a1bea2a7701/share/doc/html/src/Effects.FileSystem.PathReader.html#MonadPathReader"><span class="hs-identifier hs-type">MonadPathReader</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679251981"><span class="hs-identifier hs-type">m</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">OsPath</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679251981"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">OsPath</span></span><span class="hs-special">)</span></span><span>
+</span><span id="line-236"></span><span id="maybeDirExists"><span class="annot"><span class="annottext">maybeDirExists :: forall (m :: Type -&gt; Type).
+MonadPathReader m =&gt;
+OsPath -&gt; m (Maybe OsPath)
+</span><a href="Pythia.Services.Battery.SysFs.html#maybeDirExists"><span class="hs-identifier hs-var hs-var">maybeDirExists</span></a></span></span><span> </span><span id="local-6989586621679252391"><span class="annot"><span class="annottext">OsPath
+</span><a href="#local-6989586621679252391"><span class="hs-identifier hs-var">fp</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">do</span><span>
+</span><span id="line-237"></span><span>  </span><span id="local-6989586621679252392"><span class="annot"><span class="annottext">Bool
+</span><a href="#local-6989586621679252392"><span class="hs-identifier hs-var">b</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">OsPath -&gt; m Bool
+forall (m :: Type -&gt; Type).
+(MonadPathReader m, HasCallStack) =&gt;
+OsPath -&gt; m Bool
+</span><a href="file:///home/tommy/.local/state/cabal/store/ghc-9.6.3/effects-fs-0.1-5841411f1c8e259b2cf3c993222ef4c2c136f1e315fe1b2c92965a1bea2a7701/share/doc/html/src/Effects.FileSystem.PathReader.html#doesDirectoryExist"><span class="hs-identifier hs-var">Dir.doesDirectoryExist</span></a></span><span> </span><span class="annot"><span class="annottext">OsPath
+</span><a href="#local-6989586621679252391"><span class="hs-identifier hs-var">fp</span></a></span><span>
+</span><span id="line-238"></span><span>  </span><span class="hs-identifier">pure</span><span>
+</span><span id="line-239"></span><span>    </span><span class="hs-operator">$</span><span> </span><span class="hs-keyword">if</span><span> </span><span class="annot"><span class="annottext">Bool
+</span><a href="#local-6989586621679252392"><span class="hs-identifier hs-var">b</span></a></span><span>
+</span><span id="line-240"></span><span>      </span><span class="hs-keyword">then</span><span> </span><span class="annot"><span class="annottext">OsPath -&gt; Maybe OsPath
+forall a. a -&gt; Maybe a
+</span><span class="hs-identifier hs-var">Just</span></span><span> </span><span class="annot"><span class="annottext">OsPath
+</span><a href="#local-6989586621679252391"><span class="hs-identifier hs-var">fp</span></a></span><span>
+</span><span id="line-241"></span><span>      </span><span class="hs-keyword">else</span><span> </span><span class="annot"><span class="annottext">Maybe OsPath
+forall a. Maybe a
+</span><span class="hs-identifier hs-var">Nothing</span></span><span>
+</span><span id="line-242"></span><span>
+</span><span id="line-243"></span><span id="local-6989586621679251972"><span class="annot"><a href="Pythia.Services.Battery.SysFs.html#parseStatus"><span class="hs-identifier hs-type">parseStatus</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">(</span><span class="annot"><a href="file:///home/tommy/.local/state/cabal/store/ghc-9.6.3/effects-fs-0.1-5841411f1c8e259b2cf3c993222ef4c2c136f1e315fe1b2c92965a1bea2a7701/share/doc/html/src/Effects.FileSystem.FileReader.html#MonadFileReader"><span class="hs-identifier hs-type">MonadFileReader</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679251972"><span class="hs-identifier hs-type">m</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier hs-type">MonadThrow</span></span><span> </span><span class="annot"><a href="#local-6989586621679251972"><span class="hs-identifier hs-type">m</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">OsPath</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679251972"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="annot"><a href="Pythia.Services.Battery.Types.html#BatteryStatus"><span class="hs-identifier hs-type">BatteryStatus</span></a></span></span><span>
+</span><span id="line-244"></span><span id="parseStatus"><span class="annot"><span class="annottext">parseStatus :: forall (m :: Type -&gt; Type).
+(MonadFileReader m, MonadThrow m) =&gt;
+OsPath -&gt; m BatteryStatus
+</span><a href="Pythia.Services.Battery.SysFs.html#parseStatus"><span class="hs-identifier hs-var hs-var">parseStatus</span></a></span></span><span> </span><span id="local-6989586621679252423"><span class="annot"><span class="annottext">OsPath
+</span><a href="#local-6989586621679252423"><span class="hs-identifier hs-var">fp</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">do</span><span>
+</span><span id="line-245"></span><span>  </span><span id="local-6989586621679252424"><span class="annot"><span class="annottext">Text
+</span><a href="#local-6989586621679252424"><span class="hs-identifier hs-var">statusTxt</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span>
+</span><span id="line-246"></span><span>    </span><span class="annot"><span class="annottext">Text -&gt; Text
+</span><span class="hs-identifier hs-var">T.toLower</span></span><span>
+</span><span id="line-247"></span><span>      </span><span class="annot"><span class="annottext">(Text -&gt; Text) -&gt; (Text -&gt; Text) -&gt; Text -&gt; Text
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">Text -&gt; Text
+</span><span class="hs-identifier hs-var">T.strip</span></span><span>
+</span><span id="line-248"></span><span>      </span><span class="annot"><span class="annottext">(Text -&gt; Text) -&gt; m Text -&gt; m Text
+forall (f :: Type -&gt; Type) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span><span class="hs-operator hs-var">&lt;$&gt;</span></span><span> </span><span class="annot"><span class="annottext">OsPath -&gt; m Text
+forall (m :: Type -&gt; Type).
+(HasCallStack, MonadFileReader m) =&gt;
+OsPath -&gt; m Text
+</span><a href="file:///home/tommy/.local/state/cabal/store/ghc-9.6.3/effects-fs-0.1-5841411f1c8e259b2cf3c993222ef4c2c136f1e315fe1b2c92965a1bea2a7701/share/doc/html/src/Effects.FileSystem.FileReader.html#readFileUtf8Lenient"><span class="hs-identifier hs-var">readFileUtf8Lenient</span></a></span><span> </span><span class="annot"><span class="annottext">OsPath
+</span><a href="#local-6989586621679252423"><span class="hs-identifier hs-var">fp</span></a></span><span>
+</span><span id="line-249"></span><span>  </span><span class="hs-keyword">case</span><span> </span><span class="annot"><span class="annottext">Text
+</span><a href="#local-6989586621679252424"><span class="hs-identifier hs-var">statusTxt</span></a></span><span> </span><span class="hs-keyword">of</span><span>
+</span><span id="line-250"></span><span>    </span><span class="annot"><span class="annottext">Text
+</span><span class="hs-string">&quot;charging&quot;</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">BatteryStatus -&gt; m BatteryStatus
+forall a. a -&gt; m a
+forall (f :: Type -&gt; Type) a. Applicative f =&gt; a -&gt; f a
+</span><span class="hs-identifier hs-var">pure</span></span><span> </span><span class="annot"><span class="annottext">BatteryStatus
+</span><a href="Pythia.Services.Battery.Types.html#Charging"><span class="hs-identifier hs-var">Charging</span></a></span><span>
+</span><span id="line-251"></span><span>    </span><span class="annot"><span class="annottext">Text
+</span><span class="hs-string">&quot;discharging&quot;</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">BatteryStatus -&gt; m BatteryStatus
+forall a. a -&gt; m a
+forall (f :: Type -&gt; Type) a. Applicative f =&gt; a -&gt; f a
+</span><span class="hs-identifier hs-var">pure</span></span><span> </span><span class="annot"><span class="annottext">BatteryStatus
+</span><a href="Pythia.Services.Battery.Types.html#Discharging"><span class="hs-identifier hs-var">Discharging</span></a></span><span>
+</span><span id="line-252"></span><span>    </span><span class="annot"><span class="annottext">Text
+</span><span class="hs-string">&quot;not charging&quot;</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">BatteryStatus -&gt; m BatteryStatus
+forall a. a -&gt; m a
+forall (f :: Type -&gt; Type) a. Applicative f =&gt; a -&gt; f a
+</span><span class="hs-identifier hs-var">pure</span></span><span> </span><span class="annot"><span class="annottext">BatteryStatus
+</span><a href="Pythia.Services.Battery.Types.html#Pending"><span class="hs-identifier hs-var">Pending</span></a></span><span>
+</span><span id="line-253"></span><span>    </span><span class="annot"><span class="annottext">Text
+</span><span class="hs-string">&quot;full&quot;</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">BatteryStatus -&gt; m BatteryStatus
+forall a. a -&gt; m a
+forall (f :: Type -&gt; Type) a. Applicative f =&gt; a -&gt; f a
+</span><span class="hs-identifier hs-var">pure</span></span><span> </span><span class="annot"><span class="annottext">BatteryStatus
+</span><a href="Pythia.Services.Battery.Types.html#Full"><span class="hs-identifier hs-var">Full</span></a></span><span>
+</span><span id="line-254"></span><span>    </span><span id="local-6989586621679252429"><span class="annot"><span class="annottext">Text
+</span><a href="#local-6989586621679252429"><span class="hs-identifier hs-var">bad</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">SysFsBatteryParseError -&gt; m BatteryStatus
+forall (m :: Type -&gt; Type) e a.
+(Exception e, HasCallStack, MonadThrow m) =&gt;
+e -&gt; m a
+</span><a href="file:///home/tommy/.local/state/cabal/store/ghc-9.6.3/effects-exceptions-0.1-a63cba32a5fecf1f4a27935779245ad27eac11931e2e7d7243bce7482f6bd7d9/share/doc/html/src/Effects.Exception.html#throwCS"><span class="hs-identifier hs-var">throwCS</span></a></span><span> </span><span class="annot"><span class="annottext">(SysFsBatteryParseError -&gt; m BatteryStatus)
+-&gt; SysFsBatteryParseError -&gt; m BatteryStatus
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">Text -&gt; SysFsBatteryParseError
+</span><a href="Pythia.Services.Battery.SysFs.html#MkSysFsBatteryParseError"><span class="hs-identifier hs-var">MkSysFsBatteryParseError</span></a></span><span> </span><span class="annot"><span class="annottext">(Text -&gt; SysFsBatteryParseError) -&gt; Text -&gt; SysFsBatteryParseError
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">Text
+</span><span class="hs-string">&quot;Unknown status: &quot;</span></span><span> </span><span class="annot"><span class="annottext">Text -&gt; Text -&gt; Text
+forall a. Semigroup a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-operator hs-var">&lt;&gt;</span></span><span> </span><span class="annot"><span class="annottext">Text
+</span><a href="#local-6989586621679252429"><span class="hs-identifier hs-var">bad</span></a></span><span>
+</span><span id="line-255"></span><span>
+</span><span id="line-256"></span><span id="local-6989586621679251974"><span class="annot"><a href="Pythia.Services.Battery.SysFs.html#parsePercentage"><span class="hs-identifier hs-type">parsePercentage</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">(</span><span class="annot"><a href="file:///home/tommy/.local/state/cabal/store/ghc-9.6.3/effects-fs-0.1-5841411f1c8e259b2cf3c993222ef4c2c136f1e315fe1b2c92965a1bea2a7701/share/doc/html/src/Effects.FileSystem.FileReader.html#MonadFileReader"><span class="hs-identifier hs-type">MonadFileReader</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679251974"><span class="hs-identifier hs-type">m</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier hs-type">MonadThrow</span></span><span> </span><span class="annot"><a href="#local-6989586621679251974"><span class="hs-identifier hs-type">m</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">OsPath</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679251974"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="annot"><a href="Pythia.Data.Percentage.Internal.html#Percentage"><span class="hs-identifier hs-type">Percentage</span></a></span></span><span>
+</span><span id="line-257"></span><span id="parsePercentage"><span class="annot"><span class="annottext">parsePercentage :: forall (m :: Type -&gt; Type).
+(MonadFileReader m, MonadThrow m) =&gt;
+OsPath -&gt; m Percentage
+</span><a href="Pythia.Services.Battery.SysFs.html#parsePercentage"><span class="hs-identifier hs-var hs-var">parsePercentage</span></a></span></span><span> </span><span id="local-6989586621679252443"><span class="annot"><span class="annottext">OsPath
+</span><a href="#local-6989586621679252443"><span class="hs-identifier hs-var">fp</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">do</span><span>
+</span><span id="line-258"></span><span>  </span><span id="local-6989586621679252444"><span class="annot"><span class="annottext">Text
+</span><a href="#local-6989586621679252444"><span class="hs-identifier hs-var">percentTxt</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">OsPath -&gt; m Text
+forall (m :: Type -&gt; Type).
+(HasCallStack, MonadFileReader m) =&gt;
+OsPath -&gt; m Text
+</span><a href="file:///home/tommy/.local/state/cabal/store/ghc-9.6.3/effects-fs-0.1-5841411f1c8e259b2cf3c993222ef4c2c136f1e315fe1b2c92965a1bea2a7701/share/doc/html/src/Effects.FileSystem.FileReader.html#readFileUtf8Lenient"><span class="hs-identifier hs-var">readFileUtf8Lenient</span></a></span><span> </span><span class="annot"><span class="annottext">OsPath
+</span><a href="#local-6989586621679252443"><span class="hs-identifier hs-var">fp</span></a></span><span>
+</span><span id="line-259"></span><span>  </span><span class="hs-keyword">case</span><span> </span><span class="annot"><span class="annottext">Text -&gt; Maybe Percentage
+</span><a href="#local-6989586621679252445"><span class="hs-identifier hs-var">readPercentage</span></a></span><span> </span><span class="annot"><span class="annottext">Text
+</span><a href="#local-6989586621679252444"><span class="hs-identifier hs-var">percentTxt</span></a></span><span> </span><span class="hs-keyword">of</span><span>
+</span><span id="line-260"></span><span>    </span><span class="annot"><span class="annottext">Maybe Percentage
+</span><span class="hs-identifier hs-var">Nothing</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">SysFsBatteryParseError -&gt; m Percentage
+forall (m :: Type -&gt; Type) e a.
+(Exception e, HasCallStack, MonadThrow m) =&gt;
+e -&gt; m a
+</span><a href="file:///home/tommy/.local/state/cabal/store/ghc-9.6.3/effects-exceptions-0.1-a63cba32a5fecf1f4a27935779245ad27eac11931e2e7d7243bce7482f6bd7d9/share/doc/html/src/Effects.Exception.html#throwCS"><span class="hs-identifier hs-var">throwCS</span></a></span><span> </span><span class="annot"><span class="annottext">(SysFsBatteryParseError -&gt; m Percentage)
+-&gt; SysFsBatteryParseError -&gt; m Percentage
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">Text -&gt; SysFsBatteryParseError
+</span><a href="Pythia.Services.Battery.SysFs.html#MkSysFsBatteryParseError"><span class="hs-identifier hs-var">MkSysFsBatteryParseError</span></a></span><span> </span><span class="annot"><span class="annottext">Text
+</span><a href="#local-6989586621679252444"><span class="hs-identifier hs-var">percentTxt</span></a></span><span>
+</span><span id="line-261"></span><span>    </span><span class="annot"><span class="hs-identifier hs-type">Just</span></span><span> </span><span id="local-6989586621679252446"><span class="annot"><span class="annottext">Percentage
+</span><a href="#local-6989586621679252446"><span class="hs-identifier hs-var">bs</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Percentage -&gt; m Percentage
+forall a. a -&gt; m a
+forall (f :: Type -&gt; Type) a. Applicative f =&gt; a -&gt; f a
+</span><span class="hs-identifier hs-var">pure</span></span><span> </span><span class="annot"><span class="annottext">Percentage
+</span><a href="#local-6989586621679252446"><span class="hs-identifier hs-var">bs</span></a></span><span>
+</span><span id="line-262"></span><span>  </span><span class="hs-keyword">where</span><span>
+</span><span id="line-263"></span><span>    </span><span id="local-6989586621679252445"><span class="annot"><span class="annottext">readPercentage :: Text -&gt; Maybe Percentage
+</span><a href="#local-6989586621679252445"><span class="hs-identifier hs-var hs-var">readPercentage</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Word8 -&gt; Maybe Percentage
+</span><a href="Pythia.Data.Percentage.html#mkPercentage"><span class="hs-identifier hs-var">Percentage.mkPercentage</span></a></span><span> </span><span class="annot"><span class="annottext">(Word8 -&gt; Maybe Percentage)
+-&gt; (Text -&gt; Maybe Word8) -&gt; Text -&gt; Maybe Percentage
+forall (m :: Type -&gt; Type) b c a.
+Monad m =&gt;
+(b -&gt; m c) -&gt; (a -&gt; m b) -&gt; a -&gt; m c
+</span><span class="hs-operator hs-var">&lt;=&lt;</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; Maybe Word8
+forall a. Read a =&gt; String -&gt; Maybe a
+</span><span class="hs-identifier hs-var">TR.readMaybe</span></span><span> </span><span class="annot"><span class="annottext">(String -&gt; Maybe Word8) -&gt; (Text -&gt; String) -&gt; Text -&gt; Maybe Word8
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">Text -&gt; String
+</span><span class="hs-identifier hs-var">T.unpack</span></span><span>
+</span><span id="line-264"></span></pre></body></html>

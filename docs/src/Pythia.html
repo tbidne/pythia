@@ -1,0 +1,39 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><link rel="stylesheet" type="text/css" href="style.css" /><script type="text/javascript" src="highlight.js"></script></head><body><pre><span class="hs-comment">-- | This is the entry point to the library. All services are exported</span><span>
+</span><span id="line-2"></span><span class="hs-comment">-- here. See the modules themselves for more documentation.</span><span>
+</span><span id="line-3"></span><span class="hs-comment">--</span><span>
+</span><span id="line-4"></span><span class="hs-comment">-- @since 0.1</span><span>
+</span><span id="line-5"></span><span class="hs-keyword">module</span><span> </span><span class="hs-identifier">Pythia</span><span>
+</span><span id="line-6"></span><span>  </span><span class="hs-special">(</span><span> </span><span class="annot"><span class="hs-comment">-- * Services</span></span><span>
+</span><span id="line-7"></span><span>    </span><span class="annot"><span class="hs-comment">-- $services</span></span><span>
+</span><span id="line-8"></span><span>    </span><span class="hs-keyword">module</span><span> </span><span class="annot"><a href="Pythia.Services.Battery.html"><span class="hs-identifier">Pythia.Services.Battery</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-9"></span><span>    </span><span class="hs-keyword">module</span><span> </span><span class="annot"><a href="Pythia.Services.GlobalIp.html"><span class="hs-identifier">Pythia.Services.GlobalIp</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-10"></span><span>    </span><span class="hs-keyword">module</span><span> </span><span class="annot"><a href="Pythia.Services.Memory.html"><span class="hs-identifier">Pythia.Services.Memory</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-11"></span><span>    </span><span class="hs-keyword">module</span><span> </span><span class="annot"><a href="Pythia.Services.NetInterface.html"><span class="hs-identifier">Pythia.Services.NetInterface</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-12"></span><span>    </span><span class="hs-keyword">module</span><span> </span><span class="annot"><a href="Pythia.Services.Time.html"><span class="hs-identifier">Pythia.Services.Time</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-13"></span><span>
+</span><span id="line-14"></span><span>    </span><span class="annot"><span class="hs-comment">-- * Exceptions</span></span><span>
+</span><span id="line-15"></span><span>    </span><span class="annot"><span class="hs-comment">-- $exceptions</span></span><span>
+</span><span id="line-16"></span><span>    </span><span class="hs-keyword">module</span><span> </span><span class="annot"><a href="Pythia.Control.Exception.html"><span class="hs-identifier">Pythia.Control.Exception</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-17"></span><span>  </span><span class="hs-special">)</span><span>
+</span><span id="line-18"></span><span class="hs-keyword">where</span><span>
+</span><span id="line-19"></span><span>
+</span><span id="line-20"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Pythia.Control.Exception.html"><span class="hs-identifier">Pythia.Control.Exception</span></a></span><span>
+</span><span id="line-21"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Pythia.Services.Battery.html"><span class="hs-identifier">Pythia.Services.Battery</span></a></span><span>
+</span><span id="line-22"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Pythia.Services.GlobalIp.html"><span class="hs-identifier">Pythia.Services.GlobalIp</span></a></span><span>
+</span><span id="line-23"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Pythia.Services.Memory.html"><span class="hs-identifier">Pythia.Services.Memory</span></a></span><span>
+</span><span id="line-24"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Pythia.Services.NetInterface.html"><span class="hs-identifier">Pythia.Services.NetInterface</span></a></span><span>
+</span><span id="line-25"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Pythia.Services.Time.html"><span class="hs-identifier">Pythia.Services.Time</span></a></span><span>
+</span><span id="line-26"></span><span>
+</span><span id="line-27"></span><span class="hs-comment">-- $services</span><span>
+</span><span id="line-28"></span><span class="hs-comment">-- Each service is self-contained in that it should have everything needed</span><span>
+</span><span id="line-29"></span><span class="hs-comment">-- for typical usage. Generally, @Pythia.Services.X@ exports everything of</span><span>
+</span><span id="line-30"></span><span class="hs-comment">-- interest in @Pythia.Services.X.*@. That said, there is some additional</span><span>
+</span><span id="line-31"></span><span class="hs-comment">-- functionality in @Pythia.Data.*@ and @Pythia.Control.Exception@</span><span>
+</span><span id="line-32"></span><span class="hs-comment">-- that may occasionally be of interest (e.g. optics).</span><span>
+</span><span id="line-33"></span><span>
+</span><span id="line-34"></span><span class="hs-comment">-- $exceptions</span><span>
+</span><span id="line-35"></span><span class="hs-comment">-- Pythia's error handling is defined in terms of @safe-exceptions@.</span><span>
+</span><span id="line-36"></span><span class="hs-comment">-- &quot;Pythia.Control.Exception&quot; defines general exceptions that can be thrown</span><span>
+</span><span id="line-37"></span><span class="hs-comment">-- from 'GHC.IO.IO'; Additionally, services can also throw specific exceptions (e.g.</span><span>
+</span><span id="line-38"></span><span class="hs-comment">-- 'AcpiException' from &quot;Pythia.Services.Battery.Acpi&quot;).</span><span>
+</span><span id="line-39"></span></pre></body></html>

@@ -1,0 +1,656 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><link rel="stylesheet" type="text/css" href="style.css" /><script type="text/javascript" src="highlight.js"></script></head><body><pre><span class="hs-pragma">{-# LANGUAGE QuasiQuotes #-}</span><span>
+</span><span id="line-2"></span><span>
+</span><span id="line-3"></span><span class="hs-comment">-- | This module provides functionality for retrieving network connection</span><span>
+</span><span id="line-4"></span><span class="hs-comment">-- information using ip utility.</span><span>
+</span><span id="line-5"></span><span class="hs-comment">--</span><span>
+</span><span id="line-6"></span><span class="hs-comment">-- @since 0.1</span><span>
+</span><span id="line-7"></span><span class="hs-keyword">module</span><span> </span><span class="hs-identifier">Pythia.Services.NetInterface.Ip</span><span>
+</span><span id="line-8"></span><span>  </span><span class="hs-special">(</span><span> </span><span class="annot"><span class="hs-comment">-- * Query</span></span><span>
+</span><span id="line-9"></span><span>    </span><span class="annot"><a href="Pythia.Services.NetInterface.Ip.html#netInterfaceShellApp"><span class="hs-identifier">netInterfaceShellApp</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-10"></span><span>    </span><span class="annot"><a href="Pythia.Services.NetInterface.Ip.html#supported"><span class="hs-identifier">supported</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-11"></span><span>
+</span><span id="line-12"></span><span>    </span><span class="annot"><span class="hs-comment">-- * Misc</span></span><span>
+</span><span id="line-13"></span><span>    </span><span class="annot"><a href="Pythia.Services.NetInterface.Ip.html#IpParseError"><span class="hs-identifier">IpParseError</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span class="hs-special">,</span><span>
+</span><span id="line-14"></span><span>    </span><span class="annot"><a href="Pythia.Services.NetInterface.Ip.html#parseInterfaces"><span class="hs-identifier">parseInterfaces</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-15"></span><span>  </span><span class="hs-special">)</span><span>
+</span><span id="line-16"></span><span class="hs-keyword">where</span><span>
+</span><span id="line-17"></span><span>
+</span><span id="line-18"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Data.Char</span></span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="hs-keyword">as</span><span> </span><span class="annot"><span class="hs-identifier">Char</span></span><span>
+</span><span id="line-19"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Data.Set</span></span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="hs-keyword">as</span><span> </span><span class="annot"><span class="hs-identifier">Set</span></span><span>
+</span><span id="line-20"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Data.Text</span></span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="hs-keyword">as</span><span> </span><span class="annot"><span class="hs-identifier">T</span></span><span>
+</span><span id="line-21"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Pythia.Internal.ShellApp.html"><span class="hs-identifier">Pythia.Internal.ShellApp</span></a></span><span>
+</span><span id="line-22"></span><span>  </span><span class="hs-special">(</span><span> </span><span class="annot"><a href="Pythia.Internal.ShellApp.html#SimpleShell"><span class="hs-identifier">SimpleShell</span></a></span><span>
+</span><span id="line-23"></span><span>      </span><span class="hs-special">(</span><span> </span><span class="annot"><a href="Pythia.Internal.ShellApp.html#MkSimpleShell"><span class="hs-identifier">MkSimpleShell</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-24"></span><span>        </span><span class="annot"><a href="Pythia.Internal.ShellApp.html#%24sel%3Acommand%3AMkSimpleShell"><span class="hs-identifier">command</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-25"></span><span>        </span><span class="annot"><a href="Pythia.Internal.ShellApp.html#%24sel%3AisSupported%3AMkSimpleShell"><span class="hs-identifier">isSupported</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-26"></span><span>        </span><span class="annot"><a href="Pythia.Internal.ShellApp.html#%24sel%3Aparser%3AMkSimpleShell"><span class="hs-identifier">parser</span></a></span><span>
+</span><span id="line-27"></span><span>      </span><span class="hs-special">)</span><span class="hs-special">,</span><span>
+</span><span id="line-28"></span><span>  </span><span class="hs-special">)</span><span>
+</span><span id="line-29"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Pythia.Internal.ShellApp.html"><span class="hs-identifier">Pythia.Internal.ShellApp</span></a></span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="hs-keyword">as</span><span> </span><span class="annot"><span class="hs-identifier">ShellApp</span></span><span>
+</span><span id="line-30"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Pythia.Prelude.html"><span class="hs-identifier">Pythia.Prelude</span></a></span><span>
+</span><span id="line-31"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Pythia.Services.NetInterface.Types.html"><span class="hs-identifier">Pythia.Services.NetInterface.Types</span></a></span><span>
+</span><span id="line-32"></span><span>  </span><span class="hs-special">(</span><span> </span><span class="annot"><a href="Pythia.Services.NetInterface.Types.html#NetInterface"><span class="hs-identifier">NetInterface</span></a></span><span>
+</span><span id="line-33"></span><span>      </span><span class="hs-special">(</span><span> </span><span class="annot"><a href="Pythia.Services.NetInterface.Types.html#MkNetInterface"><span class="hs-identifier">MkNetInterface</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-34"></span><span>        </span><span class="annot"><a href="Pythia.Services.NetInterface.Types.html#%24sel%3Adevice%3AMkNetInterface"><span class="hs-identifier">device</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-35"></span><span>        </span><span class="annot"><a href="Pythia.Services.NetInterface.Types.html#%24sel%3Aipv4s%3AMkNetInterface"><span class="hs-identifier">ipv4s</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-36"></span><span>        </span><span class="annot"><a href="Pythia.Services.NetInterface.Types.html#%24sel%3Aipv6s%3AMkNetInterface"><span class="hs-identifier">ipv6s</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-37"></span><span>        </span><span class="annot"><a href="Pythia.Services.NetInterface.Types.html#%24sel%3Aname%3AMkNetInterface"><span class="hs-identifier">name</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-38"></span><span>        </span><span class="annot"><a href="Pythia.Services.NetInterface.Types.html#%24sel%3Antype%3AMkNetInterface"><span class="hs-identifier">ntype</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-39"></span><span>        </span><span class="annot"><a href="Pythia.Services.NetInterface.Types.html#%24sel%3Astate%3AMkNetInterface"><span class="hs-identifier">state</span></a></span><span>
+</span><span id="line-40"></span><span>      </span><span class="hs-special">)</span><span class="hs-special">,</span><span>
+</span><span id="line-41"></span><span>    </span><span class="annot"><a href="Pythia.Services.NetInterface.Types.html#NetInterfaceState"><span class="hs-identifier">NetInterfaceState</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Pythia.Services.NetInterface.Types.html#NetStateDown"><span class="hs-identifier">NetStateDown</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Pythia.Services.NetInterface.Types.html#NetStateUnknown"><span class="hs-identifier">NetStateUnknown</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Pythia.Services.NetInterface.Types.html#NetStateUp"><span class="hs-identifier">NetStateUp</span></a></span><span class="hs-special">)</span><span class="hs-special">,</span><span>
+</span><span id="line-42"></span><span>    </span><span class="annot"><a href="Pythia.Services.NetInterface.Types.html#NetInterfaces"><span class="hs-identifier">NetInterfaces</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Pythia.Services.NetInterface.Types.html#MkNetInterfaces"><span class="hs-identifier">MkNetInterfaces</span></a></span><span class="hs-special">)</span><span class="hs-special">,</span><span>
+</span><span id="line-43"></span><span>  </span><span class="hs-special">)</span><span>
+</span><span id="line-44"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Pythia.Services.Types.Network.html"><span class="hs-identifier">Pythia.Services.Types.Network</span></a></span><span>
+</span><span id="line-45"></span><span>  </span><span class="hs-special">(</span><span> </span><span class="annot"><a href="Pythia.Services.Types.Network.html#Device"><span class="hs-identifier">Device</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Pythia.Services.Types.Network.html#MkDevice"><span class="hs-identifier">MkDevice</span></a></span><span class="hs-special">)</span><span class="hs-special">,</span><span>
+</span><span id="line-46"></span><span>    </span><span class="annot"><a href="Pythia.Services.Types.Network.html#IpAddress"><span class="hs-identifier">IpAddress</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Pythia.Services.Types.Network.html#MkIpAddress"><span class="hs-identifier">MkIpAddress</span></a></span><span class="hs-special">)</span><span class="hs-special">,</span><span>
+</span><span id="line-47"></span><span>    </span><span class="annot"><a href="Pythia.Services.Types.Network.html#IpAddresses"><span class="hs-identifier">IpAddresses</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Pythia.Services.Types.Network.html#MkIpAddresses"><span class="hs-identifier">MkIpAddresses</span></a></span><span class="hs-special">)</span><span class="hs-special">,</span><span>
+</span><span id="line-48"></span><span>    </span><span class="annot"><a href="Pythia.Services.Types.Network.html#IpType"><span class="hs-identifier">IpType</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Pythia.Services.Types.Network.html#Ipv4"><span class="hs-identifier">Ipv4</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Pythia.Services.Types.Network.html#Ipv6"><span class="hs-identifier">Ipv6</span></a></span><span class="hs-special">)</span><span class="hs-special">,</span><span>
+</span><span id="line-49"></span><span>  </span><span class="hs-special">)</span><span>
+</span><span id="line-50"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Pythia.Utils.html"><span class="hs-identifier">Pythia.Utils</span></a></span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="hs-keyword">as</span><span> </span><span class="annot"><span class="hs-identifier">U</span></span><span>
+</span><span id="line-51"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="file:///nix/store/89p55d22k6d0gk18g32vfj0wzrnlwxj0-refined-0.8.1-doc/share/doc/refined-0.8.1/html/src/Refined.html"><span class="hs-identifier">Refined</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="file:///nix/store/89p55d22k6d0gk18g32vfj0wzrnlwxj0-refined-0.8.1-doc/share/doc/refined-0.8.1/html/src/Refined.html#Predicate"><span class="hs-identifier">Predicate</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="file:///nix/store/89p55d22k6d0gk18g32vfj0wzrnlwxj0-refined-0.8.1-doc/share/doc/refined-0.8.1/html/src/Refined.Unsafe.Type.html#Refined"><span class="hs-identifier">Refined</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-52"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="file:///nix/store/89p55d22k6d0gk18g32vfj0wzrnlwxj0-refined-0.8.1-doc/share/doc/refined-0.8.1/html/src/Refined.html"><span class="hs-identifier">Refined</span></a></span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="hs-keyword">as</span><span> </span><span class="annot"><span class="hs-identifier">R</span></span><span>
+</span><span id="line-53"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="file:///nix/store/1q3ppvr9mmkrs06x300jgm09mh0gvjx0-megaparsec-9.3.1-doc/share/doc/megaparsec-9.3.1/html/src/Text.Megaparsec.html"><span class="hs-identifier">Text.Megaparsec</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="file:///nix/store/1q3ppvr9mmkrs06x300jgm09mh0gvjx0-megaparsec-9.3.1-doc/share/doc/megaparsec-9.3.1/html/src/Text.Megaparsec.Error.html#ErrorFancy"><span class="hs-identifier">ErrorFancy</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="file:///nix/store/1q3ppvr9mmkrs06x300jgm09mh0gvjx0-megaparsec-9.3.1-doc/share/doc/megaparsec-9.3.1/html/src/Text.Megaparsec.Error.html#ErrorFail"><span class="hs-identifier">ErrorFail</span></a></span><span class="hs-special">)</span><span class="hs-special">,</span><span> </span><span class="annot"><a href="file:///nix/store/1q3ppvr9mmkrs06x300jgm09mh0gvjx0-megaparsec-9.3.1-doc/share/doc/megaparsec-9.3.1/html/src/Text.Megaparsec.html#Parsec"><span class="hs-identifier">Parsec</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="file:///nix/store/1q3ppvr9mmkrs06x300jgm09mh0gvjx0-megaparsec-9.3.1-doc/share/doc/megaparsec-9.3.1/html/src/Text.Megaparsec.html#%3C%3F%3E"><span class="hs-operator">(&lt;?&gt;)</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-54"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="file:///nix/store/1q3ppvr9mmkrs06x300jgm09mh0gvjx0-megaparsec-9.3.1-doc/share/doc/megaparsec-9.3.1/html/src/Text.Megaparsec.html"><span class="hs-identifier">Text.Megaparsec</span></a></span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="hs-keyword">as</span><span> </span><span class="annot"><span class="hs-identifier">MP</span></span><span>
+</span><span id="line-55"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="file:///nix/store/1q3ppvr9mmkrs06x300jgm09mh0gvjx0-megaparsec-9.3.1-doc/share/doc/megaparsec-9.3.1/html/src/Text.Megaparsec.Char.html"><span class="hs-identifier">Text.Megaparsec.Char</span></a></span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="hs-keyword">as</span><span> </span><span class="annot"><span class="hs-identifier">MPC</span></span><span>
+</span><span id="line-56"></span><span>
+</span><span id="line-57"></span><span class="hs-comment">-- $setup</span><span>
+</span><span id="line-58"></span><span class="hs-comment">-- &gt;&gt;&gt; import Control.Exception (displayException)</span><span>
+</span><span id="line-59"></span><span class="hs-comment">-- &gt;&gt;&gt; import Pythia.Prelude</span><span>
+</span><span id="line-60"></span><span>
+</span><span id="line-61"></span><span class="hs-comment">-- | Error parsing ip output.</span><span>
+</span><span id="line-62"></span><span class="hs-comment">--</span><span>
+</span><span id="line-63"></span><span class="hs-comment">-- ==== __Examples__</span><span>
+</span><span id="line-64"></span><span class="hs-comment">--</span><span>
+</span><span id="line-65"></span><span class="hs-comment">-- &gt;&gt;&gt; displayException $ MkIpParseError &quot;parse error&quot;</span><span>
+</span><span id="line-66"></span><span class="hs-comment">-- &quot;Ip parse error: parse error&quot;</span><span>
+</span><span id="line-67"></span><span class="hs-comment">--</span><span>
+</span><span id="line-68"></span><span class="hs-comment">-- @since 0.1</span><span>
+</span><span id="line-69"></span><span class="hs-keyword">type</span><span> </span><span class="annot"><a href="Pythia.Services.NetInterface.Ip.html#IpParseError"><span class="hs-identifier hs-type">IpParseError</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Type</span></span><span>
+</span><span id="line-70"></span><span class="hs-keyword">newtype</span><span> </span><span id="IpParseError"><span class="annot"><a href="Pythia.Services.NetInterface.Ip.html#IpParseError"><span class="hs-identifier hs-var">IpParseError</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span id="MkIpParseError"><span class="annot"><a href="Pythia.Services.NetInterface.Ip.html#MkIpParseError"><span class="hs-identifier hs-var">MkIpParseError</span></a></span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Text</span></span><span>
+</span><span id="line-71"></span><span>  </span><span class="hs-keyword">deriving</span><span> </span><span class="annot"><span class="hs-keyword">stock</span></span><span>
+</span><span id="line-72"></span><span>    </span><span class="hs-special">(</span><span> </span><span class="annot"><span class="hs-comment">-- | @since 0.1</span></span><span>
+</span><span id="line-73"></span><span>      </span><span id="local-6989586621679257515"><span id="local-6989586621679257519"><span class="annot"><span class="annottext">IpParseError -&gt; IpParseError -&gt; Bool
+(IpParseError -&gt; IpParseError -&gt; Bool)
+-&gt; (IpParseError -&gt; IpParseError -&gt; Bool) -&gt; Eq IpParseError
+forall a. (a -&gt; a -&gt; Bool) -&gt; (a -&gt; a -&gt; Bool) -&gt; Eq a
+$c== :: IpParseError -&gt; IpParseError -&gt; Bool
+== :: IpParseError -&gt; IpParseError -&gt; Bool
+$c/= :: IpParseError -&gt; IpParseError -&gt; Bool
+/= :: IpParseError -&gt; IpParseError -&gt; Bool
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Eq</span></span></span></span><span class="hs-special">,</span><span>
+</span><span id="line-74"></span><span>      </span><span class="annot"><span class="hs-comment">-- | @since 0.1</span></span><span>
+</span><span id="line-75"></span><span>      </span><span id="local-6989586621679257524"><span id="local-6989586621679257530"><span id="local-6989586621679257534"><span class="annot"><span class="annottext">Int -&gt; IpParseError -&gt; ShowS
+[IpParseError] -&gt; ShowS
+IpParseError -&gt; String
+(Int -&gt; IpParseError -&gt; ShowS)
+-&gt; (IpParseError -&gt; String)
+-&gt; ([IpParseError] -&gt; ShowS)
+-&gt; Show IpParseError
+forall a.
+(Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; String) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+$cshowsPrec :: Int -&gt; IpParseError -&gt; ShowS
+showsPrec :: Int -&gt; IpParseError -&gt; ShowS
+$cshow :: IpParseError -&gt; String
+show :: IpParseError -&gt; String
+$cshowList :: [IpParseError] -&gt; ShowS
+showList :: [IpParseError] -&gt; ShowS
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Show</span></span></span></span></span><span>
+</span><span id="line-76"></span><span>    </span><span class="hs-special">)</span><span>
+</span><span id="line-77"></span><span>
+</span><span id="line-78"></span><span class="annot"><span class="hs-comment">-- | @since 0.1</span></span><span>
+</span><span id="line-79"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621679257542"><span id="local-6989586621679257546"><span class="annot"><span class="hs-identifier hs-type">Exception</span></span><span> </span><span class="annot"><a href="Pythia.Services.NetInterface.Ip.html#IpParseError"><span class="hs-identifier hs-type">IpParseError</span></a></span></span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-80"></span><span>  </span><span id="local-6989586621679257552"><span class="annot"><span class="annottext">displayException :: IpParseError -&gt; String
+</span><a href="#local-6989586621679257552"><span class="hs-identifier hs-var hs-var hs-var hs-var">displayException</span></a></span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Pythia.Services.NetInterface.Ip.html#MkIpParseError"><span class="hs-identifier hs-type">MkIpParseError</span></a></span><span> </span><span id="local-6989586621679257554"><span class="annot"><span class="annottext">Text
+</span><a href="#local-6989586621679257554"><span class="hs-identifier hs-var">e</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-81"></span><span>    </span><span class="hs-special">(</span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;Ip parse error: &quot;</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; ShowS
+forall a. Semigroup a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-operator hs-var">&lt;&gt;</span></span><span class="hs-special">)</span><span>
+</span><span id="line-82"></span><span>      </span><span class="annot"><span class="annottext">ShowS -&gt; (Text -&gt; String) -&gt; Text -&gt; String
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">Text -&gt; String
+</span><span class="hs-identifier hs-var">T.unpack</span></span><span>
+</span><span id="line-83"></span><span>      </span><span class="annot"><span class="annottext">(Text -&gt; String) -&gt; Text -&gt; String
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">Text
+</span><a href="#local-6989586621679257554"><span class="hs-identifier hs-var">e</span></a></span><span>
+</span><span id="line-84"></span><span>
+</span><span id="line-85"></span><span class="hs-comment">-- | Ip query for 'NetInterface'.</span><span>
+</span><span id="line-86"></span><span class="hs-comment">--</span><span>
+</span><span id="line-87"></span><span class="hs-comment">-- @since 0.1</span><span>
+</span><span id="line-88"></span><span id="local-6989586621679257294"><span class="annot"><a href="Pythia.Services.NetInterface.Ip.html#netInterfaceShellApp"><span class="hs-identifier hs-type">netInterfaceShellApp</span></a></span><span> </span><span class="hs-glyph">::</span><span>
+</span><span id="line-89"></span><span>  </span><span class="hs-special">(</span><span> </span><span class="annot"><a href="file:///home/tommy/.local/state/cabal/store/ghc-9.6.3/effects-fs-0.1-5841411f1c8e259b2cf3c993222ef4c2c136f1e315fe1b2c92965a1bea2a7701/share/doc/html/src/Effects.FileSystem.PathReader.html#MonadPathReader"><span class="hs-identifier hs-type">MonadPathReader</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679257294"><span class="hs-identifier hs-type">m</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-90"></span><span>    </span><span class="annot"><span class="hs-identifier hs-type">MonadThrow</span></span><span> </span><span class="annot"><a href="#local-6989586621679257294"><span class="hs-identifier hs-type">m</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-91"></span><span>    </span><span class="annot"><a href="file:///home/tommy/.local/state/cabal/store/ghc-9.6.3/effects-typed-process-0.1-9aab0d7122e26327440e15170619fab59878f147f1d369dd46812a2ece43b118/share/doc/html/src/Effects.Process.Typed.html#MonadTypedProcess"><span class="hs-identifier hs-type">MonadTypedProcess</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679257294"><span class="hs-identifier hs-type">m</span></a></span><span>
+</span><span id="line-92"></span><span>  </span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span>
+</span><span id="line-93"></span><span>  </span><span class="annot"><a href="#local-6989586621679257294"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="annot"><a href="Pythia.Services.NetInterface.Types.html#NetInterfaces"><span class="hs-identifier hs-type">NetInterfaces</span></a></span></span><span>
+</span><span id="line-94"></span><span id="netInterfaceShellApp"><span class="annot"><span class="annottext">netInterfaceShellApp :: forall (m :: Type -&gt; Type).
+(MonadPathReader m, MonadThrow m, MonadTypedProcess m) =&gt;
+m NetInterfaces
+</span><a href="Pythia.Services.NetInterface.Ip.html#netInterfaceShellApp"><span class="hs-identifier hs-var hs-var">netInterfaceShellApp</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">SimpleShell m IpParseError NetInterfaces -&gt; m NetInterfaces
+forall (m :: Type -&gt; Type) err result.
+(Exception err, MonadThrow m, MonadTypedProcess m) =&gt;
+SimpleShell m err result -&gt; m result
+</span><a href="Pythia.Internal.ShellApp.html#runSimple"><span class="hs-identifier hs-var">ShellApp.runSimple</span></a></span><span> </span><span class="annot"><span class="annottext">SimpleShell m IpParseError NetInterfaces
+</span><a href="#local-6989586621679257570"><span class="hs-identifier hs-var">shell</span></a></span><span>
+</span><span id="line-95"></span><span>  </span><span class="hs-keyword">where</span><span>
+</span><span id="line-96"></span><span>    </span><span id="local-6989586621679257570"><span class="annot"><span class="annottext">shell :: SimpleShell m IpParseError NetInterfaces
+</span><a href="#local-6989586621679257570"><span class="hs-identifier hs-var hs-var">shell</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-97"></span><span>      </span><span class="annot"><a href="Pythia.Internal.ShellApp.html#MkSimpleShell"><span class="hs-identifier hs-type">MkSimpleShell</span></a></span><span>
+</span><span id="line-98"></span><span>        </span><span class="hs-special">{</span><span> </span><span class="annot"><span class="annottext">$sel:command:MkSimpleShell :: Command
+</span><a href="Pythia.Internal.ShellApp.html#%24sel%3Acommand%3AMkSimpleShell"><span class="hs-identifier hs-var">command</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Command
+</span><span class="hs-string">&quot;ip address&quot;</span></span><span class="hs-special">,</span><span>
+</span><span id="line-99"></span><span>          </span><span class="annot"><span class="annottext">$sel:isSupported:MkSimpleShell :: m Bool
+</span><a href="Pythia.Internal.ShellApp.html#%24sel%3AisSupported%3AMkSimpleShell"><span class="hs-identifier hs-var">isSupported</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">m Bool
+forall (m :: Type -&gt; Type). MonadPathReader m =&gt; m Bool
+</span><a href="Pythia.Services.NetInterface.Ip.html#supported"><span class="hs-identifier hs-var">supported</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-100"></span><span>          </span><span class="annot"><span class="annottext">$sel:parser:MkSimpleShell :: Text -&gt; Either IpParseError NetInterfaces
+</span><a href="Pythia.Internal.ShellApp.html#%24sel%3Aparser%3AMkSimpleShell"><span class="hs-identifier hs-var">parser</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Text -&gt; Either IpParseError NetInterfaces
+</span><a href="Pythia.Services.NetInterface.Ip.html#parseInterfaces"><span class="hs-identifier hs-var">parseInterfaces</span></a></span><span>
+</span><span id="line-101"></span><span>        </span><span class="hs-special">}</span><span>
+</span><span id="line-102"></span><span class="hs-pragma">{-# INLINEABLE</span><span> </span><span class="annot"><a href="Pythia.Services.NetInterface.Ip.html#netInterfaceShellApp"><span class="hs-pragma hs-type">netInterfaceShellApp</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-103"></span><span>
+</span><span id="line-104"></span><span class="hs-comment">-- | Returns a boolean determining if this program is supported on the</span><span>
+</span><span id="line-105"></span><span class="hs-comment">-- current system.</span><span>
+</span><span id="line-106"></span><span class="hs-comment">--</span><span>
+</span><span id="line-107"></span><span class="hs-comment">-- @since 0.1</span><span>
+</span><span id="line-108"></span><span id="local-6989586621679257308"><span class="annot"><a href="Pythia.Services.NetInterface.Ip.html#supported"><span class="hs-identifier hs-type">supported</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">(</span><span class="annot"><a href="file:///home/tommy/.local/state/cabal/store/ghc-9.6.3/effects-fs-0.1-5841411f1c8e259b2cf3c993222ef4c2c136f1e315fe1b2c92965a1bea2a7701/share/doc/html/src/Effects.FileSystem.PathReader.html#MonadPathReader"><span class="hs-identifier hs-type">MonadPathReader</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679257308"><span class="hs-identifier hs-type">m</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679257308"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Bool</span></span></span><span>
+</span><span id="line-109"></span><span id="supported"><span class="annot"><span class="annottext">supported :: forall (m :: Type -&gt; Type). MonadPathReader m =&gt; m Bool
+</span><a href="Pythia.Services.NetInterface.Ip.html#supported"><span class="hs-identifier hs-var hs-var">supported</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">OsPath -&gt; m Bool
+forall (m :: Type -&gt; Type). MonadPathReader m =&gt; OsPath -&gt; m Bool
+</span><a href="Pythia.Utils.html#exeSupported"><span class="hs-identifier hs-var">U.exeSupported</span></a></span><span> </span><span class="annot"><span class="">[osp|ip|]</span></span><span>
+</span><span id="line-110"></span><span class="hs-pragma">{-# INLINEABLE</span><span> </span><span class="annot"><a href="Pythia.Services.NetInterface.Ip.html#supported"><span class="hs-pragma hs-type">supported</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-111"></span><span>
+</span><span id="line-112"></span><span class="hs-keyword">type</span><span> </span><span class="annot"><a href="Pythia.Services.NetInterface.Ip.html#MParser"><span class="hs-identifier hs-type">MParser</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Type</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Type</span></span><span>
+</span><span id="line-113"></span><span class="hs-keyword">type</span><span> </span><span id="MParser"><span class="annot"><a href="Pythia.Services.NetInterface.Ip.html#MParser"><span class="hs-identifier hs-var">MParser</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><a href="file:///nix/store/1q3ppvr9mmkrs06x300jgm09mh0gvjx0-megaparsec-9.3.1-doc/share/doc/megaparsec-9.3.1/html/src/Text.Megaparsec.html#Parsec"><span class="hs-identifier hs-type">Parsec</span></a></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Void</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Text</span></span><span>
+</span><span id="line-114"></span><span>
+</span><span id="line-115"></span><span class="hs-comment">-- | Attempts to parse the output of IP.</span><span>
+</span><span id="line-116"></span><span class="hs-comment">--</span><span>
+</span><span id="line-117"></span><span class="hs-comment">-- @since 0.1</span><span>
+</span><span id="line-118"></span><span class="annot"><a href="Pythia.Services.NetInterface.Ip.html#parseInterfaces"><span class="hs-identifier hs-type">parseInterfaces</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Text</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Either</span></span><span> </span><span class="annot"><a href="Pythia.Services.NetInterface.Ip.html#IpParseError"><span class="hs-identifier hs-type">IpParseError</span></a></span><span> </span><span class="annot"><a href="Pythia.Services.NetInterface.Types.html#NetInterfaces"><span class="hs-identifier hs-type">NetInterfaces</span></a></span><span>
+</span><span id="line-119"></span><span id="parseInterfaces"><span class="annot"><span class="annottext">parseInterfaces :: Text -&gt; Either IpParseError NetInterfaces
+</span><a href="Pythia.Services.NetInterface.Ip.html#parseInterfaces"><span class="hs-identifier hs-var hs-var">parseInterfaces</span></a></span></span><span> </span><span id="local-6989586621679257587"><span class="annot"><span class="annottext">Text
+</span><a href="#local-6989586621679257587"><span class="hs-identifier hs-var">txt</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">case</span><span> </span><span class="annot"><span class="annottext">Parsec Void Text NetInterfaces
+-&gt; String
+-&gt; Text
+-&gt; Either (ParseErrorBundle Text Void) NetInterfaces
+forall e s a.
+Parsec e s a -&gt; String -&gt; s -&gt; Either (ParseErrorBundle s e) a
+</span><a href="file:///nix/store/1q3ppvr9mmkrs06x300jgm09mh0gvjx0-megaparsec-9.3.1-doc/share/doc/megaparsec-9.3.1/html/src/Text.Megaparsec.html#parse"><span class="hs-identifier hs-var">MP.parse</span></a></span><span> </span><span class="annot"><span class="annottext">Parsec Void Text NetInterfaces
+</span><a href="Pythia.Services.NetInterface.Ip.html#mparseInterfaces"><span class="hs-identifier hs-var">mparseInterfaces</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;&quot;</span></span><span> </span><span class="annot"><span class="annottext">Text
+</span><a href="#local-6989586621679257587"><span class="hs-identifier hs-var">txt</span></a></span><span> </span><span class="hs-keyword">of</span><span>
+</span><span id="line-120"></span><span>  </span><span class="annot"><span class="hs-identifier hs-type">Left</span></span><span> </span><span id="local-6989586621679257590"><span class="annot"><span class="annottext">ParseErrorBundle Text Void
+</span><a href="#local-6989586621679257590"><span class="hs-identifier hs-var">ex</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span>
+</span><span id="line-121"></span><span>    </span><span class="hs-keyword">let</span><span> </span><span id="local-6989586621679257591"><span class="annot"><span class="annottext">prettyErr :: String
+</span><a href="#local-6989586621679257591"><span class="hs-identifier hs-var hs-var">prettyErr</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">ParseErrorBundle Text Void -&gt; String
+forall s e.
+(VisualStream s, TraversableStream s, ShowErrorComponent e) =&gt;
+ParseErrorBundle s e -&gt; String
+</span><a href="file:///nix/store/1q3ppvr9mmkrs06x300jgm09mh0gvjx0-megaparsec-9.3.1-doc/share/doc/megaparsec-9.3.1/html/src/Text.Megaparsec.Error.html#errorBundlePretty"><span class="hs-identifier hs-var">MP.errorBundlePretty</span></a></span><span> </span><span class="annot"><span class="annottext">ParseErrorBundle Text Void
+</span><a href="#local-6989586621679257590"><span class="hs-identifier hs-var">ex</span></a></span><span>
+</span><span id="line-122"></span><span>     </span><span class="hs-keyword">in</span><span> </span><span class="annot"><span class="annottext">IpParseError -&gt; Either IpParseError NetInterfaces
+forall a b. a -&gt; Either a b
+</span><span class="hs-identifier hs-var">Left</span></span><span> </span><span class="annot"><span class="annottext">(IpParseError -&gt; Either IpParseError NetInterfaces)
+-&gt; IpParseError -&gt; Either IpParseError NetInterfaces
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">Text -&gt; IpParseError
+</span><a href="Pythia.Services.NetInterface.Ip.html#MkIpParseError"><span class="hs-identifier hs-var">MkIpParseError</span></a></span><span> </span><span class="annot"><span class="annottext">(Text -&gt; IpParseError) -&gt; Text -&gt; IpParseError
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; Text
+</span><span class="hs-identifier hs-var">T.pack</span></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679257591"><span class="hs-identifier hs-var">prettyErr</span></a></span><span>
+</span><span id="line-123"></span><span>  </span><span class="annot"><span class="hs-identifier hs-type">Right</span></span><span> </span><span id="local-6989586621679257594"><span class="annot"><span class="annottext">NetInterfaces
+</span><a href="#local-6989586621679257594"><span class="hs-identifier hs-var">ifs</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">NetInterfaces -&gt; Either IpParseError NetInterfaces
+forall a b. b -&gt; Either a b
+</span><span class="hs-identifier hs-var">Right</span></span><span> </span><span class="annot"><span class="annottext">NetInterfaces
+</span><a href="#local-6989586621679257594"><span class="hs-identifier hs-var">ifs</span></a></span><span>
+</span><span id="line-124"></span><span class="hs-pragma">{-# INLINEABLE</span><span> </span><span class="annot"><a href="Pythia.Services.NetInterface.Ip.html#parseInterfaces"><span class="hs-pragma hs-type">parseInterfaces</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-125"></span><span>
+</span><span id="line-126"></span><span class="annot"><a href="Pythia.Services.NetInterface.Ip.html#mparseInterfaces"><span class="hs-identifier hs-type">mparseInterfaces</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Pythia.Services.NetInterface.Ip.html#MParser"><span class="hs-identifier hs-type">MParser</span></a></span><span> </span><span class="annot"><a href="Pythia.Services.NetInterface.Types.html#NetInterfaces"><span class="hs-identifier hs-type">NetInterfaces</span></a></span><span>
+</span><span id="line-127"></span><span id="mparseInterfaces"><span class="annot"><span class="annottext">mparseInterfaces :: Parsec Void Text NetInterfaces
+</span><a href="Pythia.Services.NetInterface.Ip.html#mparseInterfaces"><span class="hs-identifier hs-var hs-var">mparseInterfaces</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">[NetInterface] -&gt; NetInterfaces
+</span><a href="Pythia.Services.NetInterface.Types.html#MkNetInterfaces"><span class="hs-identifier hs-var">MkNetInterfaces</span></a></span><span> </span><span class="annot"><span class="annottext">([NetInterface] -&gt; NetInterfaces)
+-&gt; ParsecT Void Text Identity [NetInterface]
+-&gt; Parsec Void Text NetInterfaces
+forall (f :: Type -&gt; Type) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span><span class="hs-operator hs-var">&lt;$&gt;</span></span><span> </span><span class="annot"><span class="annottext">ParsecT Void Text Identity NetInterface
+-&gt; ParsecT Void Text Identity [NetInterface]
+forall (m :: Type -&gt; Type) a. MonadPlus m =&gt; m a -&gt; m [a]
+</span><a href="file:///nix/store/xvziinfgl7jkmsl9fq8h569x5d8rygal-parser-combinators-1.3.0-doc/share/doc/parser-combinators-1.3.0/html/src/Control.Monad.Combinators.html#many"><span class="hs-identifier hs-var">MP.many</span></a></span><span> </span><span class="annot"><span class="annottext">ParsecT Void Text Identity NetInterface
+</span><a href="Pythia.Services.NetInterface.Ip.html#parseInterface"><span class="hs-identifier hs-var">parseInterface</span></a></span><span>
+</span><span id="line-128"></span><span class="hs-pragma">{-# INLINEABLE</span><span> </span><span class="annot"><a href="Pythia.Services.NetInterface.Ip.html#mparseInterfaces"><span class="hs-pragma hs-type">mparseInterfaces</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-129"></span><span>
+</span><span id="line-130"></span><span class="annot"><a href="Pythia.Services.NetInterface.Ip.html#parseInterface"><span class="hs-identifier hs-type">parseInterface</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Pythia.Services.NetInterface.Ip.html#MParser"><span class="hs-identifier hs-type">MParser</span></a></span><span> </span><span class="annot"><a href="Pythia.Services.NetInterface.Types.html#NetInterface"><span class="hs-identifier hs-type">NetInterface</span></a></span><span>
+</span><span id="line-131"></span><span id="parseInterface"><span class="annot"><span class="annottext">parseInterface :: ParsecT Void Text Identity NetInterface
+</span><a href="Pythia.Services.NetInterface.Ip.html#parseInterface"><span class="hs-identifier hs-var hs-var">parseInterface</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">do</span><span>
+</span><span id="line-132"></span><span>  </span><span class="annot"><span class="annottext">Maybe String
+-&gt; (Token Text -&gt; Bool) -&gt; ParsecT Void Text Identity (Tokens Text)
+forall e s (m :: Type -&gt; Type).
+MonadParsec e s m =&gt;
+Maybe String -&gt; (Token s -&gt; Bool) -&gt; m (Tokens s)
+</span><a href="file:///nix/store/1q3ppvr9mmkrs06x300jgm09mh0gvjx0-megaparsec-9.3.1-doc/share/doc/megaparsec-9.3.1/html/src/Text.Megaparsec.Class.html#takeWhile1P"><span class="hs-identifier hs-var">MP.takeWhile1P</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">String -&gt; Maybe String
+forall a. a -&gt; Maybe a
+</span><span class="hs-identifier hs-var">Just</span></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;device num&quot;</span></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">Char -&gt; Bool
+Token Text -&gt; Bool
+</span><span class="hs-identifier hs-var">Char.isDigit</span></span><span>
+</span><span id="line-133"></span><span>  </span><span class="annot"><span class="annottext">Token Text -&gt; ParsecT Void Text Identity (Token Text)
+forall e s (m :: Type -&gt; Type).
+(MonadParsec e s m, Token s ~ Char) =&gt;
+Token s -&gt; m (Token s)
+</span><a href="file:///nix/store/1q3ppvr9mmkrs06x300jgm09mh0gvjx0-megaparsec-9.3.1-doc/share/doc/megaparsec-9.3.1/html/src/Text.Megaparsec.Char.html#char"><span class="hs-identifier hs-var">MPC.char</span></a></span><span> </span><span class="annot"><span class="annottext">Char
+Token Text
+</span><span class="hs-char">':'</span></span><span>
+</span><span id="line-134"></span><span>  </span><span class="annot"><span class="annottext">ParsecT Void Text Identity ()
+forall e s (m :: Type -&gt; Type).
+(MonadParsec e s m, Token s ~ Char) =&gt;
+m ()
+</span><a href="file:///nix/store/1q3ppvr9mmkrs06x300jgm09mh0gvjx0-megaparsec-9.3.1-doc/share/doc/megaparsec-9.3.1/html/src/Text.Megaparsec.Char.html#space"><span class="hs-identifier hs-var">MPC.space</span></a></span><span>
+</span><span id="line-135"></span><span>  </span><span id="local-6989586621679257602"><span class="annot"><span class="annottext">Text
+</span><a href="#local-6989586621679257602"><span class="hs-identifier hs-var">device'</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">Maybe String
+-&gt; (Token Text -&gt; Bool) -&gt; ParsecT Void Text Identity (Tokens Text)
+forall e s (m :: Type -&gt; Type).
+MonadParsec e s m =&gt;
+Maybe String -&gt; (Token s -&gt; Bool) -&gt; m (Tokens s)
+</span><a href="file:///nix/store/1q3ppvr9mmkrs06x300jgm09mh0gvjx0-megaparsec-9.3.1-doc/share/doc/megaparsec-9.3.1/html/src/Text.Megaparsec.Class.html#takeWhile1P"><span class="hs-identifier hs-var">MP.takeWhile1P</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">String -&gt; Maybe String
+forall a. a -&gt; Maybe a
+</span><span class="hs-identifier hs-var">Just</span></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;device&quot;</span></span><span class="hs-special">)</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Token Text -&gt; Token Text -&gt; Bool
+forall a. Eq a =&gt; a -&gt; a -&gt; Bool
+</span><span class="hs-operator hs-var">/=</span></span><span> </span><span class="annot"><span class="annottext">Char
+Token Text
+</span><span class="hs-char">':'</span></span><span class="hs-special">)</span><span>
+</span><span id="line-136"></span><span>  </span><span class="annot"><span class="annottext">Token Text -&gt; ParsecT Void Text Identity (Token Text)
+forall e s (m :: Type -&gt; Type).
+(MonadParsec e s m, Token s ~ Char) =&gt;
+Token s -&gt; m (Token s)
+</span><a href="file:///nix/store/1q3ppvr9mmkrs06x300jgm09mh0gvjx0-megaparsec-9.3.1-doc/share/doc/megaparsec-9.3.1/html/src/Text.Megaparsec.Char.html#char"><span class="hs-identifier hs-var">MPC.char</span></a></span><span> </span><span class="annot"><span class="annottext">Char
+Token Text
+</span><span class="hs-char">':'</span></span><span>
+</span><span id="line-137"></span><span>  </span><span class="annot"><span class="annottext">ParsecT Void Text Identity (Token Text)
+-&gt; ParsecT Void Text Identity (Tokens Text)
+-&gt; ParsecT Void Text Identity [Token Text]
+forall (m :: Type -&gt; Type) a end.
+MonadPlus m =&gt;
+m a -&gt; m end -&gt; m [a]
+</span><a href="file:///nix/store/xvziinfgl7jkmsl9fq8h569x5d8rygal-parser-combinators-1.3.0-doc/share/doc/parser-combinators-1.3.0/html/src/Control.Monad.Combinators.html#manyTill"><span class="hs-identifier hs-var">MP.manyTill</span></a></span><span> </span><span class="annot"><span class="annottext">ParsecT Void Text Identity (Token Text)
+forall e s (m :: Type -&gt; Type). MonadParsec e s m =&gt; m (Token s)
+</span><a href="file:///nix/store/1q3ppvr9mmkrs06x300jgm09mh0gvjx0-megaparsec-9.3.1-doc/share/doc/megaparsec-9.3.1/html/src/Text.Megaparsec.html#anySingle"><span class="hs-identifier hs-var">MP.anySingle</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Tokens Text -&gt; ParsecT Void Text Identity (Tokens Text)
+forall e s (m :: Type -&gt; Type).
+MonadParsec e s m =&gt;
+Tokens s -&gt; m (Tokens s)
+</span><a href="file:///nix/store/1q3ppvr9mmkrs06x300jgm09mh0gvjx0-megaparsec-9.3.1-doc/share/doc/megaparsec-9.3.1/html/src/Text.Megaparsec.Common.html#string"><span class="hs-identifier hs-var">MPC.string</span></a></span><span> </span><span class="annot"><span class="annottext">Tokens Text
+</span><span class="hs-string">&quot;state &quot;</span></span><span class="hs-special">)</span><span>
+</span><span id="line-138"></span><span>  </span><span id="local-6989586621679257607"><span class="annot"><span class="annottext">NetInterfaceState
+</span><a href="#local-6989586621679257607"><span class="hs-identifier hs-var">state'</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">MParser NetInterfaceState
+</span><a href="Pythia.Services.NetInterface.Ip.html#parseNetInterfaceState"><span class="hs-identifier hs-var">parseNetInterfaceState</span></a></span><span>
+</span><span id="line-139"></span><span>  </span><span class="annot"><span class="annottext">ParsecT Void Text Identity Text
+ParsecT Void Text Identity (Tokens Text)
+forall e s.
+(Ord e, Stream s, Token s ~ Char) =&gt;
+Parsec e s (Tokens s)
+</span><a href="Pythia.Utils.html#takeLine"><span class="hs-identifier hs-var">U.takeLine</span></a></span><span>
+</span><span id="line-140"></span><span>  </span><span class="annot"><span class="annottext">ParsecT Void Text Identity ()
+-&gt; ParsecT Void Text Identity (Maybe ())
+forall (f :: Type -&gt; Type) a. Alternative f =&gt; f a -&gt; f (Maybe a)
+</span><span class="hs-identifier hs-var">MP.optional</span></span><span> </span><span class="annot"><span class="annottext">ParsecT Void Text Identity ()
+</span><a href="Pythia.Services.NetInterface.Ip.html#parseLink"><span class="hs-identifier hs-var">parseLink</span></a></span><span>
+</span><span id="line-141"></span><span>  </span><span id="local-6989586621679257612"><span class="annot"><span class="annottext">[IpAddress 'Ipv4]
+</span><a href="#local-6989586621679257612"><span class="hs-identifier hs-var">ipv4s'</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">MParser [IpAddress 'Ipv4]
+</span><a href="Pythia.Services.NetInterface.Ip.html#parseIpv4s"><span class="hs-identifier hs-var">parseIpv4s</span></a></span><span>
+</span><span id="line-142"></span><span>  </span><span id="local-6989586621679257614"><span class="annot"><span class="annottext">[IpAddress 'Ipv6]
+</span><a href="#local-6989586621679257614"><span class="hs-identifier hs-var">ipv6s'</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">MParser [IpAddress 'Ipv6]
+</span><a href="Pythia.Services.NetInterface.Ip.html#parseIpv6s"><span class="hs-identifier hs-var">parseIpv6s</span></a></span><span>
+</span><span id="line-143"></span><span>
+</span><span id="line-144"></span><span>  </span><span class="hs-identifier">pure</span><span>
+</span><span id="line-145"></span><span>    </span><span class="hs-operator">$</span><span> </span><span class="annot"><a href="Pythia.Services.NetInterface.Types.html#MkNetInterface"><span class="hs-identifier hs-type">MkNetInterface</span></a></span><span>
+</span><span id="line-146"></span><span>      </span><span class="hs-special">{</span><span> </span><span class="annot"><span class="annottext">$sel:device:MkNetInterface :: Device
+</span><a href="Pythia.Services.NetInterface.Types.html#%24sel%3Adevice%3AMkNetInterface"><span class="hs-identifier hs-var">device</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Text -&gt; Device
+</span><a href="Pythia.Services.Types.Network.html#MkDevice"><span class="hs-identifier hs-var">MkDevice</span></a></span><span> </span><span class="annot"><span class="annottext">Text
+</span><a href="#local-6989586621679257602"><span class="hs-identifier hs-var">device'</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-147"></span><span>        </span><span class="annot"><span class="annottext">$sel:ntype:MkNetInterface :: Maybe NetInterfaceType
+</span><a href="Pythia.Services.NetInterface.Types.html#%24sel%3Antype%3AMkNetInterface"><span class="hs-identifier hs-var">ntype</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Maybe NetInterfaceType
+forall a. Maybe a
+</span><span class="hs-identifier hs-var">Nothing</span></span><span class="hs-special">,</span><span>
+</span><span id="line-148"></span><span>        </span><span class="annot"><span class="annottext">$sel:state:MkNetInterface :: NetInterfaceState
+</span><a href="Pythia.Services.NetInterface.Types.html#%24sel%3Astate%3AMkNetInterface"><span class="hs-identifier hs-var">state</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">NetInterfaceState
+</span><a href="#local-6989586621679257607"><span class="hs-identifier hs-var">state'</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-149"></span><span>        </span><span class="annot"><span class="annottext">$sel:name:MkNetInterface :: Maybe Text
+</span><a href="Pythia.Services.NetInterface.Types.html#%24sel%3Aname%3AMkNetInterface"><span class="hs-identifier hs-var">name</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Maybe Text
+forall a. Maybe a
+</span><span class="hs-identifier hs-var">Nothing</span></span><span class="hs-special">,</span><span>
+</span><span id="line-150"></span><span>        </span><span class="annot"><span class="annottext">$sel:ipv4s:MkNetInterface :: IpAddresses 'Ipv4
+</span><a href="Pythia.Services.NetInterface.Types.html#%24sel%3Aipv4s%3AMkNetInterface"><span class="hs-identifier hs-var">ipv4s</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">[IpAddress 'Ipv4] -&gt; IpAddresses 'Ipv4
+forall (a :: IpType). [IpAddress a] -&gt; IpAddresses a
+</span><a href="Pythia.Services.Types.Network.html#MkIpAddresses"><span class="hs-identifier hs-var">MkIpAddresses</span></a></span><span> </span><span class="annot"><span class="annottext">[IpAddress 'Ipv4]
+</span><a href="#local-6989586621679257612"><span class="hs-identifier hs-var">ipv4s'</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-151"></span><span>        </span><span class="annot"><span class="annottext">$sel:ipv6s:MkNetInterface :: IpAddresses 'Ipv6
+</span><a href="Pythia.Services.NetInterface.Types.html#%24sel%3Aipv6s%3AMkNetInterface"><span class="hs-identifier hs-var">ipv6s</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">[IpAddress 'Ipv6] -&gt; IpAddresses 'Ipv6
+forall (a :: IpType). [IpAddress a] -&gt; IpAddresses a
+</span><a href="Pythia.Services.Types.Network.html#MkIpAddresses"><span class="hs-identifier hs-var">MkIpAddresses</span></a></span><span> </span><span class="annot"><span class="annottext">[IpAddress 'Ipv6]
+</span><a href="#local-6989586621679257614"><span class="hs-identifier hs-var">ipv6s'</span></a></span><span>
+</span><span id="line-152"></span><span>      </span><span class="hs-special">}</span><span>
+</span><span id="line-153"></span><span class="hs-pragma">{-# INLINEABLE</span><span> </span><span class="annot"><a href="Pythia.Services.NetInterface.Ip.html#parseInterface"><span class="hs-pragma hs-type">parseInterface</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-154"></span><span>
+</span><span id="line-155"></span><span class="annot"><a href="Pythia.Services.NetInterface.Ip.html#parseLink"><span class="hs-identifier hs-type">parseLink</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Pythia.Services.NetInterface.Ip.html#MParser"><span class="hs-identifier hs-type">MParser</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span>
+</span><span id="line-156"></span><span id="parseLink"><span class="annot"><span class="annottext">parseLink :: ParsecT Void Text Identity ()
+</span><a href="Pythia.Services.NetInterface.Ip.html#parseLink"><span class="hs-identifier hs-var hs-var">parseLink</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">ParsecT Void Text Identity ()
+forall e s (m :: Type -&gt; Type).
+(MonadParsec e s m, Token s ~ Char) =&gt;
+m ()
+</span><a href="file:///nix/store/1q3ppvr9mmkrs06x300jgm09mh0gvjx0-megaparsec-9.3.1-doc/share/doc/megaparsec-9.3.1/html/src/Text.Megaparsec.Char.html#space"><span class="hs-identifier hs-var">MPC.space</span></a></span><span> </span><span class="annot"><span class="annottext">ParsecT Void Text Identity ()
+-&gt; ParsecT Void Text Identity (Tokens Text)
+-&gt; ParsecT Void Text Identity (Tokens Text)
+forall a b.
+ParsecT Void Text Identity a
+-&gt; ParsecT Void Text Identity b -&gt; ParsecT Void Text Identity b
+forall (f :: Type -&gt; Type) a b. Applicative f =&gt; f a -&gt; f b -&gt; f b
+</span><span class="hs-operator hs-var">*&gt;</span></span><span> </span><span class="annot"><span class="annottext">Tokens Text -&gt; ParsecT Void Text Identity (Tokens Text)
+forall e s (m :: Type -&gt; Type).
+MonadParsec e s m =&gt;
+Tokens s -&gt; m (Tokens s)
+</span><a href="file:///nix/store/1q3ppvr9mmkrs06x300jgm09mh0gvjx0-megaparsec-9.3.1-doc/share/doc/megaparsec-9.3.1/html/src/Text.Megaparsec.Common.html#string"><span class="hs-identifier hs-var">MPC.string</span></a></span><span> </span><span class="annot"><span class="annottext">Tokens Text
+</span><span class="hs-string">&quot;link&quot;</span></span><span> </span><span class="annot"><span class="annottext">ParsecT Void Text Identity (Tokens Text)
+-&gt; ParsecT Void Text Identity () -&gt; ParsecT Void Text Identity ()
+forall a b.
+ParsecT Void Text Identity a
+-&gt; ParsecT Void Text Identity b -&gt; ParsecT Void Text Identity b
+forall (f :: Type -&gt; Type) a b. Applicative f =&gt; f a -&gt; f b -&gt; f b
+</span><span class="hs-operator hs-var">*&gt;</span></span><span> </span><span class="annot"><span class="annottext">ParsecT Void Text Identity ()
+forall e s. (Ord e, Stream s, Token s ~ Char) =&gt; Parsec e s ()
+</span><a href="Pythia.Utils.html#takeLine_"><span class="hs-identifier hs-var">U.takeLine_</span></a></span><span>
+</span><span id="line-157"></span><span class="hs-pragma">{-# INLINEABLE</span><span> </span><span class="annot"><a href="Pythia.Services.NetInterface.Ip.html#parseLink"><span class="hs-pragma hs-type">parseLink</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-158"></span><span>
+</span><span id="line-159"></span><span class="annot"><a href="Pythia.Services.NetInterface.Ip.html#parseIpv4s"><span class="hs-identifier hs-type">parseIpv4s</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Pythia.Services.NetInterface.Ip.html#MParser"><span class="hs-identifier hs-type">MParser</span></a></span><span> </span><span class="hs-special">[</span><span class="annot"><a href="Pythia.Services.Types.Network.html#IpAddress"><span class="hs-identifier hs-type">IpAddress</span></a></span><span> </span><span class="annot"><a href="Pythia.Services.Types.Network.html#Ipv4"><span class="hs-identifier hs-type">Ipv4</span></a></span><span class="hs-special">]</span><span>
+</span><span id="line-160"></span><span id="parseIpv4s"><span class="annot"><span class="annottext">parseIpv4s :: MParser [IpAddress 'Ipv4]
+</span><a href="Pythia.Services.NetInterface.Ip.html#parseIpv4s"><span class="hs-identifier hs-var hs-var">parseIpv4s</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Text
+-&gt; (Refined Ipv4Refinement Text -&gt; IpAddress 'Ipv4)
+-&gt; MParser [IpAddress 'Ipv4]
+forall p a.
+Predicate p Text =&gt;
+Text -&gt; (Refined p Text -&gt; a) -&gt; MParser [a]
+</span><a href="Pythia.Services.NetInterface.Ip.html#parseIps"><span class="hs-identifier hs-var">parseIps</span></a></span><span> </span><span class="annot"><span class="annottext">Text
+</span><span class="hs-string">&quot;inet &quot;</span></span><span> </span><span class="annot"><span class="annottext">Refined Ipv4Refinement Text -&gt; IpAddress 'Ipv4
+Refined (IpRefinement 'Ipv4) Text -&gt; IpAddress 'Ipv4
+forall (a :: IpType). Refined (IpRefinement a) Text -&gt; IpAddress a
+</span><a href="Pythia.Services.Types.Network.html#MkIpAddress"><span class="hs-identifier hs-var">MkIpAddress</span></a></span><span>
+</span><span id="line-161"></span><span class="hs-pragma">{-# INLINEABLE</span><span> </span><span class="annot"><a href="Pythia.Services.NetInterface.Ip.html#parseIpv4s"><span class="hs-pragma hs-type">parseIpv4s</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-162"></span><span>
+</span><span id="line-163"></span><span class="annot"><a href="Pythia.Services.NetInterface.Ip.html#parseIpv6s"><span class="hs-identifier hs-type">parseIpv6s</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Pythia.Services.NetInterface.Ip.html#MParser"><span class="hs-identifier hs-type">MParser</span></a></span><span> </span><span class="hs-special">[</span><span class="annot"><a href="Pythia.Services.Types.Network.html#IpAddress"><span class="hs-identifier hs-type">IpAddress</span></a></span><span> </span><span class="annot"><a href="Pythia.Services.Types.Network.html#Ipv6"><span class="hs-identifier hs-type">Ipv6</span></a></span><span class="hs-special">]</span><span>
+</span><span id="line-164"></span><span id="parseIpv6s"><span class="annot"><span class="annottext">parseIpv6s :: MParser [IpAddress 'Ipv6]
+</span><a href="Pythia.Services.NetInterface.Ip.html#parseIpv6s"><span class="hs-identifier hs-var hs-var">parseIpv6s</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Text
+-&gt; (Refined Ipv6Refinement Text -&gt; IpAddress 'Ipv6)
+-&gt; MParser [IpAddress 'Ipv6]
+forall p a.
+Predicate p Text =&gt;
+Text -&gt; (Refined p Text -&gt; a) -&gt; MParser [a]
+</span><a href="Pythia.Services.NetInterface.Ip.html#parseIps"><span class="hs-identifier hs-var">parseIps</span></a></span><span> </span><span class="annot"><span class="annottext">Text
+</span><span class="hs-string">&quot;inet6 &quot;</span></span><span> </span><span class="annot"><span class="annottext">Refined Ipv6Refinement Text -&gt; IpAddress 'Ipv6
+Refined (IpRefinement 'Ipv6) Text -&gt; IpAddress 'Ipv6
+forall (a :: IpType). Refined (IpRefinement a) Text -&gt; IpAddress a
+</span><a href="Pythia.Services.Types.Network.html#MkIpAddress"><span class="hs-identifier hs-var">MkIpAddress</span></a></span><span>
+</span><span id="line-165"></span><span class="hs-pragma">{-# INLINEABLE</span><span> </span><span class="annot"><a href="Pythia.Services.NetInterface.Ip.html#parseIpv6s"><span class="hs-pragma hs-type">parseIpv6s</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-166"></span><span>
+</span><span id="line-167"></span><span id="local-6989586621679257366"><span id="local-6989586621679257367"><span class="annot"><a href="Pythia.Services.NetInterface.Ip.html#parseIps"><span class="hs-identifier hs-type">parseIps</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">(</span><span class="annot"><a href="file:///nix/store/89p55d22k6d0gk18g32vfj0wzrnlwxj0-refined-0.8.1-doc/share/doc/refined-0.8.1/html/src/Refined.html#Predicate"><span class="hs-identifier hs-type">Predicate</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679257366"><span class="hs-identifier hs-type">p</span></a></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Text</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Text</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">(</span><span class="annot"><a href="file:///nix/store/89p55d22k6d0gk18g32vfj0wzrnlwxj0-refined-0.8.1-doc/share/doc/refined-0.8.1/html/src/Refined.Unsafe.Type.html#Refined"><span class="hs-identifier hs-type">Refined</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679257366"><span class="hs-identifier hs-type">p</span></a></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Text</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679257367"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Pythia.Services.NetInterface.Ip.html#MParser"><span class="hs-identifier hs-type">MParser</span></a></span><span> </span><span class="hs-special">[</span><span class="annot"><a href="#local-6989586621679257367"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">]</span></span></span><span>
+</span><span id="line-168"></span><span id="parseIps"><span class="annot"><span class="annottext">parseIps :: forall p a.
+Predicate p Text =&gt;
+Text -&gt; (Refined p Text -&gt; a) -&gt; MParser [a]
+</span><a href="Pythia.Services.NetInterface.Ip.html#parseIps"><span class="hs-identifier hs-var hs-var">parseIps</span></a></span></span><span> </span><span id="local-6989586621679257645"><span class="annot"><span class="annottext">Text
+</span><a href="#local-6989586621679257645"><span class="hs-identifier hs-var">p</span></a></span></span><span> </span><span id="local-6989586621679257646"><span class="annot"><span class="annottext">Refined p Text -&gt; a
+</span><a href="#local-6989586621679257646"><span class="hs-identifier hs-var">cons</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">do</span><span>
+</span><span id="line-169"></span><span>  </span><span id="local-6989586621679257647"><span class="annot"><span class="annottext">[Text]
+</span><a href="#local-6989586621679257647"><span class="hs-identifier hs-var">addrs</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">Text -&gt; MParser [Text]
+</span><a href="Pythia.Services.NetInterface.Ip.html#parseAddresses"><span class="hs-identifier hs-var">parseAddresses</span></a></span><span> </span><span class="annot"><span class="annottext">Text
+</span><a href="#local-6989586621679257645"><span class="hs-identifier hs-var">p</span></a></span><span>
+</span><span id="line-170"></span><span>  </span><span class="hs-keyword">let</span><span> </span><span id="local-6989586621679257649"><span class="annot"><span class="annottext">xs :: Either RefineException [Refined p Text]
+</span><a href="#local-6989586621679257649"><span class="hs-identifier hs-var hs-var">xs</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">(Text -&gt; Either RefineException (Refined p Text))
+-&gt; [Text] -&gt; Either RefineException [Refined p Text]
+forall (t :: Type -&gt; Type) (f :: Type -&gt; Type) a b.
+(Traversable t, Applicative f) =&gt;
+(a -&gt; f b) -&gt; t a -&gt; f (t b)
+forall (f :: Type -&gt; Type) a b.
+Applicative f =&gt;
+(a -&gt; f b) -&gt; [a] -&gt; f [b]
+</span><span class="hs-identifier hs-var">traverse</span></span><span> </span><span class="annot"><span class="annottext">Text -&gt; Either RefineException (Refined p Text)
+forall {k} (p :: k) x.
+Predicate p x =&gt;
+x -&gt; Either RefineException (Refined p x)
+</span><a href="file:///nix/store/89p55d22k6d0gk18g32vfj0wzrnlwxj0-refined-0.8.1-doc/share/doc/refined-0.8.1/html/src/Refined.html#refine"><span class="hs-identifier hs-var">R.refine</span></a></span><span> </span><span class="annot"><span class="annottext">[Text]
+</span><a href="#local-6989586621679257647"><span class="hs-identifier hs-var">addrs</span></a></span><span>
+</span><span id="line-171"></span><span>  </span><span class="hs-keyword">case</span><span> </span><span class="annot"><span class="annottext">Either RefineException [Refined p Text]
+</span><a href="#local-6989586621679257649"><span class="hs-identifier hs-var">xs</span></a></span><span> </span><span class="hs-keyword">of</span><span>
+</span><span id="line-172"></span><span>    </span><span class="annot"><span class="hs-identifier hs-type">Left</span></span><span> </span><span id="local-6989586621679257652"><span class="annot"><span class="annottext">RefineException
+</span><a href="#local-6989586621679257652"><span class="hs-identifier hs-var">ex</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span>
+</span><span id="line-173"></span><span>      </span><span class="hs-keyword">let</span><span> </span><span class="annot"><a href="#local-6989586621679257653"><span class="hs-identifier hs-type">errMsg</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span>
+</span><span id="line-174"></span><span>          </span><span id="local-6989586621679257653"><span class="annot"><span class="annottext">errMsg :: String
+</span><a href="#local-6989586621679257653"><span class="hs-identifier hs-var hs-var">errMsg</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-175"></span><span>            </span><span class="annot"><span class="annottext">Text -&gt; String
+</span><span class="hs-identifier hs-var">T.unpack</span></span><span>
+</span><span id="line-176"></span><span>              </span><span class="annot"><span class="annottext">(Text -&gt; String) -&gt; Text -&gt; String
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">Text
+</span><span class="hs-string">&quot;Malformed ipv&quot;</span></span><span>
+</span><span id="line-177"></span><span>              </span><span class="annot"><span class="annottext">Text -&gt; Text -&gt; Text
+forall a. Semigroup a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-operator hs-var">&lt;&gt;</span></span><span> </span><span class="annot"><span class="annottext">Text
+</span><a href="#local-6989586621679257645"><span class="hs-identifier hs-var">p</span></a></span><span>
+</span><span id="line-178"></span><span>              </span><span class="annot"><span class="annottext">Text -&gt; Text -&gt; Text
+forall a. Semigroup a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-operator hs-var">&lt;&gt;</span></span><span> </span><span class="annot"><span class="annottext">Text
+</span><span class="hs-string">&quot; address found: &quot;</span></span><span>
+</span><span id="line-179"></span><span>              </span><span class="annot"><span class="annottext">Text -&gt; Text -&gt; Text
+forall a. Semigroup a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-operator hs-var">&lt;&gt;</span></span><span> </span><span class="annot"><span class="annottext">[Text] -&gt; Text
+forall a. Show a =&gt; a -&gt; Text
+</span><a href="Pythia.Prelude.html#showt"><span class="hs-identifier hs-var">showt</span></a></span><span> </span><span class="annot"><span class="annottext">[Text]
+</span><a href="#local-6989586621679257647"><span class="hs-identifier hs-var">addrs</span></a></span><span>
+</span><span id="line-180"></span><span>              </span><span class="annot"><span class="annottext">Text -&gt; Text -&gt; Text
+forall a. Semigroup a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-operator hs-var">&lt;&gt;</span></span><span> </span><span class="annot"><span class="annottext">Text
+</span><span class="hs-string">&quot;. Error: &quot;</span></span><span>
+</span><span id="line-181"></span><span>              </span><span class="annot"><span class="annottext">Text -&gt; Text -&gt; Text
+forall a. Semigroup a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-operator hs-var">&lt;&gt;</span></span><span> </span><span class="annot"><span class="annottext">RefineException -&gt; Text
+forall a. Show a =&gt; a -&gt; Text
+</span><a href="Pythia.Prelude.html#showt"><span class="hs-identifier hs-var">showt</span></a></span><span> </span><span class="annot"><span class="annottext">RefineException
+</span><a href="#local-6989586621679257652"><span class="hs-identifier hs-var">ex</span></a></span><span>
+</span><span id="line-182"></span><span>       </span><span class="hs-keyword">in</span><span> </span><span class="annot"><span class="annottext">Set (ErrorFancy Void) -&gt; MParser [a]
+forall e s (m :: Type -&gt; Type) a.
+MonadParsec e s m =&gt;
+Set (ErrorFancy e) -&gt; m a
+</span><a href="file:///nix/store/1q3ppvr9mmkrs06x300jgm09mh0gvjx0-megaparsec-9.3.1-doc/share/doc/megaparsec-9.3.1/html/src/Text.Megaparsec.html#fancyFailure"><span class="hs-identifier hs-var">MP.fancyFailure</span></a></span><span> </span><span class="annot"><span class="annottext">(Set (ErrorFancy Void) -&gt; MParser [a])
+-&gt; Set (ErrorFancy Void) -&gt; MParser [a]
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">[ErrorFancy Void] -&gt; Set (ErrorFancy Void)
+forall a. Ord a =&gt; [a] -&gt; Set a
+</span><span class="hs-identifier hs-var">Set.fromList</span></span><span> </span><span class="hs-special">[</span><span class="annot"><span class="annottext">String -&gt; ErrorFancy Void
+forall e. String -&gt; ErrorFancy e
+</span><a href="file:///nix/store/1q3ppvr9mmkrs06x300jgm09mh0gvjx0-megaparsec-9.3.1-doc/share/doc/megaparsec-9.3.1/html/src/Text.Megaparsec.Error.html#ErrorFail"><span class="hs-identifier hs-var">ErrorFail</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679257653"><span class="hs-identifier hs-var">errMsg</span></a></span><span class="hs-special">]</span><span>
+</span><span id="line-183"></span><span>    </span><span class="annot"><span class="hs-identifier hs-type">Right</span></span><span> </span><span id="local-6989586621679257657"><span class="annot"><span class="annottext">[Refined p Text]
+</span><a href="#local-6989586621679257657"><span class="hs-identifier hs-var">xss</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">[a] -&gt; MParser [a]
+forall a. a -&gt; ParsecT Void Text Identity a
+forall (f :: Type -&gt; Type) a. Applicative f =&gt; a -&gt; f a
+</span><span class="hs-identifier hs-var">pure</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Refined p Text -&gt; a
+</span><a href="#local-6989586621679257646"><span class="hs-identifier hs-var">cons</span></a></span><span> </span><span class="annot"><span class="annottext">(Refined p Text -&gt; a) -&gt; [Refined p Text] -&gt; [a]
+forall (f :: Type -&gt; Type) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span><span class="hs-operator hs-var">&lt;$&gt;</span></span><span> </span><span class="annot"><span class="annottext">[Refined p Text]
+</span><a href="#local-6989586621679257657"><span class="hs-identifier hs-var">xss</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-184"></span><span class="hs-pragma">{-# INLINEABLE</span><span> </span><span class="annot"><a href="Pythia.Services.NetInterface.Ip.html#parseIps"><span class="hs-pragma hs-type">parseIps</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-185"></span><span>
+</span><span id="line-186"></span><span class="annot"><a href="Pythia.Services.NetInterface.Ip.html#parseAddresses"><span class="hs-identifier hs-type">parseAddresses</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Text</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Pythia.Services.NetInterface.Ip.html#MParser"><span class="hs-identifier hs-type">MParser</span></a></span><span> </span><span class="hs-special">[</span><span class="annot"><span class="hs-identifier hs-type">Text</span></span><span class="hs-special">]</span><span>
+</span><span id="line-187"></span><span id="parseAddresses"><span class="annot"><span class="annottext">parseAddresses :: Text -&gt; MParser [Text]
+</span><a href="Pythia.Services.NetInterface.Ip.html#parseAddresses"><span class="hs-identifier hs-var hs-var">parseAddresses</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">ParsecT Void Text Identity Text -&gt; MParser [Text]
+forall (m :: Type -&gt; Type) a. MonadPlus m =&gt; m a -&gt; m [a]
+</span><a href="file:///nix/store/xvziinfgl7jkmsl9fq8h569x5d8rygal-parser-combinators-1.3.0-doc/share/doc/parser-combinators-1.3.0/html/src/Control.Monad.Combinators.html#many"><span class="hs-identifier hs-var">MP.many</span></a></span><span> </span><span class="annot"><span class="annottext">(ParsecT Void Text Identity Text -&gt; MParser [Text])
+-&gt; (Text -&gt; ParsecT Void Text Identity Text)
+-&gt; Text
+-&gt; MParser [Text]
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">Text -&gt; ParsecT Void Text Identity Text
+</span><a href="#local-6989586621679257658"><span class="hs-identifier hs-var">address</span></a></span><span>
+</span><span id="line-188"></span><span>  </span><span class="hs-keyword">where</span><span>
+</span><span id="line-189"></span><span>    </span><span id="local-6989586621679257658"><span class="annot"><span class="annottext">address :: Tokens Text -&gt; ParsecT Void Text Identity (Tokens Text)
+</span><a href="#local-6989586621679257658"><span class="hs-identifier hs-var hs-var">address</span></a></span></span><span> </span><span id="local-6989586621679257685"><span class="annot"><span class="annottext">Tokens Text
+</span><a href="#local-6989586621679257685"><span class="hs-identifier hs-var">p</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">do</span><span>
+</span><span id="line-190"></span><span>      </span><span class="hs-comment">-- 'many' will fail if we partially consume any input. We do not want</span><span>
+</span><span id="line-191"></span><span>      </span><span class="hs-comment">-- a failure because we may be able to parse it with a later parser</span><span>
+</span><span id="line-192"></span><span>      </span><span class="hs-comment">-- (i.e. ipv4 partially matches, fails, but ipv6 would succeed). Thus</span><span>
+</span><span id="line-193"></span><span>      </span><span class="hs-comment">-- we include try to backtrack and give the ipv6 parser a chance.</span><span>
+</span><span id="line-194"></span><span>      </span><span class="annot"><span class="annottext">ParsecT Void Text Identity (Tokens Text)
+-&gt; ParsecT Void Text Identity (Tokens Text)
+forall a.
+ParsecT Void Text Identity a -&gt; ParsecT Void Text Identity a
+forall e s (m :: Type -&gt; Type) a. MonadParsec e s m =&gt; m a -&gt; m a
+</span><a href="file:///nix/store/1q3ppvr9mmkrs06x300jgm09mh0gvjx0-megaparsec-9.3.1-doc/share/doc/megaparsec-9.3.1/html/src/Text.Megaparsec.Class.html#try"><span class="hs-identifier hs-var">MP.try</span></a></span><span> </span><span class="annot"><span class="annottext">(ParsecT Void Text Identity (Tokens Text)
+ -&gt; ParsecT Void Text Identity (Tokens Text))
+-&gt; ParsecT Void Text Identity (Tokens Text)
+-&gt; ParsecT Void Text Identity (Tokens Text)
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">ParsecT Void Text Identity ()
+forall e s (m :: Type -&gt; Type).
+(MonadParsec e s m, Token s ~ Char) =&gt;
+m ()
+</span><a href="file:///nix/store/1q3ppvr9mmkrs06x300jgm09mh0gvjx0-megaparsec-9.3.1-doc/share/doc/megaparsec-9.3.1/html/src/Text.Megaparsec.Char.html#space"><span class="hs-identifier hs-var">MPC.space</span></a></span><span> </span><span class="annot"><span class="annottext">ParsecT Void Text Identity ()
+-&gt; ParsecT Void Text Identity (Tokens Text)
+-&gt; ParsecT Void Text Identity (Tokens Text)
+forall a b.
+ParsecT Void Text Identity a
+-&gt; ParsecT Void Text Identity b -&gt; ParsecT Void Text Identity b
+forall (f :: Type -&gt; Type) a b. Applicative f =&gt; f a -&gt; f b -&gt; f b
+</span><span class="hs-operator hs-var">*&gt;</span></span><span> </span><span class="annot"><span class="annottext">Tokens Text -&gt; ParsecT Void Text Identity (Tokens Text)
+forall e s (m :: Type -&gt; Type).
+MonadParsec e s m =&gt;
+Tokens s -&gt; m (Tokens s)
+</span><a href="file:///nix/store/1q3ppvr9mmkrs06x300jgm09mh0gvjx0-megaparsec-9.3.1-doc/share/doc/megaparsec-9.3.1/html/src/Text.Megaparsec.Common.html#string"><span class="hs-identifier hs-var">MPC.string</span></a></span><span> </span><span class="annot"><span class="annottext">Tokens Text
+</span><a href="#local-6989586621679257685"><span class="hs-identifier hs-var">p</span></a></span><span>
+</span><span id="line-195"></span><span>      </span><span class="annot"><span class="annottext">ParsecT Void Text Identity ()
+forall e s (m :: Type -&gt; Type).
+(MonadParsec e s m, Token s ~ Char) =&gt;
+m ()
+</span><a href="file:///nix/store/1q3ppvr9mmkrs06x300jgm09mh0gvjx0-megaparsec-9.3.1-doc/share/doc/megaparsec-9.3.1/html/src/Text.Megaparsec.Char.html#space"><span class="hs-identifier hs-var">MPC.space</span></a></span><span>
+</span><span id="line-196"></span><span>      </span><span id="local-6989586621679257687"><span class="annot"><span class="annottext">Tokens Text
+</span><a href="#local-6989586621679257687"><span class="hs-identifier hs-var">addr</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">Maybe String
+-&gt; (Token Text -&gt; Bool) -&gt; ParsecT Void Text Identity (Tokens Text)
+forall e s (m :: Type -&gt; Type).
+MonadParsec e s m =&gt;
+Maybe String -&gt; (Token s -&gt; Bool) -&gt; m (Tokens s)
+</span><a href="file:///nix/store/1q3ppvr9mmkrs06x300jgm09mh0gvjx0-megaparsec-9.3.1-doc/share/doc/megaparsec-9.3.1/html/src/Text.Megaparsec.Class.html#takeWhile1P"><span class="hs-identifier hs-var">MP.takeWhile1P</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">String -&gt; Maybe String
+forall a. a -&gt; Maybe a
+</span><span class="hs-identifier hs-var">Just</span></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;address&quot;</span></span><span class="hs-special">)</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Token Text -&gt; Token Text -&gt; Bool
+forall a. Eq a =&gt; a -&gt; a -&gt; Bool
+</span><span class="hs-operator hs-var">/=</span></span><span> </span><span class="annot"><span class="annottext">Char
+Token Text
+</span><span class="hs-char">'/'</span></span><span class="hs-special">)</span><span>
+</span><span id="line-197"></span><span>      </span><span class="annot"><span class="annottext">Token Text -&gt; ParsecT Void Text Identity (Token Text)
+forall e s (m :: Type -&gt; Type).
+(MonadParsec e s m, Token s ~ Char) =&gt;
+Token s -&gt; m (Token s)
+</span><a href="file:///nix/store/1q3ppvr9mmkrs06x300jgm09mh0gvjx0-megaparsec-9.3.1-doc/share/doc/megaparsec-9.3.1/html/src/Text.Megaparsec.Char.html#char"><span class="hs-identifier hs-var">MPC.char</span></a></span><span> </span><span class="annot"><span class="annottext">Char
+Token Text
+</span><span class="hs-char">'/'</span></span><span>
+</span><span id="line-198"></span><span>      </span><span class="annot"><span class="annottext">ParsecT Void Text Identity ()
+forall e s. (Ord e, Stream s, Token s ~ Char) =&gt; Parsec e s ()
+</span><a href="Pythia.Utils.html#takeLine_"><span class="hs-identifier hs-var">U.takeLine_</span></a></span><span>
+</span><span id="line-199"></span><span>      </span><span class="annot"><span class="annottext">ParsecT Void Text Identity ()
+</span><a href="Pythia.Services.NetInterface.Ip.html#lft"><span class="hs-identifier hs-var">lft</span></a></span><span>
+</span><span id="line-200"></span><span>      </span><span class="hs-identifier">pure</span><span> </span><span class="annot"><span class="annottext">Tokens Text
+</span><a href="#local-6989586621679257687"><span class="hs-identifier hs-var">addr</span></a></span><span>
+</span><span id="line-201"></span><span class="hs-pragma">{-# INLINEABLE</span><span> </span><span class="annot"><a href="Pythia.Services.NetInterface.Ip.html#parseAddresses"><span class="hs-pragma hs-type">parseAddresses</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-202"></span><span>
+</span><span id="line-203"></span><span class="annot"><a href="Pythia.Services.NetInterface.Ip.html#lft"><span class="hs-identifier hs-type">lft</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Pythia.Services.NetInterface.Ip.html#MParser"><span class="hs-identifier hs-type">MParser</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span>
+</span><span id="line-204"></span><span id="lft"><span class="annot"><span class="annottext">lft :: ParsecT Void Text Identity ()
+</span><a href="Pythia.Services.NetInterface.Ip.html#lft"><span class="hs-identifier hs-var hs-var">lft</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">do</span><span>
+</span><span id="line-205"></span><span>  </span><span class="annot"><span class="annottext">ParsecT Void Text Identity ()
+forall e s (m :: Type -&gt; Type).
+(MonadParsec e s m, Token s ~ Char) =&gt;
+m ()
+</span><a href="file:///nix/store/1q3ppvr9mmkrs06x300jgm09mh0gvjx0-megaparsec-9.3.1-doc/share/doc/megaparsec-9.3.1/html/src/Text.Megaparsec.Char.html#space"><span class="hs-identifier hs-var">MPC.space</span></a></span><span>
+</span><span id="line-206"></span><span>  </span><span class="annot"><span class="annottext">Tokens Text -&gt; ParsecT Void Text Identity (Tokens Text)
+forall e s (m :: Type -&gt; Type).
+MonadParsec e s m =&gt;
+Tokens s -&gt; m (Tokens s)
+</span><a href="file:///nix/store/1q3ppvr9mmkrs06x300jgm09mh0gvjx0-megaparsec-9.3.1-doc/share/doc/megaparsec-9.3.1/html/src/Text.Megaparsec.Common.html#string"><span class="hs-identifier hs-var">MPC.string</span></a></span><span> </span><span class="annot"><span class="annottext">Tokens Text
+</span><span class="hs-string">&quot;valid_lft&quot;</span></span><span>
+</span><span id="line-207"></span><span>  </span><span class="annot"><span class="annottext">ParsecT Void Text Identity ()
+forall e s. (Ord e, Stream s, Token s ~ Char) =&gt; Parsec e s ()
+</span><a href="Pythia.Utils.html#takeLine_"><span class="hs-identifier hs-var">U.takeLine_</span></a></span><span>
+</span><span id="line-208"></span><span class="hs-pragma">{-# INLINEABLE</span><span> </span><span class="annot"><a href="Pythia.Services.NetInterface.Ip.html#lft"><span class="hs-pragma hs-type">lft</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-209"></span><span>
+</span><span id="line-210"></span><span class="annot"><a href="Pythia.Services.NetInterface.Ip.html#parseNetInterfaceState"><span class="hs-identifier hs-type">parseNetInterfaceState</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Pythia.Services.NetInterface.Ip.html#MParser"><span class="hs-identifier hs-type">MParser</span></a></span><span> </span><span class="annot"><a href="Pythia.Services.NetInterface.Types.html#NetInterfaceState"><span class="hs-identifier hs-type">NetInterfaceState</span></a></span><span>
+</span><span id="line-211"></span><span id="parseNetInterfaceState"><span class="annot"><span class="annottext">parseNetInterfaceState :: MParser NetInterfaceState
+</span><a href="Pythia.Services.NetInterface.Ip.html#parseNetInterfaceState"><span class="hs-identifier hs-var hs-var">parseNetInterfaceState</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">do</span><span>
+</span><span id="line-212"></span><span>  </span><span class="annot"><span class="annottext">MParser NetInterfaceState -&gt; MParser NetInterfaceState
+forall a.
+ParsecT Void Text Identity a -&gt; ParsecT Void Text Identity a
+forall e s (m :: Type -&gt; Type) a. MonadParsec e s m =&gt; m a -&gt; m a
+</span><a href="file:///nix/store/1q3ppvr9mmkrs06x300jgm09mh0gvjx0-megaparsec-9.3.1-doc/share/doc/megaparsec-9.3.1/html/src/Text.Megaparsec.Class.html#try"><span class="hs-identifier hs-var">MP.try</span></a></span><span> </span><span class="annot"><span class="annottext">MParser NetInterfaceState
+</span><a href="#local-6989586621679257689"><span class="hs-identifier hs-var">up</span></a></span><span>
+</span><span id="line-213"></span><span>    </span><span class="annot"><span class="annottext">MParser NetInterfaceState
+-&gt; MParser NetInterfaceState -&gt; MParser NetInterfaceState
+forall a.
+ParsecT Void Text Identity a
+-&gt; ParsecT Void Text Identity a -&gt; ParsecT Void Text Identity a
+forall (f :: Type -&gt; Type) a. Alternative f =&gt; f a -&gt; f a -&gt; f a
+</span><span class="hs-operator hs-var">&lt;|&gt;</span></span><span> </span><span class="annot"><span class="annottext">MParser NetInterfaceState
+</span><a href="#local-6989586621679257691"><span class="hs-identifier hs-var">down</span></a></span><span>
+</span><span id="line-214"></span><span>    </span><span class="annot"><span class="annottext">MParser NetInterfaceState
+-&gt; MParser NetInterfaceState -&gt; MParser NetInterfaceState
+forall a.
+ParsecT Void Text Identity a
+-&gt; ParsecT Void Text Identity a -&gt; ParsecT Void Text Identity a
+forall (f :: Type -&gt; Type) a. Alternative f =&gt; f a -&gt; f a -&gt; f a
+</span><span class="hs-operator hs-var">&lt;|&gt;</span></span><span> </span><span class="annot"><span class="annottext">MParser NetInterfaceState
+</span><a href="#local-6989586621679257692"><span class="hs-identifier hs-var">unknown</span></a></span><span>
+</span><span id="line-215"></span><span>    </span><span class="annot"><span class="annottext">MParser NetInterfaceState -&gt; String -&gt; MParser NetInterfaceState
+forall e s (m :: Type -&gt; Type) a.
+MonadParsec e s m =&gt;
+m a -&gt; String -&gt; m a
+</span><a href="file:///nix/store/1q3ppvr9mmkrs06x300jgm09mh0gvjx0-megaparsec-9.3.1-doc/share/doc/megaparsec-9.3.1/html/src/Text.Megaparsec.html#%3C%3F%3E"><span class="hs-operator hs-var">&lt;?&gt;</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;state&quot;</span></span><span>
+</span><span id="line-216"></span><span>  </span><span class="hs-keyword">where</span><span>
+</span><span id="line-217"></span><span>    </span><span id="local-6989586621679257689"><span class="annot"><span class="annottext">up :: MParser NetInterfaceState
+</span><a href="#local-6989586621679257689"><span class="hs-identifier hs-var hs-var">up</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Tokens Text -&gt; ParsecT Void Text Identity (Tokens Text)
+forall e s (m :: Type -&gt; Type).
+MonadParsec e s m =&gt;
+Tokens s -&gt; m (Tokens s)
+</span><a href="file:///nix/store/1q3ppvr9mmkrs06x300jgm09mh0gvjx0-megaparsec-9.3.1-doc/share/doc/megaparsec-9.3.1/html/src/Text.Megaparsec.Common.html#string"><span class="hs-identifier hs-var">MPC.string</span></a></span><span> </span><span class="annot"><span class="annottext">Tokens Text
+</span><span class="hs-string">&quot;UP&quot;</span></span><span> </span><span class="annot"><span class="annottext">ParsecT Void Text Identity (Tokens Text)
+-&gt; NetInterfaceState -&gt; MParser NetInterfaceState
+forall (f :: Type -&gt; Type) a b. Functor f =&gt; f a -&gt; b -&gt; f b
+</span><span class="hs-operator hs-var">$&gt;</span></span><span> </span><span class="annot"><span class="annottext">NetInterfaceState
+</span><a href="Pythia.Services.NetInterface.Types.html#NetStateUp"><span class="hs-identifier hs-var">NetStateUp</span></a></span><span>
+</span><span id="line-218"></span><span>    </span><span id="local-6989586621679257691"><span class="annot"><span class="annottext">down :: MParser NetInterfaceState
+</span><a href="#local-6989586621679257691"><span class="hs-identifier hs-var hs-var">down</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Tokens Text -&gt; ParsecT Void Text Identity (Tokens Text)
+forall e s (m :: Type -&gt; Type).
+MonadParsec e s m =&gt;
+Tokens s -&gt; m (Tokens s)
+</span><a href="file:///nix/store/1q3ppvr9mmkrs06x300jgm09mh0gvjx0-megaparsec-9.3.1-doc/share/doc/megaparsec-9.3.1/html/src/Text.Megaparsec.Common.html#string"><span class="hs-identifier hs-var">MPC.string</span></a></span><span> </span><span class="annot"><span class="annottext">Tokens Text
+</span><span class="hs-string">&quot;DOWN&quot;</span></span><span> </span><span class="annot"><span class="annottext">ParsecT Void Text Identity (Tokens Text)
+-&gt; NetInterfaceState -&gt; MParser NetInterfaceState
+forall (f :: Type -&gt; Type) a b. Functor f =&gt; f a -&gt; b -&gt; f b
+</span><span class="hs-operator hs-var">$&gt;</span></span><span> </span><span class="annot"><span class="annottext">NetInterfaceState
+</span><a href="Pythia.Services.NetInterface.Types.html#NetStateDown"><span class="hs-identifier hs-var">NetStateDown</span></a></span><span>
+</span><span id="line-219"></span><span>    </span><span id="local-6989586621679257692"><span class="annot"><span class="annottext">unknown :: MParser NetInterfaceState
+</span><a href="#local-6989586621679257692"><span class="hs-identifier hs-var hs-var">unknown</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Text -&gt; NetInterfaceState
+</span><a href="Pythia.Services.NetInterface.Types.html#NetStateUnknown"><span class="hs-identifier hs-var">NetStateUnknown</span></a></span><span> </span><span class="annot"><span class="annottext">(Text -&gt; NetInterfaceState)
+-&gt; ParsecT Void Text Identity Text -&gt; MParser NetInterfaceState
+forall (f :: Type -&gt; Type) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span><span class="hs-operator hs-var">&lt;$&gt;</span></span><span> </span><span class="annot"><span class="annottext">Maybe String
+-&gt; (Token Text -&gt; Bool) -&gt; ParsecT Void Text Identity (Tokens Text)
+forall e s (m :: Type -&gt; Type).
+MonadParsec e s m =&gt;
+Maybe String -&gt; (Token s -&gt; Bool) -&gt; m (Tokens s)
+</span><a href="file:///nix/store/1q3ppvr9mmkrs06x300jgm09mh0gvjx0-megaparsec-9.3.1-doc/share/doc/megaparsec-9.3.1/html/src/Text.Megaparsec.Class.html#takeWhile1P"><span class="hs-identifier hs-var">MP.takeWhile1P</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">String -&gt; Maybe String
+forall a. a -&gt; Maybe a
+</span><span class="hs-identifier hs-var">Just</span></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;type&quot;</span></span><span class="hs-special">)</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Bool -&gt; Bool
+</span><span class="hs-identifier hs-var">not</span></span><span> </span><span class="annot"><span class="annottext">(Bool -&gt; Bool) -&gt; (Char -&gt; Bool) -&gt; Char -&gt; Bool
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">Char -&gt; Bool
+</span><span class="hs-identifier hs-var">Char.isSpace</span></span><span class="hs-special">)</span><span>
+</span><span id="line-220"></span><span class="hs-pragma">{-# INLINEABLE</span><span> </span><span class="annot"><a href="Pythia.Services.NetInterface.Ip.html#parseNetInterfaceState"><span class="hs-pragma hs-type">parseNetInterfaceState</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-221"></span></pre></body></html>

@@ -1,0 +1,127 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><link rel="stylesheet" type="text/css" href="style.css" /><script type="text/javascript" src="highlight.js"></script></head><body><pre><span class="hs-comment">-- | This module exports time related services.</span><span>
+</span><span id="line-2"></span><span class="hs-comment">--</span><span>
+</span><span id="line-3"></span><span class="hs-comment">-- @since 0.1</span><span>
+</span><span id="line-4"></span><span class="hs-keyword">module</span><span> </span><span class="hs-identifier">Pythia.Services.Time</span><span>
+</span><span id="line-5"></span><span>  </span><span class="hs-special">(</span><span> </span><span class="annot"><span class="hs-comment">-- * Queries</span></span><span>
+</span><span id="line-6"></span><span>    </span><span class="annot"><a href="Pythia.Services.Time.html#queryLocalTime"><span class="hs-identifier">queryLocalTime</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-7"></span><span>    </span><span class="annot"><a href="Pythia.Services.Time.html#queryUTC"><span class="hs-identifier">queryUTC</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-8"></span><span>    </span><span class="annot"><a href="Pythia.Services.Time.html#queryTimeZone"><span class="hs-identifier">queryTimeZone</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-9"></span><span>    </span><span class="annot"><a href="Pythia.Services.Time.html#queryTimeZoneLabel"><span class="hs-identifier">queryTimeZoneLabel</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-10"></span><span>
+</span><span id="line-11"></span><span>    </span><span class="annot"><span class="hs-comment">-- * Types</span></span><span>
+</span><span id="line-12"></span><span>    </span><span class="annot"><span class="hs-identifier">ZonedTime</span></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span class="hs-special">,</span><span>
+</span><span id="line-13"></span><span>    </span><span class="annot"><span class="hs-identifier">UTCTime</span></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span class="hs-special">,</span><span>
+</span><span id="line-14"></span><span>    </span><span class="annot"><a href="file:///nix/store/v211p8fw25xr2w35vlhgkrgvr41862vw-tzdata-0.2.20230322.0-doc/share/doc/tzdata-0.2.20230322.0/html/src/Data.Time.Zones.DB.html#TZLabel"><span class="hs-identifier">TZLabel</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span class="hs-special">,</span><span>
+</span><span id="line-15"></span><span>  </span><span class="hs-special">)</span><span>
+</span><span id="line-16"></span><span class="hs-keyword">where</span><span>
+</span><span id="line-17"></span><span>
+</span><span id="line-18"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Data.Time.Clock</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">UTCTime</span></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span class="hs-special">)</span><span>
+</span><span id="line-19"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="file:///home/tommy/.local/state/cabal/store/ghc-9.6.3/time-conv-0.1-75ed18590705503d79c013cca46b0e64627e9ac3b9bd294b9054f38cf155a90e/share/doc/html/src/Data.Time.Conversion.html"><span class="hs-identifier">Data.Time.Conversion</span></a></span><span>
+</span><span id="line-20"></span><span>  </span><span class="hs-special">(</span><span> </span><span class="annot"><a href="file:///home/tommy/.local/state/cabal/store/ghc-9.6.3/time-conv-0.1-75ed18590705503d79c013cca46b0e64627e9ac3b9bd294b9054f38cf155a90e/share/doc/html/src/Data.Time.Conversion.Types.TZDatabase.html#TZDatabase"><span class="hs-identifier">TZDatabase</span></a></span><span>
+</span><span id="line-21"></span><span>      </span><span class="hs-special">(</span><span> </span><span class="annot"><a href="file:///home/tommy/.local/state/cabal/store/ghc-9.6.3/time-conv-0.1-75ed18590705503d79c013cca46b0e64627e9ac3b9bd294b9054f38cf155a90e/share/doc/html/src/Data.Time.Conversion.Types.TZDatabase.html#TZDatabaseLabel"><span class="hs-identifier">TZDatabaseLabel</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-22"></span><span>        </span><span class="annot"><a href="file:///home/tommy/.local/state/cabal/store/ghc-9.6.3/time-conv-0.1-75ed18590705503d79c013cca46b0e64627e9ac3b9bd294b9054f38cf155a90e/share/doc/html/src/Data.Time.Conversion.Types.TZDatabase.html#TZDatabaseText"><span class="hs-identifier">TZDatabaseText</span></a></span><span>
+</span><span id="line-23"></span><span>      </span><span class="hs-special">)</span><span class="hs-special">,</span><span>
+</span><span id="line-24"></span><span>    </span><span class="annot"><a href="file:///nix/store/v211p8fw25xr2w35vlhgkrgvr41862vw-tzdata-0.2.20230322.0-doc/share/doc/tzdata-0.2.20230322.0/html/src/Data.Time.Zones.DB.html#TZLabel"><span class="hs-identifier">TZLabel</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span class="hs-special">,</span><span>
+</span><span id="line-25"></span><span>    </span><span class="annot"><span class="hs-identifier">ZonedTime</span></span><span class="hs-special">,</span><span>
+</span><span id="line-26"></span><span>  </span><span class="hs-special">)</span><span>
+</span><span id="line-27"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="file:///home/tommy/.local/state/cabal/store/ghc-9.6.3/time-conv-0.1-75ed18590705503d79c013cca46b0e64627e9ac3b9bd294b9054f38cf155a90e/share/doc/html/src/Data.Time.Conversion.html"><span class="hs-identifier">Data.Time.Conversion</span></a></span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="hs-keyword">as</span><span> </span><span class="annot"><span class="hs-identifier">TimeConv</span></span><span>
+</span><span id="line-28"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Data.Time.LocalTime</span></span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="hs-keyword">as</span><span> </span><span class="annot"><span class="hs-identifier">LT</span></span><span>
+</span><span id="line-29"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="file:///home/tommy/.local/state/cabal/store/ghc-9.6.3/effects-time-0.1-81d7a1d6acde1add21f2078381fb3942f89fa8cd44eb05859f08baeee113036a/share/doc/html/src/Effects.Time.html"><span class="hs-identifier">Effects.Time</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="file:///home/tommy/.local/state/cabal/store/ghc-9.6.3/effects-time-0.1-81d7a1d6acde1add21f2078381fb3942f89fa8cd44eb05859f08baeee113036a/share/doc/html/src/Effects.Time.html#getSystemZonedTime"><span class="hs-identifier">getSystemZonedTime</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-30"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Pythia.Prelude.html"><span class="hs-identifier">Pythia.Prelude</span></a></span><span>
+</span><span id="line-31"></span><span>
+</span><span id="line-32"></span><span class="hs-comment">-- | Queries current local time.</span><span>
+</span><span id="line-33"></span><span class="hs-comment">--</span><span>
+</span><span id="line-34"></span><span class="hs-comment">-- @since 0.1</span><span>
+</span><span id="line-35"></span><span id="local-6989586621679252912"><span class="annot"><a href="Pythia.Services.Time.html#queryLocalTime"><span class="hs-identifier hs-type">queryLocalTime</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">MonadCatch</span></span><span> </span><span class="annot"><a href="#local-6989586621679252912"><span class="hs-identifier hs-type">m</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="file:///home/tommy/.local/state/cabal/store/ghc-9.6.3/effects-time-0.1-81d7a1d6acde1add21f2078381fb3942f89fa8cd44eb05859f08baeee113036a/share/doc/html/src/Effects.Time.html#MonadTime"><span class="hs-identifier hs-type">MonadTime</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679252912"><span class="hs-identifier hs-type">m</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679252912"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="annot"><span class="hs-identifier hs-type">ZonedTime</span></span></span><span>
+</span><span id="line-36"></span><span id="queryLocalTime"><span class="annot"><span class="annottext">queryLocalTime :: forall (m :: Type -&gt; Type).
+(MonadCatch m, MonadTime m) =&gt;
+m ZonedTime
+</span><a href="Pythia.Services.Time.html#queryLocalTime"><span class="hs-identifier hs-var hs-var">queryLocalTime</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Maybe TimeReader -&gt; m ZonedTime
+forall (m :: Type -&gt; Type).
+(HasCallStack, MonadCatch m, MonadTime m) =&gt;
+Maybe TimeReader -&gt; m ZonedTime
+</span><a href="file:///home/tommy/.local/state/cabal/store/ghc-9.6.3/time-conv-0.1-75ed18590705503d79c013cca46b0e64627e9ac3b9bd294b9054f38cf155a90e/share/doc/html/src/Data.Time.Conversion.html#readTime"><span class="hs-identifier hs-var">TimeConv.readTime</span></a></span><span> </span><span class="annot"><span class="annottext">Maybe TimeReader
+forall a. Maybe a
+</span><span class="hs-identifier hs-var">Nothing</span></span><span>
+</span><span id="line-37"></span><span class="hs-pragma">{-# INLINEABLE</span><span> </span><span class="annot"><a href="Pythia.Services.Time.html#queryLocalTime"><span class="hs-pragma hs-type">queryLocalTime</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-38"></span><span>
+</span><span id="line-39"></span><span class="hs-comment">-- | Queries current UTC time.</span><span>
+</span><span id="line-40"></span><span class="hs-comment">--</span><span>
+</span><span id="line-41"></span><span class="hs-comment">-- @since 0.1</span><span>
+</span><span id="line-42"></span><span id="local-6989586621679252921"><span class="annot"><a href="Pythia.Services.Time.html#queryUTC"><span class="hs-identifier hs-type">queryUTC</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">(</span><span class="annot"><a href="file:///home/tommy/.local/state/cabal/store/ghc-9.6.3/effects-time-0.1-81d7a1d6acde1add21f2078381fb3942f89fa8cd44eb05859f08baeee113036a/share/doc/html/src/Effects.Time.html#MonadTime"><span class="hs-identifier hs-type">MonadTime</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679252921"><span class="hs-identifier hs-type">m</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679252921"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="annot"><span class="hs-identifier hs-type">UTCTime</span></span></span><span>
+</span><span id="line-43"></span><span id="queryUTC"><span class="annot"><span class="annottext">queryUTC :: forall (m :: Type -&gt; Type). MonadTime m =&gt; m UTCTime
+</span><a href="Pythia.Services.Time.html#queryUTC"><span class="hs-identifier hs-var hs-var">queryUTC</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">ZonedTime -&gt; UTCTime
+</span><span class="hs-identifier hs-var">LT.zonedTimeToUTC</span></span><span> </span><span class="annot"><span class="annottext">(ZonedTime -&gt; UTCTime) -&gt; m ZonedTime -&gt; m UTCTime
+forall (f :: Type -&gt; Type) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span><span class="hs-operator hs-var">&lt;$&gt;</span></span><span> </span><span class="annot"><span class="annottext">m ZonedTime
+forall (m :: Type -&gt; Type).
+(MonadTime m, HasCallStack) =&gt;
+m ZonedTime
+</span><a href="file:///home/tommy/.local/state/cabal/store/ghc-9.6.3/effects-time-0.1-81d7a1d6acde1add21f2078381fb3942f89fa8cd44eb05859f08baeee113036a/share/doc/html/src/Effects.Time.html#getSystemZonedTime"><span class="hs-identifier hs-var">getSystemZonedTime</span></a></span><span>
+</span><span id="line-44"></span><span class="hs-pragma">{-# INLINEABLE</span><span> </span><span class="annot"><a href="Pythia.Services.Time.html#queryUTC"><span class="hs-pragma hs-type">queryUTC</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-45"></span><span>
+</span><span id="line-46"></span><span class="hs-comment">-- | Queries current time in the given timezone.</span><span>
+</span><span id="line-47"></span><span class="hs-comment">--</span><span>
+</span><span id="line-48"></span><span class="hs-comment">-- @</span><span>
+</span><span id="line-49"></span><span class="hs-comment">-- queryTimeZone &quot;America/New_York&quot;</span><span>
+</span><span id="line-50"></span><span class="hs-comment">-- @</span><span>
+</span><span id="line-51"></span><span class="hs-comment">--</span><span>
+</span><span id="line-52"></span><span class="hs-comment">-- @since 0.1</span><span>
+</span><span id="line-53"></span><span id="local-6989586621679252930"><span class="annot"><a href="Pythia.Services.Time.html#queryTimeZone"><span class="hs-identifier hs-type">queryTimeZone</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">MonadCatch</span></span><span> </span><span class="annot"><a href="#local-6989586621679252930"><span class="hs-identifier hs-type">m</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="file:///home/tommy/.local/state/cabal/store/ghc-9.6.3/effects-time-0.1-81d7a1d6acde1add21f2078381fb3942f89fa8cd44eb05859f08baeee113036a/share/doc/html/src/Effects.Time.html#MonadTime"><span class="hs-identifier hs-type">MonadTime</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679252930"><span class="hs-identifier hs-type">m</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Text</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679252930"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="annot"><span class="hs-identifier hs-type">ZonedTime</span></span></span><span>
+</span><span id="line-54"></span><span id="queryTimeZone"><span class="annot"><span class="annottext">queryTimeZone :: forall (m :: Type -&gt; Type).
+(MonadCatch m, MonadTime m) =&gt;
+Text -&gt; m ZonedTime
+</span><a href="Pythia.Services.Time.html#queryTimeZone"><span class="hs-identifier hs-var hs-var">queryTimeZone</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-55"></span><span>  </span><span class="annot"><span class="annottext">Maybe TimeReader -&gt; Maybe TZDatabase -&gt; m ZonedTime
+forall (m :: Type -&gt; Type).
+(HasCallStack, MonadCatch m, MonadTime m) =&gt;
+Maybe TimeReader -&gt; Maybe TZDatabase -&gt; m ZonedTime
+</span><a href="file:///home/tommy/.local/state/cabal/store/ghc-9.6.3/time-conv-0.1-75ed18590705503d79c013cca46b0e64627e9ac3b9bd294b9054f38cf155a90e/share/doc/html/src/Data.Time.Conversion.html#readConvertTime"><span class="hs-identifier hs-var">TimeConv.readConvertTime</span></a></span><span> </span><span class="annot"><span class="annottext">Maybe TimeReader
+forall a. Maybe a
+</span><span class="hs-identifier hs-var">Nothing</span></span><span>
+</span><span id="line-56"></span><span>    </span><span class="annot"><span class="annottext">(Maybe TZDatabase -&gt; m ZonedTime)
+-&gt; (Text -&gt; Maybe TZDatabase) -&gt; Text -&gt; m ZonedTime
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">TZDatabase -&gt; Maybe TZDatabase
+forall a. a -&gt; Maybe a
+</span><span class="hs-identifier hs-var">Just</span></span><span>
+</span><span id="line-57"></span><span>    </span><span class="annot"><span class="annottext">(TZDatabase -&gt; Maybe TZDatabase)
+-&gt; (Text -&gt; TZDatabase) -&gt; Text -&gt; Maybe TZDatabase
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">Text -&gt; TZDatabase
+</span><a href="file:///home/tommy/.local/state/cabal/store/ghc-9.6.3/time-conv-0.1-75ed18590705503d79c013cca46b0e64627e9ac3b9bd294b9054f38cf155a90e/share/doc/html/src/Data.Time.Conversion.Types.TZDatabase.html#TZDatabaseText"><span class="hs-identifier hs-var">TZDatabaseText</span></a></span><span>
+</span><span id="line-58"></span><span class="hs-pragma">{-# INLINEABLE</span><span> </span><span class="annot"><a href="Pythia.Services.Time.html#queryTimeZone"><span class="hs-pragma hs-type">queryTimeZone</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-59"></span><span>
+</span><span id="line-60"></span><span class="hs-comment">-- | Queries current time in the given timezone.</span><span>
+</span><span id="line-61"></span><span class="hs-comment">--</span><span>
+</span><span id="line-62"></span><span class="hs-comment">-- __Throws:__</span><span>
+</span><span id="line-63"></span><span class="hs-comment">--</span><span>
+</span><span id="line-64"></span><span class="hs-comment">-- * 'Pythia.Control.Exception.PythiaException': if an error is</span><span>
+</span><span id="line-65"></span><span class="hs-comment">-- encountered (e.g. running a command or parse error).</span><span>
+</span><span id="line-66"></span><span class="hs-comment">--</span><span>
+</span><span id="line-67"></span><span class="hs-comment">-- @since 0.1</span><span>
+</span><span id="line-68"></span><span id="local-6989586621679252938"><span class="annot"><a href="Pythia.Services.Time.html#queryTimeZoneLabel"><span class="hs-identifier hs-type">queryTimeZoneLabel</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">MonadCatch</span></span><span> </span><span class="annot"><a href="#local-6989586621679252938"><span class="hs-identifier hs-type">m</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="file:///home/tommy/.local/state/cabal/store/ghc-9.6.3/effects-time-0.1-81d7a1d6acde1add21f2078381fb3942f89fa8cd44eb05859f08baeee113036a/share/doc/html/src/Effects.Time.html#MonadTime"><span class="hs-identifier hs-type">MonadTime</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679252938"><span class="hs-identifier hs-type">m</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><a href="file:///nix/store/v211p8fw25xr2w35vlhgkrgvr41862vw-tzdata-0.2.20230322.0-doc/share/doc/tzdata-0.2.20230322.0/html/src/Data.Time.Zones.DB.html#TZLabel"><span class="hs-identifier hs-type">TZLabel</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679252938"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="annot"><span class="hs-identifier hs-type">ZonedTime</span></span></span><span>
+</span><span id="line-69"></span><span id="queryTimeZoneLabel"><span class="annot"><span class="annottext">queryTimeZoneLabel :: forall (m :: Type -&gt; Type).
+(MonadCatch m, MonadTime m) =&gt;
+TZLabel -&gt; m ZonedTime
+</span><a href="Pythia.Services.Time.html#queryTimeZoneLabel"><span class="hs-identifier hs-var hs-var">queryTimeZoneLabel</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-70"></span><span>  </span><span class="annot"><span class="annottext">Maybe TimeReader -&gt; Maybe TZDatabase -&gt; m ZonedTime
+forall (m :: Type -&gt; Type).
+(HasCallStack, MonadCatch m, MonadTime m) =&gt;
+Maybe TimeReader -&gt; Maybe TZDatabase -&gt; m ZonedTime
+</span><a href="file:///home/tommy/.local/state/cabal/store/ghc-9.6.3/time-conv-0.1-75ed18590705503d79c013cca46b0e64627e9ac3b9bd294b9054f38cf155a90e/share/doc/html/src/Data.Time.Conversion.html#readConvertTime"><span class="hs-identifier hs-var">TimeConv.readConvertTime</span></a></span><span> </span><span class="annot"><span class="annottext">Maybe TimeReader
+forall a. Maybe a
+</span><span class="hs-identifier hs-var">Nothing</span></span><span>
+</span><span id="line-71"></span><span>    </span><span class="annot"><span class="annottext">(Maybe TZDatabase -&gt; m ZonedTime)
+-&gt; (TZLabel -&gt; Maybe TZDatabase) -&gt; TZLabel -&gt; m ZonedTime
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">TZDatabase -&gt; Maybe TZDatabase
+forall a. a -&gt; Maybe a
+</span><span class="hs-identifier hs-var">Just</span></span><span>
+</span><span id="line-72"></span><span>    </span><span class="annot"><span class="annottext">(TZDatabase -&gt; Maybe TZDatabase)
+-&gt; (TZLabel -&gt; TZDatabase) -&gt; TZLabel -&gt; Maybe TZDatabase
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">TZLabel -&gt; TZDatabase
+</span><a href="file:///home/tommy/.local/state/cabal/store/ghc-9.6.3/time-conv-0.1-75ed18590705503d79c013cca46b0e64627e9ac3b9bd294b9054f38cf155a90e/share/doc/html/src/Data.Time.Conversion.Types.TZDatabase.html#TZDatabaseLabel"><span class="hs-identifier hs-var">TZDatabaseLabel</span></a></span><span>
+</span><span id="line-73"></span><span class="hs-pragma">{-# INLINEABLE</span><span> </span><span class="annot"><a href="Pythia.Services.Time.html#queryTimeZoneLabel"><span class="hs-pragma hs-type">queryTimeZoneLabel</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-74"></span></pre></body></html>
