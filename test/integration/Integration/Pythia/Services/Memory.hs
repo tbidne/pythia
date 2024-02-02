@@ -85,7 +85,7 @@ instance MonadPathReader IntIO where
 
 instance MonadTypedProcess IntIO where
   readProcess pc = case cmd of
-    "free --bytes" ->
+    "Shell command: free --bytes" ->
       let output =
             L.unlines
               [ "               total        used        free      shared  buff/cache   available",

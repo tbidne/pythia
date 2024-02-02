@@ -10,27 +10,18 @@ where
 import Control.Monad.IO.Class (MonadIO (liftIO))
 import Data.Either as X (isLeft)
 import Data.IORef
-import Data.List qualified as L
 import Data.Text qualified as T
 import Effects.Exception (MonadGlobalException)
 import Effects.Optparse (MonadOptparse)
 import Effects.System.Environment (MonadEnv (withArgs))
 import Pythia.Prelude as X
 import Pythia.Runner qualified as Runner
-import System.Process (CmdSpec (RawCommand, ShellCommand))
-import System.Process.Typed.Internal (ProcessConfig (pcCmdSpec))
+import System.Process.Typed (ProcessConfig)
 import Test.Tasty as X (TestTree, testGroup)
 import Test.Tasty.HUnit as X (assertBool, assertFailure, testCase, (@=?))
 
 processConfigToCmd :: ProcessConfig i o e -> String
-processConfigToCmd pc = case pcCmdSpec pc of
-  ShellCommand s -> s
-  RawCommand fp args ->
-    mconcat
-      [ fp,
-        "\n",
-        L.intercalate "\n" args
-      ]
+processConfigToCmd = T.unpack . T.strip . T.pack . show
 
 runIntegrationIO ::
   forall m.

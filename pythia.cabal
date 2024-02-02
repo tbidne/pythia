@@ -203,14 +203,13 @@ test-suite Integration
     , effects-optparse
     , effects-time
     , effects-typed-process
-    , process                ^>=1.6.9.0
     , pythia
     , pythia-exe-internal
-    , tasty                  >=1.1.0.3  && <1.5
-    , tasty-hunit            >=0.9      && <0.11
+    , tasty                  >=1.1.0.3 && <1.5
+    , tasty-hunit            >=0.9     && <0.11
     , text
-    , time                   >=1.9.3    && <1.14
-    , typed-process          >=0.1.0.0  && <0.3
+    , time                   >=1.9.3   && <1.14
+    , typed-process          >=0.1.0.0 && <0.3
 
   hs-source-dirs:   test/integration
   default-language: Haskell2010

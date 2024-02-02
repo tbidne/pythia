@@ -101,8 +101,8 @@ instance MonadPathReader IntIO where
 
 instance MonadTypedProcess IntIO where
   readProcess pc = case cmd of
-    "acpi" -> pure (ExitSuccess, "Battery 0: Charging, 75%", "")
-    "upower -i `upower -e | grep 'BAT'`" ->
+    "Shell command: acpi" -> pure (ExitSuccess, "Battery 0: Charging, 75%", "")
+    "Shell command: upower -i `upower -e | grep 'BAT'`" ->
       let output =
             L.unlines
               [ "native-path:          BAT0",

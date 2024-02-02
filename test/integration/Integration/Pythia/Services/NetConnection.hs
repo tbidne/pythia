@@ -99,7 +99,7 @@ instance MonadPathReader IntIO where
 
 instance MonadTypedProcess IntIO where
   readProcess pc = case cmd of
-    "ip address" ->
+    "Shell command: ip address" ->
       let output =
             L.unlines
               [ "1: lo: <LOOPBACK,UP,LOWER_UP> mtu 65536 qdisc noqueue state UNKNOWN group default qlen 1000",
@@ -124,7 +124,7 @@ instance MonadTypedProcess IntIO where
                 "      valid_lft forever preferred_lft forever"
               ]
        in pure (ExitSuccess, fromString output, "")
-    "nmcli -t -m multiline device show" ->
+    "Shell command: nmcli -t -m multiline device show" ->
       let output =
             L.unlines
               [ "GENERAL.DEVICE:wlp0s15d2",

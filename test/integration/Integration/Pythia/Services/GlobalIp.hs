@@ -60,8 +60,8 @@ instance MonadPathReader IntIO where
 instance MonadTypedProcess IntIO where
   readProcess pc =
     if
-      | "curl" `L.isPrefixOf` cmd -> pure (ExitSuccess, "192.168.1.0", "")
-      | "dig" `L.isPrefixOf` cmd -> pure (ExitSuccess, "192.168.0.1", "")
+      | "Shell command: curl" `L.isPrefixOf` cmd -> pure (ExitSuccess, "192.168.1.0", "")
+      | "Shell command: dig" `L.isPrefixOf` cmd -> pure (ExitSuccess, "192.168.0.1", "")
       | otherwise -> error $ "Unexpected command: " <> cmd
     where
       cmd = processConfigToCmd pc
