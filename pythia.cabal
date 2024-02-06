@@ -99,22 +99,22 @@ library
     Pythia.Utils
 
   build-depends:
-    , base                   >=4.16.0.0  && <4.19
+    , base                   >=4.16.0.0  && <4.20
     , bytestring             >=0.10.10.0 && <0.13
-    , containers             ^>=0.6.2.1
+    , containers             >=0.6.2.1   && <0.8
     , deepseq                >=1.4.4.0   && <1.6
     , effects-exceptions     ^>=0.1
     , effects-fs             ^>=0.1
     , effects-terminal       ^>=0.1
     , effects-time           ^>=0.1
     , effects-typed-process  ^>=0.1
-    , megaparsec             >=7.0.5     && <9.5
+    , megaparsec             >=7.0.5     && <9.7
     , optics-core            ^>=0.4
     , refined                >=0.6       && <0.9
     , si-bytes               ^>=0.1
     , smart-math             ^>=0.1
     , template-haskell       >=2.17.0.0  && <2.22
-    , text                   >=1.2.3.2   && <2.1
+    , text                   >=1.2.3.2   && <2.2
     , text-display           >=0.0.3.0   && <0.6
     , time                   >=1.9.3     && <1.14
     , time-conv              ^>=0.1
@@ -122,24 +122,36 @@ library
   hs-source-dirs:   src
   default-language: Haskell2010
 
-library pythia-exe-internal
+library pythia-runner
   import:           common-exts
   other-modules:    Paths_pythia
   autogen-modules:  Paths_pythia
   exposed-modules:
-    Pythia.Args
     Pythia.Runner
+    Pythia.Runner.Args
+    Pythia.Runner.Command
+    Pythia.Runner.Command.Battery
+    Pythia.Runner.Command.GlobalIp
+    Pythia.Runner.Command.Memory
+    Pythia.Runner.Command.NetConn
+    Pythia.Runner.Command.NetInterface
+    Pythia.Runner.Command.Time
+    Pythia.Runner.These
+    Pythia.Runner.Toml
+    Pythia.Runner.Utils
 
   build-depends:
     , base
-    , effects-exceptions
+    , containers
+    , effects-fs
     , effects-optparse      ^>=0.1
     , optparse-applicative  >=0.16.1.0 && <0.19
     , pythia
     , text
     , time
+    , toml-reader           >=0.2.0.0  && <0.3
 
-  hs-source-dirs:   exe-internal
+  hs-source-dirs:   runner
   default-language: Haskell2010
 
 executable pythia
@@ -148,7 +160,9 @@ executable pythia
   main-is:            Main.hs
   build-depends:
     , base
-    , pythia-exe-internal
+    , effects-exceptions
+    , pythia
+    , pythia-runner
 
   hs-source-dirs:     app
   ghc-options:        -threaded -with-rtsopts=-N
@@ -175,7 +189,7 @@ test-suite unit
     , pythia
     , refined
     , si-bytes
-    , tasty        >=1.1.0.3 && <1.5
+    , tasty        >=1.1.0.3 && <1.6
     , tasty-hunit  >=0.9     && <0.11
     , text
 
@@ -187,6 +201,7 @@ test-suite Integration
   type:             exitcode-stdio-1.0
   main-is:          Main.hs
   other-modules:
+    Integration.Configuration
     Integration.Prelude
     Integration.Pythia.Services.Battery
     Integration.Pythia.Services.GlobalIp
@@ -203,9 +218,10 @@ test-suite Integration
     , effects-optparse
     , effects-time
     , effects-typed-process
+    , mtl                    >=2.2.2   && <2.4
     , pythia
-    , pythia-exe-internal
-    , tasty                  >=1.1.0.3 && <1.5
+    , pythia-runner
+    , tasty
     , tasty-hunit            >=0.9     && <0.11
     , text
     , time                   >=1.9.3   && <1.14
@@ -229,33 +245,13 @@ test-suite functional
 
   build-depends:
     , base
-    , env-guard            ^>=0.2
+    , env-guard      ^>=0.2
     , megaparsec
     , pythia
-    , pythia-exe-internal
+    , pythia-runner
     , tasty
     , tasty-hunit
     , text
 
   hs-source-dirs:   test/functional
   default-language: Haskell2010
-
--- NOTE: Doctest disabled as it depends on GHC as a library, which is
--- apparently a problem if we want to use any boot libraries with a different
--- version than GHC's dependencies. Since we want to use the new AFP (requires
--- filepath > 1.4.100), this conflicts with using GHC.
---
--- Rather than give up on older GHCs with filepath < 1.4.100, we give up on
--- doctest for now.
-
--- test-suite doctest
---   import:           common-exts
---   type:             exitcode-stdio-1.0
---   main-is:          Main.hs
---   build-depends:
---     , base
---     , doctest    >=0.16.3 && <0.22
---     , env-guard
-
---   hs-source-dirs:   test/doctest
---   default-language: Haskell2010

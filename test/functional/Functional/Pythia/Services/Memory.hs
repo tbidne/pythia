@@ -79,13 +79,13 @@ testsPercentage =
 
 runsPercentage :: TestTree
 runsPercentage = testCase "full" $ do
-  let argList = ["memory", "--percentage", "--app", "free"]
+  let argList = ["memory", "--units", "percentage", "--app", "free"]
   result <- capturePythia argList
   parseTest result parsePercentageFull
 
 runsPercentageField :: String -> TestTree
 runsPercentageField field = testCase field $ do
-  let argList = ["memory", "--percentage", "--field", field, "--app", "free"]
+  let argList = ["memory", "--units", "percentage", "--field", field, "--app", "free"]
   result <- capturePythia argList
   parseTest result parsePercentage
 

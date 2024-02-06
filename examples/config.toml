@@ -1,0 +1,29 @@
+# Example config. Overridden by CLI args.
+
+[battery]
+app = "sysfs"
+field = "percentage"
+
+[global-ip]
+app = "curl"
+field = "ipv4"
+ipv4-src = ["http://whatismyip.akamai.com/", "http://myexternalip.com/raw"]
+ipv6-src = []
+
+[memory]
+app = "free"
+field = "used"
+units = "percentage"
+
+[net-conn]
+app = "ip"
+field = "ipv4"
+
+[net-if]
+app = "nmcli"
+field = "name"
+device = "my-wifi-dev"
+
+[time]
+dest = "utc"
+format = "%I:%m %P"

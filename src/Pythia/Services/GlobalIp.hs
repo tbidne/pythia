@@ -13,10 +13,6 @@ module Pythia.Services.GlobalIp
     IpAddress (..),
 
     -- ** Configuration
-    GlobalIpv4Config,
-    GlobalIpv6Config,
-    GlobalIpBothConfig,
-    GlobalIpConfig (..),
     GlobalIpApp (..),
     UrlSource (..),
   )
@@ -29,10 +25,6 @@ import Pythia.Internal.ShellApp qualified as ShellApp
 import Pythia.Prelude
 import Pythia.Services.GlobalIp.Types
   ( GlobalIpApp (GlobalIpAppCurl, GlobalIpAppDig),
-    GlobalIpBothConfig,
-    GlobalIpConfig (MkGlobalIpConfig, app, sources),
-    GlobalIpv4Config,
-    GlobalIpv6Config,
     UrlSource (MkUrlSource, unUrlSource),
   )
 import Pythia.Services.Types.Network
@@ -50,9 +42,11 @@ queryGlobalIp ::
   ( MonadCatch m,
     MonadTypedProcess m
   ) =>
-  GlobalIpBothConfig ->
+  GlobalIpApp ->
+  [UrlSource Ipv4] ->
+  [UrlSource Ipv6] ->
   m (IpAddress Ipv4, IpAddress Ipv6)
-queryGlobalIp = queryGlobalIp' #app #sources getBothIps
+queryGlobalIp app ipv4Srcs ipv6Srcs = getBothIps app (ipv4Srcs, ipv6Srcs)
 {-# INLINEABLE queryGlobalIp #-}
 
 -- | 'queryGlobalIp' restricted to IPv4 address only.
@@ -62,9 +56,10 @@ queryGlobalIpv4 ::
   ( MonadCatch m,
     MonadTypedProcess m
   ) =>
-  GlobalIpv4Config ->
+  GlobalIpApp ->
+  [UrlSource Ipv4] ->
   m (IpAddress Ipv4)
-queryGlobalIpv4 = queryGlobalIp' #app #sources getIpv4s
+queryGlobalIpv4 = getIpv4s
 {-# INLINEABLE queryGlobalIpv4 #-}
 
 -- | 'queryGlobalIp' restricted to IPv6 address only.
@@ -74,20 +69,11 @@ queryGlobalIpv6 ::
   ( MonadCatch m,
     MonadTypedProcess m
   ) =>
-  GlobalIpv6Config ->
+  GlobalIpApp ->
+  [UrlSource Ipv6] ->
   m (IpAddress Ipv6)
-queryGlobalIpv6 = queryGlobalIp' #app #sources getIpv6s
+queryGlobalIpv6 = getIpv6s
 {-# INLINEABLE queryGlobalIpv6 #-}
-
-queryGlobalIp' ::
-  Lens' config GlobalIpApp ->
-  Lens' config sources ->
-  (GlobalIpApp -> sources -> m result) ->
-  config ->
-  m result
-queryGlobalIp' appLens sourceLens getIpFn config =
-  getIpFn (config ^. appLens) (config ^. sourceLens)
-{-# INLINEABLE queryGlobalIp' #-}
 
 getBothIps ::
   ( MonadCatch m,

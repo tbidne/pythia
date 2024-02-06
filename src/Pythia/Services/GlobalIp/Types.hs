@@ -5,10 +5,6 @@
 -- @since 0.1
 module Pythia.Services.GlobalIp.Types
   ( -- * Configuration
-    GlobalIpv4Config,
-    GlobalIpv6Config,
-    GlobalIpBothConfig,
-    GlobalIpConfig (..),
     GlobalIpApp (..),
 
     -- ** Extra URL sources
@@ -21,7 +17,7 @@ module Pythia.Services.GlobalIp.Types
 where
 
 import Pythia.Prelude
-import Pythia.Services.Types.Network (IpType (Ipv4, Ipv6))
+import Pythia.Services.Types.Network (IpType)
 
 -- $setup
 -- >>> import Pythia.Prelude
@@ -124,68 +120,3 @@ instance
   where
   labelOptic = iso (\(MkUrlSource s) -> s) MkUrlSource
   {-# INLINE labelOptic #-}
-
--- | Complete configuration for querying global IP addresses.
---
--- @since 0.1
-type GlobalIpConfig :: Type -> Type
-data GlobalIpConfig a = MkGlobalIpConfig
-  { -- | Determines how we want to query.
-    --
-    -- @since 0.1
-    app :: GlobalIpApp,
-    -- | Extra lookup sources. This will be either a single @['UrlSource' a]@
-    -- or a pair @(['UrlSource' 'Ipv4'], ['UrlSource' 'Ipv6'])@, depending on
-    -- which address we want to retrieve.
-    --
-    -- @since 0.1
-    sources :: a
-  }
-  deriving stock
-    ( -- | @since 0.1
-      Eq,
-      -- | @since 0.1
-      Generic,
-      -- | @since 0.1
-      Show
-    )
-  deriving anyclass
-    ( -- | @since 0.1
-      NFData
-    )
-
--- | @since 0.1
-instance
-  (k ~ A_Lens, a ~ GlobalIpApp, b ~ GlobalIpApp) =>
-  LabelOptic "app" k (GlobalIpConfig s) (GlobalIpConfig s) a b
-  where
-  labelOptic = lensVL $ \f (MkGlobalIpConfig _app _sources) ->
-    fmap (`MkGlobalIpConfig` _sources) (f _app)
-  {-# INLINE labelOptic #-}
-
--- | @since 0.1
-instance
-  (k ~ A_Lens, a ~ s, b ~ s) =>
-  LabelOptic "sources" k (GlobalIpConfig s) (GlobalIpConfig s) a b
-  where
-  labelOptic = lensVL $ \f (MkGlobalIpConfig _app _sources) ->
-    fmap (MkGlobalIpConfig _app) (f _sources)
-  {-# INLINE labelOptic #-}
-
--- | Type alias for 'Ipv4' 'GlobalIpConfig'.
---
--- @since 0.1.0.0
-type GlobalIpv4Config :: Type
-type GlobalIpv4Config = GlobalIpConfig [UrlSource Ipv4]
-
--- | Type alias for 'Ipv6' 'GlobalIpConfig'.
---
--- @since 0.1.0.0
-type GlobalIpv6Config :: Type
-type GlobalIpv6Config = GlobalIpConfig [UrlSource Ipv6]
-
--- | Type alias for 'Ipv4' and 'Ipv6' 'GlobalIpConfig'.
---
--- @since 0.1.0.0
-type GlobalIpBothConfig :: Type
-type GlobalIpBothConfig = GlobalIpConfig ([UrlSource Ipv4], [UrlSource Ipv6])

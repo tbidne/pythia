@@ -1,3 +1,4 @@
+{-# LANGUAGE QuasiQuotes #-}
 {-# OPTIONS_GHC -Wno-missing-methods #-}
 
 module Integration.Pythia.Services.Time (tests) where
@@ -56,6 +57,8 @@ localTime = LocalTime (toEnum 59_000) midday
 
 instance MonadFileReader IntIO
 
-instance MonadPathReader IntIO
+instance MonadPathReader IntIO where
+  doesDirectoryExist _ = pure False
+  getXdgDirectory _ _ = pure [osp|test_xdg|]
 
 instance MonadTypedProcess IntIO

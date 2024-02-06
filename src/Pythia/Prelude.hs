@@ -42,6 +42,7 @@ import Control.Monad as X
     (=<<),
     (>=>),
   )
+import Control.Monad.Fail as X (MonadFail (fail))
 import Data.Bifunctor as X (Bifunctor (bimap, first, second))
 import Data.Bool as X (Bool (False, True), not, otherwise, (&&), (||))
 import Data.ByteString as X (ByteString)
@@ -111,26 +112,32 @@ import GHC.Show as X (Show (show))
 import Optics.Core as X
   ( A_Lens,
     A_Prism,
+    AffineTraversal',
     An_Iso,
     Iso,
     Iso',
     LabelOptic (labelOptic),
     Lens',
+    Optic,
     Prism',
     iso,
     lensVL,
     over,
+    preview,
     prism,
     re,
     view,
     (%),
+    (%?),
     (%~),
     (.~),
     (^.),
     (^?),
     _1,
     _2,
+    _Just,
     _Left,
+    _Nothing,
     _Right,
   )
 import System.IO as X (FilePath, IO)

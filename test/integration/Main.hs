@@ -6,6 +6,7 @@
 -- @since 0.1
 module Main (main) where
 
+import Integration.Configuration qualified as Configuration
 import Integration.Prelude
 import Integration.Pythia.Services.Battery qualified as Battery
 import Integration.Pythia.Services.GlobalIp qualified as GlobalIp
@@ -23,7 +24,8 @@ main = do
   Tasty.defaultMain
     $ Tasty.testGroup
       "Integration tests"
-      [ Battery.tests,
+      [ Configuration.tests,
+        Battery.tests,
         GlobalIp.tests,
         Memory.tests,
         NetConnection.tests,
