@@ -11,7 +11,12 @@ import Control.Monad.IO.Class (MonadIO (liftIO))
 import Data.Either as X (isLeft)
 import Data.IORef
 import Data.Text qualified as T
-import Effects.Exception (MonadGlobalException)
+import Effects.FileSystem.PathReader as X
+  ( MonadPathReader
+      ( doesDirectoryExist,
+        getXdgDirectory
+      ),
+  )
 import Effects.Optparse (MonadOptparse)
 import Effects.System.Environment (MonadEnv (withArgs))
 import Pythia.Prelude as X
@@ -28,11 +33,9 @@ runIntegrationIO ::
   ( MonadCatch m,
     MonadEnv m,
     MonadFileReader m,
-    MonadGlobalException m,
     MonadIO m,
     MonadPathReader m,
     MonadOptparse m,
-    MonadTerminal m,
     MonadTime m,
     MonadTypedProcess m
   ) =>
@@ -44,8 +47,10 @@ runIntegrationIO toIO args = do
   let handler :: Text -> m ()
       handler t = liftIO $ modifyIORef' ref (<> t)
 
-  _ <- toIO $ withArgs args (Runner.runPythiaHandler handler)
+  _ <- toIO $ withArgs args' (Runner.runPythiaHandler handler)
   T.lines <$> readIORef ref
+  where
+    args' = ["--no-config"] <> args
 
 assertOutput :: [Text] -> [Text] -> IO ()
 assertOutput [] [] = pure ()

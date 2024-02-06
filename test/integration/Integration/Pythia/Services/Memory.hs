@@ -30,7 +30,7 @@ testMemoryDefault = testCase "default" $ do
   results <- runIntIO ["memory", "-a", "free"]
   assertSingleOutput "10.95G / 16.56G" results
 
-  resultsp <- runIntIO ["memory", "-a", "free", "-p"]
+  resultsp <- runIntIO ["memory", "-a", "free", "--units", "percentage"]
   assertSingleOutput "66 / 100%" resultsp
 
 testMemoryTotal :: TestTree
@@ -38,7 +38,7 @@ testMemoryTotal = testCase "total" $ do
   results <- runIntIO ["memory", "-a", "free", "-f", "total"]
   assertSingleOutput "16.56G" results
 
-  resultsp <- runIntIO ["memory", "-a", "free", "-f", "total", "-p"]
+  resultsp <- runIntIO ["memory", "-a", "free", "-f", "total", "--units", "percentage"]
   assertSingleOutput "100%" resultsp
 
 testMemoryUsed :: TestTree
@@ -46,7 +46,7 @@ testMemoryUsed = testCase "used" $ do
   results <- runIntIO ["memory", "-a", "free", "-f", "used"]
   assertSingleOutput "10.95G" results
 
-  resultsp <- runIntIO ["memory", "-a", "free", "-f", "used", "-p"]
+  resultsp <- runIntIO ["memory", "-a", "free", "-f", "used", "--units", "percentage"]
   assertSingleOutput "66%" resultsp
 
 testMemoryFree :: TestTree
@@ -54,7 +54,7 @@ testMemoryFree = testCase "free" $ do
   results <- runIntIO ["memory", "-a", "free", "-f", "free"]
   assertSingleOutput "5.61G" results
 
-  resultsp <- runIntIO ["memory", "-a", "free", "-f", "free", "-p"]
+  resultsp <- runIntIO ["memory", "-a", "free", "-f", "free", "--units", "percentage"]
   assertSingleOutput "34%" resultsp
 
 runIntIO :: [String] -> IO [Text]
@@ -79,6 +79,9 @@ newtype IntIO a = MkIntIO {unIntIO :: IO a}
 instance MonadFileReader IntIO
 
 instance MonadPathReader IntIO where
+  doesDirectoryExist _ = pure False
+  getXdgDirectory _ _ = pure [osp|test_xdg|]
+
   findExecutable p
     | p == [osp|free|] = pure $ Just [osp|exe|]
     | otherwise = pure Nothing

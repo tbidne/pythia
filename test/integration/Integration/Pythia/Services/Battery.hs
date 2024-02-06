@@ -9,8 +9,7 @@ import Effects.Exception (MonadGlobalException)
 import Effects.FileSystem.FileReader (MonadFileReader (readBinaryFile))
 import Effects.FileSystem.PathReader
   ( MonadPathReader
-      ( doesDirectoryExist,
-        doesFileExist,
+      ( doesFileExist,
         findExecutable
       ),
   )
@@ -84,6 +83,8 @@ instance MonadFileReader IntIO where
     | otherwise = error $ "Tried to read unexpected file: " <> show p
 
 instance MonadPathReader IntIO where
+  getXdgDirectory _ _ = pure [osp|test_xdg|]
+
   findExecutable p
     | p == [osp|acpi|] = pure $ Just [osp|exe|]
     | p == [osp|upower|] = pure $ Just [osp|exe|]

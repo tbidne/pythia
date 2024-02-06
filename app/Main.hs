@@ -3,15 +3,35 @@
 -- @since 0.1
 module Main (main) where
 
-import Control.Exception (displayException)
-import GHC.Conc.Sync (setUncaughtExceptionHandler)
+import Data.Proxy (Proxy (Proxy))
+import Effects.Exception
+  ( ExceptionProxy (MkExceptionProxy),
+    setUncaughtExceptionDisplayCSNoMatch,
+  )
+import Pythia.Control.Exception
+  ( CommandException,
+    NoActionsRunException,
+    NotSupportedException,
+    SomeExceptions,
+  )
 import Pythia.Runner (runPythia)
+import Pythia.Runner.Toml (ConfigException)
 
 -- | Runs the executable.
 --
 -- @since 0.1
 main :: IO ()
 main = do
-  setUncaughtExceptionHandler $ \ex -> putStrLn ("\n" <> displayException ex)
+  setUncaughtExceptionDisplayCSNoMatch
+    noCallstacks
+    (putStrLn . ("\n" <>))
 
   runPythia
+  where
+    noCallstacks =
+      [ MkExceptionProxy $ Proxy @ConfigException,
+        MkExceptionProxy $ Proxy @CommandException,
+        MkExceptionProxy $ Proxy @NoActionsRunException,
+        MkExceptionProxy $ Proxy @NotSupportedException,
+        MkExceptionProxy $ Proxy @SomeExceptions
+      ]

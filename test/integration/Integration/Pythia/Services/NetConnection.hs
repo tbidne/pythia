@@ -92,6 +92,9 @@ newtype IntIO a = MkIntIO {unIntIO :: IO a}
 instance MonadFileReader IntIO
 
 instance MonadPathReader IntIO where
+  doesDirectoryExist _ = pure False
+  getXdgDirectory _ _ = pure [osp|test_xdg|]
+
   findExecutable p
     | p == [osp|ip|] = pure $ Just [osp|exe|]
     | p == [osp|nmcli|] = pure $ Just [osp|exe|]

@@ -3,8 +3,8 @@ cradle:
     - path: "./src"
       component: "lib:pythia"
 
-    - path: "./exe-internal"
-      component: "pythia:lib:pythia-exe-internal"
+    - path: "./runner"
+      component: "pythia:lib:pythia-runner"
 
     - path: "./app/Main.hs"
       component: "pythia:exe:pythia"
