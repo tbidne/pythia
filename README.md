@@ -42,14 +42,14 @@ This service is for reading battery information.
 ### Usage
 
 ```
-Usage: pythia battery [-a|--app (acpi | sysfs | upower])]
+Usage: pythia battery [-a|--app (acpi | sysfs | upower)]
                       [-f|--field (default | percentage | status)]
 
   Queries the battery state.
 
 
 Available options:
-  -a,--app (acpi | sysfs | upower])
+  -a,--app (acpi | sysfs | upower)
                            Specifies the app to use.
 
   -f,--field (default | percentage | status)

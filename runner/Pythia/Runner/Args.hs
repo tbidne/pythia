@@ -205,7 +205,7 @@ parseBattery = do
         (Battery.parseBatteryApp OA.str)
         ( OA.long "app"
             <> OA.short 'a'
-            <> OA.metavar "(acpi | sysfs | upower])"
+            <> OA.metavar "(acpi | sysfs | upower)"
             <> mkHelp helpTxt
         )
   field <- parseBatteryField
