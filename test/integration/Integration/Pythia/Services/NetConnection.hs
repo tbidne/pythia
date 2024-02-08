@@ -34,39 +34,37 @@ testNetConnDefault = testCase "default" $ do
 testNetConnName :: TestTree
 testNetConnName = testCase "name" $ do
   ipResults <- runIntIO ["net-conn", "-a", "ip", "-f", "name"]
-  assertOutput expectedIp ipResults
+  assertSingleOutput expectedIp ipResults
 
   nmcliResults <- runIntIO ["net-conn", "-a", "nmcli", "-f", "name"]
-  assertOutput expectedNmcli nmcliResults
+  assertSingleOutput expectedNmcli nmcliResults
   where
-    expectedIp = ["<nothing>"]
-    expectedNmcli = ["SomeSSID"]
+    expectedIp = "<nothing>"
+    expectedNmcli = "SomeSSID"
 
 testNetConnIpv4 :: TestTree
 testNetConnIpv4 = testCase "ipv4" $ do
   ipResults <- runIntIO ["net-conn", "-a", "ip", "-f", "ipv4"]
-  assertOutput expectedIp ipResults
+  assertSingleOutput expectedIp ipResults
 
   nmcliResults <- runIntIO ["net-conn", "-a", "nmcli", "-f", "ipv4"]
-  assertOutput expectedNmcli nmcliResults
+  assertSingleOutput expectedNmcli nmcliResults
   where
-    expectedIp = ["192.168.1.2"]
-    expectedNmcli = ["192.168.1.2"]
+    expectedIp = "192.168.1.2"
+    expectedNmcli = "192.168.1.2"
 
 testNetConnIpv6 :: TestTree
 testNetConnIpv6 = testCase "Ipv6" $ do
   ipResults <- runIntIO ["net-conn", "-a", "ip", "-f", "ipv6"]
-  assertOutput expectedIp ipResults
+  assertSingleOutput expectedIp ipResults
 
   nmcliResults <- runIntIO ["net-conn", "-a", "nmcli", "-f", "ipv6"]
-  assertOutput expectedNmcli nmcliResults
+  assertSingleOutput expectedNmcli nmcliResults
   where
     expectedIp =
-      [ "958a:d95d:75c8:2e2e:f802:21dd:4acc:908d, 958a::625a:a752:f875:329e:540b:27c6"
-      ]
+      "958a:d95d:75c8:2e2e:f802:21dd:4acc:908d, 958a::625a:a752:f875:329e:540b:27c6"
     expectedNmcli =
-      [ "958a:d95d:75c8:2e2e:f802:21dd:4acc:908d, 958a::625a:a752:f875:329e:540b:27c6"
-      ]
+      "958a:d95d:75c8:2e2e:f802:21dd:4acc:908d, 958a::625a:a752:f875:329e:540b:27c6"
 
 runIntIO :: [String] -> IO [Text]
 runIntIO = runIntegrationIO unIntIO

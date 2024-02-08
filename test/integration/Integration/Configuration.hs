@@ -282,7 +282,7 @@ testMisc =
     ]
 
 testXdg :: TestTree
-testXdg = testCase "" $ do
+testXdg = testCase "Reads Xdg config" $ do
   result <- runConfigEnvIO (withArgs args Runner.getFinalConfig) xdg
   expected @=? result
   where
