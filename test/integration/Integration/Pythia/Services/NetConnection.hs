@@ -3,9 +3,7 @@
 
 module Integration.Pythia.Services.NetConnection (tests) where
 
-import Control.Monad.IO.Class (MonadIO)
 import Data.List qualified as L
-import Effects.Exception (MonadGlobalException)
 import Effects.FileSystem.PathReader (MonadPathReader (findExecutable))
 import Effects.Optparse (MonadOptparse)
 import Effects.Process.Typed
@@ -73,21 +71,20 @@ testNetConnIpv6 = testCase "Ipv6" $ do
 runIntIO :: [String] -> IO [Text]
 runIntIO = runIntegrationIO unIntIO
 
-newtype IntIO a = MkIntIO {unIntIO :: IO a}
+newtype IntIO a = MkIntIO {unIntIO :: ReaderT (IORef Text) IO a}
   deriving
     ( Applicative,
       Functor,
       Monad,
       MonadCatch,
       MonadEnv,
-      MonadGlobalException,
       MonadIO,
       MonadOptparse,
-      MonadTerminal,
       MonadTime,
       MonadThrow
     )
-    via IO
+    via ReaderT (IORef Text) IO
+  deriving (MonadTerminal) via BaseIO
 
 instance MonadFileReader IntIO
 

@@ -3,10 +3,8 @@
 
 module Integration.Pythia.Services.Time (tests) where
 
-import Control.Monad.IO.Class (MonadIO)
 import Data.Time (LocalTime (LocalTime), ZonedTime (ZonedTime))
 import Data.Time.LocalTime (midday, utc)
-import Effects.Exception (MonadGlobalException)
 import Effects.Optparse (MonadOptparse)
 import Effects.System.Environment (MonadEnv)
 import Effects.Time (MonadTime (getSystemZonedTime), getMonotonicTime)
@@ -33,20 +31,19 @@ testTimeDest = testCase "dest" $ do
 runIntIO :: [String] -> IO [Text]
 runIntIO = runIntegrationIO unIntIO
 
-newtype IntIO a = MkIntIO {unIntIO :: IO a}
+newtype IntIO a = MkIntIO {unIntIO :: ReaderT (IORef Text) IO a}
   deriving
     ( Applicative,
       Functor,
       Monad,
       MonadCatch,
       MonadEnv,
-      MonadGlobalException,
       MonadIO,
       MonadOptparse,
-      MonadTerminal,
       MonadThrow
     )
-    via IO
+    via ReaderT (IORef Text) IO
+  deriving (MonadTerminal) via BaseIO
 
 instance MonadTime IntIO where
   getSystemZonedTime = pure $ ZonedTime localTime utc

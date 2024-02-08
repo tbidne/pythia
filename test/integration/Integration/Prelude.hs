@@ -1,5 +1,8 @@
+{-# OPTIONS_GHC -Wno-missing-methods #-}
+
 module Integration.Prelude
   ( module X,
+    BaseIO (..),
     processConfigToCmd,
     runIntegrationIO,
     assertOutput,
@@ -8,8 +11,13 @@ module Integration.Prelude
 where
 
 import Control.Monad.IO.Class (MonadIO (liftIO))
+import Control.Monad.Reader as X
+  ( MonadIO (liftIO),
+    MonadReader (ask),
+    ReaderT (runReaderT),
+  )
 import Data.Either as X (isLeft)
-import Data.IORef
+import Data.IORef as X (IORef, modifyIORef', newIORef, readIORef)
 import Data.Text qualified as T
 import Effects.FileSystem.PathReader as X
   ( MonadPathReader
@@ -33,21 +41,18 @@ runIntegrationIO ::
   ( MonadCatch m,
     MonadEnv m,
     MonadFileReader m,
-    MonadIO m,
     MonadPathReader m,
     MonadOptparse m,
+    MonadTerminal m,
     MonadTime m,
     MonadTypedProcess m
   ) =>
-  (forall a. m a -> IO a) ->
+  (forall a. m a -> ReaderT (IORef Text) IO a) ->
   [String] ->
   IO [Text]
-runIntegrationIO toIO args = do
+runIntegrationIO toReader args = do
   ref <- newIORef ""
-  let handler :: Text -> m ()
-      handler t = liftIO $ modifyIORef' ref (<> t)
-
-  _ <- toIO $ withArgs args' (Runner.runPythiaHandler handler)
+  _ <- runReaderT (toReader (withArgs args' Runner.runPythia)) ref
   T.lines <$> readIORef ref
   where
     args' = ["--no-config"] <> args
@@ -62,3 +67,16 @@ assertSingleOutput :: Text -> [Text] -> IO ()
 assertSingleOutput _ [] = assertFailure "Wanted single result, but found empty: "
 assertSingleOutput _ r@(_ : _ : _) = assertFailure $ "Wanted single result, found found > 1: " <> show r
 assertSingleOutput e [r] = e @=? r
+
+newtype BaseIO a = MkBaseIO (ReaderT (IORef Text) IO a)
+  deriving
+    ( Applicative,
+      Functor,
+      Monad,
+      MonadIO
+    )
+    via (ReaderT (IORef Text) IO)
+  deriving (MonadReader (IORef Text)) via (ReaderT (IORef Text) IO)
+
+instance MonadTerminal BaseIO where
+  putStrLn s = ask >>= \ref -> liftIO $ modifyIORef' ref (T.pack s <>)

@@ -120,16 +120,16 @@ fieldKey = "field"
 -- | @since 0.1
 handleNetConn ::
   ( MonadPathReader m,
+    MonadTerminal m,
     MonadThrow m,
     MonadTypedProcess m
   ) =>
-  (Text -> m a) ->
   NetInterfaceApp ->
   NetConnField ->
-  m a
-handleNetConn handler cfg field = do
+  m ()
+handleNetConn cfg field = do
   result <- Pythia.queryNetInterfaces cfg
-  handler $ case Pythia.findUp result of
+  putTextLn $ case Pythia.findUp result of
     Nothing -> "<No live connection found>"
     Just conn -> toField field conn
   where

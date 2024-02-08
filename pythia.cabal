@@ -245,8 +245,10 @@ test-suite functional
 
   build-depends:
     , base
-    , env-guard      ^>=0.2
+    , effects-optparse
+    , env-guard         ^>=0.2
     , megaparsec
+    , mtl
     , pythia
     , pythia-runner
     , tasty

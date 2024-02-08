@@ -119,15 +119,15 @@ handleBattery ::
   ( MonadCatch m,
     MonadFileReader m,
     MonadPathReader m,
+    MonadTerminal m,
     MonadTypedProcess m
   ) =>
-  (Text -> m a) ->
   BatteryApp ->
   BatteryField ->
-  m a
-handleBattery handler cfg field =
+  m ()
+handleBattery cfg field =
   queryBattery cfg
-    >>= handler
+    >>= putTextLn
     . toField field
   where
     toField BatteryFieldDefault = display

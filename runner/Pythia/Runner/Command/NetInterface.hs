@@ -181,19 +181,19 @@ deviceKey = "device"
 -- | @since 0.1
 handleNetInterface ::
   ( MonadPathReader m,
+    MonadTerminal m,
     MonadThrow m,
     MonadTypedProcess m
   ) =>
-  (Text -> m a) ->
   NetInterfaceApp ->
   NetInterfaceDevice ->
   NetInterfaceField ->
-  m a
-handleNetInterface handler cfg mdevice field = do
+  m ()
+handleNetInterface cfg mdevice field = do
   resultTxt <- case mdevice of
     NetInterfaceDeviceNone -> interfacesToText <$> Pythia.queryNetInterfaces cfg
     NetInterfaceDevice device -> interfaceToText <$> Pythia.queryNetInterface device cfg
-  handler resultTxt
+  putTextLn resultTxt
   where
     interfacesToText :: NetInterfaces -> Text
     interfacesToText =

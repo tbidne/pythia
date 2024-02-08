@@ -74,29 +74,27 @@ parseGlobalIpField =
 -- | @since 0.1
 handleGlobalIp ::
   ( MonadCatch m,
+    MonadTerminal m,
     MonadTypedProcess m
   ) =>
-  (Text -> m a) ->
   GlobalIpApp ->
   These [UrlSource Ipv4] [UrlSource Ipv6] ->
-  m a
-handleGlobalIp handler app sources = do
+  m ()
+handleGlobalIp app sources = do
   case sources of
     This ipv4Sources ->
-      Pythia.queryGlobalIpv4 app ipv4Sources
-        >>= prettyPrint handler
+      Pythia.queryGlobalIpv4 app ipv4Sources >>= prettyPrint
     That ipv6Sources ->
-      Pythia.queryGlobalIpv6 app ipv6Sources
-        >>= prettyPrint handler
+      Pythia.queryGlobalIpv6 app ipv6Sources >>= prettyPrint
     These ipv4Sources ipv6Sources -> do
       (ipv4Address, ipv6Address) <-
         Pythia.queryGlobalIp app ipv4Sources ipv6Sources
 
-      _ <- prettyPrint handler ipv4Address
-      prettyPrint handler ipv6Address
+      prettyPrint ipv4Address
+      prettyPrint ipv6Address
 
-prettyPrint :: (Display a) => (Text -> m b) -> a -> m b
-prettyPrint handler = handler . display
+prettyPrint :: (Display a, MonadTerminal m) => a -> m ()
+prettyPrint = putTextLn . display
 
 -- | @since 0.1
 data GlobalIpToml = MkGlobalIpToml

@@ -6,7 +6,6 @@
 module Pythia.Runner
   ( -- * Runners
     runPythia,
-    runPythiaHandler,
 
     -- * Helpers
     getFinalConfig,
@@ -53,29 +52,14 @@ runPythia ::
     MonadTypedProcess m
   ) =>
   m ()
-runPythia = runPythiaHandler putTextLn
-
--- | Reads cli args and applies the parameter handler.
---
--- @since 0.1
-runPythiaHandler ::
-  ( MonadCatch m,
-    MonadFileReader m,
-    MonadPathReader m,
-    MonadOptparse m,
-    MonadTime m,
-    MonadTypedProcess m
-  ) =>
-  (Text -> m a) ->
-  m a
-runPythiaHandler handler =
+runPythia =
   getFinalConfig >>= \case
-    BatteryCmd app field -> Battery.handleBattery handler app field
-    GlobalIpCmd app cfg -> GlobalIp.handleGlobalIp handler app cfg
-    MemoryCmd app field format -> Memory.handleMemory handler app field format
-    NetInterfaceCmd app device field -> NetInterface.handleNetInterface handler app device field
-    NetConnCmd app field -> NetConn.handleNetConn handler app field
-    TimeCmd dest format -> Time.handleTime handler format dest
+    BatteryCmd app field -> Battery.handleBattery app field
+    GlobalIpCmd app cfg -> GlobalIp.handleGlobalIp app cfg
+    MemoryCmd app field format -> Memory.handleMemory app field format
+    NetInterfaceCmd app device field -> NetInterface.handleNetInterface app device field
+    NetConnCmd app field -> NetConn.handleNetConn app field
+    TimeCmd dest format -> Time.handleTime format dest
 
 -- | Retrieves the final configured command based on the CLI args and
 -- possible TOML file.

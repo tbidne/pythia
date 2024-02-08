@@ -3,9 +3,7 @@
 
 module Integration.Pythia.Services.Battery (tests) where
 
-import Control.Monad.IO.Class (MonadIO)
 import Data.List qualified as L
-import Effects.Exception (MonadGlobalException)
 import Effects.FileSystem.FileReader (MonadFileReader (readBinaryFile))
 import Effects.FileSystem.PathReader
   ( MonadPathReader
@@ -60,21 +58,20 @@ testBatteryStatus = testCase "status" $ do
 runIntIO :: [String] -> IO [Text]
 runIntIO = runIntegrationIO unIntIO
 
-newtype IntIO a = MkIntIO {unIntIO :: IO a}
+newtype IntIO a = MkIntIO {unIntIO :: ReaderT (IORef Text) IO a}
   deriving
     ( Applicative,
       Functor,
       Monad,
       MonadCatch,
       MonadEnv,
-      MonadGlobalException,
       MonadIO,
       MonadOptparse,
-      MonadTerminal,
       MonadTime,
       MonadThrow
     )
-    via IO
+    via (ReaderT (IORef Text) IO)
+  deriving (MonadTerminal) via BaseIO
 
 instance MonadFileReader IntIO where
   readBinaryFile p
