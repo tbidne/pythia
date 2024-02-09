@@ -34,7 +34,6 @@ import TOML
     Decoder,
     getArrayOf,
     getFieldOptWith,
-    getFieldWith,
   )
 
 -- | @since 0.1
@@ -172,8 +171,16 @@ instance DecodeTOML GlobalIpToml where
     MkGlobalIpToml
       <$> getFieldOptWith (parseGlobalIpApp tomlDecoder) "app"
       <*> getFieldOptWith tomlDecoder "field"
-      <*> getFieldWith decodeSources "ipv4-src"
-      <*> getFieldWith decodeSources "ipv6-src"
+      -- We need to use 'getFieldOptWith' so that these keys are optional,
+      -- but we do not need Maybe in the type. That is, we can just use
+      -- [UrlSource a] rather than Maybe [UrlSource a], as there is currently
+      -- no need to distinguish Nothing vs. []. Thus we use getFieldOptWith
+      -- and map Nothing to the empty list.
+      --
+      -- Previously we had getFieldOpt which caused a bug where the keys were
+      -- mandatory.
+      <*> decodeSourcesOptional "ipv4-src"
+      <*> decodeSourcesOptional "ipv6-src"
 
 -- | @since 0.1
 fieldKey :: (IsString s) => s
@@ -186,6 +193,9 @@ ipv4SrcKey = "ipv4-src"
 -- | @since 0.1
 ipv6SrcKey :: (IsString s) => s
 ipv6SrcKey = "ipv6-src"
+
+decodeSourcesOptional :: Text -> Decoder [UrlSource a]
+decodeSourcesOptional key = fromMaybe [] <$> getFieldOptWith decodeSources key
 
 decodeSources :: Decoder [UrlSource a]
 decodeSources = getArrayOf decodeSource

@@ -278,7 +278,8 @@ testMisc :: TestTree
 testMisc =
   testGroup
     "Miscellaneous"
-    [ testXdg
+    [ testXdg,
+      testGlobalIpFieldsOptional
     ]
 
 testXdg :: TestTree
@@ -289,6 +290,16 @@ testXdg = testCase "Reads Xdg config" $ do
     xdg = [osp|test|] </> [osp|integration|]
     args = ["battery"]
     expected = BatteryCmd BatteryAppSysFs BatteryFieldDefault
+
+-- This test is for a bug where source keys were accidentally mandatory.
+testGlobalIpFieldsOptional :: TestTree
+testGlobalIpFieldsOptional = testCase "Global IP fields optional" $ do
+  result <- runConfigEnvIO (withArgs args Runner.getFinalConfig) xdg
+  expected @=? result
+  where
+    xdg = [osp|test|] </> [osp|integration|]
+    args = ["global-ip"]
+    expected = GlobalIpCmd GlobalIpAppDig (This [])
 
 type ConfigIO = ConfigEnvIO ()
 

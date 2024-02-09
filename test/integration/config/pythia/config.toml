@@ -1,2 +1,5 @@
 [battery]
 app = "sysfs"
+
+[global-ip]
+app = "dig"
