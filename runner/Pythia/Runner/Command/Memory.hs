@@ -26,6 +26,7 @@ where
 import Data.Text qualified as T
 import Pythia (MemoryApp (MemoryAppFree), SystemMemory)
 import Pythia qualified
+import Pythia.Data.Percentage (_MkPercentage)
 import Pythia.Prelude
 import Pythia.Runner.Utils qualified as Utils
 import Pythia.Services.Memory qualified as Mem
@@ -192,7 +193,7 @@ handleMemory cfg field format =
       (<> " / 100%")
         . T.pack
         . show
-        . view #unPercentage
+        . view _MkPercentage
         . Mem.percentageUsed
     toField MemoryUnitsPercentage MemoryFieldTotal = const "100%"
     toField MemoryUnitsPercentage MemoryFieldUsed = display . Mem.percentageUsed

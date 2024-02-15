@@ -1,4 +1,3 @@
-{-# LANGUAGE UndecidableInstances #-}
 {-# LANGUAGE ViewPatterns #-}
 
 -- | Internal module for 'Percentage'.
@@ -12,7 +11,6 @@ where
 
 import Language.Haskell.TH.Syntax (Lift)
 import Numeric.Data.Interval (Interval (MkInterval), IntervalBound (Closed))
-import Optics.Getter (A_Getter, to)
 import Pythia.Prelude
 
 -- | Represents a percentage.
@@ -36,14 +34,6 @@ newtype Percentage = InternalPercentage (Interval (Closed 0) (Closed 100) Word8)
     ( -- | @since 0.1
       NFData
     )
-
--- | @since 0.1
-instance
-  (k ~ A_Getter, a ~ Word8, b ~ Word8) =>
-  LabelOptic "unPercentage" k Percentage Percentage a b
-  where
-  labelOptic = to unPercentage
-  {-# INLINE labelOptic #-}
 
 -- | Pattern synonym for Percentage.
 --
