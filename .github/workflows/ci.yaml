@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+      - ghc981
 
   pull_request:
     branches:
@@ -20,6 +21,7 @@ jobs:
           - "9.2.8"
           - "9.4.7"
           - "9.6.3"
+          - "9.8.1"
         os:
           - "macos-latest"
           - "ubuntu-latest"
