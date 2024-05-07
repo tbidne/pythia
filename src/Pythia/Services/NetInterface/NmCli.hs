@@ -24,7 +24,7 @@ import Pythia.Prelude
 import Pythia.Services.NetInterface.Types
   ( NetInterface (MkNetInterface, device, ipv4s, ipv6s, name, ntype, state),
     NetInterfaceState (NetStateDown, NetStateUnknown, NetStateUp),
-    NetInterfaceType (Ethernet, Loopback, Tun, Wifi, Wifi_P2P),
+    NetInterfaceType (Bridge, Ethernet, Loopback, Tun, Unknown, Wifi, Wifi_P2P),
     NetInterfaces (MkNetInterfaces),
   )
 import Pythia.Services.Types.Network
@@ -152,17 +152,21 @@ parseNetInterfaceType = do
       <|> MP.try wifi
       <|> MP.try ethernet
       <|> MP.try loopback
+      <|> MP.try bridge
       <|> MP.try tun
+      <|> MP.try unknown
       <|> MP.fancyFailure (Set.fromList [ErrorFail "Unknown type"])
       <?> "type"
   MPC.eol
   pure type'
   where
-    wifi = MPC.string "wifi" $> Wifi
-    wifiP2p = MPC.string "wifi-p2p" $> Wifi_P2P
+    bridge = MPC.string "bridge" $> Bridge
     ethernet = MPC.string "ethernet" $> Ethernet
     loopback = MPC.string "loopback" $> Loopback
     tun = MPC.string "tun" $> Tun
+    unknown = Unknown <$> MP.takeWhileP (Just "type") (/= '\n')
+    wifi = MPC.string "wifi" $> Wifi
+    wifiP2p = MPC.string "wifi-p2p" $> Wifi_P2P
 {-# INLINEABLE parseNetInterfaceType #-}
 
 parseHwaddr :: MParser ()

@@ -50,7 +50,9 @@ parseAll = testCase "Parses all interfaces" $ do
           wifiP2p,
           ethernet,
           loopback,
-          vpn
+          vpn,
+          docker,
+          unknown
         ]
 
 prettyInterfaces :: [NetInterface] -> String
@@ -97,6 +99,16 @@ loopback =
     (MkIpAddresses [unsafeIpAddress "127.0.0.1"])
     (MkIpAddresses [unsafeIpAddress "::1"])
 
+docker :: NetInterface
+docker =
+  MkNetInterface
+    "docker0"
+    (Just Bridge)
+    (NetStateUnknown "(connected (externally))")
+    (Just "docker0")
+    (MkIpAddresses [unsafeIpAddress "170.15.0.1"])
+    mempty
+
 vpn :: NetInterface
 vpn =
   MkNetInterface
@@ -106,6 +118,16 @@ vpn =
     Nothing
     mempty
     (MkIpAddresses [unsafeIpAddress "fe80::a63f:791a:3eaa:9d86"])
+
+unknown :: NetInterface
+unknown =
+  MkNetInterface
+    "some_device"
+    (Just $ Unknown "foo")
+    (NetStateUnknown "bar")
+    (Just "meh")
+    mempty
+    mempty
 
 netinfo :: Text
 netinfo =
@@ -171,5 +193,25 @@ netinfo =
       "IP4.GATEWAY:",
       "IP6.ADDRESS[1]:fe80::a63f:791a:3eaa:9d86/64",
       "IP6.GATEWAY:",
-      "IP6.ROUTE[1]:dst = fe80::/64, nh = ::, mt = 256"
+      "IP6.ROUTE[1]:dst = fe80::/64, nh = ::, mt = 256",
+      "",
+      "GENERAL.DEVICE:docker0",
+      "GENERAL.TYPE:bridge",
+      "GENERAL.HWADDR:02:42:C3:F8:D5:49",
+      "GENERAL.MTU:1500",
+      "GENERAL.STATE:100 (connected (externally))",
+      "GENERAL.CONNECTION:docker0",
+      "GENERAL.CON-PATH:/org/freedesktop/NetworkManager/ActiveConnection/3",
+      "IP4.ADDRESS[1]:170.15.0.1/16",
+      "IP4.GATEWAY:",
+      "IP4.ROUTE[1]:dst = 170.15.0.0/16, nh = 0.0.0.0, mt = 0",
+      "IP6.GATEWAY:",
+      "",
+      "GENERAL.DEVICE:some_device",
+      "GENERAL.TYPE:foo",
+      "GENERAL.HWADDR:",
+      "GENERAL.MTU:1500",
+      "GENERAL.STATE:100 bar",
+      "GENERAL.CONNECTION:meh",
+      "GENERAL.CON-PATH:"
     ]

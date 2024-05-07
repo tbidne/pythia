@@ -40,7 +40,7 @@ testNetIfName = testCase "name" $ do
   assertOutput expectedNmcli nmcliResults
   where
     expectedIp = ["<nothing>", "<nothing>", "<nothing>", "<nothing>"]
-    expectedNmcli = ["SomeSSID", "lo", "<nothing>", "<nothing>", "<nothing>"]
+    expectedNmcli = ["SomeSSID", "lo", "<nothing>", "<nothing>", "<nothing>", "docker0"]
 
 testNetIfIpv4 :: TestTree
 testNetIfIpv4 = testCase "ipv4" $ do
@@ -51,7 +51,7 @@ testNetIfIpv4 = testCase "ipv4" $ do
   assertOutput expectedNmcli nmcliResults
   where
     expectedIp = ["127.0.0.1", "<empty>", "192.168.1.2", "<empty>"]
-    expectedNmcli = ["192.168.1.2", "127.0.0.1", "<empty>", "<empty>", "<empty>"]
+    expectedNmcli = ["192.168.1.2", "127.0.0.1", "<empty>", "<empty>", "<empty>", "170.15.0.1"]
 
 testNetIfIpv6 :: TestTree
 testNetIfIpv6 = testCase "Ipv6" $ do
@@ -72,7 +72,8 @@ testNetIfIpv6 = testCase "Ipv6" $ do
         "::1",
         "<empty>",
         "<empty>",
-        "fe80::dc17:70f2:696b:b31c"
+        "fe80::dc17:70f2:696b:b31c",
+        "<empty>"
       ]
 
 runIntIO :: [String] -> IO [Text]
@@ -193,7 +194,19 @@ instance MonadTypedProcess IntIO where
                 "IP4.GATEWAY:",
                 "IP6.ADDRESS[1]:fe80::dc17:70f2:696b:b31c/64",
                 "IP6.GATEWAY:",
-                "IP6.ROUTE[1]:dst = fe80::/64, nh = ::, mt = 256"
+                "IP6.ROUTE[1]:dst = fe80::/64, nh = ::, mt = 256",
+                "",
+                "GENERAL.DEVICE:docker0",
+                "GENERAL.TYPE:bridge",
+                "GENERAL.HWADDR:02:42:C3:F8:D5:49",
+                "GENERAL.MTU:1500",
+                "GENERAL.STATE:100 (connected (externally))",
+                "GENERAL.CONNECTION:docker0",
+                "GENERAL.CON-PATH:/org/freedesktop/NetworkManager/ActiveConnection/3",
+                "IP4.ADDRESS[1]:170.15.0.1/16",
+                "IP4.GATEWAY:",
+                "IP4.ROUTE[1]:dst = 170.15.0.0/16, nh = 0.0.0.0, mt = 0",
+                "IP6.GATEWAY:"
               ]
        in pure (ExitSuccess, fromString output, "")
     bad -> error $ "Unexpected command: " <> bad
@@ -266,5 +279,12 @@ nmcliData =
     "State: Unknown: (unmanaged)",
     "Name: <nothing>",
     "IPv4: <empty>",
-    "IPv6: fe80::dc17:70f2:696b:b31c"
+    "IPv6: fe80::dc17:70f2:696b:b31c",
+    "",
+    "Device: docker0",
+    "Type: Bridge",
+    "State: Unknown: (connected (externally))",
+    "Name: docker0",
+    "IPv4: 170.15.0.1",
+    "IPv6: <empty>"
   ]

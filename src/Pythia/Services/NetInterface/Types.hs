@@ -19,11 +19,13 @@ module Pythia.Services.NetInterface.Types
     -- * Optics
     _NetInterfaceAppNmCli,
     _NetInterfaceAppIp,
+    _Bridge,
     _Ethernet,
-    _Wifi,
-    _Wifi_P2P,
     _Loopback,
     _Tun,
+    _Unknown,
+    _Wifi,
+    _Wifi_P2P,
     _NetStateUp,
     _NetStateDown,
     _NetStateUnknown,
@@ -101,15 +103,19 @@ _NetInterfaceAppNmCli =
 type NetInterfaceType :: Type
 data NetInterfaceType
   = -- | @since 0.1
+    Bridge
+  | -- | @since 0.1
     Ethernet
-  | -- | @since 0.1
-    Wifi
-  | -- | @since 0.1
-    Wifi_P2P
   | -- | @since 0.1
     Loopback
   | -- | @since 0.1
     Tun
+  | -- | @since 0.1
+    Unknown Text
+  | -- | @since 0.1
+    Wifi
+  | -- | @since 0.1
+    Wifi_P2P
   deriving stock
     ( -- | @since 0.1
       Eq,
@@ -126,6 +132,17 @@ data NetInterfaceType
     )
 
 -- | @since 0.1
+_Bridge :: Prism' NetInterfaceType ()
+_Bridge =
+  prism
+    (const Bridge)
+    ( \x -> case x of
+        Bridge -> Right ()
+        _ -> Left x
+    )
+{-# INLINE _Bridge #-}
+
+-- | @since 0.1
 _Ethernet :: Prism' NetInterfaceType ()
 _Ethernet =
   prism
@@ -135,28 +152,6 @@ _Ethernet =
         _ -> Left x
     )
 {-# INLINE _Ethernet #-}
-
--- | @since 0.1
-_Wifi :: Prism' NetInterfaceType ()
-_Wifi =
-  prism
-    (const Wifi)
-    ( \x -> case x of
-        Wifi -> Right ()
-        _ -> Left x
-    )
-{-# INLINE _Wifi #-}
-
--- | @since 0.1
-_Wifi_P2P :: Prism' NetInterfaceType ()
-_Wifi_P2P =
-  prism
-    (const Wifi_P2P)
-    ( \x -> case x of
-        Wifi_P2P -> Right ()
-        _ -> Left x
-    )
-{-# INLINE _Wifi_P2P #-}
 
 -- | @since 0.1
 _Loopback :: Prism' NetInterfaceType ()
@@ -179,6 +174,39 @@ _Tun =
         _ -> Left x
     )
 {-# INLINE _Tun #-}
+
+-- | @since 0.1
+_Unknown :: Prism' NetInterfaceType Text
+_Unknown =
+  prism
+    Unknown
+    ( \x -> case x of
+        Unknown t -> Right t
+        _ -> Left x
+    )
+{-# INLINE _Unknown #-}
+
+-- | @since 0.1
+_Wifi :: Prism' NetInterfaceType ()
+_Wifi =
+  prism
+    (const Wifi)
+    ( \x -> case x of
+        Wifi -> Right ()
+        _ -> Left x
+    )
+{-# INLINE _Wifi #-}
+
+-- | @since 0.1
+_Wifi_P2P :: Prism' NetInterfaceType ()
+_Wifi_P2P =
+  prism
+    (const Wifi_P2P)
+    ( \x -> case x of
+        Wifi_P2P -> Right ()
+        _ -> Left x
+    )
+{-# INLINE _Wifi_P2P #-}
 
 instance Display NetInterfaceType where
   displayBuilder = displayBuilder . show
