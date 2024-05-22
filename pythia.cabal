@@ -3,7 +3,7 @@ name:               pythia
 version:            0.1
 license:            MIT
 license-file:       LICENSE
-tested-with:        GHC ==9.2.8 || ==9.4.7 || ==9.6.3 || ==9.8.1
+tested-with:        GHC ==9.2.8 || ==9.4.8 || ==9.6.5 || ==9.8.2
 copyright:          2021-2024 Thomas Bidne
 author:             Thomas Bidne
 maintainer:         tbidne@protonmail.com
