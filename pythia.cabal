@@ -70,8 +70,10 @@ common common-exts
     TypeOperators
     ViewPatterns
 
+  default-language:   Haskell2010
+
 library
-  import:           common-exts
+  import:          common-exts
   exposed-modules:
     Pythia
     Pythia.Control.Exception
@@ -119,13 +121,12 @@ library
     , time                   >=1.9.3     && <1.15
     , time-conv              ^>=0.1
 
-  hs-source-dirs:   src
-  default-language: Haskell2010
+  hs-source-dirs:  src
 
 library pythia-runner
-  import:           common-exts
-  other-modules:    Paths_pythia
-  autogen-modules:  Paths_pythia
+  import:          common-exts
+  other-modules:   Paths_pythia
+  autogen-modules: Paths_pythia
   exposed-modules:
     Pythia.Runner
     Pythia.Runner.Args
@@ -151,8 +152,7 @@ library pythia-runner
     , time
     , toml-reader           >=0.2.0.0  && <0.3
 
-  hs-source-dirs:   runner
-  default-language: Haskell2010
+  hs-source-dirs:  runner
 
 executable pythia
   import:             common-exts
@@ -166,12 +166,11 @@ executable pythia
 
   hs-source-dirs:     app
   ghc-options:        -threaded -with-rtsopts=-N
-  default-language:   Haskell2010
 
 test-suite unit
-  import:           common-exts
-  type:             exitcode-stdio-1.0
-  main-is:          Main.hs
+  import:         common-exts
+  type:           exitcode-stdio-1.0
+  main-is:        Main.hs
   other-modules:
     Unit.Prelude
     Unit.Pythia.Services.Battery.Acpi
@@ -193,13 +192,12 @@ test-suite unit
     , tasty-hunit  >=0.9     && <0.11
     , text
 
-  hs-source-dirs:   test/unit
-  default-language: Haskell2010
+  hs-source-dirs: test/unit
 
 test-suite Integration
-  import:           common-exts
-  type:             exitcode-stdio-1.0
-  main-is:          Main.hs
+  import:         common-exts
+  type:           exitcode-stdio-1.0
+  main-is:        Main.hs
   other-modules:
     Integration.Configuration
     Integration.Prelude
@@ -227,13 +225,12 @@ test-suite Integration
     , time
     , typed-process          >=0.1.0.0 && <0.3
 
-  hs-source-dirs:   test/integration
-  default-language: Haskell2010
+  hs-source-dirs: test/integration
 
 test-suite functional
-  import:           common-exts
-  type:             exitcode-stdio-1.0
-  main-is:          Main.hs
+  import:         common-exts
+  type:           exitcode-stdio-1.0
+  main-is:        Main.hs
   other-modules:
     Functional.Prelude
     Functional.Pythia.Services.Battery
@@ -255,5 +252,4 @@ test-suite functional
     , tasty-hunit
     , text
 
-  hs-source-dirs:   test/functional
-  default-language: Haskell2010
+  hs-source-dirs: test/functional
