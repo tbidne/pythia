@@ -105,11 +105,12 @@ library
     , bytestring             >=0.10.10.0 && <0.13
     , containers             >=0.6.2.1   && <0.8
     , deepseq                >=1.4.4.0   && <1.6
-    , effects-exceptions     ^>=0.1
     , effects-fs             ^>=0.1
     , effects-terminal       ^>=0.1
     , effects-time           ^>=0.1
     , effects-typed-process  ^>=0.1
+    , exception-utils        ^>=0.1
+    , exceptions             ^>=0.10.4
     , megaparsec             >=7.0.5     && <9.7
     , optics-core            ^>=0.4
     , refined                >=0.6       && <0.9
@@ -160,7 +161,7 @@ executable pythia
   main-is:            Main.hs
   build-depends:
     , base
-    , effects-exceptions
+    , exception-utils
     , pythia
     , pythia-runner
 
@@ -211,7 +212,6 @@ test-suite Integration
   build-depends:
     , base
     , effects-env            ^>=0.1
-    , effects-exceptions
     , effects-fs
     , effects-optparse
     , effects-time

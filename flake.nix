@@ -19,40 +19,63 @@
       inputs.nixpkgs.follows = "nixpkgs";
       inputs.nix-hs-utils.follows = "nix-hs-utils";
     };
+    exception-utils = {
+      url = "github:tbidne/exception-utils";
+      inputs.flake-parts.follows = "flake-parts";
+      inputs.nix-hs-utils.follows = "nix-hs-utils";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+    fs-utils = {
+      url = "github:tbidne/fs-utils";
+      inputs.flake-parts.follows = "flake-parts";
+      inputs.nix-hs-utils.follows = "nix-hs-utils";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
     monad-effects = {
       url = "github:tbidne/monad-effects";
+
       inputs.flake-parts.follows = "flake-parts";
       inputs.nix-hs-utils.follows = "nix-hs-utils";
       inputs.nixpkgs.follows = "nixpkgs";
 
       inputs.algebra-simple.follows = "algebra-simple";
       inputs.bounds.follows = "bounds";
+      inputs.exception-utils.follows = "exception-utils";
+      inputs.fs-utils.follows = "fs-utils";
       inputs.smart-math.follows = "smart-math";
     };
     si-bytes = {
       url = "github:tbidne/si-bytes";
-      inputs.algebra-simple.follows = "algebra-simple";
-      inputs.bounds.follows = "bounds";
+
       inputs.flake-parts.follows = "flake-parts";
       inputs.nixpkgs.follows = "nixpkgs";
       inputs.nix-hs-utils.follows = "nix-hs-utils";
+
+      inputs.algebra-simple.follows = "algebra-simple";
+      inputs.bounds.follows = "bounds";
     };
     smart-math = {
       url = "github:tbidne/smart-math";
-      inputs.algebra-simple.follows = "algebra-simple";
-      inputs.bounds.follows = "bounds";
+
       inputs.flake-parts.follows = "flake-parts";
       inputs.nixpkgs.follows = "nixpkgs";
       inputs.nix-hs-utils.follows = "nix-hs-utils";
+
+      inputs.algebra-simple.follows = "algebra-simple";
+      inputs.bounds.follows = "bounds";
     };
     time-conv = {
       url = "github:tbidne/time-conv";
-      inputs.algebra-simple.follows = "algebra-simple";
-      inputs.bounds.follows = "bounds";
-      inputs.flake-parts.follows = "flake-parts";
-      inputs.monad-effects.follows = "monad-effects";
+
       inputs.nix-hs-utils.follows = "nix-hs-utils";
       inputs.nixpkgs.follows = "nixpkgs";
+      inputs.flake-parts.follows = "flake-parts";
+
+      inputs.algebra-simple.follows = "algebra-simple";
+      inputs.bounds.follows = "bounds";
+      inputs.exception-utils.follows = "exception-utils";
+      inputs.fs-utils.follows = "fs-utils";
+      inputs.monad-effects.follows = "monad-effects";
     };
   };
   outputs =
@@ -75,13 +98,14 @@
               // nix-hs-utils.mkLibs inputs final [
                 "algebra-simple"
                 "bounds"
+                "exception-utils"
+                "fs-utils"
                 "si-bytes"
                 "smart-math"
                 "time-conv"
               ]
               // nix-hs-utils.mkRelLibs "${monad-effects}/lib" final [
                 "effects-env"
-                "effects-exceptions"
                 "effects-fs"
                 "effects-ioref"
                 "effects-optparse"
@@ -111,7 +135,7 @@
           apps = {
             format = nix-hs-utils.format compilerPkgs;
             lint = nix-hs-utils.lint compilerPkgs;
-            lintRefactor = nix-hs-utils.lintRefactor compilerPkgs;
+            lint-refactor = nix-hs-utils.lint-refactor compilerPkgs;
           };
         };
       systems = [

@@ -3,8 +3,8 @@
 
 module Integration.Configuration (tests) where
 
+import Control.Exception (try)
 import Control.Monad.Reader
-import Effects.Exception (tryCS)
 import Effects.FileSystem.PathReader
   ( MonadPathReader (doesFileExist),
     XdgDirectory (XdgConfig),
@@ -259,7 +259,7 @@ testMissingNetInterface = testCase "NetInterface" $ do
 runFinalConfigExceptionIO :: [String] -> IO ConfigException
 runFinalConfigExceptionIO args = do
   eResult <-
-    tryCS @_ @ConfigException
+    try @ConfigException
       $ runConfigEnvIO (withArgs args' Runner.getFinalConfig) ()
 
   case eResult of

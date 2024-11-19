@@ -32,6 +32,8 @@ import Control.Applicative as X
     Applicative (pure, (*>), (<*), (<*>)),
   )
 import Control.DeepSeq as X (NFData)
+import Control.Exception as X (Exception (displayException), SomeException)
+import Control.Exception.Utils as X (trySync)
 import Control.Monad as X
   ( Monad ((>>=)),
     join,
@@ -42,6 +44,7 @@ import Control.Monad as X
     (=<<),
     (>=>),
   )
+import Control.Monad.Catch as X (MonadCatch, MonadThrow, throwM)
 import Control.Monad.Fail as X (MonadFail (fail))
 import Data.Bifunctor as X (Bifunctor (bimap, first, second))
 import Data.Bool as X (Bool (False, True), not, otherwise, (&&), (||))
@@ -79,26 +82,16 @@ import Data.Text.Lazy.Builder as X (Builder)
 import Data.Text.Lazy.Builder qualified as TLB
 import Data.Void as X (Void)
 import Data.Word as X (Word8)
-import Effects.Exception as X
-  ( Exception (displayException),
-    MonadCatch,
-    MonadThrow,
-    SomeException,
-    addCS,
-    throwCS,
-    throwM,
-    tryAny,
-  )
 import Effects.FileSystem.FileReader as X
   ( MonadFileReader,
     decodeUtf8Lenient,
     readFileUtf8Lenient,
   )
 import Effects.FileSystem.PathReader as X (MonadPathReader)
-import Effects.FileSystem.Utils as X (OsPath, decodeOsToFpShow, osp, (</>))
 import Effects.Process.Typed as X (MonadTypedProcess)
 import Effects.System.Terminal as X (MonadTerminal (putStrLn), print, putTextLn)
 import Effects.Time as X (MonadTime)
+import FileSystem.OsPath as X (OsPath, decodeLenient, osp, (</>))
 import GHC.Enum as X (Bounded (maxBound, minBound), Enum (toEnum))
 import GHC.Err as X (error, undefined)
 import GHC.Float as X (Double, Float)
@@ -166,14 +159,14 @@ headMaybe (x : _) = Just x
 --
 -- @since 0.1
 throwLeft :: forall m e a. (Exception e, MonadThrow m) => Either e a -> m a
-throwLeft = either throwCS pure
+throwLeft = either throwM pure
 {-# INLINEABLE throwLeft #-}
 
 -- | @throwMaybe e x@ throws @e@ if @x@ is 'Nothing'.
 --
 -- @since 0.1
 throwMaybe :: forall m e a. (Exception e, MonadThrow m) => e -> Maybe a -> m a
-throwMaybe e = maybe (throwCS e) pure
+throwMaybe e = maybe (throwM e) pure
 {-# INLINEABLE throwMaybe #-}
 
 -- | 'Text' version of 'show'.
