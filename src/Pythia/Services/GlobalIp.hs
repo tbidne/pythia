@@ -39,7 +39,8 @@ import Refined qualified as R
 --
 -- @since 0.1
 queryGlobalIp ::
-  ( MonadCatch m,
+  ( HasCallStack,
+    MonadCatch m,
     MonadTypedProcess m
   ) =>
   GlobalIpApp ->
@@ -53,7 +54,8 @@ queryGlobalIp app ipv4Srcs ipv6Srcs = getBothIps app (ipv4Srcs, ipv6Srcs)
 --
 -- @since 0.1
 queryGlobalIpv4 ::
-  ( MonadCatch m,
+  ( HasCallStack,
+    MonadCatch m,
     MonadTypedProcess m
   ) =>
   GlobalIpApp ->
@@ -66,7 +68,8 @@ queryGlobalIpv4 = getIpv4s
 --
 -- @since 0.1
 queryGlobalIpv6 ::
-  ( MonadCatch m,
+  ( HasCallStack,
+    MonadCatch m,
     MonadTypedProcess m
   ) =>
   GlobalIpApp ->
@@ -76,7 +79,8 @@ queryGlobalIpv6 = getIpv6s
 {-# INLINEABLE queryGlobalIpv6 #-}
 
 getBothIps ::
-  ( MonadCatch m,
+  ( HasCallStack,
+    MonadCatch m,
     MonadTypedProcess m
   ) =>
   GlobalIpApp ->
@@ -89,7 +93,8 @@ getBothIps app (ipv4Srcs, ipv6Srcs) =
 {-# INLINEABLE getBothIps #-}
 
 getIpv4s ::
-  ( MonadCatch m,
+  ( HasCallStack,
+    MonadCatch m,
     MonadTypedProcess m
   ) =>
   GlobalIpApp ->
@@ -103,7 +108,8 @@ getIpv4s app extraSrcs = do
 {-# INLINEABLE getIpv4s #-}
 
 getIpv6s ::
-  ( MonadCatch m,
+  ( HasCallStack,
+    MonadCatch m,
     MonadTypedProcess m
   ) =>
   GlobalIpApp ->
@@ -158,7 +164,8 @@ digDefaults = (ipv4s, ipv6s)
 {-# INLINEABLE digDefaults #-}
 
 getIpFromSources ::
-  ( MonadCatch m,
+  ( HasCallStack,
+    MonadCatch m,
     MonadTypedProcess m,
     Predicate (IpRefinement a) Text
   ) =>
@@ -169,7 +176,8 @@ getIpFromSources = fmap MkIpAddress . getIp (#unUrlSource % re #unCommand)
 
 getIp ::
   forall m p a.
-  ( MonadCatch m,
+  ( HasCallStack,
+    MonadCatch m,
     MonadTypedProcess m,
     Predicate p Text
   ) =>

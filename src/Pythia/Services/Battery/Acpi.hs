@@ -78,7 +78,8 @@ instance Exception AcpiParseError where
 --
 -- @since 0.1
 batteryShellApp ::
-  ( MonadPathReader m,
+  ( HasCallStack,
+    MonadPathReader m,
     MonadThrow m,
     MonadTypedProcess m
   ) =>
@@ -97,7 +98,7 @@ batteryShellApp = ShellApp.runSimple shell
 -- current system.
 --
 -- @since 0.1
-supported :: (MonadPathReader m) => m Bool
+supported :: (HasCallStack, MonadPathReader m) => m Bool
 supported = U.exeSupported [osp|acpi|]
 {-# INLINEABLE supported #-}
 

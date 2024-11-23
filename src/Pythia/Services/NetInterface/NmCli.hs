@@ -72,7 +72,8 @@ instance Exception NmCliParseError where
 --
 -- @since 0.1
 netInterfaceShellApp ::
-  ( MonadPathReader m,
+  ( HasCallStack,
+    MonadPathReader m,
     MonadThrow m,
     MonadTypedProcess m
   ) =>
@@ -91,7 +92,7 @@ netInterfaceShellApp = ShellApp.runSimple shell
 -- current system.
 --
 -- @since 0.1
-supported :: (MonadPathReader m) => m Bool
+supported :: (HasCallStack, MonadPathReader m) => m Bool
 supported = U.exeSupported [osp|nmcli|]
 {-# INLINEABLE supported #-}
 

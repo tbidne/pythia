@@ -150,7 +150,8 @@ instance Exception SysFsBatteryParseError where
 --
 -- @since 0.1
 batteryQuery ::
-  ( MonadFileReader m,
+  ( HasCallStack,
+    MonadFileReader m,
     MonadPathReader m,
     MonadThrow m
   ) =>
@@ -169,7 +170,7 @@ batteryQuery = queryBattery
 -- * @\/sys\/class\/power_supply\/BAT@
 --
 -- @since 0.1
-supported :: (MonadCatch m, MonadPathReader m) => m Bool
+supported :: (HasCallStack, MonadCatch m, MonadPathReader m) => m Bool
 supported = do
   efp <- trySync findSysBatDir
   case efp of
@@ -177,7 +178,8 @@ supported = do
     Right _ -> pure True
 
 queryBattery ::
-  ( MonadFileReader m,
+  ( HasCallStack,
+    MonadFileReader m,
     MonadPathReader m,
     MonadThrow m
   ) =>
@@ -197,7 +199,12 @@ queryBattery = do
   percentage <- parsePercentage percentPath
   pure $ MkBattery percentage status
 
-findSysBatDir :: (MonadPathReader m, MonadThrow m) => m OsPath
+findSysBatDir ::
+  ( HasCallStack,
+    MonadPathReader m,
+    MonadThrow m
+  ) =>
+  m OsPath
 findSysBatDir = do
   sysExists <- Dir.doesDirectoryExist sysDir
   sysBase <-
@@ -210,7 +217,13 @@ findSysBatDir = do
           else throwM MkSysFsDirNotFound
   findBatteryDir sysBase
 
-findBatteryDir :: (MonadPathReader m, MonadThrow m) => OsPath -> m OsPath
+findBatteryDir ::
+  ( HasCallStack,
+    MonadPathReader m,
+    MonadThrow m
+  ) =>
+  OsPath ->
+  m OsPath
 findBatteryDir sysBase = do
   mResult <- foldr firstExists (pure Nothing) batDirs
   case mResult of
@@ -232,7 +245,12 @@ findBatteryDir sysBase = do
         [osp|BAT|]
       ]
 
-maybeDirExists :: (MonadPathReader m) => OsPath -> m (Maybe OsPath)
+maybeDirExists ::
+  ( HasCallStack,
+    MonadPathReader m
+  ) =>
+  OsPath ->
+  m (Maybe OsPath)
 maybeDirExists fp = do
   b <- Dir.doesDirectoryExist fp
   pure
@@ -240,7 +258,13 @@ maybeDirExists fp = do
       then Just fp
       else Nothing
 
-parseStatus :: (MonadFileReader m, MonadThrow m) => OsPath -> m BatteryStatus
+parseStatus ::
+  ( HasCallStack,
+    MonadFileReader m,
+    MonadThrow m
+  ) =>
+  OsPath ->
+  m BatteryStatus
 parseStatus fp = do
   statusTxt <-
     T.toLower
@@ -253,7 +277,13 @@ parseStatus fp = do
     "full" -> pure Full
     bad -> throwM $ MkSysFsBatteryParseError $ "Unknown status: " <> bad
 
-parsePercentage :: (MonadFileReader m, MonadThrow m) => OsPath -> m Percentage
+parsePercentage ::
+  ( HasCallStack,
+    MonadFileReader m,
+    MonadThrow m
+  ) =>
+  OsPath ->
+  m Percentage
 parsePercentage fp = do
   percentTxt <- readFileUtf8Lenient fp
   case readPercentage percentTxt of

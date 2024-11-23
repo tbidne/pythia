@@ -89,6 +89,7 @@ instance
 runSimple ::
   forall m err result.
   ( Exception err,
+    HasCallStack,
     MonadThrow m,
     MonadTypedProcess m
   ) =>
@@ -116,7 +117,13 @@ runSimple simple = do
 -- code.
 --
 -- @since 0.1
-runCommand :: (MonadThrow m, MonadTypedProcess m) => Command -> m Text
+runCommand ::
+  ( HasCallStack,
+    MonadThrow m,
+    MonadTypedProcess m
+  ) =>
+  Command ->
+  m Text
 runCommand command = do
   (exitCode, out, err) <- TP.readProcess $ TP.shell $ T.unpack cmdStr
   case exitCode of
@@ -166,7 +173,8 @@ instance Monoid (ActionsResult r) where
 --
 -- @since 0.1
 tryIOs ::
-  ( MonadCatch m
+  ( HasCallStack,
+    MonadCatch m
   ) =>
   [m result] ->
   m result
@@ -178,7 +186,8 @@ tryIOs actions =
 {-# INLINEABLE tryIOs #-}
 
 tryIO ::
-  ( MonadCatch m
+  ( HasCallStack,
+    MonadCatch m
   ) =>
   m result ->
   m (ActionsResult result) ->

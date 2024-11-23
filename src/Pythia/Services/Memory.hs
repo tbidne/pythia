@@ -38,7 +38,8 @@ import Pythia.Services.Memory.Types
 --
 -- @since 0.1
 queryMemory ::
-  ( MonadPathReader m,
+  ( HasCallStack,
+    MonadPathReader m,
     MonadThrow m,
     MonadTypedProcess m
   ) =>

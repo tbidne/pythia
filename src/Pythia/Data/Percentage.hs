@@ -18,7 +18,6 @@ module Pythia.Data.Percentage
   )
 where
 
-import GHC.Stack (HasCallStack)
 import Language.Haskell.TH (Code, Q)
 import Language.Haskell.TH.Syntax (Lift (liftTyped))
 import Numeric.Data.Interval qualified as Interval

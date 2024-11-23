@@ -32,14 +32,14 @@ import Pythia.Prelude
 -- | Queries current local time.
 --
 -- @since 0.1
-queryLocalTime :: (MonadCatch m, MonadTime m) => m ZonedTime
+queryLocalTime :: (HasCallStack, MonadCatch m, MonadTime m) => m ZonedTime
 queryLocalTime = TimeConv.readTime Nothing
 {-# INLINEABLE queryLocalTime #-}
 
 -- | Queries current UTC time.
 --
 -- @since 0.1
-queryUTC :: (MonadTime m) => m UTCTime
+queryUTC :: (HasCallStack, MonadTime m) => m UTCTime
 queryUTC = LT.zonedTimeToUTC <$> getSystemZonedTime
 {-# INLINEABLE queryUTC #-}
 
@@ -50,7 +50,13 @@ queryUTC = LT.zonedTimeToUTC <$> getSystemZonedTime
 -- @
 --
 -- @since 0.1
-queryTimeZone :: (MonadCatch m, MonadTime m) => Text -> m ZonedTime
+queryTimeZone ::
+  ( HasCallStack,
+    MonadCatch m,
+    MonadTime m
+  ) =>
+  Text ->
+  m ZonedTime
 queryTimeZone =
   TimeConv.readConvertTime Nothing
     . Just
@@ -65,7 +71,13 @@ queryTimeZone =
 -- encountered (e.g. running a command or parse error).
 --
 -- @since 0.1
-queryTimeZoneLabel :: (MonadCatch m, MonadTime m) => TZLabel -> m ZonedTime
+queryTimeZoneLabel ::
+  ( HasCallStack,
+    MonadCatch m,
+    MonadTime m
+  ) =>
+  TZLabel ->
+  m ZonedTime
 queryTimeZoneLabel =
   TimeConv.readConvertTime Nothing
     . Just

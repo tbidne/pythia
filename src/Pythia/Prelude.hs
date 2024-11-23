@@ -102,6 +102,7 @@ import GHC.Num as X (Num ((*), (+), (-)))
 import GHC.Read as X (Read)
 import GHC.Real as X (even, floor, fromIntegral, (/))
 import GHC.Show as X (Show (show))
+import GHC.Stack as X (HasCallStack)
 import Optics.Core as X
   ( A_Lens,
     A_Prism,
@@ -158,14 +159,29 @@ headMaybe (x : _) = Just x
 -- | Throws 'Left'.
 --
 -- @since 0.1
-throwLeft :: forall m e a. (Exception e, MonadThrow m) => Either e a -> m a
+throwLeft ::
+  forall m e a.
+  ( Exception e,
+    HasCallStack,
+    MonadThrow m
+  ) =>
+  Either e a ->
+  m a
 throwLeft = either throwM pure
 {-# INLINEABLE throwLeft #-}
 
 -- | @throwMaybe e x@ throws @e@ if @x@ is 'Nothing'.
 --
 -- @since 0.1
-throwMaybe :: forall m e a. (Exception e, MonadThrow m) => e -> Maybe a -> m a
+throwMaybe ::
+  forall m e a.
+  ( Exception e,
+    HasCallStack,
+    MonadThrow m
+  ) =>
+  e ->
+  Maybe a ->
+  m a
 throwMaybe e = maybe (throwM e) pure
 {-# INLINEABLE throwMaybe #-}
 

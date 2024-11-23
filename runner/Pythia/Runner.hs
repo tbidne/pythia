@@ -43,7 +43,8 @@ import TOML qualified
 --
 -- @since 0.1
 runPythia ::
-  ( MonadCatch m,
+  ( HasCallStack,
+    MonadCatch m,
     MonadFileReader m,
     MonadPathReader m,
     MonadOptparse m,
@@ -66,7 +67,8 @@ runPythia =
 --
 -- @since 0.1
 getFinalConfig ::
-  ( MonadCatch m,
+  ( HasCallStack,
+    MonadCatch m,
     MonadFileReader m,
     MonadPathReader m,
     MonadOptparse m
@@ -82,7 +84,8 @@ getFinalConfig = do
   throwLeft (PToml.combineConfigs cliCmdP1 mTomlConfig)
 
 getTomlConfig ::
-  ( MonadCatch m,
+  ( HasCallStack,
+    MonadCatch m,
     MonadFileReader m,
     MonadPathReader m
   ) =>

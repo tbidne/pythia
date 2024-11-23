@@ -39,7 +39,8 @@ import Pythia.Services.Types.Network
 --
 -- @since 0.1
 queryNetInterfaces ::
-  ( MonadPathReader m,
+  ( HasCallStack,
+    MonadPathReader m,
     MonadThrow m,
     MonadTypedProcess m
   ) =>
@@ -53,7 +54,8 @@ queryNetInterfaces NetInterfaceAppIp = Ip.netInterfaceShellApp
 --
 -- @since 0.1
 queryNetInterface ::
-  ( MonadPathReader m,
+  ( HasCallStack,
+    MonadPathReader m,
     MonadThrow m,
     MonadTypedProcess m
   ) =>
@@ -63,7 +65,7 @@ queryNetInterface ::
 queryNetInterface d = queryNetInterfaces >=> findDevice d
 {-# INLINEABLE queryNetInterface #-}
 
-findDevice :: (MonadThrow m) => Device -> NetInterfaces -> m NetInterface
+findDevice :: (HasCallStack, MonadThrow m) => Device -> NetInterfaces -> m NetInterface
 findDevice device = throwMaybe e . headMaybe . view #unNetInterfaces . filterDevice device
   where
     e = MkDeviceNotFound device

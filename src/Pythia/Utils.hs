@@ -140,6 +140,6 @@ eitherToBool = either (const False) (const True)
 -- supported on this system.
 --
 -- @since 0.1
-exeSupported :: (MonadPathReader m) => OsPath -> m Bool
+exeSupported :: (HasCallStack, MonadPathReader m) => OsPath -> m Bool
 exeSupported exeName = May.isJust <$> Dir.findExecutable exeName
 {-# INLINEABLE exeSupported #-}

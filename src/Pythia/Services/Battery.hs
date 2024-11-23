@@ -30,7 +30,8 @@ import Pythia.Services.Battery.UPower qualified as UPower
 --
 -- @since 0.1
 queryBattery ::
-  ( MonadCatch m,
+  ( HasCallStack,
+    MonadCatch m,
     MonadFileReader m,
     MonadPathReader m,
     MonadTypedProcess m
