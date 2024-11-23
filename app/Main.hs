@@ -9,7 +9,7 @@ import Control.Exception.Annotation.Utils
 import Control.Exception.Annotation.Utils qualified as AnnUtils
 import Data.Proxy (Proxy (Proxy))
 import Pythia.Control.Exception (PythiaException)
-import Pythia.Runner (runPythia)
+import Pythia.Runner (runPythiaIO)
 
 -- | Runs the executable.
 --
@@ -20,7 +20,7 @@ main = do
     noCallstacks
     (putStrLn . ("\n" <>))
 
-  runPythia
+  runPythiaIO
   where
     noCallstacks =
       [ MkExceptionProxy $ Proxy @PythiaException

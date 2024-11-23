@@ -101,26 +101,27 @@ library
     Pythia.Utils
 
   build-depends:
-    , base                   >=4.16.0.0  && <4.21
-    , bytestring             >=0.10.10.0 && <0.13
-    , containers             >=0.6.2.1   && <0.8
-    , deepseq                >=1.4.4.0   && <1.6
-    , effects-fs             ^>=0.1
-    , effects-terminal       ^>=0.1
-    , effects-time           ^>=0.1
-    , effects-typed-process  ^>=0.1
-    , exception-utils        ^>=0.1
-    , exceptions             ^>=0.10.4
-    , megaparsec             >=7.0.5     && <9.7
-    , optics-core            ^>=0.4
-    , refined                >=0.6       && <0.9
-    , si-bytes               ^>=0.1
-    , smart-math             ^>=0.1
-    , template-haskell       >=2.17.0.0  && <2.23
-    , text                   >=1.2.3.2   && <2.2
-    , text-display           >=0.0.3.0   && <0.6
-    , time                   >=1.9.3     && <1.15
-    , time-conv              ^>=0.1
+    , base                             >=4.16.0.0  && <4.21
+    , bytestring                       >=0.10.10.0 && <0.13
+    , containers                       >=0.6.2.1   && <0.8
+    , deepseq                          >=1.4.4.0   && <1.6
+    , effectful-core                   >=2.5.0.0   && <2.6
+    , exception-utils                  ^>=0.1
+    , exceptions                       ^>=0.10.4
+    , fs-effectful                     ^>=0.1
+    , megaparsec                       >=7.0.5     && <9.7
+    , optics-core                      ^>=0.4
+    , refined                          >=0.6       && <0.9
+    , si-bytes                         ^>=0.1
+    , smart-math                       ^>=0.1
+    , template-haskell                 >=2.17.0.0  && <2.23
+    , terminal-effectful               ^>=0.1
+    , text                             >=1.2.3.2   && <2.2
+    , text-display                     >=0.0.3.0   && <0.6
+    , time                             >=1.9.3     && <1.15
+    , time-conv                        ^>=0.1
+    , time-effectful                   ^>=0.1
+    , typed-process-dynamic-effectful  ^>=0.1
 
   hs-source-dirs:  src
 
@@ -145,12 +146,14 @@ library pythia-runner
   build-depends:
     , base
     , containers
-    , effects-fs
-    , effects-optparse      ^>=0.1
+    , fs-effectful
     , optparse-applicative  >=0.16.1.0 && <0.19
+    , optparse-effectful    ^>=0.1
     , pythia
+    , terminal-effectful
     , text
     , time
+    , time-effectful
     , toml-reader           >=0.2.0.0  && <0.3
 
   hs-source-dirs:  runner
@@ -211,19 +214,19 @@ test-suite Integration
 
   build-depends:
     , base
-    , effects-env            ^>=0.1
-    , effects-fs
-    , effects-optparse
-    , effects-time
-    , effects-typed-process
-    , mtl                    >=2.2.2   && <2.4
+    , effectful-core
+    , environment-effectful            ^>=0.1
+    , fs-effectful
+    , optparse-effectful
     , pythia
     , pythia-runner
     , tasty
-    , tasty-hunit            >=0.9     && <0.11
+    , tasty-hunit                      >=0.9     && <0.11
     , text
     , time
-    , typed-process          >=0.1.0.0 && <0.3
+    , time-effectful
+    , typed-process                    >=0.1.0.0 && <0.3
+    , typed-process-dynamic-effectful
 
   hs-source-dirs: test/integration
 
@@ -242,10 +245,11 @@ test-suite functional
 
   build-depends:
     , base
-    , effects-optparse
-    , env-guard         ^>=0.2
+    , effectful-core
+    , env-guard           ^>=0.2
+    , fs-effectful
     , megaparsec
-    , mtl
+    , optparse-effectful
     , pythia
     , pythia-runner
     , tasty

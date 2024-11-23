@@ -22,7 +22,7 @@ module Pythia.Utils
 where
 
 import Data.Maybe qualified as May
-import Effects.FileSystem.PathReader qualified as Dir
+import Effectful.FileSystem.PathReader.Dynamic qualified as Dir
 import Pythia.Prelude
 import Text.Megaparsec (Parsec, Stream, Token, Tokens)
 import Text.Megaparsec qualified as MP
@@ -45,7 +45,6 @@ import Text.Megaparsec.Char qualified as MPC
 -- @since 0.1
 foldAlt :: (Foldable t, Alternative f) => (a -> f b) -> t a -> f b
 foldAlt f = foldr ((<|>) . f) empty
-{-# INLINEABLE foldAlt #-}
 
 -- | Relaxes 'foldMap'\'s 'Monoid' constraint to 'Semigroup'. Requires a
 -- starting value. This will have to do until semigroupoids' Foldable1 is
@@ -54,7 +53,6 @@ foldAlt f = foldr ((<|>) . f) empty
 -- @since 0.1
 foldMap1 :: (Foldable f, Semigroup s) => (a -> s) -> a -> f a -> s
 foldMap1 f x xs = foldr (\b g y -> f y <> g b) f xs x
-{-# INLINEABLE foldMap1 #-}
 
 -- | Convenience function for mapping a 'Maybe' to its underlying
 -- 'Alternative'.
@@ -70,7 +68,6 @@ foldMap1 f x xs = foldr (\b g y -> f y <> g b) f xs x
 -- @since 0.1
 mAlt :: (Alternative f) => Maybe (f a) -> f a
 mAlt = fromMaybe empty
-{-# INLINEABLE mAlt #-}
 
 -- | 'takeLineLabel' with no label.
 --
@@ -90,7 +87,6 @@ mAlt = fromMaybe empty
 -- @since 0.1
 takeLine :: (Ord e, Stream s, Token s ~ Char) => Parsec e s (Tokens s)
 takeLine = takeLineLabel Nothing
-{-# INLINEABLE takeLine #-}
 
 -- | Variant of 'takeLine' taking in a label.
 --
@@ -107,7 +103,6 @@ takeLine = takeLineLabel Nothing
 -- @since 0.1
 takeLineLabel :: (Ord e, Stream s, Token s ~ Char) => Maybe String -> Parsec e s (Tokens s)
 takeLineLabel desc = MP.takeWhileP desc (/= '\n') <* MPC.eol
-{-# INLINEABLE takeLineLabel #-}
 
 -- | Takes everything up to the first new line, returns unit.
 --
@@ -119,7 +114,6 @@ takeLineLabel desc = MP.takeWhileP desc (/= '\n') <* MPC.eol
 -- @since 0.1
 takeLine_ :: (Ord e, Stream s, Token s ~ Char) => Parsec e s ()
 takeLine_ = MP.takeWhileP Nothing (/= '\n') *> void MPC.eol
-{-# INLINEABLE takeLine_ #-}
 
 -- | Maps 'Left' to 'False', 'Right' to 'True'.
 --
@@ -134,12 +128,10 @@ takeLine_ = MP.takeWhileP Nothing (/= '\n') *> void MPC.eol
 -- @since 0.1
 eitherToBool :: Either a b -> Bool
 eitherToBool = either (const False) (const True)
-{-# INLINEABLE eitherToBool #-}
 
 -- | Determines if the executable represented by the string parameter is
 -- supported on this system.
 --
 -- @since 0.1
-exeSupported :: (HasCallStack, MonadPathReader m) => OsPath -> m Bool
+exeSupported :: (HasCallStack, PathReader :> es) => OsPath -> Eff es Bool
 exeSupported exeName = May.isJust <$> Dir.findExecutable exeName
-{-# INLINEABLE exeSupported #-}

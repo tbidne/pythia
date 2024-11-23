@@ -1,13 +1,10 @@
-{-# LANGUAGE QuasiQuotes #-}
 {-# OPTIONS_GHC -Wno-missing-methods #-}
 
 module Integration.Pythia.Services.Time (tests) where
 
 import Data.Time (LocalTime (LocalTime), ZonedTime (ZonedTime))
 import Data.Time.LocalTime (midday, utc)
-import Effects.Optparse (MonadOptparse)
-import Effects.System.Environment (MonadEnv)
-import Effects.Time (MonadTime (getSystemZonedTime), getMonotonicTime)
+import Effectful.Time.Dynamic (Time (GetMonotonicTime, GetSystemZonedTime))
 import Integration.Prelude
 
 tests :: TestTree
@@ -31,31 +28,33 @@ testTimeDest = testCase "dest" $ do
 runIntIO :: [String] -> IO [Text]
 runIntIO = runIntegrationIO unIntIO
 
-newtype IntIO a = MkIntIO {unIntIO :: ReaderT (IORef Text) IO a}
-  deriving
-    ( Applicative,
-      Functor,
-      Monad,
-      MonadCatch,
-      MonadEnv,
-      MonadIO,
-      MonadOptparse,
-      MonadThrow
-    )
-    via ReaderT (IORef Text) IO
-  deriving (MonadTerminal) via BaseIO
+unIntIO ::
+  Eff
+    [ Environment,
+      FileReader,
+      Optparse,
+      PathReader,
+      Terminal,
+      Time,
+      TypedProcess,
+      Reader (IORef Text),
+      IOE
+    ]
+    a ->
+  Eff [Reader (IORef Text), IOE] a
+unIntIO =
+  runTypedProcessStub
+    . runTimeMock
+    . runTerminalMock
+    . runPathReaderMock
+    . runOptparse
+    . runFileReaderStub
+    . runEnvironment
 
-instance MonadTime IntIO where
-  getSystemZonedTime = pure $ ZonedTime localTime utc
-  getMonotonicTime = pure 0
+runTimeMock :: Eff (Time : es) a -> Eff es a
+runTimeMock = interpret_ $ \case
+  GetSystemZonedTime -> pure $ ZonedTime localTime utc
+  GetMonotonicTime -> pure 0
 
 localTime :: LocalTime
 localTime = LocalTime (toEnum 59_000) midday
-
-instance MonadFileReader IntIO
-
-instance MonadPathReader IntIO where
-  doesDirectoryExist _ = pure False
-  getXdgDirectory _ _ = pure [osp|test_xdg|]
-
-instance MonadTypedProcess IntIO

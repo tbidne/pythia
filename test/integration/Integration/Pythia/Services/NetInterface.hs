@@ -1,16 +1,10 @@
-{-# LANGUAGE QuasiQuotes #-}
-{-# OPTIONS_GHC -Wno-missing-methods #-}
-
 module Integration.Pythia.Services.NetInterface (tests) where
 
 import Data.List qualified as L
-import Effects.FileSystem.PathReader (MonadPathReader (findExecutable))
-import Effects.Optparse (MonadOptparse)
-import Effects.Process.Typed
+import Effectful.Process.Typed.Dynamic
   ( ExitCode (ExitSuccess),
-    MonadTypedProcess (readProcess),
+    TypedProcess (ReadProcess),
   )
-import Effects.System.Environment (MonadEnv)
 import Integration.Prelude
 
 tests :: TestTree
@@ -79,34 +73,32 @@ testNetIfIpv6 = testCase "Ipv6" $ do
 runIntIO :: [String] -> IO [Text]
 runIntIO = runIntegrationIO unIntIO
 
-newtype IntIO a = MkIntIO {unIntIO :: ReaderT (IORef Text) IO a}
-  deriving
-    ( Applicative,
-      Functor,
-      Monad,
-      MonadCatch,
-      MonadEnv,
-      MonadIO,
-      MonadOptparse,
-      MonadTime,
-      MonadThrow
-    )
-    via ReaderT (IORef Text) IO
-  deriving (MonadTerminal) via BaseIO
+unIntIO ::
+  Eff
+    [ Environment,
+      FileReader,
+      Optparse,
+      PathReader,
+      Terminal,
+      Time,
+      TypedProcess,
+      Reader (IORef Text),
+      IOE
+    ]
+    a ->
+  Eff [Reader (IORef Text), IOE] a
+unIntIO =
+  runTypedProcessMock
+    . runTime
+    . runTerminalMock
+    . runPathReaderMock
+    . runOptparse
+    . runFileReaderStub
+    . runEnvironment
 
-instance MonadFileReader IntIO
-
-instance MonadPathReader IntIO where
-  doesDirectoryExist _ = pure False
-  getXdgDirectory _ _ = pure [osp|test_xdg|]
-
-  findExecutable p
-    | p == [osp|ip|] = pure $ Just [osp|exe|]
-    | p == [osp|nmcli|] = pure $ Just [osp|exe|]
-    | otherwise = pure Nothing
-
-instance MonadTypedProcess IntIO where
-  readProcess pc = case cmd of
+runTypedProcessMock :: Eff (TypedProcess : es) a -> Eff es a
+runTypedProcessMock = interpret_ $ \case
+  ReadProcess pc -> case cmd of
     "Shell command: ip address" ->
       let output =
             L.unlines
@@ -212,6 +204,7 @@ instance MonadTypedProcess IntIO where
     bad -> error $ "Unexpected command: " <> bad
     where
       cmd = processConfigToCmd pc
+  _ -> error "runTypedProcessMock: unimplemented"
 
 ipData :: [Text]
 ipData =

@@ -4,13 +4,10 @@
 module Integration.Configuration (tests) where
 
 import Control.Exception (try)
-import Control.Monad.Reader
-import Effects.FileSystem.PathReader
-  ( MonadPathReader (doesFileExist),
-    XdgDirectory (XdgConfig),
-  )
-import Effects.Optparse (MonadOptparse)
-import Effects.System.Environment (MonadEnv (withArgs))
+import Effectful.Dispatch.Dynamic (reinterpret_)
+import Effectful.FileSystem.PathReader.Dynamic (XdgDirectory (XdgConfig))
+import Effectful.FileSystem.PathReader.Static qualified as PRS
+import Effectful.Reader.Static (asks)
 import Integration.Prelude
 import Pythia
   ( BatteryApp (BatteryAppSysFs, BatteryAppUPower),
@@ -260,7 +257,7 @@ runFinalConfigExceptionIO :: [String] -> IO ConfigException
 runFinalConfigExceptionIO args = do
   eResult <-
     try @ConfigException
-      $ runConfigEnvIO (withArgs args' Runner.getFinalConfig) ()
+      $ runConfigEnvIO runPathReaderMock (withArgs args' Runner.getFinalConfig) ()
 
   case eResult of
     Left ex -> pure ex
@@ -270,7 +267,7 @@ runFinalConfigExceptionIO args = do
 
 runFinalConfigTomlIO :: [String] -> IO PythiaCommand2
 runFinalConfigTomlIO args =
-  runConfigEnvIO (withArgs args' Runner.getFinalConfig) ()
+  runConfigEnvIO runPathReaderMock (withArgs args' Runner.getFinalConfig) ()
   where
     args' = args <> ["-c", "examples/config.toml"]
 
@@ -284,7 +281,7 @@ testMisc =
 
 testXdg :: TestTree
 testXdg = testCase "Reads Xdg config" $ do
-  result <- runConfigEnvIO (withArgs args Runner.getFinalConfig) xdg
+  result <- runConfigEnvIO runPathReaderMockOsPath (withArgs args Runner.getFinalConfig) xdg
   expected @=? result
   where
     xdg = [osp|test|] </> [osp|integration|]
@@ -294,14 +291,36 @@ testXdg = testCase "Reads Xdg config" $ do
 -- This test is for a bug where source keys were accidentally mandatory.
 testGlobalIpFieldsOptional :: TestTree
 testGlobalIpFieldsOptional = testCase "Global IP fields optional" $ do
-  result <- runConfigEnvIO (withArgs args Runner.getFinalConfig) xdg
+  result <- runConfigEnvIO runPathReaderMockOsPath (withArgs args Runner.getFinalConfig) xdg
   expected @=? result
   where
     xdg = [osp|test|] </> [osp|integration|]
     args = ["global-ip"]
     expected = GlobalIpCmd GlobalIpAppDig (This [])
 
-type ConfigIO = ConfigEnvIO ()
+runConfigEnvIO ::
+  (forall esx x. (IOE :> esx, Reader r :> esx) => Eff (PathReader : esx) x -> Eff esx x) ->
+  Eff '[Optparse, PathReader, FileReader, Environment, Reader r, IOE] a ->
+  r ->
+  IO a
+runConfigEnvIO runPathReaderFn eff r =
+  runEff
+    . runReader r
+    . runEnvironment
+    . runFileReader
+    . runPathReaderFn
+    -- . runPathReaderConfigMock
+    . runOptparse
+    $ eff
+
+runPathReaderMockOsPath :: (IOE :> es, Reader OsPath :> es) => Eff (PathReader : es) a -> Eff es a
+runPathReaderMockOsPath = reinterpret_ PRS.runPathReader $ \case
+  GetXdgDirectory XdgConfig p -> asks (\d -> d </> [osp|config|] </> p)
+  DoesDirectoryExist p -> PRS.doesDirectoryExist p
+  DoesFileExist p -> PRS.doesFileExist p
+  _ -> error "runPathReaderMock: unimplemented"
+
+{-type ConfigIO = ConfigEnvIO ()
 
 newtype ConfigEnvIO env a = MkConfigIO (ReaderT env IO a)
   deriving
@@ -311,7 +330,7 @@ newtype ConfigEnvIO env a = MkConfigIO (ReaderT env IO a)
       MonadCatch,
       MonadEnv,
       MonadFileReader,
-      MonadOptparse,
+      Optparse :> es,
       MonadThrow
     )
     via (ReaderT env IO)
@@ -333,3 +352,4 @@ instance MonadPathReader ConfigXdgIO where
 
 runConfigEnvIO :: ConfigEnvIO r a -> r -> IO a
 runConfigEnvIO (MkConfigIO rdr) = runReaderT rdr
+-}

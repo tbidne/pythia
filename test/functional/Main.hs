@@ -13,6 +13,7 @@ import Functional.Pythia.Services.NetConnection qualified as NetConn
 import Functional.Pythia.Services.NetInterface qualified as NetInterface
 import Functional.Pythia.Services.Time qualified as Time
 import System.Environment.Guard (ExpectEnv (ExpectEnvSet), guardOrElse')
+import System.IO qualified as IO
 import Test.Tasty qualified as Tasty
 
 -- | Runs unit tests.
@@ -24,7 +25,7 @@ main =
     "RUN_FUNC"
     ExpectEnvSet
     tests
-    (putStrLn "*** Functional tests disabled. Enable with RUN_FUNC=1. ***")
+    (IO.putStrLn "*** Functional tests disabled. Enable with RUN_FUNC=1. ***")
   where
     tests =
       Tasty.defaultMain

@@ -52,6 +52,44 @@
         "type": "github"
       }
     },
+    "effectful-libs": {
+      "inputs": {
+        "algebra-simple": [
+          "algebra-simple"
+        ],
+        "bounds": [
+          "bounds"
+        ],
+        "exception-utils": [
+          "exception-utils"
+        ],
+        "flake-parts": [
+          "flake-parts"
+        ],
+        "fs-utils": [
+          "fs-utils"
+        ],
+        "nix-hs-utils": [
+          "nix-hs-utils"
+        ],
+        "nixpkgs": [
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1732343034,
+        "narHash": "sha256-5Hod0cDKkoLgPnlyckUcyVJi+eq7mlUrZz8WXu+KZPY=",
+        "owner": "tbidne",
+        "repo": "effectful-libs",
+        "rev": "e2b01e4cd204e96939f83344e70d2c5987f1d8b8",
+        "type": "github"
+      },
+      "original": {
+        "owner": "tbidne",
+        "repo": "effectful-libs",
+        "type": "github"
+      }
+    },
     "exception-utils": {
       "inputs": {
         "flake-parts": [
@@ -122,47 +160,6 @@
         "type": "github"
       }
     },
-    "monad-effects": {
-      "inputs": {
-        "algebra-simple": [
-          "algebra-simple"
-        ],
-        "bounds": [
-          "bounds"
-        ],
-        "exception-utils": [
-          "exception-utils"
-        ],
-        "flake-parts": [
-          "flake-parts"
-        ],
-        "fs-utils": [
-          "fs-utils"
-        ],
-        "nix-hs-utils": [
-          "nix-hs-utils"
-        ],
-        "nixpkgs": [
-          "nixpkgs"
-        ],
-        "smart-math": [
-          "smart-math"
-        ]
-      },
-      "locked": {
-        "lastModified": 1731531099,
-        "narHash": "sha256-rQSOKFhczx9N3887XuBxvGLQXfzpR3MuJTmqvE8rxPQ=",
-        "owner": "tbidne",
-        "repo": "monad-effects",
-        "rev": "32ec7ad8b875360fda8230969c0ab5a30ede17aa",
-        "type": "github"
-      },
-      "original": {
-        "owner": "tbidne",
-        "repo": "monad-effects",
-        "type": "github"
-      }
-    },
     "nix-hs-utils": {
       "locked": {
         "lastModified": 1730953801,
@@ -180,11 +177,11 @@
     },
     "nixpkgs": {
       "locked": {
-        "lastModified": 1731676054,
-        "narHash": "sha256-OZiZ3m8SCMfh3B6bfGC/Bm4x3qc1m2SVEAlkV6iY7Yg=",
+        "lastModified": 1732014248,
+        "narHash": "sha256-y/MEyuJ5oBWrWAic/14LaIr/u5E0wRVzyYsouYY3W6w=",
         "owner": "nixos",
         "repo": "nixpkgs",
-        "rev": "5e4fbfb6b3de1aa2872b76d49fafc942626e2add",
+        "rev": "23e89b7da85c3640bbc2173fe04f4bd114342367",
         "type": "github"
       },
       "original": {
@@ -210,10 +207,10 @@
       "inputs": {
         "algebra-simple": "algebra-simple",
         "bounds": "bounds",
+        "effectful-libs": "effectful-libs",
         "exception-utils": "exception-utils",
         "flake-parts": "flake-parts",
         "fs-utils": "fs-utils",
-        "monad-effects": "monad-effects",
         "nix-hs-utils": "nix-hs-utils",
         "nixpkgs": "nixpkgs",
         "si-bytes": "si-bytes",
@@ -293,6 +290,9 @@
         "bounds": [
           "bounds"
         ],
+        "effectful-libs": [
+          "effectful-libs"
+        ],
         "exception-utils": [
           "exception-utils"
         ],
@@ -302,9 +302,6 @@
         "fs-utils": [
           "fs-utils"
         ],
-        "monad-effects": [
-          "monad-effects"
-        ],
         "nix-hs-utils": [
           "nix-hs-utils"
         ],
@@ -313,15 +310,16 @@
         ]
       },
       "locked": {
-        "lastModified": 1731989054,
-        "narHash": "sha256-GA2dl54T6FJknhpvNhwztxDkehkNWdamOSdT25LGYzg=",
+        "lastModified": 1732237326,
+        "narHash": "sha256-nYkoBd1AQyVxyo9LE+mquuuYWRiICxC8BQdLJ6bESQU=",
         "owner": "tbidne",
         "repo": "time-conv",
-        "rev": "971a560f3ccfd7d8ea974affa85492f91713359c",
+        "rev": "89230c6d1be13b85fadb8168f178ae4a73ca8e30",
         "type": "github"
       },
       "original": {
         "owner": "tbidne",
+        "ref": "effectful",
         "repo": "time-conv",
         "type": "github"
       }

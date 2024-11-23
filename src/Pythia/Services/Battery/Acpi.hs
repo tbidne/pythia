@@ -83,11 +83,10 @@ instance Exception AcpiParseError where
 -- @since 0.1
 batteryShellApp ::
   ( HasCallStack,
-    MonadPathReader m,
-    MonadThrow m,
-    MonadTypedProcess m
+    PathReader :> es,
+    TypedProcess :> es
   ) =>
-  m Battery
+  Eff es Battery
 batteryShellApp = ShellApp.runSimple shell
   where
     shell =
@@ -96,15 +95,13 @@ batteryShellApp = ShellApp.runSimple shell
           isSupported = supported,
           parser = parseBattery
         }
-{-# INLINEABLE batteryShellApp #-}
 
 -- | Returns a boolean determining if this program is supported on the
 -- current system.
 --
 -- @since 0.1
-supported :: (HasCallStack, MonadPathReader m) => m Bool
+supported :: (HasCallStack, PathReader :> es) => Eff es Bool
 supported = U.exeSupported [osp|acpi|]
-{-# INLINEABLE supported #-}
 
 -- | Attempts to parse the output of acpi.
 --
@@ -130,13 +127,11 @@ parseBattery :: Text -> Either AcpiParseError Battery
 parseBattery txt = U.foldMap1 parseLine "<empty input>" tlines
   where
     tlines = T.lines txt
-{-# INLINEABLE parseBattery #-}
 
 parseLine :: Text -> Either AcpiParseError Battery
 parseLine = first mkErr . MP.parse mparseBattery "Acpi.hs"
   where
     mkErr = MkAcpiParseError . T.pack . MPE.errorBundlePretty
-{-# INLINEABLE parseLine #-}
 
 type MParser :: Type -> Type
 type MParser = Parsec Void Text
@@ -153,7 +148,6 @@ mparseBattery = do
   MPC.space
   percentage <- mparsePercent
   pure $ MkBattery percentage state
-{-# INLINEABLE mparseBattery #-}
 
 mparseState :: MParser BatteryStatus
 mparseState =
@@ -168,7 +162,6 @@ mparseState =
     charging = MPC.string' "Charging" $> Charging
     full = MPC.string' "Full" $> Full
     pending = MPC.string' "Not charging" $> Pending
-{-# INLINEABLE mparseState #-}
 
 mparsePercent :: MParser Percentage
 mparsePercent = do
@@ -178,4 +171,3 @@ mparsePercent = do
   pure percentage
   where
     readPercentage = Percentage.mkPercentage <=< TR.readMaybe . T.unpack
-{-# INLINEABLE mparsePercent #-}

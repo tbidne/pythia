@@ -180,15 +180,14 @@ deviceKey = "device"
 
 -- | @since 0.1
 handleNetInterface ::
-  ( MonadPathReader m,
-    MonadTerminal m,
-    MonadThrow m,
-    MonadTypedProcess m
+  ( PathReader :> es,
+    Terminal :> es,
+    TypedProcess :> es
   ) =>
   NetInterfaceApp ->
   NetInterfaceDevice ->
   NetInterfaceField ->
-  m ()
+  Eff es ()
 handleNetInterface cfg mdevice field = do
   resultTxt <- case mdevice of
     NetInterfaceDeviceNone -> interfacesToText <$> Pythia.queryNetInterfaces cfg

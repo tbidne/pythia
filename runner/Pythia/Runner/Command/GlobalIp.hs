@@ -72,13 +72,12 @@ parseGlobalIpField =
 
 -- | @since 0.1
 handleGlobalIp ::
-  ( MonadCatch m,
-    MonadTerminal m,
-    MonadTypedProcess m
+  ( Terminal :> es,
+    TypedProcess :> es
   ) =>
   GlobalIpApp ->
   These [UrlSource Ipv4] [UrlSource Ipv6] ->
-  m ()
+  Eff es ()
 handleGlobalIp app sources = do
   case sources of
     This ipv4Sources ->
@@ -92,7 +91,7 @@ handleGlobalIp app sources = do
       prettyPrint ipv4Address
       prettyPrint ipv6Address
 
-prettyPrint :: (Display a, MonadTerminal m) => a -> m ()
+prettyPrint :: (Display a, Terminal :> es) => a -> Eff es ()
 prettyPrint = putTextLn . display
 
 -- | @since 0.1

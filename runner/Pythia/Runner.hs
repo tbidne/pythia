@@ -7,15 +7,20 @@ module Pythia.Runner
   ( -- * Runners
     runPythia,
 
+    -- * Handlers
+    runPythiaIO,
+
     -- * Helpers
     getFinalConfig,
   )
 where
 
-import Effects.FileSystem.FileReader qualified as FR
-import Effects.FileSystem.PathReader qualified as PR
-import Effects.Optparse (MonadOptparse)
-import Effects.Optparse qualified as OApp
+import Effectful.FileSystem.FileReader.Dynamic qualified as FR
+import Effectful.FileSystem.PathReader.Dynamic qualified as PR
+import Effectful.Optparse.Static (Optparse)
+import Effectful.Optparse.Static qualified as OApp
+import Effectful.Terminal.Dynamic qualified as Term
+import Effectful.Time.Dynamic qualified as Time
 import Pythia.Prelude
 import Pythia.Runner.Args (Args, parserInfo)
 import Pythia.Runner.Command
@@ -39,20 +44,30 @@ import Pythia.Runner.Toml (Toml)
 import Pythia.Runner.Toml qualified as PToml
 import TOML qualified
 
+runPythiaIO :: IO ()
+runPythiaIO =
+  runEff
+    . FR.runFileReader
+    . OApp.runOptparse
+    . PR.runPathReader
+    . Term.runTerminal
+    . Time.runTime
+    . runTypedProcess
+    $ runPythia
+
 -- | Reads cli args and prints the results to stdout.
 --
 -- @since 0.1
 runPythia ::
   ( HasCallStack,
-    MonadCatch m,
-    MonadFileReader m,
-    MonadPathReader m,
-    MonadOptparse m,
-    MonadTerminal m,
-    MonadTime m,
-    MonadTypedProcess m
+    FileReader :> es,
+    PathReader :> es,
+    Optparse :> es,
+    Terminal :> es,
+    Time :> es,
+    TypedProcess :> es
   ) =>
-  m ()
+  Eff es ()
 runPythia =
   getFinalConfig >>= \case
     BatteryCmd app field -> Battery.handleBattery app field
@@ -67,13 +82,12 @@ runPythia =
 --
 -- @since 0.1
 getFinalConfig ::
-  ( HasCallStack,
-    MonadCatch m,
-    MonadFileReader m,
-    MonadPathReader m,
-    MonadOptparse m
+  ( FileReader :> es,
+    HasCallStack,
+    PathReader :> es,
+    Optparse :> es
   ) =>
-  m PythiaCommand2
+  Eff es PythiaCommand2
 getFinalConfig = do
   -- args has phase 1 command
   args <- OApp.execParser parserInfo
@@ -84,13 +98,12 @@ getFinalConfig = do
   throwLeft (PToml.combineConfigs cliCmdP1 mTomlConfig)
 
 getTomlConfig ::
-  ( HasCallStack,
-    MonadCatch m,
-    MonadFileReader m,
-    MonadPathReader m
+  ( FileReader :> es,
+    HasCallStack,
+    PathReader :> es
   ) =>
   Args ->
-  m (Maybe Toml)
+  Eff es (Maybe Toml)
 getTomlConfig args = do
   tomlPath <-
     if args ^. #noConfig

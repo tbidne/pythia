@@ -19,7 +19,8 @@ where
 
 import Data.ByteString.Lazy qualified as LBS
 import Data.Text qualified as T
-import Effects.Process.Typed qualified as TP
+import Effectful (Effect)
+import Effectful.Process.Typed.Dynamic qualified as TP
 import GHC.IO.Exception (ExitCode (ExitFailure, ExitSuccess))
 import Pythia.Control.Exception
   ( CommandException (MkCommandException),
@@ -34,8 +35,8 @@ import Pythia.Prelude
 -- The 'parser' is used to parse the result.
 --
 -- @since 0.1
-type SimpleShell :: (Type -> Type) -> Type -> Type -> Type
-data SimpleShell m err result = MkSimpleShell
+type SimpleShell :: [Effect] -> Type -> Type -> Type
+data SimpleShell es err result = MkSimpleShell
   { -- | The shell command to run.
     --
     -- @since 0.1
@@ -43,7 +44,7 @@ data SimpleShell m err result = MkSimpleShell
     -- | Determines if the shell command is supported on this system.
     --
     -- @since 0.1
-    isSupported :: m Bool,
+    isSupported :: Eff es Bool,
     -- | The parser for the result of running the command.
     --
     -- @since 0.1
@@ -53,7 +54,7 @@ data SimpleShell m err result = MkSimpleShell
 -- | @since 0.1
 instance
   (k ~ A_Lens, a ~ Command, b ~ Command) =>
-  LabelOptic "command" k (SimpleShell m err result) (SimpleShell m err result) a b
+  LabelOptic "command" k (SimpleShell es err result) (SimpleShell es err result) a b
   where
   labelOptic = lensVL $ \f (MkSimpleShell _command _isSupported _parser) ->
     fmap (\command' -> MkSimpleShell command' _isSupported _parser) (f _command)
@@ -61,8 +62,8 @@ instance
 
 -- | @since 0.1
 instance
-  (k ~ A_Lens, a ~ m Bool, b ~ m Bool) =>
-  LabelOptic "isSupported" k (SimpleShell m err result) (SimpleShell m err result) a b
+  (k ~ A_Lens, a ~ Eff es Bool, b ~ Eff es Bool) =>
+  LabelOptic "isSupported" k (SimpleShell es err result) (SimpleShell es err result) a b
   where
   labelOptic = lensVL $ \f (MkSimpleShell _command _isSupported _parser) ->
     fmap (\isSupported' -> MkSimpleShell _command isSupported' _parser) (f _isSupported)
@@ -71,7 +72,7 @@ instance
 -- | @since 0.1
 instance
   (k ~ A_Lens, a ~ (Text -> Either err result), b ~ (Text -> Either err result)) =>
-  LabelOptic "parser" k (SimpleShell m err result) (SimpleShell m err result) a b
+  LabelOptic "parser" k (SimpleShell es err result) (SimpleShell es err result) a b
   where
   labelOptic = lensVL $ \f (MkSimpleShell _command _isSupported _parser) ->
     fmap (MkSimpleShell _command _isSupported) (f _parser)
@@ -87,14 +88,13 @@ instance
 --
 -- @since 0.1
 runSimple ::
-  forall m err result.
+  forall err es result.
   ( Exception err,
     HasCallStack,
-    MonadThrow m,
-    MonadTypedProcess m
+    TypedProcess :> es
   ) =>
-  SimpleShell m err result ->
-  m result
+  SimpleShell es err result ->
+  Eff es result
 runSimple simple = do
   supported <- simple ^. #isSupported
   if supported
@@ -103,9 +103,8 @@ runSimple simple = do
   where
     command = simple ^. #command
 
-    parseAndThrow :: Text -> m result
+    parseAndThrow :: Text -> Eff es result
     parseAndThrow = throwLeft . (simple ^. #parser)
-{-# INLINEABLE runSimple #-}
 
 -- | Runs a 'Command' and returns either the text result or error encountered.
 -- This is used by 'SimpleShell' to run its command before the result is
@@ -117,13 +116,7 @@ runSimple simple = do
 -- code.
 --
 -- @since 0.1
-runCommand ::
-  ( HasCallStack,
-    MonadThrow m,
-    MonadTypedProcess m
-  ) =>
-  Command ->
-  m Text
+runCommand :: (HasCallStack, TypedProcess :> es) => Command -> Eff es Text
 runCommand command = do
   (exitCode, out, err) <- TP.readProcess $ TP.shell $ T.unpack cmdStr
   case exitCode of
@@ -132,7 +125,6 @@ runCommand command = do
       throwM $ MkCommandException command $ T.pack $ show $ LBS.toStrict err
   where
     cmdStr = command ^. #unCommand
-{-# INLINEABLE runCommand #-}
 
 -- Three possible results when running actions:
 --
@@ -154,11 +146,9 @@ instance Semigroup (ActionsResult r) where
   NoRuns <> r = r
   l <> NoRuns = l
   Errs x <> Errs y = Errs $ x <> y
-  {-# INLINEABLE (<>) #-}
 
 instance Monoid (ActionsResult r) where
   mempty = NoRuns
-  {-# INLINEABLE mempty #-}
 
 -- | Generalized 'tryAppActions' to any 'IO'. Has the same semantics
 -- (i.e. returns the first success or throws an exception if none
@@ -173,33 +163,28 @@ instance Monoid (ActionsResult r) where
 --
 -- @since 0.1
 tryIOs ::
-  ( HasCallStack,
-    MonadCatch m
+  ( HasCallStack
   ) =>
-  [m result] ->
-  m result
+  [Eff es result] ->
+  Eff es result
 tryIOs actions =
   foldr tryIO (pure mempty) actions >>= \case
     Success result -> pure result
     Errs errs -> throwM $ MkSomeExceptions errs
     NoRuns -> throwM MkNoActionsRunException
-{-# INLINEABLE tryIOs #-}
 
 tryIO ::
-  ( HasCallStack,
-    MonadCatch m
+  ( HasCallStack
   ) =>
-  m result ->
-  m (ActionsResult result) ->
-  m (ActionsResult result)
+  Eff es result ->
+  Eff es (ActionsResult result) ->
+  Eff es (ActionsResult result)
 tryIO action acc =
   trySync action >>= \case
     Right result -> pure $ Success result
     Left ex -> appendEx ex <$> acc
-{-# INLINEABLE tryIO #-}
 
 appendEx :: SomeException -> ActionsResult r -> ActionsResult r
 appendEx e x = errs <> x
   where
     errs = Errs $ e :| []
-{-# INLINEABLE appendEx #-}

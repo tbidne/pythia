@@ -90,15 +90,22 @@ import Data.Text.Lazy.Builder as X (Builder)
 import Data.Text.Lazy.Builder qualified as TLB
 import Data.Void as X (Void)
 import Data.Word as X (Word8)
-import Effects.FileSystem.FileReader as X
-  ( MonadFileReader,
+import Effectful as X (Eff, IOE, runEff, type (:>))
+import Effectful.FileSystem.FileReader.Dynamic as X
+  ( FileReader,
     decodeUtf8Lenient,
     readFileUtf8Lenient,
+    runFileReader,
   )
-import Effects.FileSystem.PathReader as X (MonadPathReader)
-import Effects.Process.Typed as X (MonadTypedProcess)
-import Effects.System.Terminal as X (MonadTerminal (putStrLn), print, putTextLn)
-import Effects.Time as X (MonadTime)
+import Effectful.FileSystem.PathReader.Dynamic as X (PathReader)
+import Effectful.Process.Typed.Dynamic as X (TypedProcess, runTypedProcess)
+import Effectful.Terminal.Dynamic as X
+  ( Terminal (PutStrLn),
+    print,
+    putStrLn,
+    putTextLn,
+  )
+import Effectful.Time.Dynamic as X (Time, runTime)
 import FileSystem.OsPath as X (OsPath, decodeLenient, osp, (</>))
 import GHC.Enum as X (Bounded (maxBound, minBound), Enum (toEnum))
 import GHC.Err as X (error, undefined)
@@ -162,43 +169,37 @@ import System.IO as X (FilePath, IO)
 headMaybe :: [a] -> Maybe a
 headMaybe [] = Nothing
 headMaybe (x : _) = Just x
-{-# INLINEABLE headMaybe #-}
 
 -- | Throws 'Left'.
 --
 -- @since 0.1
 throwLeft ::
-  forall m e a.
+  forall e es a.
   ( Exception e,
-    HasCallStack,
-    MonadThrow m
+    HasCallStack
   ) =>
   Either e a ->
-  m a
+  Eff es a
 throwLeft = either throwM pure
-{-# INLINEABLE throwLeft #-}
 
 -- | @throwMaybe e x@ throws @e@ if @x@ is 'Nothing'.
 --
 -- @since 0.1
 throwMaybe ::
-  forall m e a.
+  forall e es a.
   ( Exception e,
-    HasCallStack,
-    MonadThrow m
+    HasCallStack
   ) =>
   e ->
   Maybe a ->
-  m a
+  Eff es a
 throwMaybe e = maybe (throwM e) pure
-{-# INLINEABLE throwMaybe #-}
 
 -- | 'Text' version of 'show'.
 --
 -- @since 0.1
 showt :: (Show a) => a -> Text
 showt = T.pack . show
-{-# INLINEABLE showt #-}
 
 -- | @since 0.1
 natToDouble :: Natural -> Double

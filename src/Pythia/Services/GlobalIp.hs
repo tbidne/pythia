@@ -40,102 +40,87 @@ import Refined qualified as R
 -- @since 0.1
 queryGlobalIp ::
   ( HasCallStack,
-    MonadCatch m,
-    MonadTypedProcess m
+    TypedProcess :> es
   ) =>
   GlobalIpApp ->
   [UrlSource Ipv4] ->
   [UrlSource Ipv6] ->
-  m (IpAddress Ipv4, IpAddress Ipv6)
+  Eff es (IpAddress Ipv4, IpAddress Ipv6)
 queryGlobalIp app ipv4Srcs ipv6Srcs = getBothIps app (ipv4Srcs, ipv6Srcs)
-{-# INLINEABLE queryGlobalIp #-}
 
 -- | 'queryGlobalIp' restricted to IPv4 address only.
 --
 -- @since 0.1
 queryGlobalIpv4 ::
   ( HasCallStack,
-    MonadCatch m,
-    MonadTypedProcess m
+    TypedProcess :> es
   ) =>
   GlobalIpApp ->
   [UrlSource Ipv4] ->
-  m (IpAddress Ipv4)
+  Eff es (IpAddress Ipv4)
 queryGlobalIpv4 = getIpv4s
-{-# INLINEABLE queryGlobalIpv4 #-}
 
 -- | 'queryGlobalIp' restricted to IPv6 address only.
 --
 -- @since 0.1
 queryGlobalIpv6 ::
   ( HasCallStack,
-    MonadCatch m,
-    MonadTypedProcess m
+    TypedProcess :> es
   ) =>
   GlobalIpApp ->
   [UrlSource Ipv6] ->
-  m (IpAddress Ipv6)
+  Eff es (IpAddress Ipv6)
 queryGlobalIpv6 = getIpv6s
-{-# INLINEABLE queryGlobalIpv6 #-}
 
 getBothIps ::
   ( HasCallStack,
-    MonadCatch m,
-    MonadTypedProcess m
+    TypedProcess :> es
   ) =>
   GlobalIpApp ->
   ([UrlSource Ipv4], [UrlSource Ipv6]) ->
-  m (IpAddress Ipv4, IpAddress Ipv6)
+  Eff es (IpAddress Ipv4, IpAddress Ipv6)
 getBothIps app (ipv4Srcs, ipv6Srcs) =
   (,)
     <$> getIpv4s app ipv4Srcs
     <*> getIpv6s app ipv6Srcs
-{-# INLINEABLE getBothIps #-}
 
 getIpv4s ::
   ( HasCallStack,
-    MonadCatch m,
-    MonadTypedProcess m
+    TypedProcess :> es
   ) =>
   GlobalIpApp ->
   [UrlSource Ipv4] ->
-  m (IpAddress Ipv4)
+  Eff es (IpAddress Ipv4)
 getIpv4s app extraSrcs = do
   let sources = case extraSrcs of
         [] -> ipv4Defaults app
         _ -> prependApp app extraSrcs
   getIpFromSources sources
-{-# INLINEABLE getIpv4s #-}
 
 getIpv6s ::
   ( HasCallStack,
-    MonadCatch m,
-    MonadTypedProcess m
+    TypedProcess :> es
   ) =>
   GlobalIpApp ->
   [UrlSource Ipv6] ->
-  m (IpAddress Ipv6)
+  Eff es (IpAddress Ipv6)
 getIpv6s app extraSrcs = do
   let sources = case extraSrcs of
         [] -> ipv6Defaults app
         _ -> prependApp app extraSrcs
   getIpFromSources sources
-{-# INLINEABLE getIpv6s #-}
 
 prependApp :: GlobalIpApp -> [UrlSource a] -> [UrlSource a]
 prependApp GlobalIpAppCurl srcs = fmap (#unUrlSource %~ ("curl " <>)) srcs
 prependApp GlobalIpAppDig srcs = fmap (#unUrlSource %~ (\s -> "dig " <> s <> " +short")) srcs
-{-# INLINEABLE prependApp #-}
 
 ipv4Defaults :: GlobalIpApp -> [UrlSource Ipv4]
 ipv4Defaults GlobalIpAppCurl = curlDefaults ^. _1
 ipv4Defaults GlobalIpAppDig = digDefaults ^. _1
-{-# INLINEABLE ipv4Defaults #-}
 
 ipv6Defaults :: GlobalIpApp -> [UrlSource Ipv6]
 ipv6Defaults GlobalIpAppCurl = curlDefaults ^. _2
 ipv6Defaults GlobalIpAppDig = digDefaults ^. _2
-{-# INLINEABLE ipv6Defaults #-}
 
 curlDefaults :: ([UrlSource Ipv4], [UrlSource Ipv6])
 curlDefaults = (ipv4s, ipv6s)
@@ -147,7 +132,6 @@ curlDefaults = (ipv4s, ipv6s)
         "curl http://checkip.amazonaws.com/"
       ]
     ipv6s = []
-{-# INLINEABLE curlDefaults #-}
 
 digDefaults :: ([UrlSource Ipv4], [UrlSource Ipv6])
 digDefaults = (ipv4s, ipv6s)
@@ -161,36 +145,30 @@ digDefaults = (ipv4s, ipv6s)
         "dig -4 TXT o-o.myaddr.l.google.com @ns1.google.com +short"
       ]
     ipv6s = []
-{-# INLINEABLE digDefaults #-}
 
 getIpFromSources ::
   ( HasCallStack,
-    MonadCatch m,
-    MonadTypedProcess m,
+    TypedProcess :> es,
     Predicate (IpRefinement a) Text
   ) =>
   [UrlSource a] ->
-  m (IpAddress a)
+  Eff es (IpAddress a)
 getIpFromSources = fmap MkIpAddress . getIp (#unUrlSource % re #unCommand)
-{-# INLINEABLE getIpFromSources #-}
 
 getIp ::
-  forall m p a.
+  forall p es a.
   ( HasCallStack,
-    MonadCatch m,
-    MonadTypedProcess m,
+    TypedProcess :> es,
     Predicate p Text
   ) =>
   Iso' a Command ->
   [a] ->
-  m (Refined p Text)
+  Eff es (Refined p Text)
 getIp cmdIso cmds = ShellApp.tryIOs (fmap go cmds)
   where
     go cmd = do
       txt <- ShellApp.runCommand $ cmd ^. cmdIso
       R.refineThrow (trim txt)
-{-# INLINEABLE getIp #-}
 
 trim :: Text -> Text
 trim = T.dropAround Char.isSpace
-{-# INLINEABLE trim #-}

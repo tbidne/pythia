@@ -74,11 +74,10 @@ instance Exception FreeParseError where
 -- @since 0.1
 memoryShellApp ::
   ( HasCallStack,
-    MonadPathReader m,
-    MonadThrow m,
-    MonadTypedProcess m
+    PathReader :> es,
+    TypedProcess :> es
   ) =>
-  m SystemMemory
+  Eff es SystemMemory
 memoryShellApp = ShellApp.runSimple shell
   where
     shell =
@@ -87,15 +86,13 @@ memoryShellApp = ShellApp.runSimple shell
           isSupported = supported,
           parser = parseMemory
         }
-{-# INLINEABLE memoryShellApp #-}
 
 -- | Returns a boolean determining if this program is supported on the
 -- current system.
 --
 -- @since 0.1
-supported :: (HasCallStack, MonadPathReader m) => m Bool
+supported :: (HasCallStack, PathReader :> es) => Eff es Bool
 supported = U.exeSupported [osp|free|]
-{-# INLINEABLE supported #-}
 
 -- | Attempts to parse the output of free.
 --
@@ -106,13 +103,11 @@ parseMemory txt = case U.foldAlt parseLine ts of
   Just mem -> Right mem
   where
     ts = T.lines txt
-{-# INLINEABLE parseMemory #-}
 
 parseLine :: Text -> Maybe SystemMemory
 parseLine ln = case MP.parse mparseMemory "Memory.hs" ln of
   Right mem -> Just mem
   Left _ -> Nothing
-{-# INLINEABLE parseLine #-}
 
 type MParser :: Type -> Type
 type MParser = Parsec Void Text
@@ -134,4 +129,3 @@ mparseMemory = do
       maybe empty pure (parseFn num)
     readNat = TR.readMaybe . T.unpack
     readPos = TR.readMaybe . T.unpack
-{-# INLINEABLE mparseMemory #-}

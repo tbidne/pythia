@@ -133,13 +133,12 @@ formatKey = "format"
 
 -- | @since 0.1
 handleTime ::
-  ( MonadCatch m,
-    MonadTerminal m,
-    MonadTime m
+  ( Terminal :> es,
+    Time :> es
   ) =>
   TimeFormat ->
   TimezoneDest ->
-  m ()
+  Eff es ()
 handleTime mformat = \case
   TimezoneDestLocal -> Pythia.queryLocalTime >>= putTextLn . formatTime
   TimezoneDestUTC -> Pythia.queryUTC >>= putTextLn . formatTime

@@ -12,7 +12,7 @@ where
 
 import Data.List qualified as L
 import Data.Version (Version (versionBranch))
-import Effects.Optparse (validOsPath)
+import Effectful.Optparse.Static (validOsPath)
 import Options.Applicative
   ( CommandFields,
     Mod,

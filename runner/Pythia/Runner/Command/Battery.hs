@@ -116,15 +116,14 @@ fieldKey = "field"
 
 -- | @since 0.1
 handleBattery ::
-  ( MonadCatch m,
-    MonadFileReader m,
-    MonadPathReader m,
-    MonadTerminal m,
-    MonadTypedProcess m
+  ( FileReader :> es,
+    PathReader :> es,
+    Terminal :> es,
+    TypedProcess :> es
   ) =>
   BatteryApp ->
   BatteryField ->
-  m ()
+  Eff es ()
 handleBattery cfg field =
   queryBattery cfg
     >>= putTextLn

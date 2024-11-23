@@ -39,12 +39,11 @@ import Pythia.Services.Memory.Types
 -- @since 0.1
 queryMemory ::
   ( HasCallStack,
-    MonadPathReader m,
-    MonadThrow m,
-    MonadTypedProcess m
+    PathReader :> es,
+    TypedProcess :> es
   ) =>
   MemoryApp ->
-  m SystemMemory
+  Eff es SystemMemory
 queryMemory MemoryAppFree = Free.memoryShellApp
 
 -- | Returns the amount of free memory.

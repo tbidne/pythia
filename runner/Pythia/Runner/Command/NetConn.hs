@@ -119,14 +119,13 @@ fieldKey = "field"
 
 -- | @since 0.1
 handleNetConn ::
-  ( MonadPathReader m,
-    MonadTerminal m,
-    MonadThrow m,
-    MonadTypedProcess m
+  ( PathReader :> es,
+    Terminal :> es,
+    TypedProcess :> es
   ) =>
   NetInterfaceApp ->
   NetConnField ->
-  m ()
+  Eff es ()
 handleNetConn cfg field = do
   result <- Pythia.queryNetInterfaces cfg
   putTextLn $ case Pythia.findUp result of

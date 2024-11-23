@@ -1,22 +1,13 @@
 {-# LANGUAGE QuasiQuotes #-}
-{-# OPTIONS_GHC -Wno-missing-methods #-}
 
 module Integration.Pythia.Services.Battery (tests) where
 
 import Data.List qualified as L
-import Effects.FileSystem.FileReader (MonadFileReader (readBinaryFile))
-import Effects.FileSystem.PathReader
-  ( MonadPathReader
-      ( doesFileExist,
-        findExecutable
-      ),
-  )
-import Effects.Optparse (MonadOptparse)
-import Effects.Process.Typed
+import Effectful.FileSystem.FileReader.Dynamic (FileReader (ReadBinaryFile))
+import Effectful.Process.Typed.Dynamic
   ( ExitCode (ExitSuccess),
-    MonadTypedProcess (readProcess),
+    TypedProcess (ReadProcess),
   )
-import Effects.System.Environment (MonadEnv)
 import Integration.Prelude
 
 tests :: TestTree
@@ -58,47 +49,39 @@ testBatteryStatus = testCase "status" $ do
 runIntIO :: [String] -> IO [Text]
 runIntIO = runIntegrationIO unIntIO
 
-newtype IntIO a = MkIntIO {unIntIO :: ReaderT (IORef Text) IO a}
-  deriving
-    ( Applicative,
-      Functor,
-      Monad,
-      MonadCatch,
-      MonadEnv,
-      MonadIO,
-      MonadOptparse,
-      MonadTime,
-      MonadThrow
-    )
-    via (ReaderT (IORef Text) IO)
-  deriving (MonadTerminal) via BaseIO
+unIntIO ::
+  Eff
+    [ Environment,
+      FileReader,
+      Optparse,
+      PathReader,
+      Terminal,
+      Time,
+      TypedProcess,
+      Reader (IORef Text),
+      IOE
+    ]
+    a ->
+  Eff [Reader (IORef Text), IOE] a
+unIntIO =
+  runTypedProcessMock
+    . runTime
+    . runTerminalMock
+    . runPathReaderMock
+    . runOptparse
+    . runFileReaderMock
+    . runEnvironment
 
-instance MonadFileReader IntIO where
-  readBinaryFile p
-    | p == [osp|/sys/class/power_supply/BAT0/capacity|] = pure "100"
-    | p == [osp|/sys/class/power_supply/BAT0/status|] = pure "full"
-    | otherwise = error $ "Tried to read unexpected file: " <> show p
+runFileReaderMock :: Eff (FileReader : es) a -> Eff es a
+runFileReaderMock = interpret_ $ \case
+  ReadBinaryFile p
+    | p == [osp|/sys/class/power_supply/BAT0/capacity|] -> pure "100"
+    | p == [osp|/sys/class/power_supply/BAT0/status|] -> pure "full"
+    | otherwise -> error $ "Tried to read unexpected file: " <> show p
 
-instance MonadPathReader IntIO where
-  getXdgDirectory _ _ = pure [osp|test_xdg|]
-
-  findExecutable p
-    | p == [osp|acpi|] = pure $ Just [osp|exe|]
-    | p == [osp|upower|] = pure $ Just [osp|exe|]
-    | otherwise = pure Nothing
-
-  doesDirectoryExist p
-    | p == [osp|/sys/class/power_supply|] = pure True
-    | p == [osp|/sys/class/power_supply/BAT0|] = pure True
-    | otherwise = pure False
-
-  doesFileExist p
-    | p == [osp|/sys/class/power_supply/BAT0/capacity|] = pure True
-    | p == [osp|/sys/class/power_supply/BAT0/status|] = pure True
-    | otherwise = pure False
-
-instance MonadTypedProcess IntIO where
-  readProcess pc = case cmd of
+runTypedProcessMock :: Eff (TypedProcess : es) a -> Eff es a
+runTypedProcessMock = interpret_ $ \case
+  ReadProcess pc -> case cmd of
     "Shell command: acpi" -> pure (ExitSuccess, "Battery 0: Charging, 75%", "")
     "Shell command: upower -i `upower -e | grep 'BAT'`" ->
       let output =
@@ -140,3 +123,4 @@ instance MonadTypedProcess IntIO where
     bad -> error $ "Unexpected command: " <> bad
     where
       cmd = processConfigToCmd pc
+  _ -> error "runTypedProcessMock: unimplemented"

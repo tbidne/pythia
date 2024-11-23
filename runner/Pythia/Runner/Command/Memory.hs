@@ -169,15 +169,14 @@ unitsKey = "units"
 
 -- | @since 0.1
 handleMemory ::
-  ( MonadPathReader m,
-    MonadTerminal m,
-    MonadThrow m,
-    MonadTypedProcess m
+  ( PathReader :> es,
+    Terminal :> es,
+    TypedProcess :> es
   ) =>
   MemoryApp ->
   MemoryField ->
   MemoryUnits ->
-  m ()
+  Eff es ()
 handleMemory cfg field format =
   Pythia.queryMemory cfg
     >>= putTextLn

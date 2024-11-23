@@ -26,22 +26,20 @@ import Data.Time.Conversion
   )
 import Data.Time.Conversion qualified as TimeConv
 import Data.Time.LocalTime qualified as LT
-import Effects.Time (getSystemZonedTime)
+import Effectful.Time.Dynamic (getSystemZonedTime)
 import Pythia.Prelude
 
 -- | Queries current local time.
 --
 -- @since 0.1
-queryLocalTime :: (HasCallStack, MonadCatch m, MonadTime m) => m ZonedTime
+queryLocalTime :: (HasCallStack, Time :> es) => Eff es ZonedTime
 queryLocalTime = TimeConv.readTime Nothing
-{-# INLINEABLE queryLocalTime #-}
 
 -- | Queries current UTC time.
 --
 -- @since 0.1
-queryUTC :: (HasCallStack, MonadTime m) => m UTCTime
+queryUTC :: (HasCallStack, Time :> es) => Eff es UTCTime
 queryUTC = LT.zonedTimeToUTC <$> getSystemZonedTime
-{-# INLINEABLE queryUTC #-}
 
 -- | Queries current time in the given timezone.
 --
@@ -50,18 +48,11 @@ queryUTC = LT.zonedTimeToUTC <$> getSystemZonedTime
 -- @
 --
 -- @since 0.1
-queryTimeZone ::
-  ( HasCallStack,
-    MonadCatch m,
-    MonadTime m
-  ) =>
-  Text ->
-  m ZonedTime
+queryTimeZone :: (HasCallStack, Time :> es) => Text -> Eff es ZonedTime
 queryTimeZone =
   TimeConv.readConvertTime Nothing
     . Just
     . TZDatabaseText
-{-# INLINEABLE queryTimeZone #-}
 
 -- | Queries current time in the given timezone.
 --
@@ -71,15 +62,8 @@ queryTimeZone =
 -- encountered (e.g. running a command or parse error).
 --
 -- @since 0.1
-queryTimeZoneLabel ::
-  ( HasCallStack,
-    MonadCatch m,
-    MonadTime m
-  ) =>
-  TZLabel ->
-  m ZonedTime
+queryTimeZoneLabel :: (HasCallStack, Time :> es) => TZLabel -> Eff es ZonedTime
 queryTimeZoneLabel =
   TimeConv.readConvertTime Nothing
     . Just
     . TZDatabaseLabel
-{-# INLINEABLE queryTimeZoneLabel #-}

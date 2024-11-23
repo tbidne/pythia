@@ -40,36 +40,35 @@ import Pythia.Services.Types.Network
 -- @since 0.1
 queryNetInterfaces ::
   ( HasCallStack,
-    MonadPathReader m,
-    MonadThrow m,
-    MonadTypedProcess m
+    PathReader :> es,
+    TypedProcess :> es
   ) =>
   NetInterfaceApp ->
-  m NetInterfaces
+  Eff es NetInterfaces
 queryNetInterfaces NetInterfaceAppNmCli = NmCli.netInterfaceShellApp
 queryNetInterfaces NetInterfaceAppIp = Ip.netInterfaceShellApp
-{-# INLINEABLE queryNetInterfaces #-}
 
 -- | Like 'queryNetInterfaces' but returns data for a single device.
 --
 -- @since 0.1
 queryNetInterface ::
   ( HasCallStack,
-    MonadPathReader m,
-    MonadThrow m,
-    MonadTypedProcess m
+    PathReader :> es,
+    TypedProcess :> es
   ) =>
   Device ->
   NetInterfaceApp ->
-  m NetInterface
+  Eff es NetInterface
 queryNetInterface d = queryNetInterfaces >=> findDevice d
-{-# INLINEABLE queryNetInterface #-}
 
-findDevice :: (HasCallStack, MonadThrow m) => Device -> NetInterfaces -> m NetInterface
+findDevice ::
+  (HasCallStack) =>
+  Device ->
+  NetInterfaces ->
+  Eff es NetInterface
 findDevice device = throwMaybe e . headMaybe . view #unNetInterfaces . filterDevice device
   where
     e = MkDeviceNotFound device
-{-# INLINEABLE findDevice #-}
 
 -- | Takes the first 'NetInterface' that has state 'NetStateUp', according to
 -- 'NetInterfaceState'\'s 'Ord':
@@ -97,10 +96,8 @@ findUp = headMaybe . (sortType . filterUp) . view #unNetInterfaces
   where
     sortType = OL.sortOn (view #ntype)
     filterUp = filter ((== NetStateUp) . view #state)
-{-# INLINEABLE findUp #-}
 
 filterDevice :: Device -> NetInterfaces -> NetInterfaces
 filterDevice device (MkNetInterfaces ifs) =
   MkNetInterfaces
     $ filter ((== device) . view #device) ifs
-{-# INLINEABLE filterDevice #-}

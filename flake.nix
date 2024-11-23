@@ -31,8 +31,8 @@
       inputs.nix-hs-utils.follows = "nix-hs-utils";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-    monad-effects = {
-      url = "github:tbidne/monad-effects";
+    effectful-libs = {
+      url = "github:tbidne/effectful-libs";
 
       inputs.flake-parts.follows = "flake-parts";
       inputs.nix-hs-utils.follows = "nix-hs-utils";
@@ -42,7 +42,6 @@
       inputs.bounds.follows = "bounds";
       inputs.exception-utils.follows = "exception-utils";
       inputs.fs-utils.follows = "fs-utils";
-      inputs.smart-math.follows = "smart-math";
     };
     si-bytes = {
       url = "github:tbidne/si-bytes";
@@ -65,7 +64,7 @@
       inputs.bounds.follows = "bounds";
     };
     time-conv = {
-      url = "github:tbidne/time-conv";
+      url = "github:tbidne/time-conv/effectful";
 
       inputs.nix-hs-utils.follows = "nix-hs-utils";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -75,13 +74,13 @@
       inputs.bounds.follows = "bounds";
       inputs.exception-utils.follows = "exception-utils";
       inputs.fs-utils.follows = "fs-utils";
-      inputs.monad-effects.follows = "monad-effects";
+      inputs.effectful-libs.follows = "effectful-libs";
     };
   };
   outputs =
     inputs@{
       flake-parts,
-      monad-effects,
+      effectful-libs,
       nix-hs-utils,
       self,
       ...
@@ -94,7 +93,29 @@
           compiler = pkgs.haskell.packages."${ghc-version}".override {
             overrides =
               final: prev:
-              { }
+              {
+                effectful-core = (
+                  final.callHackageDirect {
+                    pkg = "effectful-core";
+                    ver = "2.5.0.0";
+                    sha256 = "sha256-UCbMP8BfNfdIRTLzB4nBr17jxRp5Qmw3sTuORO06Npg=";
+                  } { }
+                );
+                effectful = (
+                  final.callHackageDirect {
+                    pkg = "effectful";
+                    ver = "2.5.0.0";
+                    sha256 = "sha256-lmM0kdM5PS45Jol5Y2Nw30VWWfDPiPJLrwVj+GmJSOQ=";
+                  } { }
+                );
+                strict-mutable-base = (
+                  final.callHackageDirect {
+                    pkg = "strict-mutable-base";
+                    ver = "1.1.0.0";
+                    sha256 = "sha256-cBSwoNGU/GZDW3eg7GI28t0HrrrxMW9hRapoOL2zU7Q=";
+                  } { }
+                );
+              }
               // nix-hs-utils.mkLibs inputs final [
                 "algebra-simple"
                 "bounds"
@@ -104,16 +125,16 @@
                 "smart-math"
                 "time-conv"
               ]
-              // nix-hs-utils.mkRelLibs "${monad-effects}/lib" final [
-                "effects-env"
-                "effects-fs"
-                "effects-ioref"
-                "effects-optparse"
-                "effects-stm"
-                "effects-terminal"
-                "effects-time"
-                "effects-typed-process"
-                "effects-unix-compat"
+              // nix-hs-utils.mkRelLibs "${effectful-libs}/lib" final [
+                "environment-effectful"
+                "fs-effectful"
+                "ioref-effectful"
+                "optparse-effectful"
+                "stm-effectful"
+                "terminal-effectful"
+                "time-effectful"
+                "typed-process-dynamic-effectful"
+                "unix-compat-effectful"
               ];
           };
           hlib = pkgs.haskell.lib;

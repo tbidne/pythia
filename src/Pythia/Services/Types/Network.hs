@@ -181,7 +181,6 @@ instance Predicate Ipv4Refinement Text where
       errChars =
         "IPv4 address should only contain decimal digits or dots. Received invalid: "
           <> txt
-  {-# INLINEABLE validate #-}
 
 -- | IPv6 Refinement. We implement a custom type here so we get better error
 -- messages. 'Text' must satisfy:
@@ -227,7 +226,6 @@ instance Predicate Ipv6Refinement Text where
       errChars =
         "IPv6 address should only contain hex digits or colons. Received invalid: "
           <> txt
-  {-# INLINEABLE validate #-}
 
 -- | Type for an IP address. The type family 'IpRefinement' refines the
 -- underlying 'Text' according to the spec.

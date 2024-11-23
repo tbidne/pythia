@@ -7,14 +7,18 @@ module Functional.Prelude
   )
 where
 
-import Control.Monad.Reader
+import Control.Monad.IO.Class (MonadIO (liftIO))
+{-import Control.Monad.Reader
   ( MonadIO (liftIO),
     MonadReader (ask),
     ReaderT (runReaderT),
-  )
+  )-}
 import Data.IORef (IORef, modifyIORef', newIORef, readIORef)
 import Data.Text qualified as T
-import Effects.Optparse (MonadOptparse)
+import Effectful.Dispatch.Dynamic (interpret_)
+import Effectful.FileSystem.PathReader.Dynamic (runPathReader)
+import Effectful.Optparse.Static (Optparse, runOptparse)
+import Effectful.Reader.Static (Reader, ask, runReader)
 import Pythia.Prelude as X
 import Pythia.Runner (runPythia)
 import System.Environment qualified as SysEnv
@@ -33,30 +37,42 @@ assertNonEmpty txt =
     ("Should not be empty: " <> T.unpack txt)
     (not . T.null $ txt)
 
-newtype FuncIO a = MkFuncIO (ReaderT (IORef Text) IO a)
-  deriving
-    ( Applicative,
-      Functor,
-      Monad,
-      MonadCatch,
-      MonadFileReader,
-      MonadOptparse,
-      MonadPathReader,
-      MonadIO,
-      MonadTime,
-      MonadThrow,
-      MonadTypedProcess
-    )
-    via (ReaderT (IORef Text) IO)
-  deriving (MonadReader (IORef Text)) via (ReaderT (IORef Text) IO)
-
-instance MonadTerminal FuncIO where
-  putStrLn s = do
-    ref <- ask
-    liftIO $ modifyIORef' ref (T.pack s <>)
-
-runFuncIO :: FuncIO a -> IO Text
-runFuncIO (MkFuncIO io) = do
+runFuncIO ::
+  forall a.
+  Eff
+    [ FileReader,
+      Optparse,
+      PathReader,
+      Terminal,
+      Time,
+      TypedProcess,
+      Reader (IORef Text),
+      IOE
+    ]
+    a ->
+  IO Text
+runFuncIO eff = do
   ref <- newIORef ""
-  _ <- runReaderT io ref
+
+  _ <-
+    runEff
+      . runReader ref
+      . runTypedProcess
+      . runTime
+      . runTerminalMock
+      . runPathReader
+      . runOptparse
+      . runFileReader
+      $ eff
+
   readIORef ref
+
+runTerminalMock ::
+  ( IOE :> es,
+    Reader (IORef Text) :> es
+  ) =>
+  Eff (Terminal : es) a ->
+  Eff es a
+runTerminalMock = interpret_ $ \case
+  PutStrLn s -> ask >>= \ref -> liftIO $ modifyIORef' ref (T.pack s <>)
+  _other -> error "runTerminalMock: unimplemented"

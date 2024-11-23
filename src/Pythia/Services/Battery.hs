@@ -30,14 +30,13 @@ import Pythia.Services.Battery.UPower qualified as UPower
 --
 -- @since 0.1
 queryBattery ::
-  ( HasCallStack,
-    MonadCatch m,
-    MonadFileReader m,
-    MonadPathReader m,
-    MonadTypedProcess m
+  ( FileReader :> es,
+    HasCallStack,
+    PathReader :> es,
+    TypedProcess :> es
   ) =>
   BatteryApp ->
-  m Battery
+  Eff es Battery
 queryBattery BatteryAppAcpi = Acpi.batteryShellApp
 queryBattery BatteryAppSysFs = SysFs.batteryQuery
 queryBattery BatteryAppUPower = UPower.batteryShellApp
