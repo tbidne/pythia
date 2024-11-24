@@ -18,6 +18,7 @@ where
 import Data.Char qualified as Char
 import Data.Set qualified as Set
 import Data.Text qualified as T
+import Pythia.Control.Exception (fromPythiaException, toPythiaException)
 import Pythia.Data.Percentage (Percentage)
 import Pythia.Data.Percentage qualified as Percentage
 import Pythia.Internal.ShellApp
@@ -73,6 +74,9 @@ instance Exception AcpiParseError where
     ("Acpi parse error: " <>)
       . T.unpack
       $ e
+
+  toException = toPythiaException
+  fromException = fromPythiaException
 
 -- | ACPI query for 'Battery'.
 --

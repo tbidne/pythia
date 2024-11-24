@@ -15,6 +15,8 @@ import Pythia
     MemoryApp,
     NetInterfaceApp,
     UrlSource,
+    fromPythiaException,
+    toPythiaException,
   )
 import Pythia.Prelude
 import Pythia.Runner.Command
@@ -278,6 +280,8 @@ newtype ConfigException
 -- | @since 0.1
 instance Exception ConfigException where
   displayException (MissingApp t) = "Missing app: " <> t
+  toException = toPythiaException
+  fromException = fromPythiaException
 
 -- | Combines the @PythiaCommand Phase1@ (CLI args) with the Toml configuration
 -- to produce the final @PythiaCommand Phase2@, which can then be handed off to

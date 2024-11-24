@@ -1,4 +1,5 @@
 {-# LANGUAGE CPP #-}
+{-# OPTIONS_GHC -Wno-redundant-constraints #-}
 
 -- | Custom prelude.
 --
@@ -32,7 +33,14 @@ import Control.Applicative as X
     Applicative (pure, (*>), (<*), (<*>)),
   )
 import Control.DeepSeq as X (NFData)
-import Control.Exception as X (Exception (displayException), SomeException)
+import Control.Exception as X
+  ( Exception
+      ( displayException,
+        fromException,
+        toException
+      ),
+    SomeException,
+  )
 import Control.Exception.Utils as X (trySync)
 import Control.Monad as X
   ( Monad ((>>=)),
@@ -65,7 +73,7 @@ import Data.List as X (filter, replicate)
 import Data.List.NonEmpty as X (NonEmpty ((:|)))
 import Data.Maybe as X (Maybe (Just, Nothing), fromMaybe, maybe)
 import Data.Monoid as X (Monoid (mconcat, mempty))
-import Data.Ord as X (Ord ((<=)), (<), (>))
+import Data.Ord as X (Ord ((<=), (>=)), (<), (>))
 import Data.Proxy as X (Proxy (Proxy))
 import Data.Semigroup as X (Semigroup ((<>)))
 import Data.String as X (IsString (fromString), String)

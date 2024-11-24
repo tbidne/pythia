@@ -17,6 +17,7 @@ where
 import Data.Bytes (Bytes (MkBytes))
 import Data.Char qualified as Char
 import Data.Text qualified as T
+import Pythia.Control.Exception (fromPythiaException, toPythiaException)
 import Pythia.Internal.ShellApp
   ( SimpleShell
       ( MkSimpleShell,
@@ -64,6 +65,9 @@ instance Exception FreeParseError where
     ("Could not parse memory from: " <>)
       . T.unpack
       $ e
+
+  toException = toPythiaException
+  fromException = fromPythiaException
 
 -- | Free query for 'Memory'.
 --

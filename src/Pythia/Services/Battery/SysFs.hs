@@ -19,6 +19,7 @@ where
 
 import Data.Text qualified as T
 import Effects.FileSystem.PathReader qualified as Dir
+import Pythia.Control.Exception (fromPythiaException, toPythiaException)
 import Pythia.Data.Percentage (Percentage)
 import Pythia.Data.Percentage qualified as Percentage
 import Pythia.Prelude
@@ -71,6 +72,9 @@ instance Exception SysFsDirNotFound where
         "'"
       ]
 
+  toException = toPythiaException
+  fromException = fromPythiaException
+
 -- | Sysfs battery dir not found.
 --
 -- ==== __Examples__
@@ -95,6 +99,9 @@ instance Exception SysFsBatteryDirNotFound where
       [ "Could not find BAT[0-5]? subdirectory under ",
         "/sys(fs)/class/power_supply"
       ]
+
+  toException = toPythiaException
+  fromException = fromPythiaException
 
 -- | Sysfs file not found.
 --
@@ -122,6 +129,9 @@ instance Exception SysFsFileNotFound where
         "'"
       ]
 
+  toException = toPythiaException
+  fromException = fromPythiaException
+
 -- | Sysfs battery parse error.
 --
 -- ==== __Examples__
@@ -145,6 +155,9 @@ instance Exception SysFsBatteryParseError where
     ("SysFs parse error: " <>)
       . T.unpack
       $ e
+
+  toException = toPythiaException
+  fromException = fromPythiaException
 
 -- | @\/sys\/class@ query for 'Battery'.
 --

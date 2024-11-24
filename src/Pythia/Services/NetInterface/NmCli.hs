@@ -18,6 +18,7 @@ where
 import Data.Char qualified as Char
 import Data.Set qualified as Set
 import Data.Text qualified as T
+import Pythia.Control.Exception (fromPythiaException, toPythiaException)
 import Pythia.Internal.ShellApp (SimpleShell (MkSimpleShell))
 import Pythia.Internal.ShellApp qualified as ShellApp
 import Pythia.Prelude
@@ -67,6 +68,9 @@ instance Exception NmCliParseError where
     ("NmCli parse error: " <>)
       . T.unpack
       $ e
+
+  toException = toPythiaException
+  fromException = fromPythiaException
 
 -- | NmCli query for 'NetInterfaces'.
 --

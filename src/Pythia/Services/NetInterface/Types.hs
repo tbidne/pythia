@@ -33,6 +33,7 @@ module Pythia.Services.NetInterface.Types
 where
 
 import Data.Text qualified as T
+import Pythia.Control.Exception (fromPythiaException, toPythiaException)
 import Pythia.Prelude
 import Pythia.Services.Types.Network
   ( Device,
@@ -435,3 +436,6 @@ instance Exception DeviceNotFound where
       . T.unpack
       . view #unDevice
       $ d
+
+  toException = toPythiaException
+  fromException = fromPythiaException

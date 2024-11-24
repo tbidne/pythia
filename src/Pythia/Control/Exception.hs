@@ -2,7 +2,12 @@
 --
 -- @since 0.1
 module Pythia.Control.Exception
-  ( -- * Miscellaneous Exceptions
+  ( -- * Root
+    PythiaException (..),
+    toPythiaException,
+    fromPythiaException,
+
+    -- * Miscellaneous
     CommandException (..),
     SomeExceptions (..),
     NotSupportedException (..),
@@ -11,12 +16,51 @@ module Pythia.Control.Exception
 where
 
 import Data.Text qualified as T
+import Data.Typeable (cast)
+import GHC.Show (Show (showsPrec), showParen)
+import GHC.Show qualified as Sh
 import Pythia.Data.Command (Command)
 import Pythia.Prelude
 
 -- $setup
 -- >>> import Data.List.NonEmpty (NonEmpty ((:|)))
 -- >>> import Pythia.Prelude
+
+-- | Exception hierarchy root for exceptions thrown by this library.
+--
+-- @since 0.1
+type PythiaException :: Type
+data PythiaException = forall e. (Exception e) => MkPythiaException e
+
+-- | @since 0.1
+instance Show PythiaException where
+  showsPrec i (MkPythiaException ex) =
+    showParen
+      (i >= Sh.appPrec1)
+      ( Sh.showString "MkPythiaException "
+          . Sh.showsPrec Sh.appPrec1 ex
+      )
+
+-- | @since 0.1
+instance Exception PythiaException where
+  displayException (MkPythiaException ex) =
+    "Pythia exception: " <> displayException ex
+
+-- | 'toException' via 'PythiaException'. Used for defining an exception
+-- as a subtype of 'PythiaException'.
+--
+-- @since 0.1
+toPythiaException :: (Exception e) => e -> SomeException
+toPythiaException = toException . MkPythiaException
+
+-- | 'fromException' via 'PythiaException'. Used for defining an exception
+-- as a subtype of 'PythiaException'.
+--
+-- @since 0.1
+fromPythiaException :: (Exception e) => SomeException -> Maybe e
+fromPythiaException x = do
+  MkPythiaException e <- fromException x
+  cast e
 
 -- | Exceptions encountered while running a shell command.
 --
@@ -45,6 +89,9 @@ instance Exception CommandException where
         ">"
       ]
 
+  toException = toPythiaException
+  fromException = fromPythiaException
+
 -- | Collects 1 or more exceptions.
 --
 -- ==== __Examples__
@@ -72,6 +119,9 @@ instance Exception SomeExceptions where
       ]
     where
       foldExs acc ex = ("\n\n- " <> displayException ex) <> acc
+
+  toException = toPythiaException
+  fromException = fromPythiaException
 
 -- | @since 0.1
 instance Semigroup SomeExceptions where
@@ -102,6 +152,9 @@ instance Exception NotSupportedException where
         ">"
       ]
 
+  toException = toPythiaException
+  fromException = fromPythiaException
+
 -- | Error for when no actions are run.
 --
 -- ==== __Examples__
@@ -121,3 +174,6 @@ data NoActionsRunException = MkNoActionsRunException
 -- | @since 0.1
 instance Exception NoActionsRunException where
   displayException _ = "No actions run"
+
+  toException = toPythiaException
+  fromException = fromPythiaException
