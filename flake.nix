@@ -73,6 +73,7 @@
 
       inputs.algebra-simple.follows = "algebra-simple";
       inputs.bounds.follows = "bounds";
+      inputs.smart-math.follows = "smart-math";
       inputs.exception-utils.follows = "exception-utils";
       inputs.fs-utils.follows = "fs-utils";
       inputs.monad-effects.follows = "monad-effects";
@@ -90,11 +91,13 @@
       perSystem =
         { pkgs, ... }:
         let
-          ghc-version = "ghc982";
+          ghc-version = "ghc9101";
           compiler = pkgs.haskell.packages."${ghc-version}".override {
             overrides =
               final: prev:
-              { }
+              {
+                path = hlib.dontCheck prev.path_0_9_6;
+              }
               // nix-hs-utils.mkLibs inputs final [
                 "algebra-simple"
                 "bounds"
@@ -113,7 +116,6 @@
                 "effects-terminal"
                 "effects-time"
                 "effects-typed-process"
-                "effects-unix-compat"
               ];
           };
           hlib = pkgs.haskell.lib;
@@ -123,6 +125,14 @@
               inherit compiler pkgs returnShellEnv;
               name = "pythia";
               root = ./.;
+
+              # TODO: Once hlint is back to working with our GHC we can
+              # use nix-hs-utils.mkDevTools ++ otherDeps.
+              devTools = [
+                (hlib.dontCheck compiler.cabal-fmt)
+                (hlib.dontCheck compiler.haskell-language-server)
+                pkgs.nixfmt-rfc-style
+              ];
             };
           compilerPkgs = {
             inherit compiler pkgs;
@@ -134,8 +144,8 @@
 
           apps = {
             format = nix-hs-utils.format compilerPkgs;
-            lint = nix-hs-utils.lint compilerPkgs;
-            lint-refactor = nix-hs-utils.lint-refactor compilerPkgs;
+            #lint = nix-hs-utils.lint compilerPkgs;
+            #lint-refactor = nix-hs-utils.lint-refactor compilerPkgs;
           };
         };
       systems = [

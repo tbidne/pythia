@@ -3,7 +3,14 @@ name:               pythia
 version:            0.1
 license:            MIT
 license-file:       LICENSE
-tested-with:        GHC ==9.2.8 || ==9.4.8 || ==9.6.5 || ==9.8.2
+tested-with:
+  GHC ==9.2.8
+   || ==9.4.8
+   || ==9.6.6
+   || ==9.8.2
+   || ==9.10.1
+   || ==9.12.1
+
 copyright:          2021-2025 Thomas Bidne
 author:             Thomas Bidne
 maintainer:         tbidne@protonmail.com
@@ -22,9 +29,8 @@ description:
   The entry point is "Pythia".
 
 category:           System
-extra-source-files:
-  CHANGELOG.md
-  README.md
+extra-source-files: README.md
+extra-doc-files:    CHANGELOG.md
 
 source-repository head
   type:     git
@@ -101,7 +107,7 @@ library
     Pythia.Utils
 
   build-depends:
-    , base                   >=4.16.0.0  && <4.21
+    , base                   >=4.16.0.0  && <4.22
     , bytestring             >=0.10.10.0 && <0.13
     , containers             >=0.6.2.1   && <0.8
     , deepseq                >=1.4.4.0   && <1.6
@@ -111,14 +117,14 @@ library
     , effects-typed-process  ^>=0.1
     , exception-utils        ^>=0.1
     , exceptions             ^>=0.10.4
-    , megaparsec             >=7.0.5     && <9.7
+    , megaparsec             >=7.0.5     && <9.8
     , optics-core            ^>=0.4
     , refined                >=0.6       && <0.9
     , si-bytes               ^>=0.1
     , smart-math             ^>=0.1
-    , template-haskell       >=2.17.0.0  && <2.23
+    , template-haskell       >=2.17.0.0  && <2.24
     , text                   >=1.2.3.2   && <2.2
-    , text-display           >=0.0.3.0   && <0.6
+    , text-display           >=0.0.3.0   && <1.1
     , time                   >=1.9.3     && <1.15
     , time-conv              ^>=0.1
 

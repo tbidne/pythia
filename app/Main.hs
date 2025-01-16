@@ -7,7 +7,6 @@ import Control.Exception.Annotation.Utils
   ( ExceptionProxy (MkExceptionProxy),
   )
 import Control.Exception.Annotation.Utils qualified as AnnUtils
-import Data.Proxy (Proxy (Proxy))
 import Pythia.Control.Exception (PythiaException)
 import Pythia.Runner (runPythia)
 
@@ -16,12 +15,10 @@ import Pythia.Runner (runPythia)
 -- @since 0.1
 main :: IO ()
 main = do
-  AnnUtils.setUncaughtExceptionDisplayInnerMatch
-    noCallstacks
-    (putStrLn . ("\n" <>))
+  AnnUtils.setIgnoreKnownCallStackHandler noCallstacks
 
   runPythia
   where
     noCallstacks =
-      [ MkExceptionProxy $ Proxy @PythiaException
+      [ MkExceptionProxy @PythiaException
       ]
