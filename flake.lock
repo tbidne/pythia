@@ -109,16 +109,60 @@
         ]
       },
       "locked": {
-        "lastModified": 1736946118,
-        "narHash": "sha256-JznH+E0C4w1su+OE2VnQjEGSRpcBu3f+afnh7L24CMg=",
+        "lastModified": 1754610884,
+        "narHash": "sha256-T9fl7Mw/JeoR9bgxj1Z9MNoUFGR1G5uDL3XrBlqrko8=",
         "owner": "tbidne",
         "repo": "fs-utils",
-        "rev": "e2273c91c411e1fe12347524065855ba8e34a481",
+        "rev": "26136275027fd827574c5004ebd11b659d7abdab",
         "type": "github"
       },
       "original": {
         "owner": "tbidne",
         "repo": "fs-utils",
+        "type": "github"
+      }
+    },
+    "kairos": {
+      "inputs": {
+        "algebra-simple": [
+          "algebra-simple"
+        ],
+        "bounds": [
+          "bounds"
+        ],
+        "exception-utils": [
+          "exception-utils"
+        ],
+        "flake-parts": [
+          "flake-parts"
+        ],
+        "fs-utils": [
+          "fs-utils"
+        ],
+        "monad-effects": [
+          "monad-effects"
+        ],
+        "nix-hs-utils": [
+          "nix-hs-utils"
+        ],
+        "nixpkgs": [
+          "nixpkgs"
+        ],
+        "smart-math": [
+          "smart-math"
+        ]
+      },
+      "locked": {
+        "lastModified": 1750589016,
+        "narHash": "sha256-C3EPZrCfYGFZJimLcG3H7wznZ+J06ggC9lpqBwHzpHg=",
+        "owner": "tbidne",
+        "repo": "kairos",
+        "rev": "f3d967531ebc272fdce4c91efc8357d4f67befa2",
+        "type": "github"
+      },
+      "original": {
+        "owner": "tbidne",
+        "repo": "kairos",
         "type": "github"
       }
     },
@@ -150,11 +194,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1736979508,
-        "narHash": "sha256-RRwz1YYeM4xWDWubBbjnSDMnDaz+Bzue3XBL3XzhPrM=",
+        "lastModified": 1751507025,
+        "narHash": "sha256-YlxL1wcBMg1Cr/G293smjMA7yDrTOO99IiMmoI73SZY=",
         "owner": "tbidne",
         "repo": "monad-effects",
-        "rev": "9e2258864a4c6a25d444eeeb915211d38a08fdf6",
+        "rev": "7fa71a02efa422e51abe8600aaa3a0ddae4fca55",
         "type": "github"
       },
       "original": {
@@ -213,12 +257,12 @@
         "exception-utils": "exception-utils",
         "flake-parts": "flake-parts",
         "fs-utils": "fs-utils",
+        "kairos": "kairos",
         "monad-effects": "monad-effects",
         "nix-hs-utils": "nix-hs-utils",
         "nixpkgs": "nixpkgs",
         "si-bytes": "si-bytes",
-        "smart-math": "smart-math",
-        "time-conv": "time-conv"
+        "smart-math": "smart-math"
       }
     },
     "si-bytes": {
@@ -282,50 +326,6 @@
       "original": {
         "owner": "tbidne",
         "repo": "smart-math",
-        "type": "github"
-      }
-    },
-    "time-conv": {
-      "inputs": {
-        "algebra-simple": [
-          "algebra-simple"
-        ],
-        "bounds": [
-          "bounds"
-        ],
-        "exception-utils": [
-          "exception-utils"
-        ],
-        "flake-parts": [
-          "flake-parts"
-        ],
-        "fs-utils": [
-          "fs-utils"
-        ],
-        "monad-effects": [
-          "monad-effects"
-        ],
-        "nix-hs-utils": [
-          "nix-hs-utils"
-        ],
-        "nixpkgs": [
-          "nixpkgs"
-        ],
-        "smart-math": [
-          "smart-math"
-        ]
-      },
-      "locked": {
-        "lastModified": 1736986337,
-        "narHash": "sha256-PLfSBZ5JRvrgFDyl8Rb3F5FA38DzfXtR6XjQ7YlkJiQ=",
-        "owner": "tbidne",
-        "repo": "time-conv",
-        "rev": "0159842d89765ab2d9524c32cb2eaed50a5508ac",
-        "type": "github"
-      },
-      "original": {
-        "owner": "tbidne",
-        "repo": "time-conv",
         "type": "github"
       }
     }

@@ -16,24 +16,23 @@ module Pythia.Services.Time
 where
 
 import Data.Time.Clock (UTCTime (..))
-import Data.Time.Conversion
-  ( TZDatabase
-      ( TZDatabaseLabel,
-        TZDatabaseText
-      ),
+import Data.Time.LocalTime qualified as LT
+import Effects.Time (getSystemZonedTime)
+import Kairos
+  ( ParseTZInputException (MkParseTZInputException),
+    TZInput (TZDatabase),
     TZLabel (..),
     ZonedTime,
   )
-import Data.Time.Conversion qualified as TimeConv
-import Data.Time.LocalTime qualified as LT
-import Effects.Time (getSystemZonedTime)
+import Kairos qualified
+import Kairos.Types.TZInput qualified as TZInput
 import Pythia.Prelude
 
 -- | Queries current local time.
 --
 -- @since 0.1
 queryLocalTime :: (HasCallStack, MonadCatch m, MonadTime m) => m ZonedTime
-queryLocalTime = TimeConv.readTime Nothing
+queryLocalTime = Kairos.readTime Nothing
 {-# INLINEABLE queryLocalTime #-}
 
 -- | Queries current UTC time.
@@ -57,10 +56,12 @@ queryTimeZone ::
   ) =>
   Text ->
   m ZonedTime
-queryTimeZone =
-  TimeConv.readConvertTime Nothing
-    . Just
-    . TZDatabaseText
+queryTimeZone txt = case TZInput.parseTZInput txt of
+  Nothing -> throwM $ MkParseTZInputException txt
+  Just tzInput ->
+    Kairos.readConvertTime Nothing
+      . Just
+      $ tzInput
 {-# INLINEABLE queryTimeZone #-}
 
 -- | Queries current time in the given timezone.
@@ -79,7 +80,7 @@ queryTimeZoneLabel ::
   TZLabel ->
   m ZonedTime
 queryTimeZoneLabel =
-  TimeConv.readConvertTime Nothing
+  Kairos.readConvertTime Nothing
     . Just
-    . TZDatabaseLabel
+    . TZDatabase
 {-# INLINEABLE queryTimeZoneLabel #-}

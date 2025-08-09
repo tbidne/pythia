@@ -117,6 +117,7 @@ library
     , effects-typed-process  ^>=0.1
     , exception-utils        ^>=0.1
     , exceptions             ^>=0.10.4
+    , kairos-core            ^>=0.1
     , megaparsec             >=7.0.5     && <9.8
     , optics-core            ^>=0.4
     , refined                >=0.6       && <0.9
@@ -126,7 +127,6 @@ library
     , text                   >=1.2.3.2   && <2.2
     , text-display           >=0.0.3.0   && <1.1
     , time                   >=1.9.3     && <1.15
-    , time-conv              ^>=0.1
 
   hs-source-dirs:  src
 
