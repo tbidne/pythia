@@ -7,9 +7,9 @@ tested-with:
   GHC ==9.2.8
    || ==9.4.8
    || ==9.6.6
-   || ==9.8.2
-   || ==9.10.1
-   || ==9.12.1
+   || ==9.8.4
+   || ==9.10.2
+   || ==9.12.2
 
 copyright:          2021-2025 Thomas Bidne
 author:             Thomas Bidne
