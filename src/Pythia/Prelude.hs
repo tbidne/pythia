@@ -85,9 +85,8 @@ import Data.Tuple as X (uncurry)
 #if MIN_VERSION_base(4, 17, 0)
 import Data.Type.Equality as X (type (~))
 #endif
-import Data.Text.Lazy qualified as TL
-import Data.Text.Lazy.Builder as X (Builder)
-import Data.Text.Lazy.Builder qualified as TLB
+import Data.Text.Builder.Linear as X (Builder)
+import Data.Text.Builder.Linear qualified as TBL
 import Data.Void as X (Void)
 import Data.Word as X (Word8)
 import Effects.FileSystem.FileReader as X
@@ -246,4 +245,4 @@ displayList xs@(_ : _) =
 -- | Intermediate function for Display a => a -> Text, for when we want to
 -- use a custom builder, and not the type's built-in displayBuilder.
 builderToText :: Builder -> Text
-builderToText = TL.toStrict . TLB.toLazyText
+builderToText = TBL.runBuilder

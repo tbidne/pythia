@@ -91,7 +91,7 @@
       perSystem =
         { pkgs, ... }:
         let
-          ghc-version = "ghc9101";
+          ghc-version = "ghc9102";
           compiler = pkgs.haskell.packages."${ghc-version}".override {
             overrides =
               final: prev:

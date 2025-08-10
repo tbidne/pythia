@@ -125,7 +125,8 @@ library
     , smart-math             ^>=0.1
     , template-haskell       >=2.17.0.0  && <2.24
     , text                   >=1.2.3.2   && <2.2
-    , text-display           >=0.0.3.0   && <1.1
+    , text-builder-linear    ^>=0.1.3
+    , text-display           ^>=1.0.0.0
     , time                   >=1.9.3     && <1.15
 
   hs-source-dirs:  src

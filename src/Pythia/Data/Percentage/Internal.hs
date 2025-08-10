@@ -10,7 +10,7 @@ module Pythia.Data.Percentage.Internal
 where
 
 import Language.Haskell.TH.Syntax (Lift)
-import Numeric.Data.Interval.Algebra (Interval (MkInterval), IntervalBound (Closed))
+import Numeric.Data.Interval (Interval (MkInterval), IntervalBound (Closed))
 import Pythia.Prelude
 
 -- | Represents a percentage.

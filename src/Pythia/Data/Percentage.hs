@@ -20,7 +20,7 @@ where
 
 import Language.Haskell.TH (Code, Q)
 import Language.Haskell.TH.Syntax (Lift (liftTyped))
-import Numeric.Data.Interval.Algebra qualified as Interval
+import Numeric.Data.Interval qualified as Interval
 import Optics.Core (ReversedPrism')
 import Pythia.Data.Percentage.Internal
   ( Percentage (InternalPercentage, MkPercentage),
