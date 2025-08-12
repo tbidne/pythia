@@ -116,6 +116,8 @@ data BatteryStatus
       -- | @since 0.1
       Generic,
       -- | @since 0.1
+      Ord,
+      -- | @since 0.1
       Show
     )
   deriving anyclass
@@ -189,6 +191,8 @@ data Battery = MkBattery
       Eq,
       -- | @since 0.1
       Generic,
+      -- | @since 0.1
+      Ord,
       -- | @since 0.1
       Show
     )

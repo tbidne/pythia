@@ -100,6 +100,8 @@ data IpType
       -- | @since 0.1
       Generic,
       -- | @since 0.1
+      Ord,
+      -- | @since 0.1
       Show
     )
   deriving anyclass
