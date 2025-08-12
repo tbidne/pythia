@@ -61,6 +61,8 @@ data BatteryApp
     )
   deriving anyclass
     ( -- | @since 0.1.0.0
+      Hashable,
+      -- | @since 0.1.0.0
       NFData
     )
 
@@ -121,7 +123,9 @@ data BatteryStatus
       Show
     )
   deriving anyclass
-    ( -- | @since 0.1
+    ( -- | @since 0.1.0.0
+      Hashable,
+      -- | @since 0.1.0.0
       NFData
     )
 
@@ -197,7 +201,9 @@ data Battery = MkBattery
       Show
     )
   deriving anyclass
-    ( -- | @since 0.1
+    ( -- | @since 0.1.0.0
+      Hashable,
+      -- | @since 0.1.0.0
       NFData
     )
 

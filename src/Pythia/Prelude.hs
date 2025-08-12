@@ -67,6 +67,7 @@ import Data.Foldable as X
   )
 import Data.Function as X (const, id, ($), (.))
 import Data.Functor as X (Functor (fmap), ($>), (<$>), (<&>))
+import Data.Hashable as X (Hashable)
 import Data.Int as X (Int)
 import Data.Kind as X (Type)
 import Data.List as X (filter, replicate)

@@ -33,7 +33,9 @@ newtype Command = MkCommand
     )
     via Text
   deriving anyclass
-    ( -- | @since 0.1
+    ( -- | @since 0.1.0.0
+      Hashable,
+      -- | @since 0.1.0.0
       NFData
     )
 

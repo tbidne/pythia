@@ -73,7 +73,9 @@ newtype Device = MkDevice
     )
     via Text
   deriving anyclass
-    ( -- | @since 0.1
+    ( -- | @since 0.1.0.0
+      Hashable,
+      -- | @since 0.1.0.0
       NFData
     )
 
@@ -105,7 +107,9 @@ data IpType
       Show
     )
   deriving anyclass
-    ( -- | @since 0.1
+    ( -- | @since 0.1.0.0
+      Hashable,
+      -- | @since 0.1.0.0
       NFData
     )
 
@@ -256,7 +260,9 @@ newtype IpAddress a = MkIpAddress
       Show
     )
   deriving anyclass
-    ( -- | @since 0.1
+    ( -- | @since 0.1.0.0
+      Hashable,
+      -- | @since 0.1.0.0
       NFData
     )
 
@@ -296,7 +302,9 @@ newtype IpAddresses a = MkIpAddresses
     )
     via [IpAddress a]
   deriving anyclass
-    ( -- | @since 0.1
+    ( -- | @since 0.1.0.0
+      Hashable,
+      -- | @since 0.1.0.0
       NFData
     )
 

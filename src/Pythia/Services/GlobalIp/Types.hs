@@ -52,7 +52,9 @@ data GlobalIpApp
       Show
     )
   deriving anyclass
-    ( -- | @since 0.1
+    ( -- | @since 0.1.0.0
+      Hashable,
+      -- | @since 0.1.0.0
       NFData
     )
 
@@ -109,7 +111,9 @@ newtype UrlSource a = MkUrlSource {unUrlSource :: Text}
       IsString
     )
   deriving anyclass
-    ( -- | @since 0.1
+    ( -- | @since 0.1.0.0
+      Hashable,
+      -- | @since 0.1.0.0
       NFData
     )
 

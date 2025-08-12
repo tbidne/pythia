@@ -47,6 +47,8 @@ data MemoryApp
     )
   deriving anyclass
     ( -- | @since 0.1.0.0
+      Hashable,
+      -- | @since 0.1.0.0
       NFData
     )
 
@@ -65,7 +67,9 @@ newtype Memory = MkMemory {unMemory :: Bytes B Natural}
       Show
     )
   deriving anyclass
-    ( -- | @since 0.1
+    ( -- | @since 0.1.0.0
+      Hashable,
+      -- | @since 0.1.0.0
       NFData
     )
 
@@ -108,7 +112,9 @@ data SystemMemory = MkSystemMemory
       Show
     )
   deriving anyclass
-    ( -- | @since 0.1
+    ( -- | @since 0.1.0.0
+      Hashable,
+      -- | @since 0.1.0.0
       NFData
     )
 

@@ -31,7 +31,9 @@ newtype Percentage = InternalPercentage (Interval (Closed 0) (Closed 100) Word8)
       Show
     )
   deriving anyclass
-    ( -- | @since 0.1
+    ( -- | @since 0.1.0.0
+      Hashable,
+      -- | @since 0.1.0.0
       NFData
     )
 
