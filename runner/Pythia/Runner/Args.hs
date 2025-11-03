@@ -14,6 +14,7 @@ where
 import Data.List qualified as L
 import Data.Version (Version (versionBranch))
 import Effects.Optparse (validOsPath)
+import Effects.Optparse.Completer qualified as EOC
 import Options.Applicative
   ( CommandFields,
     Mod,
@@ -137,6 +138,7 @@ configParser =
           [ OA.short 'c',
             OA.long "config",
             OA.metavar "(PATH | off)",
+            OA.completer EOC.compgenCwdPathsCompleter,
             mkHelp "Path to toml config."
           ]
       )
@@ -183,6 +185,7 @@ parseBattery = do
         ( OA.long "app"
             <> OA.short 'a'
             <> OA.metavar "(acpi | sysfs | upower)"
+            <> OA.completeWith ["acpi", "sysfs", "upower"]
             <> mkHelp helpTxt
         )
   field <- parseBatteryField
@@ -198,6 +201,7 @@ parseBatteryField =
       ( OA.long Battery.fieldKey
           <> OA.short 'f'
           <> OA.metavar "(default | percentage | status)"
+          <> OA.completeWith ["default", "percentage", "status"]
           <> mkHelp helpTxt
       )
   where
@@ -220,6 +224,7 @@ parseGlobalIpApp =
       ( OA.long "app"
           <> OA.short 'a'
           <> OA.metavar "(curl | dig)"
+          <> OA.completeWith ["curl", "dig"]
           <> mkHelp helpTxt
       )
   where
@@ -233,6 +238,7 @@ parseGlobalIpField =
       ( OA.long GlobalIp.fieldKey
           <> OA.short 'f'
           <> OA.metavar "(ipv4 | ipv6 | both)"
+          <> OA.completeWith ["ipv4", "ipv6", "both"]
           <> mkHelp helpTxt
       )
   where
@@ -284,6 +290,7 @@ parseMemoryField =
       ( OA.long Memory.fieldKey
           <> OA.short 'f'
           <> OA.metavar "(free | total | used)"
+          <> OA.completeWith ["free", "total", "used"]
           <> mkHelp helpTxt
       )
   where
@@ -297,6 +304,7 @@ parseMemoryApp =
       ( OA.long "app"
           <> OA.short 'a'
           <> OA.metavar "(free)"
+          <> OA.completeWith ["free"]
           <> mkHelp helpTxt
       )
   where
@@ -311,6 +319,7 @@ parseMemoryUnits =
           [ OA.short 'u',
             OA.long Memory.unitsKey,
             OA.metavar "(bytes | percentage)",
+            OA.completeWith ["bytes", "percentage"],
             mkHelp helpTxt
           ]
       )
@@ -329,7 +338,8 @@ parseNetConnField =
       (NetConn.parseNetConnField OA.str)
       ( OA.long NetConn.fieldKey
           <> OA.short 'f'
-          <> OA.metavar "(device | type | name | ipv4 | ipv6)"
+          <> OA.metavar "(device | ipv4 | ipv6 | name | type)"
+          <> OA.completeWith ["device", "ipv4", "ipv6", "name", "type"]
           <> mkHelp helpTxt
       )
   where
@@ -349,7 +359,8 @@ parseNetInterfaceField =
       (NetInterface.parseNetInterfaceField OA.str)
       ( OA.long NetInterface.fieldKey
           <> OA.short 'f'
-          <> OA.metavar "(name | ipv4 | ipv6)"
+          <> OA.metavar "(ipv4 | ipv6 | name)"
+          <> OA.completeWith ["ipv4", "ipv6", "name"]
           <> mkHelp helpTxt
       )
   where
@@ -363,6 +374,7 @@ netInterfaceApp =
       ( OA.long "app"
           <> OA.short 'a'
           <> OA.metavar "(ip | nmcli)"
+          <> OA.completeWith ["ip", "nmcli"]
           <> mkHelp helpTxt
       )
   where
@@ -375,14 +387,15 @@ netInterfaceDevice =
       (NetInterface.parseNetInterfaceDevice OA.str)
       ( OA.long NetInterface.deviceKey
           <> OA.short 'd'
-          <> OA.metavar "(none | NAME)"
+          <> OA.metavar "(NAME | off)"
+          <> OA.completeWith ["off"]
           <> mkHelp deviceTxt
       )
   where
     deviceTxt =
       mconcat
         [ "The name of the network device to filter on e.g. wlp0s20f3. The ",
-          "string 'none' explicitly opts out of filtering (the default)."
+          "string 'off' explicitly opts out of filtering (the default)."
         ]
 
 parseTime :: Parser PythiaCommand1
@@ -396,6 +409,9 @@ parseTimezoneDest =
       ( OA.long Time.destKey
           <> OA.short 'd'
           <> OA.metavar "(local | utc | TZ)"
+          -- TODO: Could add completions for TZ, though that would require
+          -- exposing them from kairos.
+          <> OA.completeWith ["local", "utc"]
           <> mkHelp helpTxt
       )
   where
@@ -415,6 +431,7 @@ parseTimeFormat =
       ( OA.long Time.formatKey
           <> OA.short 'f'
           <> OA.metavar "(default | FMT_STR)"
+          <> OA.completeWith ["default"]
           <> mkHelp helpTxt
       )
   where

@@ -104,7 +104,7 @@ parseNetInterfaceDevice :: (MonadFail m) => m Text -> m NetInterfaceDevice
 parseNetInterfaceDevice =
   Utils.decodeKeyValPairsDefault
     (NetInterfaceDevice . MkDevice)
-    [ ("none", NetInterfaceDeviceNone)
+    [ ("off", NetInterfaceDeviceNone)
     ]
 
 -- | @since 0.1

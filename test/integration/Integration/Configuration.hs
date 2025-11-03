@@ -195,7 +195,7 @@ testNetInterfaceArgsToml = testCase "Uses net-if args" $ do
   result <- runFinalConfigTomlIO args
   expected @=? result
   where
-    args = ["net-if", "-a", "ip", "-f", "default", "-d", "none"]
+    args = ["net-if", "-a", "ip", "-f", "default", "-d", "off"]
     expected =
       NetInterfaceCmd
         NetInterfaceAppIp
