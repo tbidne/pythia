@@ -200,9 +200,9 @@ parsePercent = do
   where
     parseNN = do
       num <- MP.takeWhile1P Nothing Char.isDigit
-      maybe empty pure (readPercentage num)
+      either fail pure (readPercentage num)
 
-    readPercentage = Percentage.mkPercentage <=< TR.readMaybe . T.unpack
+    readPercentage = Percentage.mkPercentage <=< TR.readEither . T.unpack
 {-# INLINEABLE parsePercent #-}
 
 parseStatus :: MParser BatteryStatus

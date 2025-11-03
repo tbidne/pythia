@@ -4,7 +4,6 @@ on:
   push:
     branches:
       - main
-      - kairos
 
   pull_request:
     branches:
@@ -100,3 +99,6 @@ jobs:
         run: |
           nix run .#format
           git diff --exit-code --color=always
+
+      - name: Linting
+        run: nix run .#lint

@@ -300,7 +300,7 @@ parsePercentage ::
 parsePercentage fp = do
   percentTxt <- readFileUtf8Lenient fp
   case readPercentage percentTxt of
-    Nothing -> throwM $ MkSysFsBatteryParseError percentTxt
-    Just bs -> pure bs
+    Left _ -> throwM $ MkSysFsBatteryParseError percentTxt
+    Right bs -> pure bs
   where
-    readPercentage = Percentage.mkPercentage <=< TR.readMaybe . T.unpack
+    readPercentage = Percentage.mkPercentage <=< TR.readEither . T.unpack

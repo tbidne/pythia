@@ -173,9 +173,9 @@ mparseState =
 mparsePercent :: MParser Percentage
 mparsePercent = do
   percent <- MP.takeWhile1P (Just "percentage") Char.isDigit
-  percentage <- maybe empty pure (readPercentage percent)
+  percentage <- either fail pure (readPercentage percent)
   MPC.char '%'
   pure percentage
   where
-    readPercentage = Percentage.mkPercentage <=< TR.readMaybe . T.unpack
+    readPercentage = Percentage.mkPercentage <=< TR.readEither . T.unpack
 {-# INLINEABLE mparsePercent #-}
