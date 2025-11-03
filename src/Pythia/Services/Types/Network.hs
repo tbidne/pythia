@@ -24,6 +24,7 @@ module Pythia.Services.Types.Network
   )
 where
 
+import Data.Aeson (FromJSON)
 import Data.Char qualified as Char
 import Data.Text qualified as T
 import Data.Typeable (typeRep)
@@ -68,6 +69,8 @@ newtype Device = MkDevice
   deriving
     ( -- | @since 0.1
       Display,
+      -- | @since 0.1
+      FromJSON,
       -- | @since 0.1
       IsString
     )

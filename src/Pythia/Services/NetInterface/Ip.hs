@@ -15,8 +15,9 @@ module Pythia.Services.NetInterface.Ip
   )
 where
 
-import Data.Char qualified as Char
-import Data.Set qualified as Set
+import Control.Applicative (Applicative (liftA2))
+import Data.Aeson (FromJSON (parseJSON), (.:))
+import Data.Aeson qualified as Asn
 import Data.Text qualified as T
 import Pythia.Control.Exception (fromPythiaException, toPythiaException)
 import Pythia.Internal.ShellApp
@@ -43,17 +44,12 @@ import Pythia.Services.NetInterface.Types
     NetInterfaces (MkNetInterfaces),
   )
 import Pythia.Services.Types.Network
-  ( Device (MkDevice),
-    IpAddress (MkIpAddress),
+  ( IpAddress (MkIpAddress),
     IpAddresses (MkIpAddresses),
     IpType (Ipv4, Ipv6),
   )
 import Pythia.Utils qualified as U
-import Refined (Predicate, Refined)
 import Refined qualified as R
-import Text.Megaparsec (ErrorFancy (ErrorFail), Parsec, (<?>))
-import Text.Megaparsec qualified as MP
-import Text.Megaparsec.Char qualified as MPC
 
 -- $setup
 -- >>> import Control.Exception (displayException)
@@ -100,7 +96,7 @@ netInterfaceShellApp = ShellApp.runSimple shell
   where
     shell =
       MkSimpleShell
-        { command = "ip address",
+        { command = "ip --json address",
           isSupported = supported,
           parser = parseInterfaces
         }
@@ -114,112 +110,66 @@ supported :: (HasCallStack, MonadPathReader m) => m Bool
 supported = U.exeSupported [osp|ip|]
 {-# INLINEABLE supported #-}
 
-type MParser :: Type -> Type
-type MParser = Parsec Void Text
-
 -- | Attempts to parse the output of IP.
 --
 -- @since 0.1
 parseInterfaces :: Text -> Either IpParseError NetInterfaces
-parseInterfaces txt = case MP.parse mparseInterfaces "" txt of
-  Left ex ->
-    let prettyErr = MP.errorBundlePretty ex
-     in Left $ MkIpParseError $ T.pack prettyErr
-  Right ifs -> Right ifs
+parseInterfaces txt = case Asn.eitherDecodeStrictText txt of
+  Left ex -> Left $ MkIpParseError $ T.pack ex
+  Right ifs -> Right $ MkNetInterfaces (unNetInterfaceIp <$> ifs)
 {-# INLINEABLE parseInterfaces #-}
 
-mparseInterfaces :: MParser NetInterfaces
-mparseInterfaces = MkNetInterfaces <$> MP.many parseInterface
-{-# INLINEABLE mparseInterfaces #-}
+newtype NetInterfaceIp = MkNetInterfaceIp NetInterface
 
-parseInterface :: MParser NetInterface
-parseInterface = do
-  MP.takeWhile1P (Just "device num") Char.isDigit
-  MPC.char ':'
-  MPC.space
-  device' <- MP.takeWhile1P (Just "device") (/= ':')
-  MPC.char ':'
-  MP.manyTill MP.anySingle (MPC.string "state ")
-  state' <- parseNetInterfaceState
-  U.takeLine
-  MP.optional parseLink
-  ipv4s' <- parseIpv4s
-  ipv6s' <- parseIpv6s
+unNetInterfaceIp :: NetInterfaceIp -> NetInterface
+unNetInterfaceIp (MkNetInterfaceIp ni) = ni
 
-  pure
-    $ MkNetInterface
-      { device = MkDevice device',
-        ntype = Nothing,
-        state = state',
-        name = Nothing,
-        ipv4s = MkIpAddresses ipv4s',
-        ipv6s = MkIpAddresses ipv6s'
-      }
-{-# INLINEABLE parseInterface #-}
+instance FromJSON NetInterfaceIp where
+  parseJSON = Asn.withObject "NetInterfaceIp" $ \v -> do
+    device <- v .: "ifname"
 
-parseLink :: MParser ()
-parseLink = MPC.space *> MPC.string "link" *> U.takeLine_
-{-# INLINEABLE parseLink #-}
+    rawAddresses <- v .: "addr_info"
 
-parseIpv4s :: MParser [IpAddress Ipv4]
-parseIpv4s = parseIps "inet " MkIpAddress
-{-# INLINEABLE parseIpv4s #-}
+    (ipv4s, ipv6s) <- case parseAddresses rawAddresses of
+      Left _ -> undefined
+      Right as -> pure as
 
-parseIpv6s :: MParser [IpAddress Ipv6]
-parseIpv6s = parseIps "inet6 " MkIpAddress
-{-# INLINEABLE parseIpv6s #-}
+    rawState <- v .: "operstate"
+    let state = case rawState of
+          "DOWN" -> NetStateDown
+          "UP" -> NetStateUp
+          other -> NetStateUnknown other
 
-parseIps :: (Predicate p Text) => Text -> (Refined p Text -> a) -> MParser [a]
-parseIps p cons = do
-  addrs <- parseAddresses p
-  let xs = traverse R.refine addrs
-  case xs of
-    Left ex ->
-      let errMsg :: String
-          errMsg =
-            T.unpack
-              $ "Malformed ipv"
-              <> p
-              <> " address found: "
-              <> showt addrs
-              <> ". Error: "
-              <> showt ex
-       in MP.fancyFailure $ Set.fromList [ErrorFail errMsg]
-    Right xss -> pure (cons <$> xss)
-{-# INLINEABLE parseIps #-}
+    pure
+      $ MkNetInterfaceIp
+      $ MkNetInterface
+        { device,
+          ipv4s,
+          ipv6s,
+          name = Nothing,
+          ntype = Nothing,
+          state
+        }
 
-parseAddresses :: Text -> MParser [Text]
-parseAddresses = MP.many . address
+newtype RawIpAddress = MkRawIpAddress (IpType, Text)
+
+instance FromJSON RawIpAddress where
+  parseJSON = Asn.withObject "RawIpAddress" $ \v -> do
+    ty <- v .: "family"
+    ipType <- case ty of
+      "inet" -> pure Ipv4
+      "inet6" -> pure Ipv6
+      other -> fail $ "Unexepected ip type: " <> other
+
+    ipTxt <- v .: "local"
+    pure $ MkRawIpAddress (ipType, ipTxt)
+
+parseAddresses :: [RawIpAddress] -> Either R.RefineException (IpAddresses Ipv4, IpAddresses Ipv6)
+parseAddresses = fmap (bimap MkIpAddresses MkIpAddresses) . foldr go (Right ([], []))
   where
-    address p = do
-      -- 'many' will fail if we partially consume any input. We do not want
-      -- a failure because we may be able to parse it with a later parser
-      -- (i.e. ipv4 partially matches, fails, but ipv6 would succeed). Thus
-      -- we include try to backtrack and give the ipv6 parser a chance.
-      MP.try $ MPC.space *> MPC.string p
-      MPC.space
-      addr <- MP.takeWhile1P (Just "address") (/= '/')
-      MPC.char '/'
-      U.takeLine_
-      lft
-      pure addr
-{-# INLINEABLE parseAddresses #-}
+    go (MkRawIpAddress (ipType, rawTxt)) eAcc = case ipType of
+      Ipv4 -> liftA2 addIpv4 (R.refine rawTxt) eAcc
+      Ipv6 -> liftA2 addIpv6 (R.refine rawTxt) eAcc
 
-lft :: MParser ()
-lft = do
-  MPC.space
-  MPC.string "valid_lft"
-  U.takeLine_
-{-# INLINEABLE lft #-}
-
-parseNetInterfaceState :: MParser NetInterfaceState
-parseNetInterfaceState = do
-  MP.try up
-    <|> down
-    <|> unknown
-    <?> "state"
-  where
-    up = MPC.string "UP" $> NetStateUp
-    down = MPC.string "DOWN" $> NetStateDown
-    unknown = NetStateUnknown <$> MP.takeWhile1P (Just "type") (not . Char.isSpace)
-{-# INLINEABLE parseNetInterfaceState #-}
+    addIpv4 z (xs, ys) = (MkIpAddress z : xs, ys)
+    addIpv6 z (xs, ys) = (xs, MkIpAddress z : ys)

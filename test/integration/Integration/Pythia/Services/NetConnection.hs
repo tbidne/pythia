@@ -3,7 +3,7 @@
 
 module Integration.Pythia.Services.NetConnection (tests) where
 
-import Data.List qualified as L
+import Data.Text qualified as T
 import Effects.FileSystem.PathReader (MonadPathReader (findExecutable))
 import Effects.Optparse (MonadOptparse)
 import Effects.Process.Typed
@@ -97,34 +97,12 @@ instance MonadPathReader IntIO where
 
 instance MonadTypedProcess IntIO where
   readProcess pc = case cmd of
-    "Shell command: ip address" ->
-      let output =
-            L.unlines
-              [ "1: lo: <LOOPBACK,UP,LOWER_UP> mtu 65536 qdisc noqueue state UNKNOWN group default qlen 1000",
-                "link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00",
-                "inet 127.0.0.1/8 scope host lo",
-                "  valid_lft forever preferred_lft forever",
-                "inet6 ::1/128 scope host noprefixroute ",
-                "  valid_lft forever preferred_lft forever",
-                "2: enp0s37f2: <NO-CARRIER,BROADCAST,MULTICAST,UP> mtu 1500 qdisc fq_codel state DOWN group default qlen 1000",
-                "    link/ether 54:05:db:e1:b5:d8 brd ff:ff:ff:ff:ff:ff",
-                "3: wlp0s15d2: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc noqueue state UP group default qlen 1000",
-                "    link/ether fc:44:82:de:f8:14 brd ff:ff:ff:ff:ff:ff",
-                "    inet 192.168.1.2/24 brd 192.168.1.255 scope global dynamic noprefixroute wlp0s20f3",
-                "      valid_lft 85634sec preferred_lft 74834sec",
-                "    inet6 958a:d95d:75c8:2e2e:f802:21dd:4acc:908d/64 scope link noprefixroute ",
-                "      valid_lft forever preferred_lft forever",
-                "    inet6 958a::625a:a752:f875:329e:540b:27c6/64 scope link ",
-                "      valid_lft forever preferred_lft forever",
-                "4: tailscale0: <POINTOPOINT,MULTICAST,NOARP,UP,LOWER_UP> mtu 1280 qdisc fq_codel state UNKNOWN group default qlen 500",
-                "    link/none ",
-                "    inet6 c21b::9c97:63e0:cc8e::7516/64 scope link stable-privacy proto kernel_ll ",
-                "      valid_lft forever preferred_lft forever"
-              ]
-       in pure (ExitSuccess, fromString output, "")
+    "Shell command: ip --json address" ->
+      let output = ipNetInfo
+       in pure (ExitSuccess, fromString (T.unpack output), "")
     "Shell command: nmcli -t -m multiline device show" ->
       let output =
-            L.unlines
+            T.unlines
               [ "GENERAL.DEVICE:wlp0s15d2",
                 "GENERAL.TYPE:wifi",
                 "GENERAL.HWADDR:FC:44:82:DE:F8:14",
@@ -186,7 +164,7 @@ instance MonadTypedProcess IntIO where
                 "IP6.GATEWAY:",
                 "IP6.ROUTE[1]:dst = fe80::/64, nh = ::, mt = 256"
               ]
-       in pure (ExitSuccess, fromString output, "")
+       in pure (ExitSuccess, fromString (T.unpack output), "")
     bad -> error $ "Unexpected command: " <> bad
     where
       cmd = processConfigToCmd pc
@@ -210,3 +188,147 @@ nmcliData =
     "IPv4: 192.168.1.2",
     "IPv6: 958a:d95d:75c8:2e2e:f802:21dd:4acc:908d, 958a::625a:a752:f875:329e:540b:27c6"
   ]
+
+ipNetInfo :: Text
+ipNetInfo =
+  T.unlines
+    [ "[",
+      "    {",
+      "      \"ifindex\": 1,",
+      "      \"ifname\": \"lo\",",
+      "      \"flags\": [",
+      "        \"LOOPBACK\",",
+      "        \"UP\",",
+      "        \"LOWER_UP\"",
+      "      ],",
+      "      \"mtu\": 65536,",
+      "      \"qdisc\": \"noqueue\",",
+      "      \"operstate\": \"UNKNOWN\",",
+      "      \"group\": \"default\",",
+      "      \"txqlen\": 1000,",
+      "      \"link_type\": \"loopback\",",
+      "      \"address\": \"00:00:00:00:00:00\",",
+      "      \"broadcast\": \"00:00:00:00:00:00\",",
+      "      \"addr_info\": [",
+      "        {",
+      "          \"family\": \"inet\",",
+      "          \"local\": \"127.0.0.1\",",
+      "          \"prefixlen\": 8,",
+      "          \"broadcast\": \"172.17.255.255\",",
+      "          \"scope\": \"host\",",
+      "          \"label\": \"lo\",",
+      "          \"valid_life_time\": 4294967295,",
+      "          \"preferred_life_time\": 4294967295",
+      "        },",
+      "        {",
+      "          \"family\": \"inet6\",",
+      "          \"local\": \"::1\",",
+      "          \"prefixlen\": 128,",
+      "          \"scope\": \"host\",",
+      "          \"noprefixroute\": true,",
+      "          \"valid_life_time\": 4294967295,",
+      "          \"preferred_life_time\": 4294967295",
+      "        }",
+      "      ]",
+      "    },",
+      "    {",
+      "      \"ifindex\": 2,",
+      "      \"ifname\": \"wlp0s15d2\",",
+      "      \"flags\": [",
+      "        \"BROADCAST\",",
+      "        \"MULTICAST\",",
+      "        \"UP\",",
+      "        \"LOWER_UP\"",
+      "      ],",
+      "      \"mtu\": 1500,",
+      "      \"qdisc\": \"noqueue\",",
+      "      \"operstate\": \"UP\",",
+      "      \"group\": \"default\",",
+      "      \"txqlen\": 1000,",
+      "      \"link_type\": \"ether\",",
+      "      \"address\": \"fc:44:82:de:f8:14\",",
+      "      \"broadcast\": \"ff:ff:ff:ff:ff:ff\",",
+      "      \"addr_info\": [",
+      "        {",
+      "          \"family\": \"inet\",",
+      "          \"local\": \"192.168.1.2\",",
+      "          \"prefixlen\": 24,",
+      "          \"broadcast\": \"192.168.1.255\",",
+      "          \"scope\": \"global\",",
+      "          \"dynamic\": true,",
+      "          \"noprefixroute\": true,",
+      "          \"label\": \"wlp0s20f3\",",
+      "          \"valid_life_time\": 69656,",
+      "          \"preferred_life_time\": 69656",
+      "        },",
+      "        {",
+      "          \"family\": \"inet6\",",
+      "          \"local\": \"958a:d95d:75c8:2e2e:f802:21dd:4acc:908d\",",
+      "          \"prefixlen\": 64,",
+      "          \"scope\": \"link\",",
+      "          \"noprefixroute\": true,",
+      "          \"valid_life_time\": 4294967295,",
+      "          \"preferred_life_time\": 4294967295",
+      "        },",
+      "        {",
+      "          \"family\": \"inet6\",",
+      "          \"local\": \"958a::625a:a752:f875:329e:540b:27c6\",",
+      "          \"prefixlen\": 64,",
+      "          \"scope\": \"link\",",
+      "          \"noprefixroute\": true,",
+      "          \"valid_life_time\": 4294967295,",
+      "          \"preferred_life_time\": 4294967295",
+      "        }",
+      "      ]",
+      "    },",
+      "    {",
+      "      \"ifindex\": 3,",
+      "      \"ifname\": \"enp0s31f6\",",
+      "      \"flags\": [",
+      "        \"NO-CARRIER\",",
+      "        \"BROADCAST\",",
+      "        \"MULTICAST\",",
+      "        \"UP\"",
+      "      ],",
+      "      \"mtu\": 1500,",
+      "      \"qdisc\": \"fq_codel\",",
+      "      \"operstate\": \"DOWN\",",
+      "      \"group\": \"default\",",
+      "      \"txqlen\": 1000,",
+      "      \"link_type\": \"ether\",",
+      "      \"address\": \"54:05:db:e1:b5:d8\",",
+      "      \"broadcast\": \"ff:ff:ff:ff:ff:ff\",",
+      "      \"addr_info\": []",
+      "    },",
+      "    {",
+      "      \"ifindex\": 4,",
+      "      \"ifname\": \"tailscale0\",",
+      "      \"flags\": [",
+      "        \"POINTOPOINT\",",
+      "        \"MULTICAST\",",
+      "        \"NOARP\",",
+      "        \"LOWER_UP\",",
+      "        \"UP\"",
+      "      ],",
+      "      \"mtu\": 1280,",
+      "      \"qdisc\": \"fq_codel\",",
+      "      \"operstate\": \"UNKNOWN\",",
+      "      \"group\": \"default\",",
+      "      \"txqlen\": 500,",
+      "      \"link_type\": \"none\",",
+      "      \"address\": \"54:05:db:e1:b5:d8\",",
+      "      \"broadcast\": \"ff:ff:ff:ff:ff:ff\",",
+      "      \"addr_info\": [",
+      "        {",
+      "          \"family\": \"inet6\",",
+      "          \"local\": \"fe80::a63f:791a:3eaa:9d86\",",
+      "          \"prefixlen\": 64,",
+      "          \"scope\": \"link\",",
+      "          \"stable-privacy\": true,",
+      "          \"valid_life_time\": 4294967295,",
+      "          \"preferred_life_time\": 4294967295",
+      "        }",
+      "      ]",
+      "    }",
+      "  ]"
+    ]
