@@ -6,6 +6,7 @@
 module Pythia.Runner.Args
   ( -- * Primary Function
     Args (..),
+    WithDisabled (..),
     parserInfo,
   )
 where
@@ -58,12 +59,15 @@ import Pythia.Services.Memory.Types (MemoryApp)
 import Pythia.Services.NetInterface.Types (NetInterfaceApp)
 import Pythia.Services.Types.Network (IpType (Ipv4, Ipv6))
 
+data WithDisabled a
+  = Disabled
+  | With a
+  deriving stock (Eq, Show)
+
 -- | @since 0.1
 data Args = MkArgs
   { -- | @since 0.1
-    config :: Maybe OsPath,
-    -- | @since 0.1
-    noConfig :: Bool,
+    config :: Maybe (WithDisabled OsPath),
     -- | @since 0.1
     command :: PythiaCommand1
   }
@@ -71,26 +75,14 @@ data Args = MkArgs
 
 -- | @since 0.1
 instance
-  (k ~ A_Lens, a ~ Maybe OsPath, b ~ Maybe OsPath) =>
+  (k ~ A_Lens, a ~ Maybe (WithDisabled OsPath), b ~ Maybe (WithDisabled OsPath)) =>
   LabelOptic "config" k Args Args a b
   where
   labelOptic =
     lensVL
       $ \f
-         (MkArgs _config _noConfig _command) ->
-          fmap (\config' -> MkArgs config' _noConfig _command) (f _config)
-  {-# INLINE labelOptic #-}
-
--- | @since 0.1
-instance
-  (k ~ A_Lens, a ~ Bool, b ~ Bool) =>
-  LabelOptic "noConfig" k Args Args a b
-  where
-  labelOptic =
-    lensVL
-      $ \f
-         (MkArgs _config _noConfig _command) ->
-          fmap (\noConfig' -> MkArgs _config noConfig' _command) (f _noConfig)
+         (MkArgs a1 a2) ->
+          fmap (`MkArgs` a2) (f a1)
   {-# INLINE labelOptic #-}
 
 -- | @since 0.1
@@ -101,8 +93,8 @@ instance
   labelOptic =
     lensVL
       $ \f
-         (MkArgs _config _noConfig _command) ->
-          fmap (MkArgs _config _noConfig) (f _command)
+         (MkArgs a1 a2) ->
+          fmap (MkArgs a1) (f a2)
   {-# INLINE labelOptic #-}
 
 -- | Optparse-Applicative info.
@@ -134,41 +126,26 @@ parseArgs :: Parser Args
 parseArgs =
   MkArgs
     <$> configParser
-    <*> noConfigParser
     <*> cmdParser
 
-configParser :: Parser (Maybe OsPath)
+configParser :: Parser (Maybe (WithDisabled OsPath))
 configParser =
   OA.optional
     $ OA.option
-      validOsPath
+      reader
       ( mconcat
           [ OA.short 'c',
             OA.long "config",
-            OA.metavar "PATH",
+            OA.metavar "(PATH | off)",
             mkHelp "Path to toml config."
           ]
       )
-
-noConfigParser :: Parser Bool
-noConfigParser =
-  OA.flag
-    False
-    True
-    ( mconcat
-        [ OA.long "no-config",
-          OA.hidden,
-          mkHelp helpTxt
-        ]
-    )
   where
-    helpTxt =
-      mconcat
-        [ "Overrides toml file config regardless of how it was obtained i.e. ",
-          "explicit --config or implicit reading of the XDG config file. ",
-          "Used for when a config file exists at the expected XDG ",
-          "location, but we want to ignore it."
-        ]
+    reader = do
+      txt <- OA.str @Text
+      case txt of
+        "off" -> pure Disabled
+        _ -> With <$> validOsPath
 
 cmdParser :: Parser PythiaCommand1
 cmdParser =

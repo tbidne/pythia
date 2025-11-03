@@ -17,7 +17,7 @@ import Effects.FileSystem.PathReader qualified as PR
 import Effects.Optparse (MonadOptparse)
 import Effects.Optparse qualified as OApp
 import Pythia.Prelude
-import Pythia.Runner.Args (Args, parserInfo)
+import Pythia.Runner.Args (Args, WithDisabled (Disabled, With), parserInfo)
 import Pythia.Runner.Command
   ( PythiaCommand2,
     PythiaCommandP
@@ -93,20 +93,19 @@ getTomlConfig ::
   m (Maybe Toml)
 getTomlConfig args = do
   tomlPath <-
-    if args ^. #noConfig
-      then -- Case 1: User explicitly wants toml config ignored
-        pure Nothing
-      else case args ^. #config of
-        -- Case 2: User supplies a toml path -> use it
-        Just userPath -> pure $ Just userPath
-        Nothing -> do
-          xdgPath <- (</> [osp|config.toml|]) <$> PR.getXdgConfig [osp|pythia|]
-          xdgConfigExists <- PR.doesFileExist xdgPath
-          if xdgConfigExists
-            then -- Case 3: Toml exists at expected XDG -> use it
-              pure $ Just xdgPath
-            else -- Case 4: No Toml -> do nothing
-              pure Nothing
+    case args ^. #config of
+      -- Case 1: User explicitly wants toml config ignored
+      Just Disabled -> pure Nothing
+      -- Case 2: User supplies a toml path -> use it
+      Just (With userPath) -> pure $ Just userPath
+      Nothing -> do
+        xdgPath <- (</> [osp|config.toml|]) <$> PR.getXdgConfig [osp|pythia|]
+        xdgConfigExists <- PR.doesFileExist xdgPath
+        if xdgConfigExists
+          then -- Case 3: Toml exists at expected XDG -> use it
+            pure $ Just xdgPath
+          else -- Case 4: No Toml -> do nothing
+            pure Nothing
 
   -- decode toml if we have a path
   maybe (pure Nothing) decodeTomlM tomlPath

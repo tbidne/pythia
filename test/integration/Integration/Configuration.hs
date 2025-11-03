@@ -266,7 +266,7 @@ runFinalConfigExceptionIO args = do
     Left ex -> pure ex
     Right x -> assertFailure $ "Expected ConfigException, received: " <> show x
   where
-    args' = ["--no-config"] <> args
+    args' = ["--config", "off"] <> args
 
 runFinalConfigTomlIO :: [String] -> IO PythiaCommand2
 runFinalConfigTomlIO args =

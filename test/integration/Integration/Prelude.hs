@@ -55,7 +55,7 @@ runIntegrationIO toReader args = do
   _ <- runReaderT (toReader (withArgs args' Runner.runPythia)) ref
   T.lines <$> readIORef ref
   where
-    args' = ["--no-config"] <> args
+    args' = ["--config", "off"] <> args
 
 assertOutput :: [Text] -> [Text] -> IO ()
 assertOutput [] [] = pure ()
