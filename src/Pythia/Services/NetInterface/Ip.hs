@@ -88,8 +88,8 @@ instance Exception IpParseError where
 netInterfaceShellApp ::
   ( HasCallStack,
     MonadPathReader m,
-    MonadThrow m,
-    MonadTypedProcess m
+    MonadProcess m,
+    MonadThrow m
   ) =>
   m NetInterfaces
 netInterfaceShellApp = ShellApp.runSimple shell

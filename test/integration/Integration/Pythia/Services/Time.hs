@@ -58,4 +58,4 @@ instance MonadPathReader IntIO where
   doesDirectoryExist _ = pure False
   getXdgDirectory _ _ = pure [osp|test_xdg|]
 
-instance MonadTypedProcess IntIO
+instance MonadProcess IntIO

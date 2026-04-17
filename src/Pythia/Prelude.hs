@@ -96,7 +96,7 @@ import Effects.FileSystem.FileReader as X
     readFileUtf8Lenient,
   )
 import Effects.FileSystem.PathReader as X (MonadPathReader)
-import Effects.Process.Typed as X (MonadTypedProcess)
+import Effects.System.Process as X (MonadProcess (readCreateProcessWithExitCode))
 import Effects.System.Terminal as X (MonadTerminal (putStrLn), print, putTextLn)
 import Effects.Time as X (MonadTime)
 import FileSystem.OsPath as X (OsPath, decodeLenient, osp, (</>))
@@ -142,6 +142,7 @@ import Optics.Core as X
     _Nothing,
     _Right,
   )
+import System.Exit as X (ExitCode (ExitFailure, ExitSuccess))
 import System.IO as X (FilePath, IO)
 
 -- $setup

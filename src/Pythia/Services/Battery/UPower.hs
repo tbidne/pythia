@@ -94,8 +94,8 @@ instance Exception UPowerParseError where
 batteryShellApp ::
   ( HasCallStack,
     MonadPathReader m,
-    MonadThrow m,
-    MonadTypedProcess m
+    MonadProcess m,
+    MonadThrow m
   ) =>
   m Battery
 batteryShellApp = ShellApp.runSimple shell

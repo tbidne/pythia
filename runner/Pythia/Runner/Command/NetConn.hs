@@ -120,9 +120,9 @@ fieldKey = "field"
 -- | @since 0.1
 handleNetConn ::
   ( MonadPathReader m,
+    MonadProcess m,
     MonadTerminal m,
-    MonadThrow m,
-    MonadTypedProcess m
+    MonadThrow m
   ) =>
   NetInterfaceApp ->
   NetConnField ->

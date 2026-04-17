@@ -73,8 +73,8 @@ parseGlobalIpField =
 -- | @since 0.1
 handleGlobalIp ::
   ( MonadCatch m,
-    MonadTerminal m,
-    MonadTypedProcess m
+    MonadProcess m,
+    MonadTerminal m
   ) =>
   GlobalIpApp ->
   These [UrlSource Ipv4] [UrlSource Ipv6] ->

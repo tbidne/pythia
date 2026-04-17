@@ -17,10 +17,8 @@ module Pythia.Internal.ShellApp
   )
 where
 
-import Data.ByteString.Lazy qualified as LBS
 import Data.Text qualified as T
-import Effects.Process.Typed qualified as TP
-import GHC.IO.Exception (ExitCode (ExitFailure, ExitSuccess))
+import Effects.System.Process qualified as P
 import Pythia.Control.Exception
   ( CommandException (MkCommandException),
     NoActionsRunException (MkNoActionsRunException),
@@ -90,8 +88,8 @@ runSimple ::
   forall m err result.
   ( Exception err,
     HasCallStack,
-    MonadThrow m,
-    MonadTypedProcess m
+    MonadProcess m,
+    MonadThrow m
   ) =>
   SimpleShell m err result ->
   m result
@@ -119,17 +117,17 @@ runSimple simple = do
 -- @since 0.1
 runCommand ::
   ( HasCallStack,
-    MonadThrow m,
-    MonadTypedProcess m
+    MonadProcess m,
+    MonadThrow m
   ) =>
   Command ->
   m Text
 runCommand command = do
-  (exitCode, out, err) <- TP.readProcess $ TP.shell $ T.unpack cmdStr
+  (exitCode, out, err) <- readCreateProcessWithExitCode (P.shell $ T.unpack cmdStr) "runCommand"
   case exitCode of
-    ExitSuccess -> pure $ decodeUtf8Lenient (LBS.toStrict out)
+    ExitSuccess -> pure $ T.pack out
     ExitFailure _ ->
-      throwM $ MkCommandException command $ T.pack $ show $ LBS.toStrict err
+      throwM $ MkCommandException command $ T.pack err
   where
     cmdStr = command ^. #unCommand
 {-# INLINEABLE runCommand #-}

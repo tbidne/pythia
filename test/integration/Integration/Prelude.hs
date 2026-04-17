@@ -3,7 +3,7 @@
 module Integration.Prelude
   ( module X,
     BaseIO (..),
-    processConfigToCmd,
+    createProcessToCmd,
     runIntegrationIO,
     assertOutput,
     assertSingleOutput,
@@ -18,6 +18,7 @@ import Control.Monad.Reader as X
   )
 import Data.Either as X (isLeft)
 import Data.IORef as X (IORef, modifyIORef', newIORef, readIORef)
+import Data.List qualified as L
 import Data.Text qualified as T
 import Effects.FileSystem.PathReader as X
   ( MonadPathReader
@@ -27,14 +28,17 @@ import Effects.FileSystem.PathReader as X
   )
 import Effects.Optparse (MonadOptparse)
 import Effects.System.Environment (MonadEnv (withArgs))
+import Effects.System.Process (CreateProcess)
+import Effects.System.Process qualified as P
 import Pythia.Prelude as X
 import Pythia.Runner qualified as Runner
-import System.Process.Typed (ProcessConfig)
 import Test.Tasty as X (TestTree, testGroup)
 import Test.Tasty.HUnit as X (assertBool, assertFailure, testCase, (@=?))
 
-processConfigToCmd :: ProcessConfig i o e -> String
-processConfigToCmd = T.unpack . T.strip . T.pack . show
+createProcessToCmd :: CreateProcess -> String
+createProcessToCmd p = case P.cmdspec p of
+  P.ShellCommand s -> "Shell command: " <> s
+  P.RawCommand c as -> "Raw command: " <> c <> L.unwords as
 
 runIntegrationIO ::
   forall m.
@@ -42,10 +46,10 @@ runIntegrationIO ::
     MonadEnv m,
     MonadFileReader m,
     MonadPathReader m,
+    MonadProcess m,
     MonadOptparse m,
     MonadTerminal m,
-    MonadTime m,
-    MonadTypedProcess m
+    MonadTime m
   ) =>
   (forall a. m a -> ReaderT (IORef Text) IO a) ->
   [String] ->

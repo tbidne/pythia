@@ -181,9 +181,9 @@ deviceKey = "device"
 -- | @since 0.1
 handleNetInterface ::
   ( MonadPathReader m,
+    MonadProcess m,
     MonadTerminal m,
-    MonadThrow m,
-    MonadTypedProcess m
+    MonadThrow m
   ) =>
   NetInterfaceApp ->
   NetInterfaceDevice ->

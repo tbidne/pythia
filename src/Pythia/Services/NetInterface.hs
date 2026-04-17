@@ -41,8 +41,8 @@ import Pythia.Services.Types.Network
 queryNetInterfaces ::
   ( HasCallStack,
     MonadPathReader m,
-    MonadThrow m,
-    MonadTypedProcess m
+    MonadProcess m,
+    MonadThrow m
   ) =>
   NetInterfaceApp ->
   m NetInterfaces
@@ -56,8 +56,8 @@ queryNetInterfaces NetInterfaceAppIp = Ip.netInterfaceShellApp
 queryNetInterface ::
   ( HasCallStack,
     MonadPathReader m,
-    MonadThrow m,
-    MonadTypedProcess m
+    MonadProcess m,
+    MonadThrow m
   ) =>
   Device ->
   NetInterfaceApp ->

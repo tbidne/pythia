@@ -34,7 +34,7 @@ queryBattery ::
     MonadCatch m,
     MonadFileReader m,
     MonadPathReader m,
-    MonadTypedProcess m
+    MonadProcess m
   ) =>
   BatteryApp ->
   m Battery

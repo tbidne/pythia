@@ -41,7 +41,7 @@ import Refined qualified as R
 queryGlobalIp ::
   ( HasCallStack,
     MonadCatch m,
-    MonadTypedProcess m
+    MonadProcess m
   ) =>
   GlobalIpApp ->
   [UrlSource Ipv4] ->
@@ -56,7 +56,7 @@ queryGlobalIp app ipv4Srcs ipv6Srcs = getBothIps app (ipv4Srcs, ipv6Srcs)
 queryGlobalIpv4 ::
   ( HasCallStack,
     MonadCatch m,
-    MonadTypedProcess m
+    MonadProcess m
   ) =>
   GlobalIpApp ->
   [UrlSource Ipv4] ->
@@ -70,7 +70,7 @@ queryGlobalIpv4 = getIpv4s
 queryGlobalIpv6 ::
   ( HasCallStack,
     MonadCatch m,
-    MonadTypedProcess m
+    MonadProcess m
   ) =>
   GlobalIpApp ->
   [UrlSource Ipv6] ->
@@ -81,7 +81,7 @@ queryGlobalIpv6 = getIpv6s
 getBothIps ::
   ( HasCallStack,
     MonadCatch m,
-    MonadTypedProcess m
+    MonadProcess m
   ) =>
   GlobalIpApp ->
   ([UrlSource Ipv4], [UrlSource Ipv6]) ->
@@ -95,7 +95,7 @@ getBothIps app (ipv4Srcs, ipv6Srcs) =
 getIpv4s ::
   ( HasCallStack,
     MonadCatch m,
-    MonadTypedProcess m
+    MonadProcess m
   ) =>
   GlobalIpApp ->
   [UrlSource Ipv4] ->
@@ -110,7 +110,7 @@ getIpv4s app extraSrcs = do
 getIpv6s ::
   ( HasCallStack,
     MonadCatch m,
-    MonadTypedProcess m
+    MonadProcess m
   ) =>
   GlobalIpApp ->
   [UrlSource Ipv6] ->
@@ -166,7 +166,7 @@ digDefaults = (ipv4s, ipv6s)
 getIpFromSources ::
   ( HasCallStack,
     MonadCatch m,
-    MonadTypedProcess m,
+    MonadProcess m,
     Predicate (IpRefinement a) Text
   ) =>
   [UrlSource a] ->
@@ -178,7 +178,7 @@ getIp ::
   forall m p a.
   ( HasCallStack,
     MonadCatch m,
-    MonadTypedProcess m,
+    MonadProcess m,
     Predicate p Text
   ) =>
   Iso' a Command ->

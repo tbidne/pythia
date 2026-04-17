@@ -6,10 +6,6 @@ module Integration.Pythia.Services.GlobalIp (tests) where
 import Data.List qualified as L
 import Effects.FileSystem.PathReader (MonadPathReader (findExecutable))
 import Effects.Optparse (MonadOptparse)
-import Effects.Process.Typed
-  ( ExitCode (ExitSuccess),
-    MonadTypedProcess (readProcess),
-  )
 import Effects.System.Environment (MonadEnv)
 import Integration.Prelude
 
@@ -57,11 +53,11 @@ instance MonadPathReader IntIO where
     | p == [osp|dig|] = pure $ Just [osp|exe|]
     | otherwise = pure Nothing
 
-instance MonadTypedProcess IntIO where
-  readProcess pc =
+instance MonadProcess IntIO where
+  readCreateProcessWithExitCode pc _ =
     if
       | "Shell command: curl" `L.isPrefixOf` cmd -> pure (ExitSuccess, "192.168.1.0", "")
       | "Shell command: dig" `L.isPrefixOf` cmd -> pure (ExitSuccess, "192.168.0.1", "")
       | otherwise -> error $ "Unexpected command: " <> cmd
     where
-      cmd = processConfigToCmd pc
+      cmd = createProcessToCmd pc

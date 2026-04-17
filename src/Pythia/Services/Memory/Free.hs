@@ -75,8 +75,8 @@ instance Exception FreeParseError where
 memoryShellApp ::
   ( HasCallStack,
     MonadPathReader m,
-    MonadThrow m,
-    MonadTypedProcess m
+    MonadProcess m,
+    MonadThrow m
   ) =>
   m SystemMemory
 memoryShellApp = ShellApp.runSimple shell

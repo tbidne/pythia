@@ -6,10 +6,6 @@ module Integration.Pythia.Services.NetConnection (tests) where
 import Data.Text qualified as T
 import Effects.FileSystem.PathReader (MonadPathReader (findExecutable))
 import Effects.Optparse (MonadOptparse)
-import Effects.Process.Typed
-  ( ExitCode (ExitSuccess),
-    MonadTypedProcess (readProcess),
-  )
 import Effects.System.Environment (MonadEnv)
 import Integration.Prelude
 
@@ -95,8 +91,8 @@ instance MonadPathReader IntIO where
     | p == [osp|nmcli|] = pure $ Just [osp|exe|]
     | otherwise = pure Nothing
 
-instance MonadTypedProcess IntIO where
-  readProcess pc = case cmd of
+instance MonadProcess IntIO where
+  readCreateProcessWithExitCode pc _ = case cmd of
     "Shell command: ip --json address" ->
       let output = ipNetInfo
        in pure (ExitSuccess, fromString (T.unpack output), "")
@@ -167,7 +163,7 @@ instance MonadTypedProcess IntIO where
        in pure (ExitSuccess, fromString (T.unpack output), "")
     bad -> error $ "Unexpected command: " <> bad
     where
-      cmd = processConfigToCmd pc
+      cmd = createProcessToCmd pc
 
 ipData :: [Text]
 ipData =

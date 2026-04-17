@@ -47,10 +47,10 @@ runPythia ::
     MonadCatch m,
     MonadFileReader m,
     MonadPathReader m,
+    MonadProcess m,
     MonadOptparse m,
     MonadTerminal m,
-    MonadTime m,
-    MonadTypedProcess m
+    MonadTime m
   ) =>
   m ()
 runPythia =

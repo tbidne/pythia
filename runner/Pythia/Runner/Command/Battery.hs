@@ -119,8 +119,8 @@ handleBattery ::
   ( MonadCatch m,
     MonadFileReader m,
     MonadPathReader m,
-    MonadTerminal m,
-    MonadTypedProcess m
+    MonadProcess m,
+    MonadTerminal m
   ) =>
   BatteryApp ->
   BatteryField ->

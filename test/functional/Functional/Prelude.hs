@@ -42,10 +42,10 @@ newtype FuncIO a = MkFuncIO (ReaderT (IORef Text) IO a)
       MonadFileReader,
       MonadOptparse,
       MonadPathReader,
+      MonadProcess,
       MonadIO,
       MonadTime,
-      MonadThrow,
-      MonadTypedProcess
+      MonadThrow
     )
     via (ReaderT (IORef Text) IO)
   deriving (MonadReader (IORef Text)) via (ReaderT (IORef Text) IO)

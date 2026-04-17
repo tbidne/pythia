@@ -40,8 +40,8 @@ import Pythia.Services.Memory.Types
 queryMemory ::
   ( HasCallStack,
     MonadPathReader m,
-    MonadThrow m,
-    MonadTypedProcess m
+    MonadProcess m,
+    MonadThrow m
   ) =>
   MemoryApp ->
   m SystemMemory

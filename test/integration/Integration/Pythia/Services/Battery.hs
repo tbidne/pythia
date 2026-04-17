@@ -12,10 +12,6 @@ import Effects.FileSystem.PathReader
       ),
   )
 import Effects.Optparse (MonadOptparse)
-import Effects.Process.Typed
-  ( ExitCode (ExitSuccess),
-    MonadTypedProcess (readProcess),
-  )
 import Effects.System.Environment (MonadEnv)
 import Integration.Prelude
 
@@ -97,8 +93,8 @@ instance MonadPathReader IntIO where
     | p == [osp|/sys/class/power_supply/BAT0/status|] = pure True
     | otherwise = pure False
 
-instance MonadTypedProcess IntIO where
-  readProcess pc = case cmd of
+instance MonadProcess IntIO where
+  readCreateProcessWithExitCode pc _ = case cmd of
     "Shell command: acpi" -> pure (ExitSuccess, "Battery 0: Charging, 75%", "")
     "Shell command: upower -i `upower -e | grep 'BAT'`" ->
       let output =
@@ -139,4 +135,4 @@ instance MonadTypedProcess IntIO where
        in pure (ExitSuccess, fromString output, "")
     bad -> error $ "Unexpected command: " <> bad
     where
-      cmd = processConfigToCmd pc
+      cmd = createProcessToCmd pc

@@ -112,10 +112,10 @@
                 "effects-fs"
                 "effects-ioref"
                 "effects-optparse"
+                "effects-process"
                 "effects-stm"
                 "effects-terminal"
                 "effects-time"
-                "effects-typed-process"
               ];
           };
           hlib = pkgs.haskell.lib;

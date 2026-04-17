@@ -170,9 +170,9 @@ unitsKey = "units"
 -- | @since 0.1
 handleMemory ::
   ( MonadPathReader m,
+    MonadProcess m,
     MonadTerminal m,
-    MonadThrow m,
-    MonadTypedProcess m
+    MonadThrow m
   ) =>
   MemoryApp ->
   MemoryField ->
